@@ -72,12 +72,11 @@ class _BoxyArtSearchInputState extends State<BoxyArtSearchInput> {
             Padding(
               padding: const EdgeInsets.only(left: AppSpacing.xs, bottom: AppSpacing.labelToCard),
               child: Text(
-                widget.label!.toUpperCase(),
+                widget.label!,
                 style: AppTypography.label.copyWith(
-                  color: Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha: AppColors.opacityHigh),
-                  fontSize: AppTypography.sizeMicro,
+                  color: Theme.of(context).textTheme.bodySmall?.color?.withOpacity(0.8),
                   fontWeight: AppTypography.weightBold,
-                  letterSpacing: 1.2,
+                  letterSpacing: 0.5,
                 ),
               ),
             ),

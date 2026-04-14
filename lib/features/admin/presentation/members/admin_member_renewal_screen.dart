@@ -210,8 +210,8 @@ class _AdminMemberRenewalScreenState extends ConsumerState<AdminMemberRenewalScr
 
     return HeadlessScaffold(
         title: 'Renewal Hub',
-        titleSuffix: BoxyArtPill.committee(label: 'ADMIN'),
         subtitle: 'Manage season renewals',
+        titleSuffix: BoxyArtPill.committee(label: 'ADMIN'),
         showBack: true,
         onBack: () => context.pop(),
         pinnedBottom: selectedIds.isNotEmpty
@@ -230,6 +230,7 @@ class _AdminMemberRenewalScreenState extends ConsumerState<AdminMemberRenewalScr
             tooltip: 'Renewal Settings',
             onPressed: () => _showRenewalSettings(context),
           ),
+          const SizedBox(width: AppSpacing.sm),
         ],
         slivers: [
 
@@ -261,7 +262,18 @@ class _AdminMemberRenewalScreenState extends ConsumerState<AdminMemberRenewalScr
 
               return SliverMainAxisGroup(
                 slivers: [
-                  // 1. Tab Bar Standardized
+                  // 1. Section Title (Double-Rhythm Baseline)
+                  const SliverToBoxAdapter(
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+                      child: BoxyArtSectionTitle(
+                        title: 'Renewal management',
+                        isPeeking: true,
+                      ),
+                    ),
+                  ),
+
+                  // 2. Tab Bar Standardized
                   SliverToBoxAdapter(
                     child: Padding(
                       padding: EdgeInsets.only(bottom: spacing?.cardToLabel ?? AppSpacing.cardToLabel),

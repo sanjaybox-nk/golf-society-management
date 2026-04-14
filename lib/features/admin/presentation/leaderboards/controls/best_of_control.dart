@@ -1,6 +1,7 @@
 import 'package:golf_society/design_system/design_system.dart';
 import 'package:golf_society/domain/models/leaderboard_config.dart';
 import 'package:uuid/uuid.dart';
+import 'base_leaderboard_control.dart';
 
 class BestOfSeriesControl extends StatefulWidget {
   final LeaderboardConfig? existingConfig;
@@ -12,7 +13,8 @@ class BestOfSeriesControl extends StatefulWidget {
   State<BestOfSeriesControl> createState() => _BestOfSeriesControlState();
 }
 
-class _BestOfSeriesControlState extends State<BestOfSeriesControl> {
+class _BestOfSeriesControlState extends State<BestOfSeriesControl>
+    with BaseLeaderboardControlMixin {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _nameController;
   late TextEditingController _bestNController;
@@ -21,6 +23,7 @@ class _BestOfSeriesControlState extends State<BestOfSeriesControl> {
   late ScoringType _scoringType;
   late TiePolicy _tiePolicy;
   late Map<int, int> _positionPoints;
+  bool _isSaving = false;
 
   @override
   void initState() {
@@ -28,29 +31,26 @@ class _BestOfSeriesControlState extends State<BestOfSeriesControl> {
     final config = widget.existingConfig as BestOfSeriesConfig?;
     _nameController = TextEditingController(text: config?.name ?? 'Best Of Series');
     _bestNController = TextEditingController(text: (config?.bestN ?? 8).toString());
-    _appearancePointsController = TextEditingController(text: (config?.appearancePoints ?? 0).toString());
-    
+    _appearancePointsController =
+        TextEditingController(text: (config?.appearancePoints ?? 0).toString());
+
     _metric = config?.metric ?? BestOfMetric.stableford;
-    // Map existing 'position' metric to new ScoringType if needed, otherwise default
     if (_metric == BestOfMetric.position) {
-       _metric = BestOfMetric.stableford; // Default to Stableford base
-       _scoringType = ScoringType.position;
+      _metric = BestOfMetric.stableford;
+      _scoringType = ScoringType.position;
     } else {
-       _scoringType = config?.scoringType ?? ScoringType.accumulative;
+      _scoringType = config?.scoringType ?? ScoringType.accumulative;
     }
 
     _tiePolicy = config?.tiePolicy ?? TiePolicy.countback;
 
-    // Initialize points map
     if (config?.positionPointsMap != null && config!.positionPointsMap.isNotEmpty) {
       _positionPoints = Map.from(config.positionPointsMap);
     } else {
       _positionPoints = {1: 100, 2: 75, 3: 60, 4: 50, 5: 40, 6: 30, 7: 20, 8: 10};
     }
 
-    _bestNController.addListener(() {
-      setState(() {});
-    });
+    _bestNController.addListener(() => setState(() {}));
   }
 
   @override
@@ -63,30 +63,32 @@ class _BestOfSeriesControlState extends State<BestOfSeriesControl> {
 
   @override
   Widget build(BuildContext context) {
-    // Filter out 'position' from Metric values to hide it, since we use ScoringType now
-    final displayMetrics = BestOfMetric.values.where((m) => m != BestOfMetric.position).toList();
+    final theme = Theme.of(context);
+    final displayMetrics =
+        BestOfMetric.values.where((m) => m != BestOfMetric.position).toList();
 
     return Form(
       key: _formKey,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const BoxyArtSectionTitle(title: 'Leaderboard details'),
+          // ── IDENTITY ─────────────────────────────────────────
+          const BoxyArtSectionTitle(title: 'LEADERBOARD DETAILS', isPeeking: true),
           BoxyArtCard(
-            padding: const EdgeInsets.all(AppSpacing.lg),
-            child: Column(
-              children: [
-                BoxyArtInputField(
-                  label: 'Name',
-                  controller: _nameController,
-                  validator: (v) => v!.isEmpty ? 'Required' : null,
-                ),
-              ],
+            padding: const EdgeInsets.all(AppSpacing.xl),
+            child: BoxyArtInputField(
+              label: 'Name',
+              controller: _nameController,
+              hint: 'e.g. Best of Series',
+              prefixIcon: Icon(Icons.list_alt_rounded),
+              validator: (v) => (v == null || v.isEmpty) ? 'Required' : null,
             ),
           ),
-          const SizedBox(height: AppSpacing.x2l),
-          const BoxyArtSectionTitle(title: 'League rules'),
+
+          // ── LEAGUE RULES ──────────────────────────────────────
+          const BoxyArtSectionTitle(title: 'LEAGUE RULES'),
           BoxyArtCard(
+            padding: const EdgeInsets.all(AppSpacing.xl),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -94,165 +96,109 @@ class _BestOfSeriesControlState extends State<BestOfSeriesControl> {
                   label: 'Count Best N Rounds',
                   controller: _bestNController,
                   keyboardType: TextInputType.number,
+                  prefixIcon: Icon(Icons.filter_list_rounded),
+                  validator: (v) {
+                    final n = int.tryParse(v ?? '');
+                    return (n == null || n < 1) ? 'Enter a number ≥ 1' : null;
+                  },
                 ),
+                buildInfoBubble('Only the top N scores will count toward the final total.'),
                 const SizedBox(height: AppSpacing.lg),
                 BoxyArtDropdownField<BestOfMetric>(
                   label: 'Metric',
                   value: _metric,
-                  items: displayMetrics.map((v) => DropdownMenuItem(
-                    value: v,
-                    child: Text(_formatEnum(v.name)),
-                  )).toList(),
+                  items: displayMetrics
+                      .map((v) => DropdownMenuItem(
+                            value: v,
+                            child: Text(formatEnum(v.name)),
+                          ))
+                      .toList(),
                   onChanged: (v) => setState(() => _metric = v!),
                 ),
                 const SizedBox(height: AppSpacing.lg),
                 BoxyArtDropdownField<ScoringType>(
                   label: 'Scoring Type',
                   value: _scoringType,
-                  items: ScoringType.values.map((v) => DropdownMenuItem(
-                    value: v,
-                    child: Text(_formatEnum(v.name)),
-                  )).toList(),
+                  items: ScoringType.values
+                      .map((v) => DropdownMenuItem(
+                            value: v,
+                            child: Text(formatEnum(v.name)),
+                          ))
+                      .toList(),
                   onChanged: (v) => setState(() => _scoringType = v!),
                 ),
-                _buildRuleDescription(),
+                buildInfoCard(_ruleRows()),
               ],
             ),
           ),
 
+          // ── POINTS DISTRIBUTION ───────────────────────────────
           if (_scoringType == ScoringType.position) ...[
-            const SizedBox(height: AppSpacing.x2l),
-            const BoxyArtSectionTitle(title: 'Points distribution'),
+            const BoxyArtSectionTitle(title: 'POINTS DISTRIBUTION'),
             BoxyArtCard(
-              padding: const EdgeInsets.all(AppSpacing.lg),
+              padding: const EdgeInsets.all(AppSpacing.xl),
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                   BoxyArtInputField(
-                    label: 'Appearance Points (Bonus per event)',
+                  BoxyArtInputField(
+                    label: 'Appearance Points (bonus per event)',
                     controller: _appearancePointsController,
                     keyboardType: TextInputType.number,
+                    prefixIcon: Icon(Icons.star_outline_rounded),
                   ),
                   const SizedBox(height: AppSpacing.lg),
-                  Divider(color: Theme.of(context).dividerColor.withValues(alpha: AppColors.opacityLow)),
+                  Divider(
+                      color: theme.dividerColor
+                          .withValues(alpha: AppColors.opacityLow)),
                   const SizedBox(height: AppSpacing.lg),
-                  ...(_positionPoints.entries.toList()..sort((a, b) => a.key.compareTo(b.key))).map((e) => _buildPointRow(e.key, e.value)),
+                  ...(_positionPoints.entries.toList()
+                      ..sort((a, b) => a.key.compareTo(b.key)))
+                      .map((e) => buildPointRow(
+                            position: e.key,
+                            points: e.value,
+                            onChanged: (pos, val) =>
+                                setState(() => _positionPoints[pos] = val),
+                            onRemove: (pos) =>
+                                setState(() => _positionPoints.remove(pos)),
+                          )),
                   const SizedBox(height: AppSpacing.lg),
-                  Center(
-                    child: BoxyArtButton(
-                      title: 'Add next position',
-                      onTap: _addNextPosition,
-                      isSecondary: true,
-                    ),
+                  buildAddButton(
+                    label: 'Add next position',
+                    onTap: _addNextPosition,
                   ),
                 ],
               ),
             ),
           ],
 
-          const SizedBox(height: AppSpacing.x2l),
-          Center(
-            child: BoxyArtButton(
-              title: 'Save changes',
-              onTap: _save,
-            ),
+          const SizedBox(height: AppSpacing.x4l),
+          BoxyArtButton(
+            title: widget.existingConfig == null ? 'Create leaderboard' : 'Save changes',
+            onTap: _isSaving ? null : _save,
+            isLoading: _isSaving,
+            fullWidth: true,
+            backgroundColor: Theme.of(context).primaryColor,
+            textColor: AppColors.pureWhite,
           ),
+          const SizedBox(height: AppSpacing.x4l),
         ],
       ),
     );
   }
 
-  Widget _buildPointRow(int position, int points) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: AppSpacing.md),
-      child: Row(
-        children: [
-          Expanded(
-            child: Text(
-              '${_ordinal(position)} Place',
-              style: AppTypography.label.copyWith(
-                color: Theme.of(context).brightness == Brightness.dark ? AppColors.dark150 : AppColors.dark400,
-              ),
-            ),
-          ),
-          SizedBox(
-            width: 80,
-            child: TextFormField(
-              initialValue: points.toString(),
-              keyboardType: TextInputType.number,
-              textAlign: TextAlign.center,
-              decoration: InputDecoration(
-                isDense: true,
-                contentPadding: const EdgeInsets.symmetric(vertical: AppSpacing.md, horizontal: AppSpacing.md),
-                fillColor: Theme.of(context).brightness == Brightness.dark ? AppColors.dark600 : AppColors.lightHeader,
-                filled: true,
-                border: OutlineInputBorder(
-                  borderRadius: AppShapes.sm,
-                  borderSide: BorderSide.none,
-                ),
-              ),
-              onChanged: (val) {
-                final newValue = int.tryParse(val);
-                if (newValue != null) {
-                  setState(() {
-                    _positionPoints[position] = newValue;
-                  });
-                }
-              },
-            ),
-          ),
-          const SizedBox(width: AppSpacing.sm),
-          Text('Pts', style: AppTypography.label.copyWith(fontSize: AppTypography.sizeCaption, color: AppColors.lime500)),
-          const SizedBox(width: AppSpacing.sm),
-          IconButton(
-            icon: const Icon(Icons.close, size: AppShapes.iconSm, color: AppColors.textSecondary),
-            onPressed: () => setState(() => _positionPoints.remove(position)),
-            visualDensity: VisualDensity.compact,
-          )
-        ],
-      ),
-    );
-  }
-
-  void _addNextPosition() {
-    int nextPos = 1;
-    if (_positionPoints.isNotEmpty) {
-      final maxPos = _positionPoints.keys.reduce((curr, next) => curr > next ? curr : next);
-      nextPos = maxPos + 1;
-    }
-    setState(() {
-      _positionPoints[nextPos] = 0;
-    });
-  }
-
-  String _ordinal(int n) {
-    if (n >= 11 && n <= 13) return '${n}th';
-    switch (n % 10) {
-      case 1: return '${n}st';
-      case 2: return '${n}nd';
-      case 3: return '${n}rd';
-      default: return '${n}th';
-    }
-  }
-
-  Widget _buildRuleDescription() {
+  List<(String, String)> _ruleRows() {
+    final bestN = _bestNController.text;
     String goal = '';
     String scoring = '';
     String result = '';
-    String tie = '';
-    final bestN = _bestNController.text;
 
     if (_scoringType == ScoringType.position) {
-       goal = 'Highest Position Points (Best $bestN).';
-       scoring = 'Sum of points from best $bestN finishes.';
-       if (_metric == BestOfMetric.stableford) {
-           goal += ' (Based on Stableford rank)';
-       } else if (_metric == BestOfMetric.gross) {
-           goal += ' (Based on Gross rank)';
-       }
-       result = 'Highest total points wins.';
+      final basis = _metric == BestOfMetric.stableford ? 'Stableford rank' : 'Gross rank';
+      goal = 'Highest Position Points (Best $bestN) — based on $basis.';
+      scoring = 'Sum of points from best $bestN finishes.';
+      result = 'Highest total points wins.';
     } else {
-        // Accumulative
-        switch (_metric) {
+      switch (_metric) {
         case BestOfMetric.stableford:
           goal = 'Highest Stableford points (Best $bestN).';
           scoring = 'Sum of best $bestN rounds.';
@@ -273,82 +219,48 @@ class _BestOfSeriesControlState extends State<BestOfSeriesControl> {
       }
     }
 
-    // Tie policy text
-    if (_tiePolicy == TiePolicy.countback) {
-      tie = 'Countback on last card.';
-    } else if (_tiePolicy == TiePolicy.shared) {
-      tie = 'Position shared.';
-    } else {
-      tie = 'Playoff required.';
+    final tieText = _tiePolicy == TiePolicy.countback
+        ? 'Countback on last card.'
+        : _tiePolicy == TiePolicy.shared
+            ? 'Position shared.'
+            : 'Playoff required.';
+
+    return [
+      ('Goal', goal),
+      ('Scoring', scoring),
+      ('Result', result),
+      ('Tie-Break', tieText),
+    ];
+  }
+
+  void _addNextPosition() {
+    int nextPos = 1;
+    if (_positionPoints.isNotEmpty) {
+      final maxPos =
+          _positionPoints.keys.reduce((curr, next) => curr > next ? curr : next);
+      nextPos = maxPos + 1;
     }
-
-    return Container(
-      margin: const EdgeInsets.only(top: AppSpacing.x2l),
-      padding: const EdgeInsets.all(AppSpacing.lg),
-      decoration: BoxDecoration(
-        color: Theme.of(context).brightness == Brightness.dark ? AppColors.dark600 : AppColors.lime500.withValues(alpha: AppColors.opacitySubtle),
-        borderRadius: AppShapes.md,
-      ),
-      child: Column(
-        children: [
-           _buildInfoRow('Goal', goal),
-           const SizedBox(height: AppSpacing.sm),
-           _buildInfoRow('Scoring', scoring),
-           const SizedBox(height: AppSpacing.sm),
-           _buildInfoRow('Result', result),
-           const SizedBox(height: AppSpacing.sm),
-           _buildInfoRow('Tie-Break', tie),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildInfoRow(String label, String value) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        SizedBox(
-          width: 90, 
-          child: Text(
-            label.toUpperCase(), 
-            style: AppTypography.micro.copyWith(
-              color: AppColors.lime500,
-            )
-          )
-        ),
-        Expanded(
-          child: Text(
-            value, 
-            style: AppTypography.body.copyWith(
-              color: Theme.of(context).brightness == Brightness.dark ? AppColors.dark150 : AppColors.dark700,
-            )
-          )
-        ),
-      ],
-    );
-  }
-
-
-  String _formatEnum(String val) {
-    final RegExp exp = RegExp(r'(?<=[a-z])[A-Z]');
-    String result = val.replaceAllMapped(exp, (Match m) => ' ${m.group(0)}');
-    return result[0].toUpperCase() + result.substring(1);
+    setState(() => _positionPoints[nextPos] = 0);
   }
 
   void _save() {
     if (!_formKey.currentState!.validate()) return;
-    
+
+    setState(() => _isSaving = true);
+
     final config = LeaderboardConfig.bestOfSeries(
       id: widget.existingConfig?.id ?? const Uuid().v4(),
-      name: _nameController.text,
+      name: _nameController.text.trim(),
       bestN: int.parse(_bestNController.text),
       metric: _metric,
       scoringType: _scoringType,
       tiePolicy: TiePolicy.shared,
-      positionPointsMap: _scoringType == ScoringType.position ? _positionPoints : {},
-      appearancePoints: int.tryParse(_appearancePointsController.text) ?? 0,
+      positionPointsMap:
+          _scoringType == ScoringType.position ? _positionPoints : {},
+      appearancePoints:
+          int.tryParse(_appearancePointsController.text) ?? 0,
     );
-    
+
     widget.onSave(config);
   }
 }

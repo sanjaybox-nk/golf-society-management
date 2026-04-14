@@ -79,7 +79,14 @@ class _AdminGroupingHubContentState extends ConsumerState<AdminGroupingHubConten
         // Derive Matchplay Mode from Competition Rules
         final bool matchPlayMode = comp?.rules.format == CompetitionFormat.matchPlay;
 
-        // Initialize if needed
+        // Initialize grouping strategy and existing groups if needed
+        final currentStrategy = ref.watch(groupingStrategyProvider);
+        if (event.groupingStrategy != null && currentStrategy == 'random' && event.groupingStrategy != 'random') {
+           Future.microtask(() => ref.read(groupingStrategyProvider.notifier).set(event.groupingStrategy!));
+        } else if (event.groupingStrategy == null && currentStrategy == 'random' && config.groupingStrategy != 'random') {
+           Future.microtask(() => ref.read(groupingStrategyProvider.notifier).set(config.groupingStrategy));
+        }
+
         if (localGroups == null && event.grouping.containsKey('groups')) {
             localGroups = (event.grouping['groups'] as List)
                 .map((g) => TeeGroup.fromJson(g))
@@ -124,10 +131,11 @@ class _AdminGroupingHubContentState extends ConsumerState<AdminGroupingHubConten
     }
 
     final newGroups = GroupingService.generateInitialGrouping(
-      event: event, // Uses teeOffTime and teeOffInterval directly from event
+      event: event, 
       participants: participants,
-      previousEventsInSeason: allEvents.where((e) => e.id != event.id).toList(),
+      previousEventsInSeason: allEvents,
       memberHandicaps: handicapMap,
+      config: ref.read(themeControllerProvider),
       strategy: strategy,
     );
 
@@ -143,6 +151,7 @@ class _AdminGroupingHubContentState extends ConsumerState<AdminGroupingHubConten
     if (groups == null) return;
 
     final updatedEvent = event.copyWith(
+      groupingStrategy: ref.read(groupingStrategyProvider),
       grouping: {
         ...event.grouping,
         'groups': groups.map((g) => g.toJson()).toList(),
@@ -254,6 +263,8 @@ class _AdminGroupingHubContentState extends ConsumerState<AdminGroupingHubConten
          isGuest: p.isGuest,
          allMembers: ref.read(allMembersProvider).value ?? [],
          useWhs: ref.read(themeControllerProvider).useWhsHandicaps,
+         config: ref.read(themeControllerProvider),
+         previousEvents: ref.read(adminEventsProvider).value ?? [],
          rules: ref.read(competitionDetailProvider(event.id)).value?.rules,
        );
 

@@ -5,6 +5,7 @@ import 'package:golf_society/domain/models/golf_event.dart';
 import 'package:golf_society/features/events/presentation/events_provider.dart';
 import 'package:golf_society/features/members/presentation/members_provider.dart';
 import 'package:golf_society/domain/grouping/grouping_service.dart';
+import 'package:golf_society/domain/models/society_config.dart';
 
 class EventManualCutsScreen extends ConsumerStatefulWidget {
   final String eventId;
@@ -101,10 +102,14 @@ class _EventManualCutsScreenState extends ConsumerState<EventManualCutsScreen> {
         // Filter participants who are actually golfing
         final participants = event.registrations.where((r) => r.attendingGolf).toList();
 
+        final config = ref.watch(themeControllerProvider);
+        final isManualMode = config.societyCutMode == SocietyCutMode.manual;
+        final spacing = Theme.of(context).extension<AppSpacingTokens>();
+
         return HeadlessScaffold(
           title: 'Manual Cuts',
-          titleSuffix: BoxyArtPill.committee(label: 'ADMIN'),
           subtitle: event.title,
+          titleSuffix: BoxyArtPill.committee(label: 'ADMIN'),
           showBack: true,
           onBack: () {
             if (GoRouter.of(context).canPop()) {
@@ -115,76 +120,89 @@ class _EventManualCutsScreenState extends ConsumerState<EventManualCutsScreen> {
           },
 
           actions: [
-            if (_isSaving)
-              const Padding(
-                padding: EdgeInsets.only(right: AppSpacing.lg),
-                child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
-              )
-            else
-              Padding(
-                padding: const EdgeInsets.only(right: AppSpacing.md),
-                child: BoxyArtGlassIconButton(
-                  icon: Icons.check_rounded,
-                  onPressed: () => _save(event),
+            const SizedBox(width: AppSpacing.md),
+            if (isManualMode) ...[
+              if (_isSaving)
+                const Padding(
+                  padding: EdgeInsets.only(right: AppSpacing.lg),
+                  child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
+                )
+              else
+                Padding(
+                  padding: const EdgeInsets.only(right: AppSpacing.md),
+                  child: BoxyArtGlassIconButton(
+                    icon: Icons.check_rounded,
+                    onPressed: () => _save(event),
+                  ),
                 ),
-              ),
+            ],
           ],
           slivers: [
             SliverPadding(
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.xl),
+              padding: EdgeInsets.symmetric(
+                horizontal: spacing?.cardHorizontalPadding ?? AppSpacing.lg, 
+                vertical: spacing?.cardVerticalPadding ?? AppSpacing.xl,
+              ),
               sliver: SliverList(
                 delegate: SliverChildListDelegate([
-                  // 1. Search Bar (3.1 Style)
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: AppSpacing.x2l),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.xs),
-                      decoration: BoxDecoration(
-                        color: isDark ? AppColors.dark600 : AppColors.lightHeader,
-                        borderRadius: BorderRadius.circular(AppShapes.rLg),
-                        border: Border.all(
-                          color: isDark ? AppColors.dark500 : AppColors.lightBorder,
-                          width: 1,
-                        ),
-                      ),
-                      child: TextField(
-                        controller: _searchController,
-                        style: AppTypography.body.copyWith(
-                          color: isDark ? AppColors.dark60 : const Color(0xFF1A1A1A),
-                        ),
-                        decoration: InputDecoration(
-                          hintText: 'Search by name...',
-                          hintStyle: AppTypography.body.copyWith(
-                            color: isDark ? AppColors.dark400 : AppColors.dark300,
+                  if (!isManualMode) ...[
+                    BoxyArtEmptyCard(
+                      title: 'Manual Overrides Disabled',
+                      message: 'This society is currently using ${config.societyCutMode.name.toUpperCase()} cuts. Individual event-level overrides are disabled.\n\nTo enable manual adjustments, change the cut mode to "Manual" in the Admin Console (Dashboard > Operations).',
+                      icon: Icons.lock_person_outlined,
+                    ),
+                  ] else ...[
+                    // 1. Search Bar (3.1 Style)
+                    Padding(
+                      padding: EdgeInsets.only(bottom: spacing?.cardToLabel ?? AppSpacing.x2l),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.xs),
+                        decoration: BoxDecoration(
+                          color: isDark ? AppColors.dark600 : AppColors.lightHeader,
+                          borderRadius: BorderRadius.circular(AppShapes.rLg),
+                          border: Border.all(
+                            color: isDark ? AppColors.dark500 : AppColors.lightBorder,
+                            width: 1,
                           ),
-                          prefixIcon: Icon(
-                            Icons.search_rounded,
-                            size: AppShapes.iconMd,
-                            color: isDark ? AppColors.dark200 : AppColors.dark300,
-                          ),
-                          border: InputBorder.none,
-                          isDense: true,
-                          contentPadding: const EdgeInsets.symmetric(vertical: 14),
                         ),
-                        onChanged: (val) => setState(() => _searchQuery = val.toLowerCase()),
+                        child: TextField(
+                          controller: _searchController,
+                          style: AppTypography.body.copyWith(
+                            color: isDark ? AppColors.dark60 : const Color(0xFF1A1A1A),
+                          ),
+                          decoration: InputDecoration(
+                            hintText: 'Search by name...',
+                            hintStyle: AppTypography.body.copyWith(
+                              color: isDark ? AppColors.dark400 : AppColors.dark300,
+                            ),
+                            prefixIcon: Icon(
+                              Icons.search_rounded,
+                              size: AppShapes.iconMd,
+                              color: isDark ? AppColors.dark200 : AppColors.dark300,
+                            ),
+                            border: InputBorder.none,
+                            isDense: true,
+                            contentPadding: const EdgeInsets.symmetric(vertical: 14),
+                          ),
+                          onChanged: (val) => setState(() => _searchQuery = val.toLowerCase()),
+                        ),
                       ),
                     ),
-                  ),
 
-                  // 2. Info Text (3.1 subtext)
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: AppSpacing.x2l, left: AppSpacing.xs),
-                    child: Text(
-                      'Assign individual shot adjustments for this specific event. Negative values act as a handicap cut.',
-                      style: AppTypography.subtext.copyWith(
-                        color: isDark ? AppColors.dark300 : AppColors.dark400,
-                        height: 1.4,
+                    // 2. Info Text (3.1 subtext)
+                    Padding(
+                      padding: EdgeInsets.only(bottom: spacing?.cardToLabel ?? AppSpacing.x2l, left: AppSpacing.xs),
+                      child: Text(
+                        'Assign individual shot adjustments for this specific event. Negative values act as a handicap cut.',
+                        style: AppTypography.subtext.copyWith(
+                          color: isDark ? AppColors.dark300 : AppColors.dark400,
+                          height: 1.4,
+                        ),
                       ),
                     ),
-                  ),
 
-                  // 3. Participant List
-                  ...participants.where((p) => p.memberName.toLowerCase().contains(_searchQuery)).map((reg) {
+                    // 3. Participant List
+                    ...participants.where((p) => p.memberName.toLowerCase().contains(_searchQuery)).map((reg) {
                       final member = membersAsync.whenOrNull(data: (list) => list.where((m) => m.id == reg.memberId).firstOrNull);
                       final controller = _controllers.putIfAbsent(
                         reg.memberId,
@@ -250,7 +268,8 @@ class _EventManualCutsScreenState extends ConsumerState<EventManualCutsScreen> {
                       );
                   }),
                   const SizedBox(height: AppSpacing.x6l),
-                ]),
+                ],
+              ]),
               ),
             ),
           ],

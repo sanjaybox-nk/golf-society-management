@@ -1,0 +1,33 @@
+Analyzing Golf Society Management...                            
+
+warning • The value of the local variable 'theme' isn't used • lib/features/admin/presentation/admin_dashboard_screen.dart:154:11 • unused_local_variable
+   info • Unnecessary 'const' keyword • lib/features/admin/presentation/events/event_field_admin_screen.dart:35:30 • unnecessary_const
+   info • The import of 'package:flutter/material.dart' is unnecessary because all of the used elements are also provided by the import of 'package:golf_society/design_system/design_system.dart' • lib/features/admin/presentation/notifications/distribution_list_modal.dart:2:8 • unnecessary_import
+warning • Unused import: 'package:golf_society/domain/models/member.dart' • lib/features/admin/presentation/notifications/distribution_list_modal.dart:6:8 • unused_import
+warning • Unused import: 'distribution_list_provider.dart' • lib/features/admin/presentation/notifications/distribution_list_modal.dart:8:8 • unused_import
+   info • The import of 'package:flutter/material.dart' is unnecessary because all of the used elements are also provided by the import of '../../../../design_system/design_system.dart' • lib/features/admin/presentation/settings/app_appearance_screen.dart:1:8 • unnecessary_import
+warning • The value of the local variable 'spacing' isn't used • lib/features/admin/presentation/settings/app_appearance_screen.dart:14:11 • unused_local_variable
+   info • The import of 'package:flutter/material.dart' is unnecessary because all of the used elements are also provided by the import of '../../../../design_system/design_system.dart' • lib/features/admin/presentation/settings/society_identity_screen.dart:1:8 • unnecessary_import
+warning • The value of the local variable 'spacing' isn't used • lib/features/admin/presentation/settings/society_identity_screen.dart:14:11 • unused_local_variable
+   info • The import of 'package:flutter/material.dart' is unnecessary because all of the used elements are also provided by the import of '../../../../../design_system/design_system.dart' • lib/features/admin/presentation/settings/widgets/logo_picker.dart:1:8 • unnecessary_import
+   info • The import of 'package:flutter/material.dart' is unnecessary because all of the used elements are also provided by the import of '../../../../../design_system/design_system.dart' • lib/features/admin/presentation/settings/widgets/theme_mode_tile.dart:1:8 • unnecessary_import
+   info • 'groupValue' is deprecated and shouldn't be used. Use a RadioGroup ancestor to manage group value instead. This feature was deprecated after v3.32.0-0.0.pre • lib/features/admin/presentation/settings/widgets/theme_mode_tile.dart:50:15 • deprecated_member_use
+   info • 'onChanged' is deprecated and shouldn't be used. Use RadioGroup to handle value change instead. This feature was deprecated after v3.32.0-0.0.pre • lib/features/admin/presentation/settings/widgets/theme_mode_tile.dart:51:15 • deprecated_member_use
+warning • The value of the local variable 'spacing' isn't used • lib/features/events/presentation/widgets/event_leaderboard.dart:39:11 • unused_local_variable
+warning • The declaration '_buildSubtleNavButton' isn't referenced • lib/features/events/presentation/widgets/hole_by_hole_scoring_widget.dart:467:10 • unused_element
+warning • A value for optional parameter 'isPrimary' isn't ever given • lib/features/events/presentation/widgets/hole_by_hole_scoring_widget.dart:467:120 • unused_element_parameter
+   info • The import of 'package:golf_society/design_system/widgets/metrics.dart' is unnecessary because all of the used elements are also provided by the import of 'package:golf_society/design_system/design_system.dart' • lib/features/events/presentation/widgets/registration_stats_card.dart:4:8 • unnecessary_import
+warning • The value of the local variable 'vPadding' isn't used • lib/features/events/presentation/widgets/registration_stats_card.dart:60:18 • unused_local_variable
+warning • The value of the local variable 'hPadding' isn't used • lib/features/events/presentation/widgets/registration_stats_card.dart:61:18 • unused_local_variable
+   info • The import of 'package:flutter/material.dart' is unnecessary because all of the used elements are also provided by the import of 'package:golf_society/design_system/design_system.dart' • lib/features/home/presentation/widgets/home_welcome_hero.dart:1:8 • unnecessary_import
+warning • The value of the local variable 'theme' isn't used • lib/features/home/presentation/widgets/home_welcome_hero.dart:20:11 • unused_local_variable
+warning • The value of the local variable 'primaryColor' isn't used • lib/features/home/presentation/widgets/home_welcome_hero.dart:22:11 • unused_local_variable
+warning • The value of the local variable 'isBio' isn't used • lib/features/members/presentation/member_details_modal.dart:590:11 • unused_local_variable
+warning • The value of the local variable 'theme' isn't used • lib/features/members/presentation/members_screen.dart:108:27 • unused_local_variable
+warning • Unused import: 'package:csv/csv.dart' • lib/utils/csv_export_service.dart:3:8 • unused_import
+warning • The library 'package:csv/csv.dart' doesn't export a member with the shown name 'ListToCsvConverter' • lib/utils/csv_export_service.dart:3:36 • undefined_shown_name
+  error • The method 'ListToCsvConverter' isn't defined for the type 'CsvExportService' • lib/utils/csv_export_service.dart:70:22 • undefined_method
+   info • 'Share' is deprecated and shouldn't be used. Use SharePlus instead • lib/utils/csv_export_service.dart:76:11 • deprecated_member_use
+   info • 'shareXFiles' is deprecated and shouldn't be used. Use SharePlus.instance.share() instead • lib/utils/csv_export_service.dart:76:17 • deprecated_member_use
+
+29 issues found. (ran in 13.5s)

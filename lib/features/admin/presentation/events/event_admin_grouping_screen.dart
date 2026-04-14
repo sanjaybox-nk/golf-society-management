@@ -16,7 +16,8 @@ import 'package:golf_society/domain/models/society_config.dart';
 import '../../../competitions/presentation/competitions_provider.dart';
 import '../../../events/presentation/widgets/grouping_widgets.dart';
 import '../../../matchplay/domain/match_definition.dart';
-import '../../../matchplay/domain/golf_event_match_extensions.dart'; 
+import '../../../matchplay/domain/golf_event_match_extensions.dart';
+import '../../logic/society_cuts_engine.dart';
 
 class EventAdminGroupingScreen extends ConsumerStatefulWidget {
   final String eventId;
@@ -140,14 +141,23 @@ class _EventAdminGroupingScreenState extends ConsumerState<EventAdminGroupingScr
                   } else {
                      rawHandicap = handicapMap[item.registration.memberId] ?? 28.0;
                   }
-
                   final double playingHandicap;
                   if (comp?.rules != null) {
+                    final double automatedCut = (config.societyCutMode == SocietyCutMode.global)
+                      ? SocietyCutsEngine.calculateActiveCut(
+                          memberId: item.registration.memberId,
+                          allEvents: history,
+                          config: config,
+                          relativeTo: event.date,
+                        ).totalCut
+                      : 0.0;
+                    
                     playingHandicap = HandicapCalculator.calculatePlayingHandicap(
                       handicapIndex: rawHandicap,
                       rules: comp!.rules,
                       courseConfig: event.courseConfig,
                       useWhs: config.useWhsHandicaps,
+                      societyCut: (event.manualCuts[item.registration.memberId] ?? 0.0) + automatedCut,
                     ).toDouble();
                   } else {
                     playingHandicap = rawHandicap;
@@ -184,7 +194,6 @@ class _EventAdminGroupingScreenState extends ConsumerState<EventAdminGroupingScr
           children: [
             HeadlessScaffold(
               title: 'Grouping',
-              titleSuffix: BoxyArtPill.committee(label: 'ADMIN'),
               subtitleWidget: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -201,6 +210,8 @@ class _EventAdminGroupingScreenState extends ConsumerState<EventAdminGroupingScr
                   _buildToolbar(event, events, handicapMap, comp, config),
                 ],
               ),
+
+              titleSuffix: BoxyArtPill.committee(label: 'ADMIN'),
 
               showBack: true,
               onBack: () async {
@@ -243,6 +254,7 @@ class _EventAdminGroupingScreenState extends ConsumerState<EventAdminGroupingScr
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (err, _) => HeadlessScaffold(
         title: 'Error',
+        titleSuffix: BoxyArtPill.committee(label: 'ADMIN'),
         showBack: true,
         slivers: [
           SliverFillRemaining(
@@ -866,10 +878,11 @@ class _EventAdminGroupingScreenState extends ConsumerState<EventAdminGroupingScr
       _localGroups = GroupingService.generateInitialGrouping(
         event: event, 
         participants: participants, 
-        previousEventsInSeason: previousInSeason,
+        previousEventsInSeason: allEvents,
         memberHandicaps: handicapMap,
         prioritizeBuggyPairing: prioritizeBuggyPairing,
         strategy: strategy,
+        config: config,
         rules: rules,
         useWhs: config.useWhsHandicaps,
       );
@@ -890,6 +903,15 @@ class _EventAdminGroupingScreenState extends ConsumerState<EventAdminGroupingScr
             rawHandicap = handicapMap[player.registrationMemberId] ?? player.handicapIndex;
           }
 
+          final double automatedCut = (ref.read(themeControllerProvider).societyCutMode == SocietyCutMode.global)
+            ? SocietyCutsEngine.calculateActiveCut(
+                memberId: player.registrationMemberId,
+                allEvents: ref.read(adminEventsProvider).value?.where((e) => e.date.isBefore(event.date)).toList() ?? [],
+                config: ref.read(themeControllerProvider),
+                relativeTo: event.date,
+              ).totalCut
+            : 0.0;
+
           final double newPlayingHandicap;
           if (rules != null) {
             newPlayingHandicap = HandicapCalculator.calculatePlayingHandicap(
@@ -897,6 +919,7 @@ class _EventAdminGroupingScreenState extends ConsumerState<EventAdminGroupingScr
               rules: rules,
               courseConfig: event.courseConfig,
               useWhs: useWhs,
+              societyCut: (event.manualCuts[player.registrationMemberId] ?? 0.0) + automatedCut,
             ).toDouble();
           } else {
             newPlayingHandicap = rawHandicap;
@@ -1033,16 +1056,13 @@ class _EventAdminGroupingScreenState extends ConsumerState<EventAdminGroupingScr
 
   Future<void> _togglePublish(GolfEvent event) async {
     if (!event.isRegistrationClosed && !event.isGroupingPublished) {
-      final confirm = await showDialog<bool>(
+      final confirm = await showBoxyArtDialog<bool>(
         context: context,
-        builder: (context) => AlertDialog(
-          title: const Text('Registration Still Open'),
-          content: const Text('Registration for this event is still open. Publishing the grouping now might lead to confusion if more members join or withdraw. Proceed anyway?'),
-          actions: [
-            TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
-            TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Publish Anyway')),
-          ],
-        ),
+        title: 'Registration Still Open',
+        message: 'Registration for this event is still open. Publishing the grouping now might lead to confusion if more members join or withdraw. Proceed anyway?',
+        confirmText: 'Publish Anyway',
+        onConfirm: () => Navigator.of(context, rootNavigator: true).pop(true),
+        onCancel: () => Navigator.of(context, rootNavigator: true).pop(false),
       );
       if (confirm != true) return;
     }

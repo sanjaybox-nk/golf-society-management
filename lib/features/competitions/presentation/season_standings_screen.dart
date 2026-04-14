@@ -31,18 +31,35 @@ class _SeasonStandingsScreenState extends ConsumerState<SeasonStandingsScreen> {
     return activeSeasonAsync.when(
       data: (season) {
         if (season == null) {
-          return const Scaffold(body: Center(child: Text('No active season found')));
+          return const HeadlessScaffold(
+            title: 'Standings',
+            showBack: true,
+            slivers: [
+              SliverFillRemaining(
+                child: BoxyArtEmptyCard(
+                  title: 'No Season Found',
+                  message: 'No active season is currently configured.',
+                  icon: Icons.leaderboard_rounded,
+                ),
+              ),
+            ],
+          );
         }
         
         if (season.leaderboards.isEmpty) {
-           return Scaffold(
-            backgroundColor: beigeBackground,
-            body: Stack(
-              children: [
-                _buildHeader(context, season),
-                const Center(child: Text('No leaderboards configured')),
-              ],
-            ),
+           return HeadlessScaffold(
+            title: '${season.year} Standings',
+            subtitle: season.name.toUpperCase(),
+            showBack: true,
+            slivers: const [
+              SliverFillRemaining(
+                child: BoxyArtEmptyCard(
+                  title: 'No Standings',
+                  message: 'No leaderboards have been configured for this season yet.',
+                  icon: Icons.leaderboard_rounded,
+                ),
+              ),
+            ],
            );
         }
 
@@ -106,7 +123,11 @@ class _SeasonStandingsScreenState extends ConsumerState<SeasonStandingsScreen> {
                               boxShadow: Theme.of(context).extension<AppShadows>()?.softScale ?? [],
                             ),
                             child: IconButton(
-                              icon: Icon(Icons.arrow_back_rounded, size: AppShapes.iconMd, color: Colors.black.withValues(alpha: 0.87)),
+                              icon: Icon(
+                                Icons.arrow_back_rounded, 
+                                size: AppShapes.iconMd, 
+                                color: (Theme.of(context).brightness == Brightness.dark ? AppColors.pureWhite : AppColors.dark900).withValues(alpha: AppColors.opacityStrong)
+                              ),
                               onPressed: () => Navigator.pop(context),
                             ),
                           ),
@@ -119,8 +140,34 @@ class _SeasonStandingsScreenState extends ConsumerState<SeasonStandingsScreen> {
             ),
           );
       },
-      loading: () => Scaffold(backgroundColor: beigeBackground, body: const Center(child: CircularProgressIndicator())),
-      error: (e, s) => Scaffold(backgroundColor: beigeBackground, body: Center(child: Text('Error: $e'))),
+      loading: () => HeadlessScaffold(
+        title: 'Season Standings',
+        showBack: true,
+        slivers: const [
+          SliverPadding(
+            padding: EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+            sliver: SliverToBoxAdapter(
+              child: BoxyArtLoadingCard(useCard: true),
+            ),
+          ),
+        ],
+      ),
+      error: (e, s) => HeadlessScaffold(
+        title: 'Season Standings',
+        showBack: true,
+        slivers: [
+          SliverPadding(
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+            sliver: SliverToBoxAdapter(
+              child: BoxyArtEmptyCard(
+                title: 'Leaderboard Error',
+                message: e.toString(),
+                icon: Icons.error_outline_rounded,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -242,8 +289,19 @@ class _LeaderboardTab extends ConsumerWidget {
           ],
         );
       },
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (e, s) => Center(child: Text('Error loading standings: $e', style: const TextStyle(color: AppColors.coral500))),
+      loading: () => const SliverPadding(
+        padding: EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+        sliver: SliverToBoxAdapter(
+          child: BoxyArtLoadingCard(useCard: false),
+        ),
+      ),
+      error: (e, s) => SliverToBoxAdapter(
+        child: BoxyArtEmptyState(
+          title: 'Standings Error',
+          message: e.toString(),
+          icon: Icons.error_outline_rounded,
+        ),
+      ),
     );
   }
 
@@ -358,7 +416,9 @@ class _PodiumSpot extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final primary = Theme.of(context).primaryColor;
-    final Color rankColor = rank == 1 ? AppColors.amber500 : (rank == 2 ? AppColors.textSecondary : Colors.brown);
+    final Color rankColor = rank == 1 
+      ? AppColors.amber500 
+      : (rank == 2 ? AppColors.dark400 : AppColors.actionMidnight.withValues(alpha: AppColors.opacityHigh));
 
     return Column(
       mainAxisAlignment: MainAxisAlignment.end,
@@ -494,7 +554,7 @@ class _StandingRow extends StatelessWidget {
       isScrollControlled: true,
       // Use branch navigator so the global bottom nav bar stays visible behind the sheet.
       useRootNavigator: false,
-      backgroundColor: Colors.transparent,
+      backgroundColor: AppColors.pureWhite.withValues(alpha: 0),
       builder: (context) => _StandingDetailSheet(standing: standing),
     );
   }
@@ -633,7 +693,7 @@ class PointsBreakdownWidget extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: isCounting ? AppColors.amber500.withValues(alpha: AppColors.opacityLow) : AppColors.textSecondary.withValues(alpha: AppColors.opacitySubtle),
                   borderRadius: AppShapes.sm,
-                  border: Border.all(color: isCounting ? AppColors.amber500.withValues(alpha: AppColors.opacityMuted) : Colors.transparent),
+                  border: Border.all(color: isCounting ? AppColors.amber500.withValues(alpha: AppColors.opacityMuted) : AppColors.pureWhite.withValues(alpha: 0)),
                 ),
                 child: Text(
                   p.toStringAsFixed(0),

@@ -69,72 +69,72 @@ class _MatchPlayControlState extends BaseCompetitionControlState<MatchPlayContro
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // ── MATCH FORMAT ──────────────────────────────────────
-        const BoxyArtSectionTitle(title: 'Match format'),
-        const SizedBox(height: AppSpacing.lg),
-
-        BoxyArtDropdownField<CompetitionSubtype>(
-          label: 'Format',
-          value: effectiveSubtype,
-          items: const [
-            DropdownMenuItem(value: CompetitionSubtype.none, child: Text('Singles Match Play')),
-            DropdownMenuItem(value: CompetitionSubtype.ryderCup, child: Text('Ryder Cup (Team)')),
-            DropdownMenuItem(value: CompetitionSubtype.teamMatchPlay, child: Text('Team Match Play')),
-          ],
-          onChanged: (val) {
-            if (val != null) {
-              setState(() {
-                _subtype = val;
-                _updateDefaultAllowance();
-              });
-            }
-          },
+        const BoxyArtSectionTitle(title: 'MATCH FORMAT'),
+        BoxyArtCard(
+          padding: const EdgeInsets.all(AppSpacing.xl),
+          child: Column(
+            children: [
+              BoxyArtDropdownField<CompetitionSubtype>(
+                label: 'Format',
+                value: effectiveSubtype,
+                items: const [
+                  DropdownMenuItem(value: CompetitionSubtype.none, child: Text('Singles Match Play')),
+                  DropdownMenuItem(value: CompetitionSubtype.ryderCup, child: Text('Ryder Cup (Team)')),
+                  DropdownMenuItem(value: CompetitionSubtype.teamMatchPlay, child: Text('Team Match Play')),
+                ],
+                onChanged: (val) {
+                  if (val != null) {
+                    setState(() {
+                      _subtype = val;
+                      _updateDefaultAllowance();
+                    });
+                  }
+                },
+              ),
+              buildInfoBubble(_getFormatDescription(effectiveSubtype)),
+              const BoxyArtDivider(),
+              buildInfoCard(_getFormatRules(effectiveSubtype)),
+            ],
+          ),
         ),
-        buildInfoBubble(_getFormatDescription(effectiveSubtype)),
-        const SizedBox(height: AppSpacing.lg),
-
-        // Format info card
-        buildInfoCard(_getFormatRules(effectiveSubtype)),
-
-        const SizedBox(height: AppSpacing.x2l),
-        const Divider(height: 1),
-        const SizedBox(height: AppSpacing.x2l),
 
         // ── HANDICAP ──────────────────────────────────────────
-        const BoxyArtSectionTitle(title: 'Handicap'),
-        const SizedBox(height: AppSpacing.lg),
-
-        buildAllowanceSlider(
-          _allowance,
-          (val) => setState(() => _allowance = val),
-          hint: 'Fraction of the handicap difference given as stroke allowance.',
+        const BoxyArtSectionTitle(title: 'HANDICAP'),
+        BoxyArtCard(
+          padding: const EdgeInsets.all(AppSpacing.xl),
+          child: Column(
+            children: [
+              buildAllowanceSlider(
+                _allowance,
+                (val) => setState(() => _allowance = val),
+                hint: 'Fraction of the handicap difference given as stroke allowance.',
+              ),
+              const BoxyArtDivider(),
+              buildCapSlider(_handicapCap, (val) => setState(() => _handicapCap = val)),
+              buildInfoBubble('0 = no cap. 1–54 limits the playing handicap.'),
+            ],
+          ),
         ),
-        const SizedBox(height: AppSpacing.x2l),
-
-        buildCapSlider(_handicapCap, (val) => setState(() => _handicapCap = val)),
-        buildInfoBubble('0 = no cap applied. 1–54 limits each player\'s playing handicap to that maximum value.'),
-
-        const SizedBox(height: AppSpacing.x2l),
-        const Divider(height: 1),
-        const SizedBox(height: AppSpacing.x2l),
 
         // ── TIE BREAK ─────────────────────────────────────────
-        const BoxyArtSectionTitle(title: 'Tie break'),
-        const SizedBox(height: AppSpacing.lg),
-
-        BoxyArtDropdownField<TieBreakMethod>(
-          label: 'Tie Break Method',
-          value: _tieBreak,
-          items: const [
-            DropdownMenuItem(value: TieBreakMethod.playoff, child: Text('Manual Playoff (Sudden Death)')),
-            DropdownMenuItem(value: TieBreakMethod.back9, child: Text('Standard (Back 9-6-3-1)')),
-          ],
-          onChanged: (val) { if (val != null) setState(() => _tieBreak = val); },
+        const BoxyArtSectionTitle(title: 'TIE BREAK'),
+        BoxyArtCard(
+          padding: const EdgeInsets.all(AppSpacing.xl),
+          child: Column(
+            children: [
+              BoxyArtDropdownField<TieBreakMethod>(
+                label: 'Tie Break Method',
+                value: _tieBreak,
+                items: const [
+                  DropdownMenuItem(value: TieBreakMethod.playoff, child: Text('Manual Playoff (Sudden Death)')),
+                  DropdownMenuItem(value: TieBreakMethod.back9, child: Text('Standard (Back 9-6-3-1)')),
+                ],
+                onChanged: (val) { if (val != null) setState(() => _tieBreak = val); },
+              ),
+              buildInfoBubble('Standard results use reverse hole comparison. Playoff is sudden-death.'),
+            ],
+          ),
         ),
-        buildInfoBubble('Match Play normally ends before 18 holes — a playoff is the standard resolution for all-square matches.'),
-
-        const SizedBox(height: AppSpacing.x2l),
-        const Divider(height: 1),
-        const SizedBox(height: AppSpacing.x2l),
 
         // ── GUEST SETTINGS ────────────────────────────────────
         buildGuestSettings(

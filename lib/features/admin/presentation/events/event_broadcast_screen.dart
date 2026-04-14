@@ -162,14 +162,15 @@ class _EventBroadcastScreenState extends ConsumerState<EventBroadcastScreen> {
       length: 2,
       child: HeadlessScaffold(
         title: 'Event Comms',
-        titleSuffix: BoxyArtPill.committee(label: 'ADMIN'),
         subtitle: 'Post Management',
+        titleSuffix: BoxyArtPill.committee(label: 'ADMIN'),
         showBack: true,
         onBack: () => context.goNamed(
           'admin-event-manage-tower',
           pathParameters: {'id': widget.eventId},
         ),
         actions: [
+          const SizedBox(width: AppSpacing.md),
           BoxyArtGlassIconButton(
             icon: Icons.add_rounded,
             onPressed: () => context.pushNamed(
@@ -493,22 +494,8 @@ class _NewsletterLibraryTile extends ConsumerWidget {
             context: context,
             title: 'Delete Note?',
             message: 'Are you sure you want to permanently delete "${item.title ?? 'this note'}"? This action cannot be undone.',
-            actions: [
-              BoxyArtButton(
-                title: 'Cancel',
-                isPrimary: false,
-                isGhost: true,
-                isSmall: true,
-                onTap: () => Navigator.of(context, rootNavigator: true).pop(false),
-              ),
-              BoxyArtButton(
-                title: 'Delete',
-                isPrimary: true,
-                isSmall: true,
-                backgroundColor: AppColors.coral500,
-                onTap: () => Navigator.of(context, rootNavigator: true).pop(true),
-              ),
-            ],
+            confirmText: 'Delete',
+            isDangerous: true,
           );
         },
         onDismissed: (direction) async {

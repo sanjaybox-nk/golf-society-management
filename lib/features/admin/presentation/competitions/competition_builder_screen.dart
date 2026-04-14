@@ -82,7 +82,9 @@ class CompetitionBuilderScreen extends ConsumerWidget {
     ).gameName;
 
     return HeadlessScaffold(
-      title: 'Create $gameName game',
+      title: isTemplate
+          ? (compToUse != null ? 'Edit Template' : 'Create Template')
+          : 'Create $gameName game',
       titleSuffix: BoxyArtPill.committee(label: 'ADMIN'),
       subtitle: isTemplate 
           ? 'Edit saved game template' 

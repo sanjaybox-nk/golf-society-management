@@ -56,11 +56,10 @@ class BoxyArtInputField extends ConsumerWidget {
           Padding(
             padding: const EdgeInsets.only(left: AppSpacing.xs, bottom: AppSpacing.labelToCard),
             child: Text(
-              label.toUpperCase(),
-              style: AppTypography.micro.copyWith(
-                color: theme.textTheme.bodySmall?.color?.withValues(alpha: AppColors.opacityHigh),
+              toTitleCase(label),
+              style: AppTypography.label.copyWith(
                 fontWeight: AppTypography.weightBold,
-                letterSpacing: 1.2,
+                color: labelColor ?? theme.colorScheme.onSurface,
               ),
             ),
           ),
@@ -296,11 +295,10 @@ class BoxyArtDatePickerField extends ConsumerWidget {
         Padding(
           padding: const EdgeInsets.only(left: AppSpacing.xs, bottom: AppSpacing.labelToCard),
           child: Text(
-            label.toUpperCase(),
-            style: AppTypography.micro.copyWith(
-              color: labelColor ?? theme.textTheme.bodySmall?.color?.withValues(alpha: AppColors.opacityHigh),
+            toTitleCase(label),
+            style: AppTypography.label.copyWith(
               fontWeight: AppTypography.weightBold,
-              letterSpacing: 1.2,
+              color: labelColor ?? theme.textTheme.bodySmall?.color?.withValues(alpha: AppColors.opacityHigh),
             ),
           ),
         ),
@@ -377,11 +375,10 @@ class BoxyArtSwitchField extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                label.toUpperCase(),
-                style: AppTypography.micro.copyWith(
-                  color: labelColor ?? theme.textTheme.bodySmall?.color?.withValues(alpha: AppColors.opacityHigh),
+                toTitleCase(label),
+                style: AppTypography.label.copyWith(
+                  color: labelColor ?? theme.colorScheme.onSurface,
                   fontWeight: AppTypography.weightBold,
-                  letterSpacing: 1.2,
                 ),
               ),
               if (subtitle != null) ...[
@@ -424,6 +421,8 @@ class BoxyArtSlider extends StatelessWidget {
   final int? divisions;
   final String? label;
   final ValueChanged<double> onChanged;
+  final Color? color;
+  final bool isNeutral;
 
   const BoxyArtSlider({
     super.key,
@@ -433,24 +432,36 @@ class BoxyArtSlider extends StatelessWidget {
     this.max = 1.0,
     this.divisions,
     this.label,
+    this.color,
+    this.isNeutral = false,
   });
 
   @override
   Widget build(BuildContext context) {
-    final primary = AppColors.lime500;
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    
+    // Design 4.x: Preference for monochromatic neutral in admin contexts
+    final Color primary = color ?? (isNeutral 
+      ? (isDark ? AppColors.dark150 : AppColors.dark300)
+      : theme.primaryColor);
+      
+    final Color inactiveColor = isNeutral
+      ? (isDark ? AppColors.dark500 : AppColors.dark150)
+      : primary.withValues(alpha: AppColors.opacityLow);
     
     return SliderTheme(
       data: SliderTheme.of(context).copyWith(
         activeTrackColor: primary,
-        inactiveTrackColor: primary.withValues(alpha: AppColors.opacityLow),
+        inactiveTrackColor: inactiveColor,
         thumbColor: primary,
         overlayColor: primary.withValues(alpha: 0.12),
         trackHeight: 4,
         thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 10),
         overlayShape: const RoundSliderOverlayShape(overlayRadius: 20),
         valueIndicatorColor: primary,
-        valueIndicatorTextStyle: const TextStyle(
-          color: AppColors.actionText, 
+        valueIndicatorTextStyle: TextStyle(
+          color: isNeutral ? (isDark ? AppColors.dark900 : AppColors.pureWhite) : AppColors.actionText, 
           fontWeight: AppTypography.weightBold,
           fontSize: AppTypography.sizeLabel,
         ),
@@ -512,11 +523,10 @@ class BoxyArtSwitchTile extends ConsumerWidget {
               children: [
                 ...[
                   Text(
-                    label.toUpperCase(),
+                    toTitleCase(label),
                     style: AppTypography.label.copyWith(
                       fontWeight: AppTypography.weightBold,
-                      letterSpacing: 1.2,
-                      fontSize: AppTypography.sizeMicro,
+                      fontSize: AppTypography.sizeLabel,
                     ),
                   ),
                   if (subtitle != null) ...[
@@ -714,11 +724,10 @@ class BoxyArtDropdownField<T> extends ConsumerWidget {
           Padding(
             padding: const EdgeInsets.only(left: AppSpacing.xs, bottom: AppSpacing.labelToCard),
             child: Text(
-              label.toUpperCase(),
-              style: AppTypography.micro.copyWith(
+              toTitleCase(label),
+              style: AppTypography.label.copyWith(
                 fontWeight: AppTypography.weightBold,
                 color: theme.textTheme.bodySmall?.color?.withValues(alpha: AppColors.opacityHigh),
-                letterSpacing: 1.2,
               ),
             ),
           ),
@@ -781,4 +790,133 @@ class BoxyArtDropdownField<T> extends ConsumerWidget {
       ],
     );
   }
+}
+
+/// A premium, sliding segmented control for mutually exclusive options.
+class BoxyArtSegmentedControl<T> extends ConsumerWidget {
+  final T value;
+  final List<BoxyOption<T>> options;
+  final ValueChanged<T> onChanged;
+  final bool fullWidth;
+
+  const BoxyArtSegmentedControl({
+    super.key,
+    required this.value,
+    required this.options,
+    required this.onChanged,
+    this.fullWidth = true,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final config = ref.watch(themeControllerProvider);
+    final radius = config.inputRadius;
+
+    final selectedIndex = options.indexWhere((o) => o.value == value);
+    final count = options.length;
+    
+    // Ensure we have at least 2 options
+    if (count < 2) return const SizedBox.shrink();
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final totalWidth = fullWidth ? constraints.maxWidth : 300.0;
+        final itemWidth = totalWidth / count;
+        
+        return Container(
+          width: totalWidth,
+          height: 54, // Design 4.x standard for segmented inputs
+          decoration: BoxDecoration(
+            color: isDark ? AppColors.dark700 : AppColors.lightHeader,
+            borderRadius: BorderRadius.circular(radius),
+          ),
+          padding: const EdgeInsets.all(4),
+          child: Stack(
+            children: [
+              // Sliding Indicator
+              AnimatedAlign(
+                duration: AppAnimations.medium,
+                curve: Curves.easeInOut,
+                alignment: Alignment(
+                  (selectedIndex / (count - 1)) * 2 - 1,
+                  0,
+                ),
+                child: Container(
+                  width: itemWidth - 8,
+                  height: double.infinity,
+                  decoration: BoxDecoration(
+                    color: theme.primaryColor,
+                    borderRadius: BorderRadius.circular(radius - 2),
+                    boxShadow: [
+                      BoxShadow(
+                        color: theme.primaryColor.withValues(alpha: 0.2),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              
+              // Option labels
+              Row(
+                children: options.map((option) {
+                  final isSelected = option.value == value;
+                  return Expanded(
+                    child: InkWell(
+                      onTap: () => onChanged(option.value),
+                      borderRadius: BorderRadius.circular(radius),
+                      child: Center(
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (option.icon != null) ...[
+                              Icon(
+                                option.icon,
+                                size: 18,
+                                color: isSelected 
+                                    ? ContrastHelper.getContrastingText(theme.primaryColor)
+                                    : (isDark ? AppColors.dark300 : AppColors.dark400),
+                              ),
+                              const SizedBox(width: AppSpacing.sm),
+                            ],
+                            Text(
+                              option.label,
+                              style: AppTypography.label.copyWith(
+                                fontSize: AppTypography.sizeLabel,
+                                letterSpacing: AppTypography.lsStandard,
+                                fontWeight: isSelected ? AppTypography.weightBlack : AppTypography.weightBold,
+                                color: isSelected 
+                                    ? ContrastHelper.getContrastingText(theme.primaryColor)
+                                    : (isDark ? AppColors.dark300 : AppColors.dark400),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+/// A simple configuration object for segmented options.
+class BoxyOption<T> {
+  final T value;
+  final String label;
+  final IconData? icon;
+
+  const BoxyOption({
+    required this.value,
+    required this.label,
+    this.icon,
+  });
 }

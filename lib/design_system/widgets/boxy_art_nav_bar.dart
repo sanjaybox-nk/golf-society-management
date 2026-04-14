@@ -27,69 +27,74 @@ class BoxyArtBottomNavBar extends StatelessWidget {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     
-    return Container(
-      width: double.infinity,
-      decoration: BoxDecoration(
-        color: backgroundColor ?? (isDark ? AppColors.dark800 : AppColors.pureWhite),
-        boxShadow: isDark ? [] : [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            offset: const Offset(0, -4),
-            blurRadius: 12,
-          ),
-        ],
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: items.asMap().entries.map((entry) {
-          final index = entry.key;
-          final item = entry.value;
-          final isSelected = selectedIndex == index;
-          final Color unselectedItemColor = unselectedColor ?? 
-              (isDark ? AppColors.dark200 : AppColors.dark600);
-
-          return Expanded(
-            child: GestureDetector(
-              onTap: () => onItemSelected(index),
-              behavior: HitTestBehavior.opaque,
-              child: SafeArea(
-                top: false,
-                bottom: true,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const SizedBox(height: 12), // Spacing from top of bar
-                    Icon(
-                      isSelected ? item.activeIcon : item.icon,
-                      color: isSelected 
-                        ? (isDark ? theme.colorScheme.primary : AppColors.dark950) 
-                        : unselectedItemColor,
-                      size: 28,
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      item.label,
-                      style: AppTypography.micro.copyWith(
-                        fontSize: 11.0,
-                        fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+    return Material(
+      type: MaterialType.transparency,
+      child: Container(
+        width: double.infinity,
+        decoration: BoxDecoration(
+          color: backgroundColor ?? (isDark ? AppColors.dark800 : AppColors.pureWhite),
+          boxShadow: isDark ? [] : [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.05),
+              offset: const Offset(0, -4),
+              blurRadius: 12,
+            ),
+          ],
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: items.asMap().entries.map((entry) {
+            final index = entry.key;
+            final item = entry.value;
+            final isSelected = selectedIndex == index;
+            final Color unselectedItemColor = unselectedColor ?? 
+                (isDark ? AppColors.dark200 : AppColors.dark600);
+  
+            return Expanded(
+              child: GestureDetector(
+                onTap: () => onItemSelected(index),
+                behavior: HitTestBehavior.opaque,
+                child: SafeArea(
+                  top: false,
+                  bottom: true,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const SizedBox(height: 12), // Spacing from top of bar
+                      Icon(
+                        isSelected ? item.activeIcon : item.icon,
                         color: isSelected 
-                            ? (isDark ? theme.colorScheme.primary : AppColors.dark950) 
-                            : unselectedItemColor,
-                        letterSpacing: 0.1,
+                          ? (isDark ? theme.colorScheme.primary : AppColors.dark950) 
+                          : unselectedItemColor,
+                        size: 28,
                       ),
-                      maxLines: 1,
-                    ),
-                    const SizedBox(height: 12), // Spacing from bottom of clickable area
-                  ],
+                      const SizedBox(height: 4),
+                      Text(
+                        item.label,
+                        style: AppTypography.micro.copyWith(
+                          fontSize: 11.0,
+                          fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                          color: isSelected 
+                              ? (isDark ? theme.colorScheme.primary : AppColors.dark950) 
+                              : unselectedItemColor,
+                          letterSpacing: 0.1,
+                          decoration: TextDecoration.none, // Safety override
+                        ),
+                        maxLines: 1,
+                      ),
+                      const SizedBox(height: 12), // Spacing from bottom of clickable area
+                    ],
+                  ),
                 ),
               ),
-            ),
-          );
-        }).toList(),
+            );
+          }).toList(),
+        ),
       ),
     );
   }
 }
+
 
 class BoxyArtBottomNavItem {
   final IconData icon;

@@ -12,6 +12,7 @@ _SocietyConfig _$SocietyConfigFromJson(Map<String, dynamic> json) =>
       logoUrl: json['logoUrl'] as String?,
       primaryColor: (json['primaryColor'] as num?)?.toInt() ?? 0xFFF7D354,
       secondaryColor: (json['secondaryColor'] as num?)?.toInt() ?? 0xFF4ADE80,
+      dangerousColor: (json['dangerousColor'] as num?)?.toInt() ?? 0xFFFF5533,
       backgroundColor: (json['backgroundColor'] as num?)?.toInt() ?? 0xFFEFEFED,
       statusPublishedColor:
           (json['statusPublishedColor'] as num?)?.toInt() ?? 0xFF4ADE80,
@@ -82,6 +83,13 @@ _SocietyConfig _$SocietyConfigFromJson(Map<String, dynamic> json) =>
             (k, e) => MapEntry(k, (e as num).toDouble()),
           ) ??
           const {'1st': 2.0, '2nd': 1.0, '3rd': 0.5},
+      societyCutEventLimit:
+          (json['societyCutEventLimit'] as num?)?.toInt() ?? 0,
+      societyCutCountPlayedOnly:
+          json['societyCutCountPlayedOnly'] as bool? ?? true,
+      societyCutFilterSeason: json['societyCutFilterSeason'] as bool? ?? true,
+      societyCutFilterInvitational:
+          json['societyCutFilterInvitational'] as bool? ?? false,
       globalMarkupPercentage:
           (json['globalMarkupPercentage'] as num?)?.toDouble() ?? 0.10,
       guestMarkupExtra: (json['guestMarkupExtra'] as num?)?.toDouble() ?? 10.0,
@@ -112,6 +120,7 @@ Map<String, dynamic> _$SocietyConfigToJson(_SocietyConfig instance) =>
       'logoUrl': instance.logoUrl,
       'primaryColor': instance.primaryColor,
       'secondaryColor': instance.secondaryColor,
+      'dangerousColor': instance.dangerousColor,
       'backgroundColor': instance.backgroundColor,
       'statusPublishedColor': instance.statusPublishedColor,
       'statusConfirmedColor': instance.statusConfirmedColor,
@@ -157,6 +166,10 @@ Map<String, dynamic> _$SocietyConfigToJson(_SocietyConfig instance) =>
       'separateGuestLeaderboard': instance.separateGuestLeaderboard,
       'societyCutMode': _$SocietyCutModeEnumMap[instance.societyCutMode]!,
       'societyCutRules': instance.societyCutRules,
+      'societyCutEventLimit': instance.societyCutEventLimit,
+      'societyCutCountPlayedOnly': instance.societyCutCountPlayedOnly,
+      'societyCutFilterSeason': instance.societyCutFilterSeason,
+      'societyCutFilterInvitational': instance.societyCutFilterInvitational,
       'globalMarkupPercentage': instance.globalMarkupPercentage,
       'guestMarkupExtra': instance.guestMarkupExtra,
       'globalMembershipEndDate': const OptionalTimestampConverter()

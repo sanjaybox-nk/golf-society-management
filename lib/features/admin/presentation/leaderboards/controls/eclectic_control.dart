@@ -1,6 +1,7 @@
 import 'package:golf_society/design_system/design_system.dart';
 import 'package:golf_society/domain/models/leaderboard_config.dart';
 import 'package:uuid/uuid.dart';
+import 'base_leaderboard_control.dart';
 
 class EclecticControl extends StatefulWidget {
   final LeaderboardConfig? existingConfig;
@@ -12,11 +13,13 @@ class EclecticControl extends StatefulWidget {
   State<EclecticControl> createState() => _EclecticControlState();
 }
 
-class _EclecticControlState extends State<EclecticControl> {
+class _EclecticControlState extends State<EclecticControl>
+    with BaseLeaderboardControlMixin {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _nameController;
   late EclecticMetric _metric;
   double _handicapPercentage = 0;
+  bool _isSaving = false;
 
   @override
   void initState() {
@@ -28,29 +31,37 @@ class _EclecticControlState extends State<EclecticControl> {
   }
 
   @override
+  void dispose() {
+    _nameController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Form(
       key: _formKey,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          BoxyArtSectionTitle(title: 'Leaderboard details'),
+          // ── IDENTITY ─────────────────────────────────────────
+          const BoxyArtSectionTitle(title: 'LEADERBOARD DETAILS', isPeeking: true),
           BoxyArtCard(
-            padding: const EdgeInsets.all(AppSpacing.lg),
-            child: Column(
-              children: [
-                BoxyArtInputField(
-                  label: 'Name',
-                  controller: _nameController,
-                  validator: (v) => v!.isEmpty ? 'Required' : null,
-                ),
-              ],
+            padding: const EdgeInsets.all(AppSpacing.xl),
+            child: BoxyArtInputField(
+              label: 'Name',
+              controller: _nameController,
+              hint: 'e.g. Eclectic',
+              prefixIcon: Icon(Icons.grid_on_rounded),
+              validator: (v) => (v == null || v.isEmpty) ? 'Required' : null,
             ),
           ),
-          const SizedBox(height: AppSpacing.x2l),
-          BoxyArtSectionTitle(title: 'Eclectic rules'),
+
+          // ── ECLECTIC RULES ────────────────────────────────────
+          const BoxyArtSectionTitle(title: 'ECLECTIC RULES'),
           BoxyArtCard(
-            padding: const EdgeInsets.all(AppSpacing.lg),
+            padding: const EdgeInsets.all(AppSpacing.xl),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -58,35 +69,31 @@ class _EclecticControlState extends State<EclecticControl> {
                   label: 'Metric',
                   value: _metric,
                   items: EclecticMetric.values
-                      .map(
-                        (v) => DropdownMenuItem(
-                          value: v,
-                          child: Text(_formatEnum(v.name)),
-                        ),
-                      )
+                      .map((v) => DropdownMenuItem(
+                            value: v,
+                            child: Text(formatEnum(v.name)),
+                          ))
                       .toList(),
                   onChanged: (v) => setState(() => _metric = v!),
                 ),
 
                 if (_metric == EclecticMetric.strokes) ...[
-                  const SizedBox(height: AppSpacing.x2l),
+                  const SizedBox(height: AppSpacing.xl),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        'Handicap allowance',
-                        style: AppTypography.label.copyWith(
-                          color: Theme.of(context).brightness == Brightness.dark
-                              ? AppColors.dark150
-                              : AppColors.dark300,
+                        'HANDICAP ALLOWANCE',
+                        style: AppTypography.labelStrong.copyWith(
+                          color: theme.colorScheme.onSurface,
+                          letterSpacing: 1.0,
                         ),
                       ),
-                      Text(
-                        '${_handicapPercentage.toInt()}%',
-                        style: AppTypography.bodySmall.copyWith(
-                          fontWeight: AppTypography.weightExtraBold,
-                          color: AppColors.lime500,
-                        ),
+                      BoxyArtPill.format(
+                        label: _handicapPercentage == 0
+                            ? 'None'
+                            : '${_handicapPercentage.toInt()}%',
+                        color: theme.colorScheme.primary,
                       ),
                     ],
                   ),
@@ -97,40 +104,37 @@ class _EclecticControlState extends State<EclecticControl> {
                     max: 100,
                     divisions: 20,
                     label: '${_handicapPercentage.toInt()}%',
+                    isNeutral: true,
                     onChanged: (v) => setState(() => _handicapPercentage = v),
                   ),
-                  Text(
+                  buildInfoBubble(
                     _handicapPercentage == 0
-                        ? 'Gross Score (No Handicap applied)'
-                        : 'Net Score (Gross - ${_handicapPercentage.toInt()}% of Final Handicap)',
-                    style: AppTypography.label.copyWith(
-                      color: AppColors.dark400,
-                      fontSize: AppTypography.sizeCaption,
-                      fontStyle: FontStyle.italic,
-                    ),
+                        ? 'Gross Score — no handicap applied.'
+                        : 'Net Score — Gross minus ${_handicapPercentage.toInt()}% of Final Handicap.',
                   ),
                 ],
 
-                _buildRuleDescription(),
+                buildInfoCard(_ruleRows()),
               ],
             ),
           ),
-          const SizedBox(height: AppSpacing.x2l),
-          Center(
-            child: BoxyArtButton(title: 'Save changes', onTap: _save),
+
+          const SizedBox(height: AppSpacing.x4l),
+          BoxyArtButton(
+            title: widget.existingConfig == null ? 'Create leaderboard' : 'Save changes',
+            onTap: _isSaving ? null : _save,
+            isLoading: _isSaving,
+            fullWidth: true,
+            backgroundColor: Theme.of(context).primaryColor,
+            textColor: AppColors.pureWhite,
           ),
+          const SizedBox(height: AppSpacing.x4l),
         ],
       ),
     );
   }
 
-  String _formatEnum(String val) {
-    final RegExp exp = RegExp(r'(?<=[a-z])[A-Z]');
-    String result = val.replaceAllMapped(exp, (Match m) => ' ${m.group(0)}');
-    return result[0].toUpperCase() + result.substring(1);
-  }
-
-  Widget _buildRuleDescription() {
+  List<(String, String)> _ruleRows() {
     String goal = '';
     String scoring = '';
     String result = '';
@@ -138,8 +142,7 @@ class _EclecticControlState extends State<EclecticControl> {
     if (_metric == EclecticMetric.strokes) {
       if (_handicapPercentage > 0) {
         goal = 'Lowest Net Composite Score.';
-        scoring =
-            'Best Gross holes - ${_handicapPercentage.toInt()}% Handicap.';
+        scoring = 'Best Gross holes − ${_handicapPercentage.toInt()}% Handicap.';
       } else {
         goal = 'Lowest Gross Composite Score.';
         scoring = 'Best Gross score on each hole.';
@@ -151,58 +154,17 @@ class _EclecticControlState extends State<EclecticControl> {
       result = 'Highest total points wins.';
     }
 
-    return Container(
-      margin: const EdgeInsets.only(top: AppSpacing.x2l),
-      padding: const EdgeInsets.all(AppSpacing.lg),
-      decoration: BoxDecoration(
-        color: Theme.of(context).brightness == Brightness.dark
-            ? AppColors.dark600
-            : AppColors.lime500.withValues(alpha: AppColors.opacitySubtle),
-        borderRadius: AppShapes.md,
-      ),
-      child: Column(
-        children: [
-          _buildInfoRow('Goal', goal),
-          const SizedBox(height: AppSpacing.sm),
-          _buildInfoRow('Scoring', scoring),
-          const SizedBox(height: AppSpacing.sm),
-          _buildInfoRow('Result', result),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildInfoRow(String label, String value) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        SizedBox(
-          width: 90, 
-          child: Text(
-            label.toUpperCase(), 
-            style: AppTypography.micro.copyWith(
-              color: AppColors.lime500,
-            )
-          )
-        ),
-        Expanded(
-          child: Text(
-            value, 
-            style: AppTypography.body.copyWith(
-              color: Theme.of(context).brightness == Brightness.dark ? AppColors.dark150 : AppColors.dark700,
-            )
-          )
-        ),
-      ],
-    );
+    return [('Goal', goal), ('Scoring', scoring), ('Result', result)];
   }
 
   void _save() {
     if (!_formKey.currentState!.validate()) return;
 
+    setState(() => _isSaving = true);
+
     final config = LeaderboardConfig.eclectic(
       id: widget.existingConfig?.id ?? const Uuid().v4(),
-      name: _nameController.text,
+      name: _nameController.text.trim(),
       metric: _metric,
       handicapPercentage: _handicapPercentage.toInt(),
     );

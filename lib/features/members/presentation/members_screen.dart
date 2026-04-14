@@ -204,8 +204,16 @@ class _MembersScreenState extends ConsumerState<MembersScreen> {
                       }).toList(),
                     );
                   },
-                  loading: () => const Center(child: CircularProgressIndicator()),
-                  error: (err, stack) => Center(child: Text('Error: $err')),
+                loading: () => const BoxyArtLoadingCard(
+                  title: 'Searching roster...',
+                  isCompact: true,
+                ),
+                error: (err, stack) => BoxyArtEmptyCard(
+                  title: 'Roster Unavailable',
+                  message: 'Error fetching members: $err',
+                  icon: Icons.error_outline_rounded,
+                  isCompact: true,
+                ),
                 ),
                 const SizedBox(height: 100),
               ]),

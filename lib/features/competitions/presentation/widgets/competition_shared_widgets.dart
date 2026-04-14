@@ -156,29 +156,21 @@ class CompetitionRulesCard extends ConsumerWidget {
   }
 
   Widget _buildLoadingState() {
-    return Container(
-      width: double.infinity,
-      margin: const EdgeInsets.symmetric(vertical: AppSpacing.xl),
-      padding: const EdgeInsets.all(AppSpacing.x3l),
-      decoration: BoxDecoration(
-        color: const Color(0xFF111111), // Hardened dark color
-        borderRadius: AppShapes.x2l,
-      ),
-      child: const Center(child: CircularProgressIndicator()),
+    return const Padding(
+      padding: EdgeInsets.symmetric(vertical: AppSpacing.xl),
+      child: BoxyArtLoadingCard(useCard: true),
     );
   }
 
   Widget _buildErrorState(Object e) {
-    return Container(
-      width: double.infinity,
-      margin: const EdgeInsets.symmetric(vertical: AppSpacing.xl),
-      padding: const EdgeInsets.all(AppSpacing.x2l),
-      decoration: BoxDecoration(
-        color: const Color(0xFF111111),
-        borderRadius: AppShapes.x2l,
-        border: Border.all(color: AppColors.coral500.withValues(alpha: AppColors.opacityMuted)),
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.xl),
+      child: BoxyArtEmptyState(
+        title: 'Rules Unavailable',
+        message: 'Problem loading competition rules: $e',
+        icon: Icons.error_outline_rounded,
+        isCompact: true,
       ),
-      child: Text("Problem loading rules: $e", style: const TextStyle(color: AppColors.coral500)),
     );
   }
 
@@ -217,89 +209,71 @@ class CompetitionRulesCard extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                InkWell(
-                  onTap: onTap,
-                  child: Padding(
-                    padding: const EdgeInsets.all(AppSpacing.x2l),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            BoxyArtIconBadge(
-                              icon: comp.rules.gameIcon,
-                              size: 56,
-                              iconSize: AppShapes.iconXl,
-                              showFill: true,
-                            ),
-                            const SizedBox(width: 18),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Align(
-                                    alignment: Alignment.centerLeft,
-                                    child: Text(
-                                      toTitleCase(comp.name ?? 'Competition'),
-                                      style: TextStyle(
-                                        fontSize: AppTypography.sizeLargeBody,
-                                        fontWeight: AppTypography.weightBold,
-                                        color: Theme.of(context).textTheme.bodyLarge?.color,
-                                        letterSpacing: -0.2, // Tighter 4.x tracking
-                                      ),
-                                      textAlign: TextAlign.left,
+                        InkWell(
+                          onTap: onTap,
+                          child: Padding(
+                            padding: const EdgeInsets.all(AppSpacing.xl),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    BoxyArtIconBadge(
+                                      icon: comp.rules.gameIcon,
+                                      size: 44,
+                                      iconSize: 22,
                                     ),
-                                  ),
-                                  const SizedBox(height: 2),
-                                  Align(
-                                    alignment: Alignment.centerLeft,
-                                    child: Text(
-                                      isSecondary ? 'Secondary Overlay' : toTitleCase(comp.rules.gameName),
-                                      style: TextStyle(
-                                        fontSize: AppTypography.sizeBodySmall,
-                                        color: Theme.of(context).textTheme.bodySmall?.color,
-                                        fontWeight: AppTypography.weightSemibold,
-                                        letterSpacing: 0.1,
+                                    const SizedBox(width: AppSpacing.lg),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            (comp.name ?? 'Competition').toUpperCase(),
+                                            style: AppTypography.labelStrong.copyWith(
+                                              letterSpacing: 1.0,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 2),
+                                          Text(
+                                            isSecondary ? 'SECONDARY OVERLAY' : comp.rules.gameName.toUpperCase(),
+                                            style: AppTypography.caption.copyWith(
+                                              color: isDark ? AppColors.dark300 : AppColors.dark400,
+                                              fontWeight: AppTypography.weightBold,
+                                            ),
+                                          ),
+                                        ],
                                       ),
-                                      textAlign: TextAlign.left,
                                     ),
+                                    if (showChevron)
+                                      Icon(
+                                        Icons.arrow_forward_ios_rounded, 
+                                        color: isDark ? AppColors.dark400 : AppColors.dark200, 
+                                        size: AppShapes.iconXs,
+                                      ),
+                                  ],
+                                ),
+                                
+                                const SizedBox(height: AppSpacing.lg),
+                                const BoxyArtDivider(verticalPadding: 0),
+                                const SizedBox(height: AppSpacing.lg),
+                                
+                                Text(
+                                  isTemplate ? 'Fetching competition specific rules...' : CompetitionRuleTranslator.translate(comp.rules),
+                                  style: AppTypography.body.copyWith(
+                                    fontSize: AppTypography.sizeBody,
+                                    height: 1.5,
+                                    color: isDark ? AppColors.dark60 : AppColors.dark900,
                                   ),
-                                ],
-                              ),
-                            ),
-                            if (showChevron)
-                              Icon(Icons.arrow_forward_ios_rounded, color: Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha: AppColors.opacityMedium), size: AppShapes.iconSm),
-                          ],
-                        ),
-                        
-                        const SizedBox(height: AppSpacing.md),
-                        Divider(color: Theme.of(context).dividerColor.withValues(alpha: 0.5), height: 1),
-                        const SizedBox(height: AppSpacing.md),
-                        
-                        Align(
-                          alignment: Alignment.centerLeft,
-                          child: Text(
-                            isTemplate ? 'Fetching competition specific rules...' : CompetitionRuleTranslator.translate(comp.rules),
-                            style: TextStyle(
-                              fontSize: AppTypography.sizeButton,
-                              height: 1.6,
-                              color: Theme.of(context).textTheme.bodyLarge?.color?.withValues(alpha: 0.85),
-                            ),
-                            textAlign: TextAlign.left,
-                          ),
-                        ),
-                        
-                        const SizedBox(height: 28),
-                        
-                        Align(
-                          alignment: Alignment.centerLeft,
-                          child: CompetitionBadgeRow(
-                            rules: comp.rules,
-                            eventId: eventId,
-                            baseColor: accent,
-                          ),
-                        ),
+                                ),
+                                
+                                const SizedBox(height: AppSpacing.xl),
+                                
+                                CompetitionBadgeRow(
+                                  rules: comp.rules,
+                                  eventId: eventId,
+                                  baseColor: accent,
+                                ),
                         
                         if (extraBadges != null && extraBadges!.isNotEmpty) ...[
                           const SizedBox(height: AppSpacing.lg),

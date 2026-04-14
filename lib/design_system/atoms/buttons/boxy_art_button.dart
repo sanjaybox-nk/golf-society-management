@@ -14,6 +14,7 @@ class BoxyArtButton extends ConsumerWidget {
   final bool isSmall;
   final Color? backgroundColor;
   final Color? textColor;
+  final bool isDangerous;
 
   const BoxyArtButton({
     super.key,
@@ -28,6 +29,7 @@ class BoxyArtButton extends ConsumerWidget {
     this.fullWidth = false,
     this.backgroundColor,
     this.textColor,
+    this.isDangerous = false,
   });
 
   @override
@@ -39,8 +41,18 @@ class BoxyArtButton extends ConsumerWidget {
 
     // Map legacy variants to new v3.1 styles
     ButtonStyle style;
-    
-    if (isGhost) {
+
+    if (isDangerous) {
+      style = ElevatedButton.styleFrom(
+        backgroundColor: theme.colorScheme.error,
+        foregroundColor: theme.colorScheme.onError,
+        elevation: 0,
+        textStyle: isSmall ? AppTypography.micro.copyWith(fontWeight: AppTypography.weightHeavy) : AppTypography.label.copyWith(fontWeight: AppTypography.weightHeavy),
+        padding: isSmall ? const EdgeInsets.symmetric(horizontal: 12, vertical: 6) : const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
+        minimumSize: isSmall ? const Size(0, 32) : const Size(0, 42),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(isSmall ? config.accentRadius : config.buttonRadius)),
+      );
+    } else if (isGhost) {
       style = OutlinedButton.styleFrom(
         foregroundColor: isDark ? AppColors.dark200 : AppColors.dark300,
         side: config.useBorders 

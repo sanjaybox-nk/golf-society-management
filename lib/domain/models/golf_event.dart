@@ -149,17 +149,18 @@ abstract class GolfEvent with _$GolfEvent {
     @Default(false) bool isStatsReleased,
     @Default({}) Map<String, dynamic> finalizedStats,
     String? secondaryTemplateId, // Reference for Match Play overlay
-    @Default(false) bool isSeasonEvent, // [NEW] Distinguishes league events from ad-hoc games
+    @Default(false) bool isSeasonEvent, // [NEW] Distinguishes league events from ad hoc games
     @Default(false) bool isInvitational,
     @Default(EventStatus.draft) EventStatus status,
     @Default([]) List<EventExpense> expenses,
     @Default(true) bool showAwards,
     @Default([]) List<EventAward> awards,
     @Default(EventType.golf) EventType eventType,
-    @Default({}) Map<String, double> manualCuts, // [NEW] Per-event player handicap adjustments
+    @Default({}) Map<String, double> manualCuts, // [NEW] Per event player handicap adjustments
     double? eventCost,
     @Default([]) List<EventExtraCost> extraCosts,
     @Default(0.0) double charityPot,
+    String? groupingStrategy, // [NEW] Per event grouping logic override
   }) = _GolfEvent;
 
   bool get isClosed => status == EventStatus.completed || status == EventStatus.cancelled;

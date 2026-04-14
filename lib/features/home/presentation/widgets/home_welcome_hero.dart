@@ -31,10 +31,10 @@ class HomeWelcomeHero extends ConsumerWidget {
             children: [
               BoxyArtSquareBadge(
                 size: 64,
-                backgroundColor: Colors.white.withValues(alpha: 0.2),
+                backgroundColor: AppColors.pureWhite.withValues(alpha: 0.2),
                 child: const Icon(
                   Icons.sports_golf_rounded,
-                  color: Colors.white,
+                  color: AppColors.pureWhite,
                   size: 32,
                 ),
               ),
@@ -46,7 +46,7 @@ class HomeWelcomeHero extends ConsumerWidget {
                     Text(
                       'Welcome to',
                       style: AppTypography.labelStrong.copyWith(
-                        color: Colors.white.withValues(alpha: 0.8),
+                        color: AppColors.pureWhite.withValues(alpha: 0.8),
                         letterSpacing: 1.2,
                         fontSize: 10,
                       ),
@@ -54,7 +54,7 @@ class HomeWelcomeHero extends ConsumerWidget {
                     Text(
                       config.societyName,
                       style: AppTypography.displayLocker.copyWith(
-                        color: Colors.white,
+                        color: AppColors.pureWhite,
                         fontSize: 24,
                       ),
                     ),
@@ -71,7 +71,7 @@ class HomeWelcomeHero extends ConsumerWidget {
               ? 'The fairways are quiet... start your season by scheduling your first fixture or adding your founding members.'
               : 'Welcome a board! Your society is currently preparing for the next season. Check back soon for upcoming events and standings.',
             style: AppTypography.body.copyWith(
-              color: Colors.white.withValues(alpha: 0.9),
+              color: AppColors.pureWhite.withValues(alpha: 0.9),
               height: 1.5,
             ),
           ),

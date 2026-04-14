@@ -8,11 +8,14 @@ class LeaderboardWidget extends StatelessWidget {
   final CompetitionFormat format;
   final Function(LeaderboardEntry)? onPlayerTap;
 
+  final String? highlightEntryId;
+
   const LeaderboardWidget({
     super.key, 
     required this.entries, 
     required this.format,
     this.onPlayerTap,
+    this.highlightEntryId,
   });
 
   @override
@@ -85,6 +88,7 @@ class LeaderboardWidget extends StatelessWidget {
           tieBreakLabel: differentiatorChain,
           onTap: () => onPlayerTap?.call(entry),
           showBottomSpacing: idx < entries.length - 1,
+          isHighlighted: highlightEntryId != null && entry.entryId == highlightEntryId,
         );
       }).toList(),
     );
@@ -98,6 +102,9 @@ class LeaderboardCard extends StatelessWidget {
   final String? tieBreakLabel;
   final VoidCallback? onTap;
 
+  final bool showBottomSpacing;
+  final bool isHighlighted;
+
   const LeaderboardCard({
     super.key,
     required this.entry,
@@ -106,9 +113,8 @@ class LeaderboardCard extends StatelessWidget {
     this.tieBreakLabel,
     this.onTap,
     this.showBottomSpacing = true,
+    this.isHighlighted = false,
   });
-
-  final bool showBottomSpacing;
 
   @override
   Widget build(BuildContext context) {
@@ -116,7 +122,7 @@ class LeaderboardCard extends StatelessWidget {
     final spacing = theme.extension<AppSpacingTokens>();
     final double vPadding = (spacing?.cardVerticalPadding ?? AppSpacing.lg) * 0.8;
     final double hPadding = (spacing?.cardHorizontalPadding ?? AppSpacing.lg) * 0.8;
-    final double cardHeight = vPadding * 4.2; // Fixed height floor to match Group cards
+    final double cardHeight = vPadding * 4.5; // Increased to 4.5 to ensure alignment and resolve overflow
 
     final bool hasScore = entry.scoringStatus == ScoringStatus.ok;
     final String rawScore = hasScore ? (entry.scoreLabel ?? '${entry.score}') : entry.scoringStatus.name.toUpperCase();
@@ -127,6 +133,7 @@ class LeaderboardCard extends StatelessWidget {
         onTap: onTap,
         borderRadius: theme.extension<AppShapeTokens>()?.card ?? AppShapes.lg,
         child: BoxyArtCard(
+          isHighlighted: isHighlighted,
           padding: EdgeInsets.symmetric(vertical: vPadding, horizontal: hPadding),
           child: IntrinsicHeight(
             child: Row(

@@ -15,14 +15,23 @@ class _RolesScreenState extends ConsumerState<RolesScreen> {
   @override
   Widget build(BuildContext context) {
     final membersAsync = ref.watch(allMembersProvider);
+    final theme = Theme.of(context);
+    final spacing = theme.extension<AppSpacingTokens>();
 
     return HeadlessScaffold(
       title: 'System Roles',
-      titleSuffix: BoxyArtPill.committee(label: 'ADMIN'),
       subtitle: 'Manage administrative permissions and site-wide access tiers.',
+      titleSuffix: BoxyArtPill.committee(label: 'ADMIN'),
       showBack: true,
+      actions: const [],
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       slivers: [
+        const SliverPadding(
+          padding: EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+          sliver: SliverToBoxAdapter(
+            child: BoxyArtSectionTitle(title: 'Access tiers', isPeeking: true),
+          ),
+        ),
         membersAsync.when(
           data: (members) {
             // Calculate counts for each MemberRole
@@ -35,22 +44,38 @@ class _RolesScreenState extends ConsumerState<RolesScreen> {
               padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
               sliver: SliverList(
                 delegate: SliverChildListDelegate([
-                  const BoxyArtSectionTitle(title: 'Access tiers', isPeeking: true),
                   ...MemberRole.values.where((r) => r != MemberRole.member).map((role) {
+                    final isLastInGroup = role == MemberRole.viewer;
                     return Padding(
-                      padding: const EdgeInsets.only(bottom: AppSpacing.lg),
+                      padding: EdgeInsets.only(
+                        bottom: isLastInGroup ? 0 : (spacing?.cardToCard ?? AppSpacing.atomic),
+                      ),
                       child: _buildRoleCard(context, role, roleCounts[role] ?? 0),
                     );
                   }),
-                  const BoxyArtSectionTitle(title: 'Standard access', isPeeking: true),
+                  const BoxyArtSectionTitle(title: 'Standard access', isPeeking: false),
                   _buildRoleCard(context, MemberRole.member, roleCounts[MemberRole.member] ?? 0),
-                  const SizedBox(height: 100),
+                  const SizedBox(height: AppSpacing.pageBottom),
                 ]),
               ),
             );
           },
-          loading: () => const SliverFillRemaining(child: Center(child: CircularProgressIndicator())),
-          error: (e, s) => SliverFillRemaining(child: Center(child: Text('Error: $e'))),
+          loading: () => const SliverPadding(
+            padding: EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+            sliver: SliverToBoxAdapter(
+              child: BoxyArtLoadingCard(title: 'Loading roles...'),
+            ),
+          ),
+          error: (e, s) => SliverPadding(
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+            sliver: SliverToBoxAdapter(
+              child: BoxyArtEmptyCard(
+                title: 'Access Error',
+                message: 'Could not load system roles: $e',
+                icon: Icons.error_outline_rounded,
+              ),
+            ),
+          ),
         ),
       ],
     );
@@ -59,33 +84,20 @@ class _RolesScreenState extends ConsumerState<RolesScreen> {
   Widget _buildRoleCard(BuildContext context, MemberRole role, int count) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final description = _getRoleDescription(role);
-    final icon = _getRoleIcon(role);
-    const identityColor = Colors.cyan; // Consistent with Committee Roles overview
-    final bgColor = identityColor.withValues(alpha: AppColors.opacityLow);
 
     return BoxyArtCard(
       onTap: () {
         context.pushNamed('admin-system-role-members', pathParameters: {'role': role.name});
       },
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.md),
+      padding: const EdgeInsets.all(AppSpacing.xl),
       child: Row(
         children: [
-          // Circular Icon Container (56x56)
-          Container(
-            width: 56,
-            height: 56,
-            decoration: BoxDecoration(
-              color: bgColor,
-              shape: BoxShape.circle,
-            ),
-            child: Center(
-              child: Icon(
-                icon, 
-                color: identityColor, 
-                size: AppShapes.iconLg,
-              ),
-            ),
+          // Parity with Admin Hub and Competition Templates: Square 44px Badge
+          BoxyArtIconBadge(
+            icon: _getRoleIcon(role),
+            size: 44,
+            iconSize: 22,
+            useCircle: false,
           ),
           const SizedBox(width: AppSpacing.lg),
           // Content
@@ -97,17 +109,18 @@ class _RolesScreenState extends ConsumerState<RolesScreen> {
                 Row(
                   children: [
                     Text(
-                      _getRoleDisplayName(role),
-                      style: AppTypography.headline.copyWith(
-                        color: isDark ? AppColors.pureWhite : AppColors.dark900,
-                        letterSpacing: AppTypography.lsTight,
+                      _getRoleDisplayName(role).toUpperCase(),
+                      style: AppTypography.labelStrong.copyWith(
+                        letterSpacing: 1.0,
+                        color: theme.colorScheme.onSurface,
                       ),
                     ),
                     if (count > 0) ...[
                       const SizedBox(width: AppSpacing.sm),
                       BoxyArtPill(
                         label: '$count',
-                        color: AppColors.scoreEagle,
+                        // Design 4.x: Primary-tinted count pills
+                        color: theme.primaryColor,
                         fontSize: AppTypography.sizeMicroSmall,
                         hasHorizontalMargin: false,
                       ),
@@ -116,19 +129,18 @@ class _RolesScreenState extends ConsumerState<RolesScreen> {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  description,
-                  style: TextStyle(
-                    fontSize: AppTypography.sizeLabelStrong,
-                    color: isDark ? AppColors.dark300 : AppColors.dark400,
+                  _getRoleDescription(role),
+                  style: AppTypography.caption.copyWith(
+                    color: isDark ? AppColors.dark200 : AppColors.dark400,
                   ),
                 ),
               ],
             ),
           ),
-          const Icon(
-            Icons.chevron_right_rounded, 
-            color: AppColors.textSecondary, 
-            size: AppShapes.iconMd,
+          Icon(
+            Icons.arrow_forward_ios_rounded, 
+            color: isDark ? AppColors.dark400 : AppColors.dark200, 
+            size: AppShapes.iconXs,
           ),
         ],
       ),

@@ -87,7 +87,8 @@ class HeadlessScaffold extends StatelessWidget {
                   padding: const EdgeInsets.only(
                     // Absolute Golden Rhythm: Exactly 124px from Physical Top (Grid-snapped + 4px nudge)
                     // We use a fixed value here because the GlobalAppShell and Modals now all start at Y=0
-                    top: 124.0, 
+                    // Absolute Golden Rhythm: Increased to 140px to clear fixed UI comfortably
+                    top: 140.0, 
                     left: AppSpacing.xl,
                     right: AppSpacing.xl,
                     bottom: AppSpacing.large,

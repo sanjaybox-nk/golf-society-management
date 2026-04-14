@@ -4,10 +4,12 @@ import '../../features/events/domain/registration_logic.dart';
 import 'package:golf_society/domain/models/golf_event.dart';
 import 'package:golf_society/domain/models/event_registration.dart';
 import 'package:golf_society/domain/models/competition.dart';
-import '../scoring/handicap_calculator.dart';
-import 'tee_group.dart';
 import 'package:golf_society/domain/models/course_config.dart';
 import 'logic/grouping_optimizer.dart';
+import 'package:golf_society/domain/models/society_config.dart';
+import 'package:golf_society/features/admin/logic/society_cuts_engine.dart';
+import '../scoring/handicap_calculator.dart';
+import 'tee_group.dart';
 
 export 'tee_group.dart';
 
@@ -25,11 +27,30 @@ class GroupingService {
     required List<RegistrationItem> participants,
     required List<GolfEvent> previousEventsInSeason,
     required Map<String, double> memberHandicaps,
+    SocietyConfig? config, // NEW
     CompetitionRules? rules, // New
     bool useWhs = true, // New
     bool prioritizeBuggyPairing = false,
     String strategy = 'balanced',
   }) {
+    // 0. Auto-calculate Global Cuts if applicable
+    final Map<String, double> effectiveCuts = Map.from(event.manualCuts);
+    if (config != null && config.societyCutMode == SocietyCutMode.global) {
+      for (var participant in participants) {
+        final breakdown = SocietyCutsEngine.calculateActiveCut(
+          memberId: participant.registration.memberId,
+          allEvents: previousEventsInSeason,
+          config: config,
+          relativeTo: event.date,
+        );
+        if (breakdown.totalCut > 0) {
+          // Additive model: automated cut + manual override
+          effectiveCuts[participant.registration.memberId] = 
+              (effectiveCuts[participant.registration.memberId] ?? 0) + breakdown.totalCut;
+        }
+      }
+    }
+
     // 1. Get golfers who fit within the capacity (Confirmed or Reserved)
     int takenSlotsCount = 0;
     final List<RegistrationItem> golfers = [];
@@ -41,7 +62,7 @@ class GroupingService {
       rules: rules,
       courseConfig: event.courseConfig,
       useWhs: useWhs,
-      manualCuts: event.manualCuts,
+      manualCuts: effectiveCuts,
     );
 
     for (int i = 0; i < participants.length; i++) {
@@ -400,8 +421,27 @@ class GroupingService {
     CompetitionRules? rules,
     required bool useWhs,
     required Map<String, double> manualCuts,
+    SocietyConfig? config, // NEW
+    List<GolfEvent> previousEvents = const [], // NEW
     CourseConfig? courseConfig,
   }) {
+    // Merge automated cuts if in global mode
+    final Map<String, double> effectiveCuts = Map.from(manualCuts);
+    if (config != null && config.societyCutMode == SocietyCutMode.global) {
+      final relevantPlayers = event.registrations.where((r) => r.attendingGolf).toList();
+      for (var reg in relevantPlayers) {
+        final breakdown = SocietyCutsEngine.calculateActiveCut(
+          memberId: reg.memberId,
+          allEvents: previousEvents,
+          config: config,
+          relativeTo: event.date,
+        );
+        if (breakdown.totalCut > 0) {
+          effectiveCuts[reg.memberId] = (effectiveCuts[reg.memberId] ?? 0) + breakdown.totalCut;
+        }
+      }
+    }
+
     final assignedIds = groups
         .expand((g) => g.players)
         .map((p) => '${p.registrationMemberId}|${p.isGuest}')
@@ -416,7 +456,7 @@ class GroupingService {
       rules: rules,
       courseConfig: courseConfig ?? event.courseConfig,
       useWhs: useWhs,
-      manualCuts: manualCuts,
+      manualCuts: effectiveCuts,
     );
 
     for (final item in RegistrationLogic.getSortedItems(event)) {
@@ -457,6 +497,8 @@ class GroupingService {
     required bool isGuest,
     required List<Member> allMembers,
     required bool useWhs,
+    SocietyConfig? config, // NEW
+    List<GolfEvent> previousEvents = const [], // NEW
     CompetitionRules? rules,
   }) {
     String? promotedId;

@@ -244,10 +244,9 @@ class _AdminSponsorshipHubScreenState extends ConsumerState<AdminSponsorshipHubS
 
     return HeadlessScaffold(
       title: 'Sponsorship Hub',
-      titleSuffix: BoxyArtPill.committee(label: 'ADMIN'),
       subtitle: 'Manage partners & branding',
+      titleSuffix: BoxyArtPill.committee(label: 'ADMIN'),
       showBack: true,
-      actions: [],
       onBack: () {
         if (_showForm) {
           setState(() {
@@ -263,7 +262,7 @@ class _AdminSponsorshipHubScreenState extends ConsumerState<AdminSponsorshipHubS
         // 1. Tab Bar
         SliverToBoxAdapter(
           child: Padding(
-            padding: const EdgeInsets.only(top: AppSpacing.md, bottom: AppSpacing.cardToLabel),
+            padding: const EdgeInsets.only(bottom: AppSpacing.cardToLabel),
             child: ModernUnderlinedFilterBar<HubTab>(
               selectedValue: _currentTab,
               onTabSelected: (tab) => setState(() {
@@ -400,7 +399,11 @@ class _AdminSponsorshipHubScreenState extends ConsumerState<AdminSponsorshipHubS
                               items: events.map((e) => DropdownMenuItem(value: e.id, child: Text(e.title))).toList(),
                               onChanged: (val) => setState(() => _selectedEventId = val),
                             ),
-                            loading: () => const Center(child: CircularProgressIndicator()),
+                            loading: () => const BoxyArtLoadingCard(
+                              useCard: false, 
+                              isCompact: true, 
+                              title: 'Searching fairway...',
+                            ),
                             error: (err, stack) => const Text('Error loading events'),
                           ),
 
@@ -475,13 +478,13 @@ class _AdminSponsorshipHubScreenState extends ConsumerState<AdminSponsorshipHubS
                             ),
                           ],
                         ),
-                        const SizedBox(height: AppSpacing.md),
+                        SizedBox(height: spacing?.labelToCard ?? AppSpacing.md),
                         BoxyArtInputField(
                           label: 'Supporter Name',
                           controller: _nameController,
                           hint: 'e.g. Local Golf Club, Personal Donation, etc.',
                         ),
-                        const SizedBox(height: AppSpacing.md),
+                        SizedBox(height: spacing?.labelToCard ?? AppSpacing.md),
                         BoxyArtInputField(
                           label: 'Reference / Notes',
                           controller: _activityNameController,
@@ -527,7 +530,7 @@ class _AdminSponsorshipHubScreenState extends ConsumerState<AdminSponsorshipHubS
 
               ],
 
-              const SizedBox(height: 100),
+              SizedBox(height: spacing?.cardToLabel ?? 100),
             ]),
           ),
         ),

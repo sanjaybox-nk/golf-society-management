@@ -11,91 +11,108 @@ class HandicapSystemSelectionScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final societyConfig = ref.watch(themeControllerProvider);
     final theme = Theme.of(context);
-    final beigeBackground = theme.scaffoldBackgroundColor;
+    final isDark = theme.brightness == Brightness.dark;
+    final config = ref.watch(themeControllerProvider);
 
     return HeadlessScaffold(
       title: 'Handicap System',
       subtitle: 'Select calculation provider',
+      titleSuffix: BoxyArtPill.committee(label: 'ADMIN'),
       showBack: true,
       onBack: () => context.pop(),
-      backgroundColor: beigeBackground,
+      actions: const [],
       slivers: [
         SliverPadding(
-          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.x2l),
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
           sliver: SliverList(
             delegate: SliverChildListDelegate([
-              const BoxyArtSectionTitle(title: 'CALCULATION PROVIDER'),
-              ...HandicapSystem.values.map((system) {
-                final isSelected = system == societyConfig.handicapSystem;
-                final isDark = theme.brightness == Brightness.dark;
-                const identityColor = AppColors.teamA;
-                final spacing = Theme.of(context).extension<AppSpacingTokens>();
-                final iconColor = isSelected ? identityColor : (isDark ? AppColors.dark300 : AppColors.dark400);
-                return Padding(
-                  padding: EdgeInsets.only(bottom: spacing?.cardToCard ?? AppSpacing.standard),
-                  child: BoxyArtCard(
-                    padding: const EdgeInsets.all(AppSpacing.lg),
-                    onTap: () {
-                      ref.read(themeControllerProvider.notifier).setHandicapSystem(system);
-                      context.pop();
-                    },
-                    child: Row(
+              const BoxyArtSectionTitle(
+                title: 'CALCULATION PROVIDER',
+              ),
+              BoxyArtCard(
+                padding: EdgeInsets.zero,
+                child: Column(
+                  children: HandicapSystem.values.asMap().entries.map((item) {
+                    final index = item.key;
+                    final system = item.value;
+                    final isSelected = system == societyConfig.handicapSystem;
+                    final isLast = index == HandicapSystem.values.length - 1;
+
+                    return Column(
                       children: [
-                        // Circular Icon Container (56x56)
-                        Container(
-                          width: 56,
-                          height: 56,
-                          decoration: BoxDecoration(
-                            color: identityColor.withValues(alpha: AppColors.opacityLow),
-                            shape: BoxShape.circle,
+                        InkWell(
+                          onTap: () {
+                            ref.read(themeControllerProvider.notifier).setHandicapSystem(system);
+                          },
+                          borderRadius: BorderRadius.only(
+                            topLeft: index == 0 ? Radius.circular(config.cardRadius) : Radius.zero,
+                            topRight: index == 0 ? Radius.circular(config.cardRadius) : Radius.zero,
+                            bottomLeft: isLast ? Radius.circular(config.cardRadius) : Radius.zero,
+                            bottomRight: isLast ? Radius.circular(config.cardRadius) : Radius.zero,
                           ),
-                          child: Center(
-                            child: Icon(
-                              _getIcon(system), 
-                              color: iconColor, 
-                              size: AppShapes.iconLg,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: AppSpacing.xl,
+                              vertical: AppSpacing.lg,
+                            ),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.only(
+                                topLeft: index == 0 ? Radius.circular(config.cardRadius) : Radius.zero,
+                                topRight: index == 0 ? Radius.circular(config.cardRadius) : Radius.zero,
+                                bottomLeft: isLast ? Radius.circular(config.cardRadius) : Radius.zero,
+                                bottomRight: isLast ? Radius.circular(config.cardRadius) : Radius.zero,
+                              ),
+                            ),
+                            child: Row(
+                              children: [
+                                BoxyArtIconBadge(
+                                  icon: _getIcon(system),
+                                  size: 44,
+                                  iconSize: 22,
+                                ),
+                                const SizedBox(width: AppSpacing.lg),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        system.shortName.toUpperCase(),
+                                        style: AppTypography.labelStrong.copyWith(
+                                          letterSpacing: 1.0,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        _getDescription(system),
+                                        style: AppTypography.caption.copyWith(
+                                          color: isDark ? AppColors.dark300 : AppColors.dark400,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                if (isSelected)
+                                  Icon(
+                                    Icons.check_circle_rounded, 
+                                    color: theme.primaryColor, 
+                                    size: AppShapes.iconLg,
+                                  )
+                                else
+                                  Icon(
+                                    Icons.chevron_right_rounded, 
+                                    color: isDark ? AppColors.dark400 : AppColors.dark300,
+                                    size: AppShapes.iconMd,
+                                  ),
+                              ],
                             ),
                           ),
                         ),
-                        const SizedBox(width: AppSpacing.lg),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                system.shortName.toUpperCase(),
-                                style: TextStyle(
-                                  fontSize: AppTypography.sizeButton,
-                                  fontWeight: AppTypography.weightExtraBold,
-                                  letterSpacing: 0.5,
-                                  color: isDark ? AppColors.pureWhite : AppColors.dark900,
-                                ),
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                _getDescription(system),
-                                style: TextStyle(
-                                  fontSize: AppTypography.sizeLabelStrong,
-                                  color: isDark ? AppColors.dark300 : AppColors.dark400,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        if (isSelected)
-                          const Icon(Icons.check_circle_rounded, color: identityColor, size: AppShapes.iconLg)
-                        else
-                          Icon(
-                            Icons.chevron_right_rounded, 
-                            color: isDark ? AppColors.dark400 : AppColors.dark300,
-                            size: AppShapes.iconMd,
-                          ),
+                        if (!isLast) const BoxyArtDivider(verticalPadding: 0),
                       ],
-                    ),
-                  ),
-                );
-              }),
-              const SizedBox(height: 100),
+                    );
+                  }).toList(),
+                ),
+              ),
             ]),
           ),
         ),

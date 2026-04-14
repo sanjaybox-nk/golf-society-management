@@ -1282,35 +1282,39 @@ class GroupingPodiumHeader extends ConsumerWidget {
                         overflow: TextOverflow.ellipsis,
                       ),
                       const SizedBox(height: AppSpacing.md), // Added space between name and score
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.baseline,
-                        textBaseline: TextBaseline.alphabetic,
-                        children: [
-                          if (entry.tieBreakLabel != null)
-                            Padding(
-                              padding: const EdgeInsets.only(right: 6),
-                              child: Text(
-                                entry.tieBreakLabel!,
-                                style: AppTypography.label.copyWith(
-                                  fontSize: 10,
-                                  fontWeight: AppTypography.weightBold,
-                                  color: isDark ? AppColors.dark400 : AppColors.dark500,
+                      FittedBox(
+                        fit: BoxFit.scaleDown,
+                        alignment: Alignment.center,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.baseline,
+                          textBaseline: TextBaseline.alphabetic,
+                          children: [
+                            if (entry.tieBreakLabel != null)
+                              Padding(
+                                padding: const EdgeInsets.only(right: 6),
+                                child: Text(
+                                  entry.tieBreakLabel!,
+                                  style: AppTypography.label.copyWith(
+                                    fontSize: 10,
+                                    fontWeight: AppTypography.weightBold,
+                                    color: isDark ? AppColors.dark400 : AppColors.dark500,
+                                  ),
                                 ),
                               ),
+                            Text(
+                              entry.score,
+                              style: AppTypography.displaySection.copyWith(
+                                fontFamily: 'Plus Jakarta Sans',
+                                fontSize: 22,
+                                height: 1.1,
+                                fontWeight: AppTypography.weightExtraBold,
+                                letterSpacing: -0.5,
+                                color: isDark ? AppColors.pureWhite : AppColors.dark900,
+                              ),
                             ),
-                          Text(
-                            entry.score,
-                            style: AppTypography.displaySection.copyWith(
-                              fontFamily: 'Plus Jakarta Sans',
-                              fontSize: 22,
-                              height: 1.1,
-                              fontWeight: AppTypography.weightExtraBold,
-                              letterSpacing: -0.5,
-                              color: isDark ? AppColors.pureWhite : AppColors.dark900,
-                            ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ],
                   ),

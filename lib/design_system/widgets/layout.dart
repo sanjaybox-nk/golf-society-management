@@ -272,13 +272,14 @@ class BoxyArtSectionTitle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final spacing = Theme.of(context).extension<AppSpacingTokens>();
-    final String formattedTitle = toTitleCase(title); 
-    final displayTitle = count != null ? '$formattedTitle ($count)' : formattedTitle;
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final spacing = theme.extension<AppSpacingTokens>();
+    final onSurface = theme.colorScheme.onSurface;
+    final displayTitle = count != null ? '$title ($count)' : title;
 
     final double topPadding = isPeeking 
-      ? (spacing?.cardToLabel ?? AppSpacing.standard) 
+      ? (spacing?.labelToCard ?? AppSpacing.labelToCard) 
       : (spacing?.cardToLabel ?? AppSpacing.sectionTitleTop);
     final double bottomPadding = spacing?.labelToCard ?? AppSpacing.labelToCard;
 
@@ -297,7 +298,7 @@ class BoxyArtSectionTitle extends StatelessWidget {
                 Icon(
                   icon,
                   size: isLevel2 ? AppShapes.iconXs : AppShapes.iconSm,
-                  color: color ?? (isDark ? AppColors.dark300 : AppColors.dark400),
+                  color: color ?? onSurface.withValues(alpha: AppColors.opacitySecondary),
                 ),
                 const SizedBox(width: AppSpacing.sm),
               ],
@@ -306,7 +307,7 @@ class BoxyArtSectionTitle extends StatelessWidget {
                   displayTitle,
                   style: (isLevel2 ? AppTypography.micro : AppTypography.label).copyWith(
                     fontWeight: AppTypography.weightBold,
-                    color: color ?? (isDark ? AppColors.dark60 : AppColors.dark900),
+                    color: color ?? onSurface,
                     letterSpacing: AppTypography.lsLabel,
                   ),
                   maxLines: 1,

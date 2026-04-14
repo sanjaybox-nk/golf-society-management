@@ -12,6 +12,7 @@ class EventPricingSection extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final stateAsync = ref.watch(eventFormNotifierProvider);
     final societyConfig = ref.watch(themeControllerProvider);
+    final spacing = Theme.of(context).extension<AppSpacingTokens>();
     final currency = societyConfig.currencySymbol;
 
     return stateAsync.when(
@@ -22,7 +23,7 @@ class EventPricingSection extends ConsumerWidget {
             title: state.eventType == EventType.social ? 'Event Costs' : 'Playing Costs',
           ),
           BoxyArtCard(
-            child: Column(
+            child: BoxyArtFormColumn(
               children: [
                 if (state.eventType == EventType.golf) ...[
                   Row(
@@ -35,11 +36,8 @@ class EventPricingSection extends ConsumerWidget {
                           onChanged: (v) => ref.read(eventFormNotifierProvider.notifier).updateSocietyFee(double.tryParse(v)),
                         ),
                       ),
-                      const SizedBox(width: AppSpacing.lg),
-                      const Expanded(child: SizedBox.shrink()),
                     ],
                   ),
-                  const SizedBox(height: AppSpacing.lg),
                   Row(
                     children: [
                       Expanded(
@@ -61,14 +59,12 @@ class EventPricingSection extends ConsumerWidget {
                       ),
                     ],
                   ),
-                  const SizedBox(height: AppSpacing.lg),
                   BoxyArtFormField(
                     label: 'Indicative Buggy Cost ($currency)',
                     initialValue: state.buggyCost?.toString() ?? '',
                     keyboardType: TextInputType.number,
                     onChanged: (v) => ref.read(eventFormNotifierProvider.notifier).updateBuggyCost(double.tryParse(v)),
                   ),
-                  const SizedBox(height: AppSpacing.lg),
                 ],
                 // Dynamic Costs
                 if (state.extraCosts.isNotEmpty) ...[
@@ -107,7 +103,6 @@ class EventPricingSection extends ConsumerWidget {
                     );
                   }),
                 ],
-                const SizedBox(height: AppSpacing.md),
                 BoxyArtButton(
                   title: 'Add cost',
                   onTap: () => ref.read(eventFormNotifierProvider.notifier).addCost(),
@@ -119,7 +114,7 @@ class EventPricingSection extends ConsumerWidget {
               ],
             ),
           ),
-          const SizedBox(height: AppSpacing.cardToLabel),
+          SizedBox(height: spacing?.cardToLabel ?? AppSpacing.cardToLabel),
           BoxyArtSectionTitle(
             title: state.eventType == EventType.social ? 'Event Details' : 'Meal Options & Costs',
           ),

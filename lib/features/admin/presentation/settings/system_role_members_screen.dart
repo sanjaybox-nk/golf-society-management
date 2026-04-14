@@ -37,11 +37,14 @@ class _SystemRoleMembersScreenState extends ConsumerState<SystemRoleMembersScree
   Widget build(BuildContext context) {
     final membersAsync = ref.watch(allMembersProvider);
     final theme = Theme.of(context);
+    final spacing = theme.extension<AppSpacingTokens>();
     final roleColor = theme.primaryColor;
 
     return HeadlessScaffold(
       title: widget.role.displayName,
-      subtitle: 'Members assigned to the ${widget.role.displayName} tier.',
+      subtitle: 'Manage assignments',
+      titleSuffix: BoxyArtPill.committee(label: 'ADMIN'),
+      actions: const [],
       showBack: true,
       backgroundColor: theme.scaffoldBackgroundColor,
       slivers: [
@@ -58,8 +61,8 @@ class _SystemRoleMembersScreenState extends ConsumerState<SystemRoleMembersScree
                   onChanged: (val) {}, 
                 ),
               ),
-              // Standardized search-to-card rhythm (16px)
-              const SizedBox(height: AppSpacing.standard),
+              // Standardized search-to-card rhythm
+              SizedBox(height: spacing?.cardToLabel ?? AppSpacing.standard),
             ],
           ),
         ),
@@ -91,15 +94,13 @@ class _SystemRoleMembersScreenState extends ConsumerState<SystemRoleMembersScree
             });
 
             if (displayList.isEmpty) {
-              return SliverFillRemaining(
-                child: Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(AppSpacing.xl),
-                    child: BoxyArtEmptyCard(
-                      title: 'No members found',
-                      message: 'Try a different search term or check the clubhouse roster.',
-                      icon: Icons.search_off_rounded,
-                    ),
+              return SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+                  child: BoxyArtEmptyCard(
+                    title: 'No members found',
+                    message: 'Try a different search term or check the clubhouse roster.',
+                    icon: Icons.search_off_rounded,
                   ),
                 ),
               );
@@ -113,72 +114,56 @@ class _SystemRoleMembersScreenState extends ConsumerState<SystemRoleMembersScree
                     final member = displayList[index];
                     final hasRole = member.role == widget.role;
 
-                    if (!hasRole) {
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: AppSpacing.md),
-                        child: _buildCandidateTile(member, roleColor),
-                      );
-                    } else {
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: AppSpacing.md),
-                        child: _buildActiveRoleTile(member, roleColor),
-                      );
-                    }
+                    return Padding(
+                      padding: EdgeInsets.only(bottom: spacing?.cardToCard ?? AppSpacing.atomic),
+                      child: hasRole 
+                        ? _buildActiveRoleTile(member, roleColor)
+                        : _buildCandidateTile(member, roleColor),
+                    );
                   },
                   childCount: displayList.length,
                 ),
               ),
             );
           },
-          loading: () => const SliverFillRemaining(child: Center(child: CircularProgressIndicator())),
-          error: (err, stack) => SliverFillRemaining(child: Center(child: Text('Error: $err'))),
+          loading: () => const SliverPadding(
+            padding: EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+            sliver: SliverToBoxAdapter(
+              child: BoxyArtLoadingCard(title: 'Loading membership...'),
+            ),
+          ),
+          error: (err, stack) => SliverPadding(
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+            sliver: SliverToBoxAdapter(
+              child: BoxyArtEmptyCard(
+                title: 'Data Unavailable',
+                message: 'Error fetching members: $err',
+                icon: Icons.error_outline_rounded,
+              ),
+            ),
+          ),
         ),
-        const SliverPadding(padding: EdgeInsets.only(bottom: 100)),
+        const SliverPadding(padding: EdgeInsets.only(bottom: AppSpacing.pageBottom)),
       ],
     );
   }
 
   Widget _buildCandidateTile(Member member, Color roleColor) {
-    return BoxyArtCard(
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
-      child: ListTile(
-        contentPadding: EdgeInsets.zero,
-        leading: CircleAvatar(
-          backgroundColor: AppColors.pureWhite,
-          backgroundImage: member.avatarUrl != null ? NetworkImage(member.avatarUrl!) : null,
-          child: member.avatarUrl == null
-              ? Text(
-                  member.firstName.isNotEmpty ? member.firstName[0] : '',
-                  style: TextStyle(color: Colors.black.withValues(alpha: 0.54)),
-                )
-              : null,
-        ),
-        title: Text('${member.firstName} ${member.lastName}', style: const TextStyle(fontWeight: AppTypography.weightBold)),
-        subtitle: Text(member.role.displayName, style: TextStyle(fontSize: AppTypography.sizeLabel, color: AppColors.textSecondary)),
-        trailing: IconButton(
-          icon: Icon(Icons.add_circle, color: roleColor, size: AppShapes.iconXl),
-          onPressed: () {
-            _updateRole(member, widget.role);
-            _searchController.clear();
-          },
-        ),
-      ),
-    );
-  }
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
 
-  Widget _buildActiveRoleTile(Member member, Color roleColor) {
     return BoxyArtCard(
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.md),
+      padding: const EdgeInsets.all(AppSpacing.lg),
       child: Row(
         children: [
           CircleAvatar(
-            radius: 24,
-            backgroundColor: AppColors.pureWhite,
+            radius: 22,
+            backgroundColor: isDark ? AppColors.dark600 : AppColors.dark100,
             backgroundImage: member.avatarUrl != null ? NetworkImage(member.avatarUrl!) : null,
             child: member.avatarUrl == null
                 ? Text(
                     member.firstName.isNotEmpty ? member.firstName[0] : '',
-                    style: TextStyle(fontWeight: AppTypography.weightBold, color: Colors.black.withValues(alpha: 0.54)),
+                    style: AppTypography.label.copyWith(color: AppColors.textTertiary),
                   )
                 : null,
           ),
@@ -186,31 +171,77 @@ class _SystemRoleMembersScreenState extends ConsumerState<SystemRoleMembersScree
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  '${member.firstName} ${member.lastName}',
-                  style: const TextStyle(
-                    fontWeight: AppTypography.weightBold, 
-                    fontSize: AppTypography.sizeBody,
-                    letterSpacing: 0.2,
+                  member.displayName,
+                  style: AppTypography.label.copyWith(
+                    color: theme.colorScheme.onSurface,
+                    fontWeight: AppTypography.weightBold,
+                    height: 1.2,
                   ),
                 ),
-                const SizedBox(height: 6),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: roleColor.withValues(alpha: 0.12),
-                    borderRadius: AppShapes.xs,
+                Text(
+                  member.role.displayName,
+                  style: AppTypography.caption.copyWith(
+                    color: isDark ? AppColors.dark300 : AppColors.dark500,
+                    height: 1.0,
                   ),
-                  child: Text(
-                    widget.role.displayName.toUpperCase(),
-                    style: TextStyle(
-                      fontSize: AppTypography.sizeMicro,
-                      fontWeight: AppTypography.weightBold,
-                      color: roleColor,
-                      letterSpacing: 0.5,
-                    ),
+                ),
+              ],
+            ),
+          ),
+          IconButton(
+            icon: Icon(Icons.add_circle_outline_rounded, color: roleColor, size: AppShapes.iconLg),
+            onPressed: () {
+              _updateRole(member, widget.role);
+              _searchController.clear();
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildActiveRoleTile(Member member, Color roleColor) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    return BoxyArtCard(
+      padding: const EdgeInsets.all(AppSpacing.lg),
+      child: Row(
+        children: [
+          CircleAvatar(
+            radius: 22,
+            backgroundColor: isDark ? AppColors.dark600 : AppColors.dark100,
+            backgroundImage: member.avatarUrl != null ? NetworkImage(member.avatarUrl!) : null,
+            child: member.avatarUrl == null
+                ? Text(
+                    member.firstName.isNotEmpty ? member.firstName[0] : '',
+                    style: AppTypography.label.copyWith(color: AppColors.textTertiary),
+                  )
+                : null,
+          ),
+          const SizedBox(width: AppSpacing.lg),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  member.displayName,
+                  style: AppTypography.label.copyWith(
+                    color: theme.colorScheme.onSurface,
+                    fontWeight: AppTypography.weightBold,
+                    height: 1.2,
                   ),
+                ),
+                const SizedBox(height: 4),
+                BoxyArtPill(
+                  label: widget.role.displayName,
+                  color: roleColor,
+                  fontSize: AppTypography.sizeMicro,
+                  hasHorizontalMargin: false,
                 ),
               ],
             ),
@@ -221,7 +252,6 @@ class _SystemRoleMembersScreenState extends ConsumerState<SystemRoleMembersScree
             thumbColor: const WidgetStatePropertyAll(AppColors.pureWhite),
             trackOutlineColor: const WidgetStatePropertyAll(Colors.transparent),
             onChanged: (val) {
-               // Revert to 'member' role if unchecked, unless it's already 'member'
                if (!val && widget.role != MemberRole.member) {
                  _updateRole(member, MemberRole.member);
                }

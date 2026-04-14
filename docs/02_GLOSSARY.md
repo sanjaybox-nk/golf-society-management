@@ -22,6 +22,12 @@ World Handicap System index. A measure of a golfer's potential ability. The app 
 **Tee-off Time**
 The scheduled start time for a match or specific flight.
 
+**Society Cuts**
+Automated handicap adjustments applied to the top 3 finishers of an event. These are temporary "cuts" that reduce a player's starting handicap for a specific duration to maintain field parity.
+
+**Additive (Stacking) Model**
+A system where multiple cuts stack together (e.g., -2.0 from a win + -1.0 from a 2nd place = -3.0 total). This ensures that frequent winners face increasing challenges, preventing "dead" achievements.
+
 ## App Mechanics (BoxyArt System)
 
 **BoxyArt Theme**
@@ -38,6 +44,7 @@ The custom visual language of the app. Characterized by:
 The creative name for the **User Profile** section. Here, users can:
 -   View their current Handicap Index.
 -   Check their Win/Loss statistics.
+-   View their **Active Society Cut** breakdown, including recent podium finishes and the remaining event validity for each adjustment.
 -   Edit personal details.
 
 **Events Hub**

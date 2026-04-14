@@ -537,9 +537,9 @@ class BoxyArtStatusPill extends StatelessWidget {
     final statusColor = color ?? theme.primaryColor;
 
     final Widget child = isPaid 
-      ? Padding(
-          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs, vertical: 4),
-          child: Row(
+        ? Padding(
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs, vertical: 2), // Reduced for overflow safety
+            child: Row(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [

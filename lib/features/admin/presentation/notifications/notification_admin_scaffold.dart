@@ -20,8 +20,8 @@ class _NotificationAdminScaffoldState extends State<NotificationAdminScaffold> {
       length: 2,
       child: HeadlessScaffold(
         title: 'Communication Hub',
-        titleSuffix: BoxyArtPill.committee(label: 'ADMIN'),
         subtitle: 'Broadcast history & dispatch logs',
+        titleSuffix: BoxyArtPill.committee(label: 'ADMIN'),
         leading: Center(
           child: BoxyArtGlassIconButton(
             icon: Icons.arrow_back_rounded,

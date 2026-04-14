@@ -64,9 +64,17 @@ class LeaderboardBuilderScreen extends ConsumerWidget {
       onBack: () => context.pop(),
       slivers: [
         SliverPadding(
-          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.x2l),
+          padding: const EdgeInsets.only(
+            left: AppSpacing.xl,
+            right: AppSpacing.xl,
+            top: AppSpacing.x2l,
+            bottom: AppSpacing.x4l,
+          ),
           sliver: SliverToBoxAdapter(
-            child: _buildControl(context, ref, effectiveType, effectiveConfig),
+            child: StaggeredEntrance(
+              index: 0,
+              child: _buildControl(context, ref, effectiveType, effectiveConfig),
+            ),
           ),
         ),
       ],

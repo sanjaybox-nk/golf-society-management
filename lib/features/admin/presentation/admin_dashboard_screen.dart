@@ -20,8 +20,8 @@ class AdminDashboardScreen extends ConsumerWidget {
       length: 2,
       child: HeadlessScaffold(
         title: 'Admin Console',
-        titleSuffix: BoxyArtPill.committee(label: 'ADMIN'),
         subtitle: 'Command Center',
+        titleSuffix: BoxyArtPill.committee(label: 'ADMIN'),
         leading: Align(
           alignment: Alignment.centerLeft,
           child: Padding(
@@ -108,12 +108,17 @@ class _OverviewSlivers extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final eventsAsync = ref.watch(adminEventsProvider);
+    final spacing = Theme.of(context).extension<AppSpacingTokens>();
 
     return SliverPadding(
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.lg),
+      padding: EdgeInsets.only(
+        top: spacing?.cardToLabel ?? AppSpacing.cardToLabel,
+        left: AppSpacing.xl,
+        right: AppSpacing.xl,
+        bottom: AppSpacing.lg,
+      ),
       sliver: SliverList(
         delegate: SliverChildListDelegate([
-          SizedBox(height: Theme.of(context).extension<AppSpacingTokens>()?.cardToLabel ?? AppSpacing.cardToLabel),
           // 1. Next Event Hero
           eventsAsync.when(
             data: (events) {
@@ -138,7 +143,10 @@ class _OverviewSlivers extends ConsumerWidget {
             error: (e, _) => BoxyArtCard(child: Center(child: Text('Error: $e'))),
           ),
 
-          const BoxyArtSectionTitle(title: 'Recent Activity'),
+          const BoxyArtSectionTitle(
+            title: 'Recent Activity',
+            isPeeking: true,
+          ),
           const _ActivityFeed(),
         ]),
       ),
@@ -151,13 +159,17 @@ class _OperationsSlivers extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
+    final spacing = Theme.of(context).extension<AppSpacingTokens>();
 
     return SliverPadding(
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.lg),
+      padding: EdgeInsets.only(
+        top: spacing?.cardToLabel ?? AppSpacing.cardToLabel,
+        left: AppSpacing.xl,
+        right: AppSpacing.xl,
+        bottom: AppSpacing.lg,
+      ),
       sliver: SliverList(
         delegate: SliverChildListDelegate([
-          SizedBox(height: Theme.of(context).extension<AppSpacingTokens>()?.cardToLabel ?? AppSpacing.cardToLabel),
           const BoxyArtSectionTitle(
             title: 'Daily Operations',
             isPeeking: true,
@@ -166,6 +178,20 @@ class _OperationsSlivers extends ConsumerWidget {
             padding: EdgeInsets.zero,
             child: Column(
               children: [
+                BoxyArtNavTile(
+                  icon: Icons.calendar_today_rounded,
+                  title: 'Season Management',
+                  subtitle: 'Active seasons and rollover tools',
+                  onTap: () => context.pushNamed('admin-settings-seasons'),
+                ),
+                const BoxyArtDivider(),
+                BoxyArtNavTile(
+                  icon: Icons.leaderboard_outlined,
+                  title: 'Season Leaderboards',
+                  subtitle: 'Track Order of Merit & stat cycles',
+                  onTap: () => context.pushNamed('admin-settings-leaderboards'),
+                ),
+                const BoxyArtDivider(),
                 BoxyArtNavTile(
                   icon: Icons.handshake_outlined,
                   title: 'Sponsorships & Donations',
@@ -206,6 +232,13 @@ class _OperationsSlivers extends ConsumerWidget {
                   title: 'Audience Manager',
                   subtitle: 'Configure mailing lists & templates',
                   onTap: () => context.pushNamed('admin-audience'),
+                ),
+                const BoxyArtDivider(),
+                BoxyArtNavTile(
+                  icon: Icons.content_cut_rounded,
+                  title: 'Society Cuts',
+                  subtitle: 'Global handicap adjustment rules',
+                  onTap: () => context.pushNamed('admin-settings-cuts'),
                 ),
               ],
             ),

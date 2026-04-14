@@ -320,7 +320,7 @@ class ScorecardModal {
               Expanded(
                 child: SingleChildScrollView(
                   controller: scrollController,
-                  padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.lg, AppSpacing.lg, AppSpacing.x3l),
+                  padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.lg, AppSpacing.lg, 100.0),
                   child: Builder(
                     builder: (context) {
                       // Resolve effective rules/format for modal

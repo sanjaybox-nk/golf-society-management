@@ -15,8 +15,8 @@ class AdminSurveysScreen extends ConsumerWidget {
 
     return HeadlessScaffold(
       title: 'Society Surveys',
-      titleSuffix: BoxyArtPill.committee(label: 'ADMIN'),
       subtitle: 'Gather feedback & insights',
+      titleSuffix: BoxyArtPill.committee(label: 'ADMIN'),
       showBack: true, // [NEW] Enable back navigation
       actions: [
         BoxyArtGlassIconButton(
@@ -24,11 +24,17 @@ class AdminSurveysScreen extends ConsumerWidget {
           onPressed: () => context.push('/admin/surveys/new'),
           tooltip: 'Create Survey',
         ),
-        const SizedBox(width: AppSpacing.md),
+        const SizedBox(width: AppSpacing.sm),
       ],
       slivers: [
-        SliverToBoxAdapter(
-          child: SizedBox(height: spacing?.cardToLabel ?? AppSpacing.cardToLabel),
+        const SliverPadding(
+          padding: EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+          sliver: SliverToBoxAdapter(
+            child: BoxyArtSectionTitle(
+              title: 'Active surveys',
+              isPeeking: true,
+            ),
+          ),
         ),
         surveysAsync.when(
           data: (surveys) {

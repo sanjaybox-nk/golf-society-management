@@ -18,6 +18,7 @@ mixin _$SocietyConfig {
   String? get logoUrl;
   int get primaryColor; // Default: BoxyArt Yellow
   int get secondaryColor; // Default: Emerald Green (Action)
+  int get dangerousColor; // [NEW] High Alert / Dangerous Action color (Coral)
   int get backgroundColor; // Default: Light Gray/Neutral
   int get statusPublishedColor; // [NEW] Pill Subset (Emerald Green - Lifecycle)
   int get statusConfirmedColor; // [NEW] Pill Subset (Emerald Green - Registration)
@@ -65,6 +66,11 @@ mixin _$SocietyConfig {
       get separateGuestLeaderboard; // Single toggle: ON = Separate, OFF = Hidden
   SocietyCutMode get societyCutMode;
   Map<String, double> get societyCutRules;
+  int get societyCutEventLimit; // [NEW] 0 = Rest of Season
+  bool
+      get societyCutCountPlayedOnly; // [NEW] Toggle: Count all events vs Played only
+  bool get societyCutFilterSeason; // [NEW] Cut triggers for Season events
+  bool get societyCutFilterInvitational; // [NEW] Cut triggers for Invitationals
   double get globalMarkupPercentage; // Default: 10%
   double get guestMarkupExtra; // Default: £10 extra for guests
   @OptionalTimestampConverter()
@@ -106,6 +112,8 @@ mixin _$SocietyConfig {
                 other.primaryColor == primaryColor) &&
             (identical(other.secondaryColor, secondaryColor) ||
                 other.secondaryColor == secondaryColor) &&
+            (identical(other.dangerousColor, dangerousColor) ||
+                other.dangerousColor == dangerousColor) &&
             (identical(other.backgroundColor, backgroundColor) ||
                 other.backgroundColor == backgroundColor) &&
             (identical(other.statusPublishedColor, statusPublishedColor) ||
@@ -184,13 +192,16 @@ mixin _$SocietyConfig {
                 other.groupingStrategy == groupingStrategy) &&
             (identical(other.useWhsHandicaps, useWhsHandicaps) ||
                 other.useWhsHandicaps == useWhsHandicaps) &&
-            (identical(other.distanceUnit, distanceUnit) ||
-                other.distanceUnit == distanceUnit) &&
+            (identical(other.distanceUnit, distanceUnit) || other.distanceUnit == distanceUnit) &&
             (identical(other.handicapSystem, handicapSystem) || other.handicapSystem == handicapSystem) &&
             (identical(other.selectedPaletteName, selectedPaletteName) || other.selectedPaletteName == selectedPaletteName) &&
             (identical(other.separateGuestLeaderboard, separateGuestLeaderboard) || other.separateGuestLeaderboard == separateGuestLeaderboard) &&
             (identical(other.societyCutMode, societyCutMode) || other.societyCutMode == societyCutMode) &&
             const DeepCollectionEquality().equals(other.societyCutRules, societyCutRules) &&
+            (identical(other.societyCutEventLimit, societyCutEventLimit) || other.societyCutEventLimit == societyCutEventLimit) &&
+            (identical(other.societyCutCountPlayedOnly, societyCutCountPlayedOnly) || other.societyCutCountPlayedOnly == societyCutCountPlayedOnly) &&
+            (identical(other.societyCutFilterSeason, societyCutFilterSeason) || other.societyCutFilterSeason == societyCutFilterSeason) &&
+            (identical(other.societyCutFilterInvitational, societyCutFilterInvitational) || other.societyCutFilterInvitational == societyCutFilterInvitational) &&
             (identical(other.globalMarkupPercentage, globalMarkupPercentage) || other.globalMarkupPercentage == globalMarkupPercentage) &&
             (identical(other.guestMarkupExtra, guestMarkupExtra) || other.guestMarkupExtra == guestMarkupExtra) &&
             (identical(other.globalMembershipEndDate, globalMembershipEndDate) || other.globalMembershipEndDate == globalMembershipEndDate) &&
@@ -212,6 +223,7 @@ mixin _$SocietyConfig {
         logoUrl,
         primaryColor,
         secondaryColor,
+        dangerousColor,
         backgroundColor,
         statusPublishedColor,
         statusConfirmedColor,
@@ -257,6 +269,10 @@ mixin _$SocietyConfig {
         separateGuestLeaderboard,
         societyCutMode,
         const DeepCollectionEquality().hash(societyCutRules),
+        societyCutEventLimit,
+        societyCutCountPlayedOnly,
+        societyCutFilterSeason,
+        societyCutFilterInvitational,
         globalMarkupPercentage,
         guestMarkupExtra,
         globalMembershipEndDate,
@@ -272,7 +288,7 @@ mixin _$SocietyConfig {
 
   @override
   String toString() {
-    return 'SocietyConfig(societyName: $societyName, logoUrl: $logoUrl, primaryColor: $primaryColor, secondaryColor: $secondaryColor, backgroundColor: $backgroundColor, statusPublishedColor: $statusPublishedColor, statusConfirmedColor: $statusConfirmedColor, statusReservedColor: $statusReservedColor, statusWaitlistColor: $statusWaitlistColor, statusWithdrawnColor: $statusWithdrawnColor, statusDinnerColor: $statusDinnerColor, cardRadius: $cardRadius, inputRadius: $inputRadius, useShadows: $useShadows, shadowIntensity: $shadowIntensity, useBorders: $useBorders, borderWidth: $borderWidth, pillRadius: $pillRadius, buttonRadius: $buttonRadius, heroRadius: $heroRadius, accentRadius: $accentRadius, accentOpacity: $accentOpacity, shadowSpread: $shadowSpread, shadowOpacity: $shadowOpacity, labelToCardSpacing: $labelToCardSpacing, cardToLabelSpacing: $cardToLabelSpacing, cardToCardSpacing: $cardToCardSpacing, cardVerticalPadding: $cardVerticalPadding, cardHorizontalPadding: $cardHorizontalPadding, iconBadgeFillColor: $iconBadgeFillColor, iconBadgeIconColor: $iconBadgeIconColor, iconBadgeOpacity: $iconBadgeOpacity, iconOpacity: $iconOpacity, iconBadgeSize: $iconBadgeSize, iconBadgeIconSize: $iconBadgeIconSize, themeMode: $themeMode, customColors: $customColors, cardTintIntensity: $cardTintIntensity, useCardGradient: $useCardGradient, currencySymbol: $currencySymbol, currencyCode: $currencyCode, groupingStrategy: $groupingStrategy, useWhsHandicaps: $useWhsHandicaps, distanceUnit: $distanceUnit, handicapSystem: $handicapSystem, selectedPaletteName: $selectedPaletteName, separateGuestLeaderboard: $separateGuestLeaderboard, societyCutMode: $societyCutMode, societyCutRules: $societyCutRules, globalMarkupPercentage: $globalMarkupPercentage, guestMarkupExtra: $guestMarkupExtra, globalMembershipEndDate: $globalMembershipEndDate, renewalWindowDays: $renewalWindowDays, isRenewalActive: $isRenewalActive, renewalLaunchDate: $renewalLaunchDate, renewalDeadline: $renewalDeadline, renewalPaymentDeadline: $renewalPaymentDeadline, startingBalance: $startingBalance, ledgerEntries: $ledgerEntries, sponsors: $sponsors)';
+    return 'SocietyConfig(societyName: $societyName, logoUrl: $logoUrl, primaryColor: $primaryColor, secondaryColor: $secondaryColor, dangerousColor: $dangerousColor, backgroundColor: $backgroundColor, statusPublishedColor: $statusPublishedColor, statusConfirmedColor: $statusConfirmedColor, statusReservedColor: $statusReservedColor, statusWaitlistColor: $statusWaitlistColor, statusWithdrawnColor: $statusWithdrawnColor, statusDinnerColor: $statusDinnerColor, cardRadius: $cardRadius, inputRadius: $inputRadius, useShadows: $useShadows, shadowIntensity: $shadowIntensity, useBorders: $useBorders, borderWidth: $borderWidth, pillRadius: $pillRadius, buttonRadius: $buttonRadius, heroRadius: $heroRadius, accentRadius: $accentRadius, accentOpacity: $accentOpacity, shadowSpread: $shadowSpread, shadowOpacity: $shadowOpacity, labelToCardSpacing: $labelToCardSpacing, cardToLabelSpacing: $cardToLabelSpacing, cardToCardSpacing: $cardToCardSpacing, cardVerticalPadding: $cardVerticalPadding, cardHorizontalPadding: $cardHorizontalPadding, iconBadgeFillColor: $iconBadgeFillColor, iconBadgeIconColor: $iconBadgeIconColor, iconBadgeOpacity: $iconBadgeOpacity, iconOpacity: $iconOpacity, iconBadgeSize: $iconBadgeSize, iconBadgeIconSize: $iconBadgeIconSize, themeMode: $themeMode, customColors: $customColors, cardTintIntensity: $cardTintIntensity, useCardGradient: $useCardGradient, currencySymbol: $currencySymbol, currencyCode: $currencyCode, groupingStrategy: $groupingStrategy, useWhsHandicaps: $useWhsHandicaps, distanceUnit: $distanceUnit, handicapSystem: $handicapSystem, selectedPaletteName: $selectedPaletteName, separateGuestLeaderboard: $separateGuestLeaderboard, societyCutMode: $societyCutMode, societyCutRules: $societyCutRules, societyCutEventLimit: $societyCutEventLimit, societyCutCountPlayedOnly: $societyCutCountPlayedOnly, societyCutFilterSeason: $societyCutFilterSeason, societyCutFilterInvitational: $societyCutFilterInvitational, globalMarkupPercentage: $globalMarkupPercentage, guestMarkupExtra: $guestMarkupExtra, globalMembershipEndDate: $globalMembershipEndDate, renewalWindowDays: $renewalWindowDays, isRenewalActive: $isRenewalActive, renewalLaunchDate: $renewalLaunchDate, renewalDeadline: $renewalDeadline, renewalPaymentDeadline: $renewalPaymentDeadline, startingBalance: $startingBalance, ledgerEntries: $ledgerEntries, sponsors: $sponsors)';
   }
 }
 
@@ -287,6 +303,7 @@ abstract mixin class $SocietyConfigCopyWith<$Res> {
       String? logoUrl,
       int primaryColor,
       int secondaryColor,
+      int dangerousColor,
       int backgroundColor,
       int statusPublishedColor,
       int statusConfirmedColor,
@@ -332,6 +349,10 @@ abstract mixin class $SocietyConfigCopyWith<$Res> {
       bool separateGuestLeaderboard,
       SocietyCutMode societyCutMode,
       Map<String, double> societyCutRules,
+      int societyCutEventLimit,
+      bool societyCutCountPlayedOnly,
+      bool societyCutFilterSeason,
+      bool societyCutFilterInvitational,
       double globalMarkupPercentage,
       double guestMarkupExtra,
       @OptionalTimestampConverter() DateTime? globalMembershipEndDate,
@@ -362,6 +383,7 @@ class _$SocietyConfigCopyWithImpl<$Res>
     Object? logoUrl = freezed,
     Object? primaryColor = null,
     Object? secondaryColor = null,
+    Object? dangerousColor = null,
     Object? backgroundColor = null,
     Object? statusPublishedColor = null,
     Object? statusConfirmedColor = null,
@@ -407,6 +429,10 @@ class _$SocietyConfigCopyWithImpl<$Res>
     Object? separateGuestLeaderboard = null,
     Object? societyCutMode = null,
     Object? societyCutRules = null,
+    Object? societyCutEventLimit = null,
+    Object? societyCutCountPlayedOnly = null,
+    Object? societyCutFilterSeason = null,
+    Object? societyCutFilterInvitational = null,
     Object? globalMarkupPercentage = null,
     Object? guestMarkupExtra = null,
     Object? globalMembershipEndDate = freezed,
@@ -435,6 +461,10 @@ class _$SocietyConfigCopyWithImpl<$Res>
       secondaryColor: null == secondaryColor
           ? _self.secondaryColor
           : secondaryColor // ignore: cast_nullable_to_non_nullable
+              as int,
+      dangerousColor: null == dangerousColor
+          ? _self.dangerousColor
+          : dangerousColor // ignore: cast_nullable_to_non_nullable
               as int,
       backgroundColor: null == backgroundColor
           ? _self.backgroundColor
@@ -616,6 +646,22 @@ class _$SocietyConfigCopyWithImpl<$Res>
           ? _self.societyCutRules
           : societyCutRules // ignore: cast_nullable_to_non_nullable
               as Map<String, double>,
+      societyCutEventLimit: null == societyCutEventLimit
+          ? _self.societyCutEventLimit
+          : societyCutEventLimit // ignore: cast_nullable_to_non_nullable
+              as int,
+      societyCutCountPlayedOnly: null == societyCutCountPlayedOnly
+          ? _self.societyCutCountPlayedOnly
+          : societyCutCountPlayedOnly // ignore: cast_nullable_to_non_nullable
+              as bool,
+      societyCutFilterSeason: null == societyCutFilterSeason
+          ? _self.societyCutFilterSeason
+          : societyCutFilterSeason // ignore: cast_nullable_to_non_nullable
+              as bool,
+      societyCutFilterInvitational: null == societyCutFilterInvitational
+          ? _self.societyCutFilterInvitational
+          : societyCutFilterInvitational // ignore: cast_nullable_to_non_nullable
+              as bool,
       globalMarkupPercentage: null == globalMarkupPercentage
           ? _self.globalMarkupPercentage
           : globalMarkupPercentage // ignore: cast_nullable_to_non_nullable
@@ -762,6 +808,7 @@ extension SocietyConfigPatterns on SocietyConfig {
             String? logoUrl,
             int primaryColor,
             int secondaryColor,
+            int dangerousColor,
             int backgroundColor,
             int statusPublishedColor,
             int statusConfirmedColor,
@@ -807,6 +854,10 @@ extension SocietyConfigPatterns on SocietyConfig {
             bool separateGuestLeaderboard,
             SocietyCutMode societyCutMode,
             Map<String, double> societyCutRules,
+            int societyCutEventLimit,
+            bool societyCutCountPlayedOnly,
+            bool societyCutFilterSeason,
+            bool societyCutFilterInvitational,
             double globalMarkupPercentage,
             double guestMarkupExtra,
             @OptionalTimestampConverter() DateTime? globalMembershipEndDate,
@@ -829,6 +880,7 @@ extension SocietyConfigPatterns on SocietyConfig {
             _that.logoUrl,
             _that.primaryColor,
             _that.secondaryColor,
+            _that.dangerousColor,
             _that.backgroundColor,
             _that.statusPublishedColor,
             _that.statusConfirmedColor,
@@ -874,6 +926,10 @@ extension SocietyConfigPatterns on SocietyConfig {
             _that.separateGuestLeaderboard,
             _that.societyCutMode,
             _that.societyCutRules,
+            _that.societyCutEventLimit,
+            _that.societyCutCountPlayedOnly,
+            _that.societyCutFilterSeason,
+            _that.societyCutFilterInvitational,
             _that.globalMarkupPercentage,
             _that.guestMarkupExtra,
             _that.globalMembershipEndDate,
@@ -910,6 +966,7 @@ extension SocietyConfigPatterns on SocietyConfig {
             String? logoUrl,
             int primaryColor,
             int secondaryColor,
+            int dangerousColor,
             int backgroundColor,
             int statusPublishedColor,
             int statusConfirmedColor,
@@ -955,6 +1012,10 @@ extension SocietyConfigPatterns on SocietyConfig {
             bool separateGuestLeaderboard,
             SocietyCutMode societyCutMode,
             Map<String, double> societyCutRules,
+            int societyCutEventLimit,
+            bool societyCutCountPlayedOnly,
+            bool societyCutFilterSeason,
+            bool societyCutFilterInvitational,
             double globalMarkupPercentage,
             double guestMarkupExtra,
             @OptionalTimestampConverter() DateTime? globalMembershipEndDate,
@@ -976,6 +1037,7 @@ extension SocietyConfigPatterns on SocietyConfig {
             _that.logoUrl,
             _that.primaryColor,
             _that.secondaryColor,
+            _that.dangerousColor,
             _that.backgroundColor,
             _that.statusPublishedColor,
             _that.statusConfirmedColor,
@@ -1021,6 +1083,10 @@ extension SocietyConfigPatterns on SocietyConfig {
             _that.separateGuestLeaderboard,
             _that.societyCutMode,
             _that.societyCutRules,
+            _that.societyCutEventLimit,
+            _that.societyCutCountPlayedOnly,
+            _that.societyCutFilterSeason,
+            _that.societyCutFilterInvitational,
             _that.globalMarkupPercentage,
             _that.guestMarkupExtra,
             _that.globalMembershipEndDate,
@@ -1056,6 +1122,7 @@ extension SocietyConfigPatterns on SocietyConfig {
             String? logoUrl,
             int primaryColor,
             int secondaryColor,
+            int dangerousColor,
             int backgroundColor,
             int statusPublishedColor,
             int statusConfirmedColor,
@@ -1101,6 +1168,10 @@ extension SocietyConfigPatterns on SocietyConfig {
             bool separateGuestLeaderboard,
             SocietyCutMode societyCutMode,
             Map<String, double> societyCutRules,
+            int societyCutEventLimit,
+            bool societyCutCountPlayedOnly,
+            bool societyCutFilterSeason,
+            bool societyCutFilterInvitational,
             double globalMarkupPercentage,
             double guestMarkupExtra,
             @OptionalTimestampConverter() DateTime? globalMembershipEndDate,
@@ -1122,6 +1193,7 @@ extension SocietyConfigPatterns on SocietyConfig {
             _that.logoUrl,
             _that.primaryColor,
             _that.secondaryColor,
+            _that.dangerousColor,
             _that.backgroundColor,
             _that.statusPublishedColor,
             _that.statusConfirmedColor,
@@ -1167,6 +1239,10 @@ extension SocietyConfigPatterns on SocietyConfig {
             _that.separateGuestLeaderboard,
             _that.societyCutMode,
             _that.societyCutRules,
+            _that.societyCutEventLimit,
+            _that.societyCutCountPlayedOnly,
+            _that.societyCutFilterSeason,
+            _that.societyCutFilterInvitational,
             _that.globalMarkupPercentage,
             _that.guestMarkupExtra,
             _that.globalMembershipEndDate,
@@ -1192,6 +1268,7 @@ class _SocietyConfig implements SocietyConfig {
       this.logoUrl,
       this.primaryColor = 0xFFF7D354,
       this.secondaryColor = 0xFF4ADE80,
+      this.dangerousColor = 0xFFFF5533,
       this.backgroundColor = 0xFFEFEFED,
       this.statusPublishedColor = 0xFF4ADE80,
       this.statusConfirmedColor = 0xFF4ADE80,
@@ -1241,6 +1318,10 @@ class _SocietyConfig implements SocietyConfig {
         '2nd': 1.0,
         '3rd': 0.5
       },
+      this.societyCutEventLimit = 0,
+      this.societyCutCountPlayedOnly = true,
+      this.societyCutFilterSeason = true,
+      this.societyCutFilterInvitational = false,
       this.globalMarkupPercentage = 0.10,
       this.guestMarkupExtra = 10.0,
       @OptionalTimestampConverter() this.globalMembershipEndDate,
@@ -1272,6 +1353,10 @@ class _SocietyConfig implements SocietyConfig {
   @JsonKey()
   final int secondaryColor;
 // Default: Emerald Green (Action)
+  @override
+  @JsonKey()
+  final int dangerousColor;
+// [NEW] High Alert / Dangerous Action color (Coral)
   @override
   @JsonKey()
   final int backgroundColor;
@@ -1462,6 +1547,22 @@ class _SocietyConfig implements SocietyConfig {
 
   @override
   @JsonKey()
+  final int societyCutEventLimit;
+// [NEW] 0 = Rest of Season
+  @override
+  @JsonKey()
+  final bool societyCutCountPlayedOnly;
+// [NEW] Toggle: Count all events vs Played only
+  @override
+  @JsonKey()
+  final bool societyCutFilterSeason;
+// [NEW] Cut triggers for Season events
+  @override
+  @JsonKey()
+  final bool societyCutFilterInvitational;
+// [NEW] Cut triggers for Invitationals
+  @override
+  @JsonKey()
   final double globalMarkupPercentage;
 // Default: 10%
   @override
@@ -1544,6 +1645,8 @@ class _SocietyConfig implements SocietyConfig {
                 other.primaryColor == primaryColor) &&
             (identical(other.secondaryColor, secondaryColor) ||
                 other.secondaryColor == secondaryColor) &&
+            (identical(other.dangerousColor, dangerousColor) ||
+                other.dangerousColor == dangerousColor) &&
             (identical(other.backgroundColor, backgroundColor) ||
                 other.backgroundColor == backgroundColor) &&
             (identical(other.statusPublishedColor, statusPublishedColor) ||
@@ -1622,13 +1725,16 @@ class _SocietyConfig implements SocietyConfig {
                 other.groupingStrategy == groupingStrategy) &&
             (identical(other.useWhsHandicaps, useWhsHandicaps) ||
                 other.useWhsHandicaps == useWhsHandicaps) &&
-            (identical(other.distanceUnit, distanceUnit) ||
-                other.distanceUnit == distanceUnit) &&
+            (identical(other.distanceUnit, distanceUnit) || other.distanceUnit == distanceUnit) &&
             (identical(other.handicapSystem, handicapSystem) || other.handicapSystem == handicapSystem) &&
             (identical(other.selectedPaletteName, selectedPaletteName) || other.selectedPaletteName == selectedPaletteName) &&
             (identical(other.separateGuestLeaderboard, separateGuestLeaderboard) || other.separateGuestLeaderboard == separateGuestLeaderboard) &&
             (identical(other.societyCutMode, societyCutMode) || other.societyCutMode == societyCutMode) &&
             const DeepCollectionEquality().equals(other._societyCutRules, _societyCutRules) &&
+            (identical(other.societyCutEventLimit, societyCutEventLimit) || other.societyCutEventLimit == societyCutEventLimit) &&
+            (identical(other.societyCutCountPlayedOnly, societyCutCountPlayedOnly) || other.societyCutCountPlayedOnly == societyCutCountPlayedOnly) &&
+            (identical(other.societyCutFilterSeason, societyCutFilterSeason) || other.societyCutFilterSeason == societyCutFilterSeason) &&
+            (identical(other.societyCutFilterInvitational, societyCutFilterInvitational) || other.societyCutFilterInvitational == societyCutFilterInvitational) &&
             (identical(other.globalMarkupPercentage, globalMarkupPercentage) || other.globalMarkupPercentage == globalMarkupPercentage) &&
             (identical(other.guestMarkupExtra, guestMarkupExtra) || other.guestMarkupExtra == guestMarkupExtra) &&
             (identical(other.globalMembershipEndDate, globalMembershipEndDate) || other.globalMembershipEndDate == globalMembershipEndDate) &&
@@ -1650,6 +1756,7 @@ class _SocietyConfig implements SocietyConfig {
         logoUrl,
         primaryColor,
         secondaryColor,
+        dangerousColor,
         backgroundColor,
         statusPublishedColor,
         statusConfirmedColor,
@@ -1695,6 +1802,10 @@ class _SocietyConfig implements SocietyConfig {
         separateGuestLeaderboard,
         societyCutMode,
         const DeepCollectionEquality().hash(_societyCutRules),
+        societyCutEventLimit,
+        societyCutCountPlayedOnly,
+        societyCutFilterSeason,
+        societyCutFilterInvitational,
         globalMarkupPercentage,
         guestMarkupExtra,
         globalMembershipEndDate,
@@ -1710,7 +1821,7 @@ class _SocietyConfig implements SocietyConfig {
 
   @override
   String toString() {
-    return 'SocietyConfig(societyName: $societyName, logoUrl: $logoUrl, primaryColor: $primaryColor, secondaryColor: $secondaryColor, backgroundColor: $backgroundColor, statusPublishedColor: $statusPublishedColor, statusConfirmedColor: $statusConfirmedColor, statusReservedColor: $statusReservedColor, statusWaitlistColor: $statusWaitlistColor, statusWithdrawnColor: $statusWithdrawnColor, statusDinnerColor: $statusDinnerColor, cardRadius: $cardRadius, inputRadius: $inputRadius, useShadows: $useShadows, shadowIntensity: $shadowIntensity, useBorders: $useBorders, borderWidth: $borderWidth, pillRadius: $pillRadius, buttonRadius: $buttonRadius, heroRadius: $heroRadius, accentRadius: $accentRadius, accentOpacity: $accentOpacity, shadowSpread: $shadowSpread, shadowOpacity: $shadowOpacity, labelToCardSpacing: $labelToCardSpacing, cardToLabelSpacing: $cardToLabelSpacing, cardToCardSpacing: $cardToCardSpacing, cardVerticalPadding: $cardVerticalPadding, cardHorizontalPadding: $cardHorizontalPadding, iconBadgeFillColor: $iconBadgeFillColor, iconBadgeIconColor: $iconBadgeIconColor, iconBadgeOpacity: $iconBadgeOpacity, iconOpacity: $iconOpacity, iconBadgeSize: $iconBadgeSize, iconBadgeIconSize: $iconBadgeIconSize, themeMode: $themeMode, customColors: $customColors, cardTintIntensity: $cardTintIntensity, useCardGradient: $useCardGradient, currencySymbol: $currencySymbol, currencyCode: $currencyCode, groupingStrategy: $groupingStrategy, useWhsHandicaps: $useWhsHandicaps, distanceUnit: $distanceUnit, handicapSystem: $handicapSystem, selectedPaletteName: $selectedPaletteName, separateGuestLeaderboard: $separateGuestLeaderboard, societyCutMode: $societyCutMode, societyCutRules: $societyCutRules, globalMarkupPercentage: $globalMarkupPercentage, guestMarkupExtra: $guestMarkupExtra, globalMembershipEndDate: $globalMembershipEndDate, renewalWindowDays: $renewalWindowDays, isRenewalActive: $isRenewalActive, renewalLaunchDate: $renewalLaunchDate, renewalDeadline: $renewalDeadline, renewalPaymentDeadline: $renewalPaymentDeadline, startingBalance: $startingBalance, ledgerEntries: $ledgerEntries, sponsors: $sponsors)';
+    return 'SocietyConfig(societyName: $societyName, logoUrl: $logoUrl, primaryColor: $primaryColor, secondaryColor: $secondaryColor, dangerousColor: $dangerousColor, backgroundColor: $backgroundColor, statusPublishedColor: $statusPublishedColor, statusConfirmedColor: $statusConfirmedColor, statusReservedColor: $statusReservedColor, statusWaitlistColor: $statusWaitlistColor, statusWithdrawnColor: $statusWithdrawnColor, statusDinnerColor: $statusDinnerColor, cardRadius: $cardRadius, inputRadius: $inputRadius, useShadows: $useShadows, shadowIntensity: $shadowIntensity, useBorders: $useBorders, borderWidth: $borderWidth, pillRadius: $pillRadius, buttonRadius: $buttonRadius, heroRadius: $heroRadius, accentRadius: $accentRadius, accentOpacity: $accentOpacity, shadowSpread: $shadowSpread, shadowOpacity: $shadowOpacity, labelToCardSpacing: $labelToCardSpacing, cardToLabelSpacing: $cardToLabelSpacing, cardToCardSpacing: $cardToCardSpacing, cardVerticalPadding: $cardVerticalPadding, cardHorizontalPadding: $cardHorizontalPadding, iconBadgeFillColor: $iconBadgeFillColor, iconBadgeIconColor: $iconBadgeIconColor, iconBadgeOpacity: $iconBadgeOpacity, iconOpacity: $iconOpacity, iconBadgeSize: $iconBadgeSize, iconBadgeIconSize: $iconBadgeIconSize, themeMode: $themeMode, customColors: $customColors, cardTintIntensity: $cardTintIntensity, useCardGradient: $useCardGradient, currencySymbol: $currencySymbol, currencyCode: $currencyCode, groupingStrategy: $groupingStrategy, useWhsHandicaps: $useWhsHandicaps, distanceUnit: $distanceUnit, handicapSystem: $handicapSystem, selectedPaletteName: $selectedPaletteName, separateGuestLeaderboard: $separateGuestLeaderboard, societyCutMode: $societyCutMode, societyCutRules: $societyCutRules, societyCutEventLimit: $societyCutEventLimit, societyCutCountPlayedOnly: $societyCutCountPlayedOnly, societyCutFilterSeason: $societyCutFilterSeason, societyCutFilterInvitational: $societyCutFilterInvitational, globalMarkupPercentage: $globalMarkupPercentage, guestMarkupExtra: $guestMarkupExtra, globalMembershipEndDate: $globalMembershipEndDate, renewalWindowDays: $renewalWindowDays, isRenewalActive: $isRenewalActive, renewalLaunchDate: $renewalLaunchDate, renewalDeadline: $renewalDeadline, renewalPaymentDeadline: $renewalPaymentDeadline, startingBalance: $startingBalance, ledgerEntries: $ledgerEntries, sponsors: $sponsors)';
   }
 }
 
@@ -1727,6 +1838,7 @@ abstract mixin class _$SocietyConfigCopyWith<$Res>
       String? logoUrl,
       int primaryColor,
       int secondaryColor,
+      int dangerousColor,
       int backgroundColor,
       int statusPublishedColor,
       int statusConfirmedColor,
@@ -1772,6 +1884,10 @@ abstract mixin class _$SocietyConfigCopyWith<$Res>
       bool separateGuestLeaderboard,
       SocietyCutMode societyCutMode,
       Map<String, double> societyCutRules,
+      int societyCutEventLimit,
+      bool societyCutCountPlayedOnly,
+      bool societyCutFilterSeason,
+      bool societyCutFilterInvitational,
       double globalMarkupPercentage,
       double guestMarkupExtra,
       @OptionalTimestampConverter() DateTime? globalMembershipEndDate,
@@ -1802,6 +1918,7 @@ class __$SocietyConfigCopyWithImpl<$Res>
     Object? logoUrl = freezed,
     Object? primaryColor = null,
     Object? secondaryColor = null,
+    Object? dangerousColor = null,
     Object? backgroundColor = null,
     Object? statusPublishedColor = null,
     Object? statusConfirmedColor = null,
@@ -1847,6 +1964,10 @@ class __$SocietyConfigCopyWithImpl<$Res>
     Object? separateGuestLeaderboard = null,
     Object? societyCutMode = null,
     Object? societyCutRules = null,
+    Object? societyCutEventLimit = null,
+    Object? societyCutCountPlayedOnly = null,
+    Object? societyCutFilterSeason = null,
+    Object? societyCutFilterInvitational = null,
     Object? globalMarkupPercentage = null,
     Object? guestMarkupExtra = null,
     Object? globalMembershipEndDate = freezed,
@@ -1875,6 +1996,10 @@ class __$SocietyConfigCopyWithImpl<$Res>
       secondaryColor: null == secondaryColor
           ? _self.secondaryColor
           : secondaryColor // ignore: cast_nullable_to_non_nullable
+              as int,
+      dangerousColor: null == dangerousColor
+          ? _self.dangerousColor
+          : dangerousColor // ignore: cast_nullable_to_non_nullable
               as int,
       backgroundColor: null == backgroundColor
           ? _self.backgroundColor
@@ -2056,6 +2181,22 @@ class __$SocietyConfigCopyWithImpl<$Res>
           ? _self._societyCutRules
           : societyCutRules // ignore: cast_nullable_to_non_nullable
               as Map<String, double>,
+      societyCutEventLimit: null == societyCutEventLimit
+          ? _self.societyCutEventLimit
+          : societyCutEventLimit // ignore: cast_nullable_to_non_nullable
+              as int,
+      societyCutCountPlayedOnly: null == societyCutCountPlayedOnly
+          ? _self.societyCutCountPlayedOnly
+          : societyCutCountPlayedOnly // ignore: cast_nullable_to_non_nullable
+              as bool,
+      societyCutFilterSeason: null == societyCutFilterSeason
+          ? _self.societyCutFilterSeason
+          : societyCutFilterSeason // ignore: cast_nullable_to_non_nullable
+              as bool,
+      societyCutFilterInvitational: null == societyCutFilterInvitational
+          ? _self.societyCutFilterInvitational
+          : societyCutFilterInvitational // ignore: cast_nullable_to_non_nullable
+              as bool,
       globalMarkupPercentage: null == globalMarkupPercentage
           ? _self.globalMarkupPercentage
           : globalMarkupPercentage // ignore: cast_nullable_to_non_nullable

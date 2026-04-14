@@ -42,7 +42,7 @@ class _SurveyDetailScreenState extends ConsumerState<SurveyDetailScreen> {
       slivers: [
         surveyAsync.when(
           loading: () => const SliverFillRemaining(
-            child: Center(child: CircularProgressIndicator()),
+            child: BoxyArtLoadingCard(useCard: true),
           ),
           error: (err, stack) => SliverFillRemaining(
             child: Center(child: Text('Error: $err')),

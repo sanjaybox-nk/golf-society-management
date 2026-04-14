@@ -1,6 +1,7 @@
 import 'package:golf_society/design_system/design_system.dart';
 import 'package:golf_society/domain/models/leaderboard_config.dart';
 import 'package:uuid/uuid.dart';
+import 'base_leaderboard_control.dart';
 
 class OrderOfMeritControl extends StatefulWidget {
   final LeaderboardConfig? existingConfig;
@@ -12,40 +13,39 @@ class OrderOfMeritControl extends StatefulWidget {
   State<OrderOfMeritControl> createState() => _OrderOfMeritControlState();
 }
 
-class _OrderOfMeritControlState extends State<OrderOfMeritControl> {
+class _OrderOfMeritControlState extends State<OrderOfMeritControl>
+    with BaseLeaderboardControlMixin {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _nameController;
   late TextEditingController _appearancePointsController;
-  
-  // Local state for UI
-  late OOMRankingBasis _metric; 
-  late ScoringType _scoringType;
 
+  late OOMRankingBasis _metric;
+  late ScoringType _scoringType;
   late Map<int, int> _positionPoints;
+  bool _isSaving = false;
 
   @override
   void initState() {
     super.initState();
     final config = widget.existingConfig as OrderOfMeritConfig?;
     _nameController = TextEditingController(text: config?.name ?? 'Order of Merit');
-    _appearancePointsController = TextEditingController(text: (config?.appearancePoints ?? 0).toString());
-    
-    // Map existing config to UI state
+    _appearancePointsController =
+        TextEditingController(text: (config?.appearancePoints ?? 0).toString());
+
     final source = config?.source ?? OOMSource.position;
     final basis = config?.rankingBasis ?? OOMRankingBasis.stableford;
 
     if (source == OOMSource.position) {
-       _scoringType = ScoringType.position;
-       _metric = basis; 
+      _scoringType = ScoringType.position;
+      _metric = basis;
     } else if (source == OOMSource.stableford) {
-       _scoringType = ScoringType.accumulative;
-       _metric = OOMRankingBasis.stableford;
-    } else { // Gross
-       _scoringType = ScoringType.accumulative;
-       _metric = OOMRankingBasis.gross;
+      _scoringType = ScoringType.accumulative;
+      _metric = OOMRankingBasis.stableford;
+    } else {
+      _scoringType = ScoringType.accumulative;
+      _metric = OOMRankingBasis.gross;
     }
-    
-    // Initialize points map
+
     if (config?.positionPointsMap != null && config!.positionPointsMap.isNotEmpty) {
       _positionPoints = Map.from(config.positionPointsMap);
     } else {
@@ -54,286 +54,199 @@ class _OrderOfMeritControlState extends State<OrderOfMeritControl> {
   }
 
   @override
+  void dispose() {
+    _nameController.dispose();
+    _appearancePointsController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Form(
       key: _formKey,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const BoxyArtSectionTitle(title: 'Leaderboard details'),
+          // ── IDENTITY ─────────────────────────────────────────
+          const BoxyArtSectionTitle(title: 'LEADERBOARD DETAILS', isPeeking: true),
           BoxyArtCard(
-            padding: const EdgeInsets.all(AppSpacing.lg),
-            child: Column(
-              children: [
-                BoxyArtInputField(
-                  label: 'Name',
-                  controller: _nameController,
-                  validator: (v) => v!.isEmpty ? 'Required' : null,
-                ),
-              ],
+            padding: const EdgeInsets.all(AppSpacing.xl),
+            child: BoxyArtInputField(
+              label: 'Name',
+              controller: _nameController,
+              hint: 'e.g. Order of Merit',
+              prefixIcon: Icon(Icons.emoji_events_rounded),
+              validator: (v) => (v == null || v.isEmpty) ? 'Required' : null,
             ),
           ),
-          const SizedBox(height: AppSpacing.x2l),
-          const BoxyArtSectionTitle(title: 'Scoring rules'),
+
+          // ── SCORING RULES ─────────────────────────────────────
+          const BoxyArtSectionTitle(title: 'SCORING RULES'),
           BoxyArtCard(
-            padding: const EdgeInsets.all(AppSpacing.lg),
+            padding: const EdgeInsets.all(AppSpacing.xl),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 BoxyArtDropdownField<OOMRankingBasis>(
                   label: 'Metric',
                   value: _metric,
-                  items: OOMRankingBasis.values.map((v) => DropdownMenuItem(
-                    value: v,
-                    child: Text(_formatEnum(v.name)),
-                  )).toList(),
+                  items: OOMRankingBasis.values
+                      .map((v) => DropdownMenuItem(
+                            value: v,
+                            child: Text(formatEnum(v.name)),
+                          ))
+                      .toList(),
                   onChanged: (v) => setState(() => _metric = v!),
                 ),
                 const SizedBox(height: AppSpacing.lg),
                 BoxyArtDropdownField<ScoringType>(
                   label: 'Scoring Type',
                   value: _scoringType,
-                  items: ScoringType.values.map((v) => DropdownMenuItem(
-                    value: v,
-                    child: Text(_formatEnum(v.name)),
-                  )).toList(),
+                  items: ScoringType.values
+                      .map((v) => DropdownMenuItem(
+                            value: v,
+                            child: Text(formatEnum(v.name)),
+                          ))
+                      .toList(),
                   onChanged: (v) => setState(() => _scoringType = v!),
                 ),
-                _buildRuleDescription(),
+                buildInfoCard(_ruleRows()),
               ],
             ),
           ),
-        
+
+          // ── POINTS DISTRIBUTION ───────────────────────────────
           if (_scoringType == ScoringType.position) ...[
-            const SizedBox(height: AppSpacing.x2l),
-            const BoxyArtSectionTitle(title: 'Points distribution'),
+            const BoxyArtSectionTitle(title: 'POINTS DISTRIBUTION'),
             BoxyArtCard(
-              padding: const EdgeInsets.all(AppSpacing.lg),
+              padding: const EdgeInsets.all(AppSpacing.xl),
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   BoxyArtInputField(
-                    label: 'Appearance Points (Bonus per event)',
+                    label: 'Appearance Points (bonus per event)',
                     controller: _appearancePointsController,
                     keyboardType: TextInputType.number,
+                    prefixIcon: Icon(Icons.star_outline_rounded),
                   ),
                   const SizedBox(height: AppSpacing.lg),
-                  Divider(color: Theme.of(context).dividerColor.withValues(alpha: AppColors.opacityLow)),
+                  Divider(
+                      color: theme.dividerColor
+                          .withValues(alpha: AppColors.opacityLow)),
                   const SizedBox(height: AppSpacing.lg),
-                  ...(_positionPoints.entries.toList()..sort((a, b) => a.key.compareTo(b.key))).map((e) => _buildPointRow(e.key, e.value)),
+                  ...(_positionPoints.entries.toList()
+                      ..sort((a, b) => a.key.compareTo(b.key)))
+                      .map((e) => buildPointRow(
+                            position: e.key,
+                            points: e.value,
+                            onChanged: (pos, val) =>
+                                setState(() => _positionPoints[pos] = val),
+                            onRemove: (pos) =>
+                                setState(() => _positionPoints.remove(pos)),
+                          )),
                   const SizedBox(height: AppSpacing.lg),
-                  Center(
-                    child: BoxyArtButton(
-                      title: 'Add next position',
-                      onTap: _addNextPosition,
-                      isSecondary: true,
-                    ),
+                  buildAddButton(
+                    label: 'Add next position',
+                    onTap: _addNextPosition,
                   ),
                 ],
               ),
             ),
           ],
 
-          const SizedBox(height: AppSpacing.x2l),
-          Center(
-            child: BoxyArtButton(
-              title: 'Save changes',
-              onTap: _save,
-            ),
+          const SizedBox(height: AppSpacing.x4l),
+          BoxyArtButton(
+            title: widget.existingConfig == null ? 'Create leaderboard' : 'Save changes',
+            onTap: _isSaving ? null : _save,
+            isLoading: _isSaving,
+            fullWidth: true,
+            backgroundColor: Theme.of(context).primaryColor,
+            textColor: AppColors.pureWhite,
           ),
+          const SizedBox(height: AppSpacing.x4l),
         ],
       ),
     );
   }
 
-  Widget _buildPointRow(int position, int points) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    return Padding(
-      padding: const EdgeInsets.only(bottom: AppSpacing.md),
-      child: Row(
-        children: [
-          Expanded(
-            child: Text(
-              '${_ordinal(position)} Place',
-              style: AppTypography.label.copyWith(
-                color: isDark ? AppColors.dark150 : AppColors.dark400,
-                fontWeight: AppTypography.weightBlack,
-                letterSpacing: 0.5,
-              ),
-            ),
-          ),
-          SizedBox(
-            width: 80,
-            child: TextFormField(
-              initialValue: points.toString(),
-              keyboardType: TextInputType.number,
-              textAlign: TextAlign.center,
-              style: AppTypography.body.copyWith(fontWeight: AppTypography.weightBold),
-              decoration: InputDecoration(
-                isDense: true,
-                contentPadding: const EdgeInsets.symmetric(vertical: AppSpacing.md, horizontal: AppSpacing.md),
-                fillColor: isDark ? AppColors.dark600 : AppColors.lightHeader,
-                filled: true,
-                border: OutlineInputBorder(
-                  borderRadius: AppShapes.md,
-                  borderSide: BorderSide.none,
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: AppShapes.md,
-                  borderSide: BorderSide(color: isDark ? AppColors.dark500 : AppColors.dark100),
-                ),
-              ),
-              onChanged: (val) {
-                final newValue = int.tryParse(val);
-                if (newValue != null) {
-                  setState(() {
-                    _positionPoints[position] = newValue;
-                  });
-                }
-              },
-            ),
-          ),
-          const SizedBox(width: AppSpacing.md),
-          Text('Pts', style: AppTypography.label.copyWith(fontSize: AppTypography.sizeCaption, color: AppColors.lime500, fontWeight: AppTypography.weightBlack)),
-          const SizedBox(width: AppSpacing.sm),
-          IconButton(
-            icon: const Icon(Icons.close, size: AppShapes.iconSm, color: Colors.redAccent),
-            onPressed: () => setState(() => _positionPoints.remove(position)),
-            visualDensity: VisualDensity.compact,
-          )
-        ],
-      ),
-    );
-  }
-
-  void _addNextPosition() {
-    int nextPos = 1;
-    if (_positionPoints.isNotEmpty) {
-      final maxPos = _positionPoints.keys.reduce((curr, next) => curr > next ? curr : next);
-      nextPos = maxPos + 1;
-    }
-    setState(() {
-      _positionPoints[nextPos] = 0;
-    });
-  }
-
-  String _ordinal(int n) {
-    if (n >= 11 && n <= 13) return '${n}th';
-    switch (n % 10) {
-      case 1: return '${n}st';
-      case 2: return '${n}nd';
-      case 3: return '${n}rd';
-      default: return '${n}th';
-    }
-  }
-
-  Widget _buildRuleDescription() {
+  List<(String, String)> _ruleRows() {
     String goal = '';
     String scoring = '';
     String result = '';
     String tie = '';
 
     if (_scoringType == ScoringType.position) {
-       if (_metric == OOMRankingBasis.gross) {
-          goal = 'Finish with lowest total strokes (Gross).';
-          scoring = 'Points awarded based on final position.';
-          result = 'Highest total points wins.';
-          tie = 'Countback (Back 9, Last 6, 3, 1).';
-       } else {
-          goal = 'Finish with highest Stableford points.';
-          scoring = 'Points awarded based on final position.';
-          result = 'Highest total points wins.';
-          tie = 'Lower Gross Score wins position.';
-       }
+      if (_metric == OOMRankingBasis.gross) {
+        goal = 'Finish with lowest total strokes (Gross).';
+        scoring = 'Points awarded based on final position.';
+        result = 'Highest total points wins.';
+        tie = 'Countback (Back 9, Last 6, 3, 1).';
+      } else {
+        goal = 'Finish with highest Stableford points.';
+        scoring = 'Points awarded based on final position.';
+        result = 'Highest total points wins.';
+        tie = 'Lower Gross Score wins position.';
+      }
     } else {
-        // Accumulative
-        if (_metric == OOMRankingBasis.stableford) {
-          goal = 'Accumulate Stableford points.';
-          scoring = 'Sum of all round points.';
-          result = 'Highest total points wins.';
-          tie = 'Lower Gross Total.';
-        } else {
-           goal = 'Accumulate strokes.';
-           scoring = 'Sum of all strokes (NR = DQ).';
-           result = 'Lowest total strokes wins.';
-           tie = 'Countback.';
-        }
+      if (_metric == OOMRankingBasis.stableford) {
+        goal = 'Accumulate Stableford points.';
+        scoring = 'Sum of all round points.';
+        result = 'Highest total points wins.';
+        tie = 'Lower Gross Total.';
+      } else {
+        goal = 'Accumulate strokes.';
+        scoring = 'Sum of all strokes (NR = DQ).';
+        result = 'Lowest total strokes wins.';
+        tie = 'Countback.';
+      }
     }
 
-    return Container(
-      margin: const EdgeInsets.only(top: AppSpacing.x2l),
-      padding: const EdgeInsets.all(AppSpacing.lg),
-      decoration: BoxDecoration(
-        color: Theme.of(context).brightness == Brightness.dark ? AppColors.dark600 : AppColors.lime500.withValues(alpha: AppColors.opacitySubtle),
-        borderRadius: AppShapes.md,
-      ),
-      child: Column(
-        children: [
-           _buildInfoRow('Goal', goal),
-           const SizedBox(height: AppSpacing.sm),
-           _buildInfoRow('Scoring', scoring),
-           const SizedBox(height: AppSpacing.sm),
-           _buildInfoRow('Result', result),
-           const SizedBox(height: AppSpacing.sm),
-           _buildInfoRow('Tie-Break', tie),
-        ],
-      ),
-    );
+    return [
+      ('Goal', goal),
+      ('Scoring', scoring),
+      ('Result', result),
+      ('Tie-Break', tie),
+    ];
   }
 
-  Widget _buildInfoRow(String label, String value) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        SizedBox(
-          width: 90, 
-          child: Text(
-            label.toUpperCase(), 
-            style: AppTypography.micro.copyWith(
-              color: AppColors.lime500,
-            )
-          )
-        ),
-        Expanded(
-          child: Text(
-            value, 
-            style: AppTypography.body.copyWith(
-              color: Theme.of(context).brightness == Brightness.dark ? AppColors.dark150 : AppColors.dark700,
-            )
-          )
-        ),
-      ],
-    );
-  }
-
-
-  String _formatEnum(String val) {
-    final RegExp exp = RegExp(r'(?<=[a-z])[A-Z]');
-    String result = val.replaceAllMapped(exp, (Match m) => ' ${m.group(0)}');
-    return result[0].toUpperCase() + result.substring(1);
+  void _addNextPosition() {
+    int nextPos = 1;
+    if (_positionPoints.isNotEmpty) {
+      final maxPos =
+          _positionPoints.keys.reduce((curr, next) => curr > next ? curr : next);
+      nextPos = maxPos + 1;
+    }
+    setState(() => _positionPoints[nextPos] = 0);
   }
 
   void _save() {
     if (!_formKey.currentState!.validate()) return;
-    
-    // Convert Metric + Scoring Type -> Source + RankingBasis
+
     OOMSource source;
-    OOMRankingBasis basis = _metric;
+    final OOMRankingBasis basis = _metric;
 
     if (_scoringType == ScoringType.position) {
       source = OOMSource.position;
     } else {
-      source = (_metric == OOMRankingBasis.stableford) ? OOMSource.stableford : OOMSource.gross;
+      source = (_metric == OOMRankingBasis.stableford)
+          ? OOMSource.stableford
+          : OOMSource.gross;
     }
+
+    setState(() => _isSaving = true);
 
     final config = LeaderboardConfig.orderOfMerit(
       id: widget.existingConfig?.id ?? const Uuid().v4(),
-      name: _nameController.text,
+      name: _nameController.text.trim(),
       source: source,
       rankingBasis: basis,
       appearancePoints: int.tryParse(_appearancePointsController.text) ?? 0,
-      positionPointsMap: _scoringType == ScoringType.position ? _positionPoints : {},
+      positionPointsMap:
+          _scoringType == ScoringType.position ? _positionPoints : {},
     );
-    
+
     widget.onSave(config);
   }
 }

@@ -54,6 +54,35 @@ The standard approach for society tour standings.
 -   **Eclectic**: Constructs the "perfect round" by taking the best score on each individual hole across all qualifying events.
 -   **Best Of Series**: Tracks the best $N$ scores by raw metric (Net, Stableford) without point conversion.
 
+### 3.3 Leaderboard Edit Controls — Design 4.x (April 2026)
+
+All four leaderboard configuration screens have been refactored to **Design 4.x True Minimal** standards:
+
+| Control | File |
+|---|---|
+| Order of Merit | `controls/oom_control.dart` |
+| Best Of Series | `controls/best_of_control.dart` |
+| Eclectic | `controls/eclectic_control.dart` |
+| Birdie Tree (Marker Counter) | `controls/marker_counter_control.dart` |
+
+#### Architecture: `BaseLeaderboardControlMixin`
+A shared mixin (`controls/base_leaderboard_control.dart`) provides all controls with standardised Design 4.x helpers — mirroring the `BaseCompetitionControl` pattern used for game controls:
+
+- **`buildInfoCard(rows)`** — Primary-colour tinted rule summary card (replaces raw green `Container`)
+- **`buildInfoRow(label, value)`** — Single label + description row using `theme.colorScheme.primary` for labels
+- **`buildInfoBubble(text)`** — Monochromatic hint text beneath fields
+- **`buildPointRow(...)`** — Reusable Design 4.x position points editor row
+- **`formatEnum(val)`** — camelCase → Title Case for enum display
+- **`ordinal(n)`** — Ordinal suffix helper (1st, 2nd…)
+
+#### Tokenisation Changes
+- Section titles: `BoxyArtSectionTitle(title: 'SECTION NAME', isPeeking: true)` with ALL CAPS labels
+- Text fields: `ModernTextField` replacing `BoxyArtInputField` for consistency with competition controls
+- Info cards: Tinted with `theme.colorScheme.primary` (adapts to light/dark and society branding) — replacing the hardcoded lime-green container
+- Handicap value badges: `BoxyArtPill.format(...)` replacing raw `Text` widget
+- Marker chips: Selected state uses `theme.colorScheme.primary` with `AppColors.pureWhite` label (was hardcoded `AppColors.lime500`)
+- Save button: `backgroundColor: Theme.of(context).primaryColor` + dynamic title (`'Create leaderboard'` vs `'Save changes'`)
+
 ## 4. Seasonal Standings Hub
 Introduced in Feb 2026, the Standings Hub provides a premium home for long-term competition.
 
@@ -90,9 +119,10 @@ The event leaderboard provides a real-time view of the field with advanced prese
     - **Include Guests in Standings**: Whether guests appear on leaderboards by default.
     - **Separate Guest Leaderboard**: Whether guests are moved to their own section or mixed with members.
 - **Event-Level Overrides**: Each competition can override the global defaults for granular control.
-    - **Include Guests**: A specific toggle per event to hide or show guests.
-    - **Separation Strategy**: A 3-way choice: *Auto (Follow Global)*, *Always Separate*, or *Always Mixed (Balanced)*.
-- **Visual Consistency**: Guests retain their "G" badge for easy identification regardless of the separation strategy.
+    - **Hidden (No Guests)**: Scrub guests from the leaderboard entirely.
+    - **Separate Section**: Force guests into a distinct table with their own relative rankings (1, 2, 3), ensuring they don't displace society members from the main podium.
+    - **Auto (Follow Global)**: (Default) The competition dynamically inherits the society's current global policy.
+- **Visual Consistency**: Guests retain their "G" badge for easy identification.
 
 ### 4.4 Unified Scorecard View (Universal Parity)
 All player entries on the leaderboard and admin scoring lists share a unified "Universal Parity" layout:
@@ -132,15 +162,26 @@ Admins are presented with a simplified selector:
 
 ## 4. Event Customization Workflow
 
-When an Admin creates or edits an event, the system ensures a seamless flow for game rules:
+When an Admin creates or edits an event, the system ensures a seamless flow for game rules. Starting in April 2026, the editor (Competition Builder) has been modernized to adhere to **Design 4.x (True Minimal)** standards.
+
+### Consolidated Administrative Interface
+The Competition Builder interface uses a "Consolidated Card" pattern to reduce visual noise and improve configuration focus:
+- **Identity Card**: The Game/Template Name is isolated in its own `BoxyArtCard`, separating the competition's identity from its technical rules.
+- **Thematic Logic Cards**: Rule settings are grouped into logical, high-contrast `BoxyArtCard` containers (e.g., [HANDICAP], [SCORING], [ROUNDS]).
+- **Internal Dividers**: Related fields within a card are separated by `BoxyArtDivider` components with 0px vertical padding, leveraging the card's internal spacing for a cleaner look.
+- **Vertical Rhythm**: A standardized **24px (`AppSpacing.x3l`)** gap is applied before all monochromatic section titles, ensuring a consistent rhythm across different competition formats.
+- **Synchronized Typography**: (Design 4.x) Field labels are synchronized with the **Member Details** forms:
+    - **Casing**: Title Case is enforced for all manual labels (e.g., "Handicap Allowance").
+    - **Tokens**: Labels use the **13pt Bold `AppTypography.label`** token to match standard input fields.
+    - **Neutral Configuration**: Administrative controls use a **Monochromatic Neutral** palette. Configuration sliders are rendered in greyscale to distinguish technical setup from branded player-facing UI.
 
 ### On-the-Fly Creation
 Admins can select a template and immediately click **CUSTOMIZE RULES**. If the event is new, the system prompts to save the basic event details first to generate a stable ID. Once saved, the competition is created on-the-fly using the template as a baseline, allowing the Admin to edit rules without back-and-forth saves.
 
 ### Persistence & Syncing
 - **ID Preservation**: When customizing a game for an event, the Competition ID is synced to the Event ID.
-- **Cache Invalidation**: After saving changes in the Competition Builder, the system explicitly invalidates the `competitionDetailProvider` cache to ensure the Event Form reflects the new rules immediately upon return.
-- **Compute Versioning**: Any customized game (not a template) has its `computeVersion` incremented to flag it as "Customized" in the UI. All rules are verified to adhere to **v4.1 True Minimal** standards.
+- **Cache Invalidation**: After saving changes in the Competition Builder, the system explicitly invalidates the `competitionDetailProvider` cache to ensure the Event Form reflects the new rules immediately.
+- **Compute Versioning**: Any customized game (not a template) has its `computeVersion` incremented to flag it as "Customized" in the UI.
 
 ## 5. Rule Visualization (Hardened Competition Card)
 

@@ -97,20 +97,18 @@ class ModernMetricStat extends ConsumerWidget {
                 ),
               if (value.isNotEmpty) ...[
                 const SizedBox(width: AppSpacing.atomic),
-                Flexible(
-                  child: Text(
-                    value,
-                    style: (isCompact 
-                          ? AppTypography.body.copyWith(fontSize: 15, fontWeight: AppTypography.weightHeavy) 
-                          : AppTypography.metricValue
-                      ).copyWith(
-                        color: isSolid ? AppColors.pureWhite : AppColors.dark900,
-                        height: 1.1,
-                      ),
-                    textAlign: TextAlign.center,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
+                Text(
+                  value,
+                  style: (isCompact 
+                        ? AppTypography.body.copyWith(fontSize: 15, fontWeight: AppTypography.weightHeavy) 
+                        : AppTypography.metricValue
+                    ).copyWith(
+                      color: isSolid ? AppColors.pureWhite : AppColors.dark900,
+                      height: 1.1,
+                    ),
+                  textAlign: TextAlign.center,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ],
             ],

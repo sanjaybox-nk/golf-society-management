@@ -24,7 +24,7 @@ class MemberSeeder {
       role: MemberRole.superAdmin,
       societyRole: 'Admin',
       status: MemberStatus.active,
-      joinedDate: DateTime(2023, 1, 1),
+      joinedDate: DateTime(2025, 1, 1),
       membershipEndDate: DateTime.now().add(const Duration(days: 14)), // Expiring soon for demo
       renewalStatus: MemberRenewalStatus.none,
       hasPaid: true,
@@ -79,11 +79,7 @@ class MemberSeeder {
         final currentStatus = isExpired ? MemberStatus.expired : MemberStatus.active;
         
         double initialCredit = 0.0;
-        final bool isEricAdams = (i == 32); 
-        
-        if (isEricAdams) {
-          initialCredit = 50.0;
-        } else if (i % 5 == 0 && i != 0) {
+        if (i % 5 == 0 && i != 0) {
           initialCredit = -1 * (10.0 + random.nextInt(90).toDouble());
         }
 
@@ -97,7 +93,7 @@ class MemberSeeder {
           role: systemRole,
           societyRole: role,
           status: currentStatus,
-          joinedDate: DateTime(2023, 1, 1).add(Duration(days: i * 3)),
+          joinedDate: DateTime(2025, 1, 1).add(Duration(days: i * 3)),
           membershipEndDate: membershipEnd,
           renewalStatus: hasRequested ? MemberRenewalStatus.renew : MemberRenewalStatus.none,
           hasPaid: !isExpired,

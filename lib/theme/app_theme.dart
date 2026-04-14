@@ -19,6 +19,7 @@ class AppTheme {
     // Dynamic Color Setup
     final primaryColor = Color(config.primaryColor);
     final secondaryColor = Color(config.secondaryColor);
+    final dangerousColor = Color(config.dangerousColor);
     
     final colorScheme = ColorScheme.fromSeed(
       seedColor: primaryColor,
@@ -26,7 +27,7 @@ class AppTheme {
       primary: primaryColor,
       secondary: secondaryColor,
       surface: AppColors.dark700,
-      error: AppColors.coral500,
+      error: dangerousColor,
     ).copyWith(
       surfaceContainer: AppColors.dark900,
       onSurface: AppColors.dark60,
@@ -149,7 +150,7 @@ class AppTheme {
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: inputRadius,
-          borderSide: BorderSide(color: AppColors.coral500, width: config.useBorders ? config.borderWidth : 1.0),
+          borderSide: BorderSide(color: dangerousColor, width: config.useBorders ? config.borderWidth : 1.0),
         ),
         hintStyle: AppTypography.helper.copyWith(color: AppColors.dark300),
         labelStyle: AppTypography.label.copyWith(color: AppColors.dark150),
@@ -207,6 +208,7 @@ class AppTheme {
     // Dynamic Color Setup
     final primaryColor = Color(config.primaryColor);
     final secondaryColor = Color(config.secondaryColor);
+    final dangerousColor = Color(config.dangerousColor);
 
     final colorScheme = ColorScheme.fromSeed(
       seedColor: primaryColor,
@@ -214,7 +216,7 @@ class AppTheme {
       primary: primaryColor,
       secondary: secondaryColor,
       surface: AppColors.lightSurface,
-      error: AppColors.coral500,
+      error: dangerousColor,
     ).copyWith(
       surfaceContainer: Color(config.backgroundColor), // Page Background
       onSurface: const Color(0xFF1A1A1A),
@@ -316,7 +318,7 @@ class AppTheme {
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: inputRadius,
-          borderSide: BorderSide(color: AppColors.coral500, width: config.useBorders ? config.borderWidth : 1.0),
+          borderSide: BorderSide(color: dangerousColor, width: config.useBorders ? config.borderWidth : 1.0),
         ),
         hintStyle: AppTypography.helper.copyWith(color: const Color(0xFF888880)),
         labelStyle: AppTypography.label.copyWith(color: const Color(0xFF3A3A3A)),

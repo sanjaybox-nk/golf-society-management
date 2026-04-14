@@ -50,140 +50,133 @@ class _MaxScoreControlState extends BaseCompetitionControlState<MaxScoreControl>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // ── SCORE CAP SETTINGS ────────────────────────────────
-        const BoxyArtSectionTitle(title: 'Score cap settings'),
-        const SizedBox(height: AppSpacing.lg),
-
-        BoxyArtDropdownField<MaxScoreType>(
-          label: 'Max Score Type',
-          value: _type,
-          items: const [
-            DropdownMenuItem(value: MaxScoreType.parPlusX, child: Text('Relative to Par')),
-            DropdownMenuItem(value: MaxScoreType.netDoubleBogey, child: Text('Net Double Bogey (WHS Standard)')),
-            DropdownMenuItem(value: MaxScoreType.fixed, child: Text('Fixed Score')),
-          ],
-          onChanged: (val) {
-            if (val != null) {
-              setState(() {
-                _type = val;
-                if (_type == MaxScoreType.fixed) _value = 10;
-                if (_type == MaxScoreType.parPlusX) _value = 2;
-              });
-            }
-          },
-        ),
-        buildInfoBubble(_getMaxScoreTypeDescription(_type)),
-
-        if (_type != MaxScoreType.netDoubleBogey) ...[
-          const SizedBox(height: AppSpacing.x2l),
-          buildSliderField(
-            label: _type == MaxScoreType.parPlusX ? 'Maximum Strokes Over Par' : 'Fixed Score Cap',
-            valueLabel: '$_value',
-            value: _value.toDouble(),
-            min: 1,
-            max: _type == MaxScoreType.fixed ? 15 : 6,
-            divisions: _type == MaxScoreType.fixed ? 14 : 5,
-            onChanged: (val) => setState(() => _value = val.round()),
+        // ── SCORING CAP ───────────────────────────────────────
+        const BoxyArtSectionTitle(title: 'SCORING CAP'),
+        BoxyArtCard(
+          padding: const EdgeInsets.all(AppSpacing.xl),
+          child: Column(
+            children: [
+              BoxyArtDropdownField<MaxScoreType>(
+                label: 'Max Score Type',
+                value: _type,
+                items: const [
+                  DropdownMenuItem(value: MaxScoreType.parPlusX, child: Text('Relative to Par')),
+                  DropdownMenuItem(value: MaxScoreType.netDoubleBogey, child: Text('Net Double Bogey (WHS Standard)')),
+                  DropdownMenuItem(value: MaxScoreType.fixed, child: Text('Fixed Score')),
+                ],
+                onChanged: (val) {
+                  if (val != null) {
+                    setState(() {
+                      _type = val;
+                      if (_type == MaxScoreType.fixed) _value = 10;
+                      if (_type == MaxScoreType.parPlusX) _value = 2;
+                    });
+                  }
+                },
+              ),
+              buildInfoBubble(_getMaxScoreTypeDescription(_type)),
+              if (_type != MaxScoreType.netDoubleBogey) ...[
+                const BoxyArtDivider(),
+                buildSliderField(
+                  label: _type == MaxScoreType.parPlusX ? 'Maximum Strokes Over Par' : 'Fixed Score Cap',
+                  valueLabel: '$_value',
+                  value: _value.toDouble(),
+                  min: 1,
+                  max: _type == MaxScoreType.fixed ? 15 : 6,
+                  divisions: _type == MaxScoreType.fixed ? 14 : 5,
+                  onChanged: (val) => setState(() => _value = val.round()),
+                ),
+              ],
+            ],
           ),
-        ],
-
-        const SizedBox(height: AppSpacing.x2l),
-        const Divider(height: 1),
-        const SizedBox(height: AppSpacing.x2l),
+        ),
 
         // ── HANDICAP ──────────────────────────────────────────
-        const BoxyArtSectionTitle(title: 'Handicap'),
-        const SizedBox(height: AppSpacing.lg),
-
-        buildAllowanceSlider(
-          _allowance,
-          (val) => setState(() => _allowance = val),
-          hint: "Fraction of each player's course handicap applied to the score.",
+        const BoxyArtSectionTitle(title: 'HANDICAP'),
+        BoxyArtCard(
+          padding: const EdgeInsets.all(AppSpacing.xl),
+          child: Column(
+            children: [
+              buildAllowanceSlider(
+                _allowance,
+                (val) => setState(() => _allowance = val),
+                hint: "Fraction of each player's course handicap applied.",
+              ),
+              const BoxyArtDivider(),
+              buildCapSlider(_handicapCap, (val) => setState(() => _handicapCap = val)),
+              buildInfoBubble('0 = no cap. 1–54 limits the playing handicap.'),
+              const BoxyArtDivider(),
+              BoxyArtSwitchField(
+                label: 'Hard Cap Playing HC',
+                subtitle: 'Off = Max Cap Index + WHS\nOn = HCP + WHS',
+                value: !_applyCapToIndex,
+                onChanged: (val) => setState(() => _applyCapToIndex = !val),
+              ),
+            ],
+          ),
         ),
-        const SizedBox(height: AppSpacing.x2l),
-
-        buildCapSlider(_handicapCap, (val) => setState(() => _handicapCap = val)),
-        buildInfoBubble('0 = no cap applied. 1–54 limits each player\'s playing handicap to that maximum value.'),
-        const SizedBox(height: AppSpacing.x2l),
-
-        BoxyArtSwitchField(
-          label: 'Hard cap playing HC',
-          subtitle: 'Off = Max cap index + WHS\nOn = HCP + WHS',
-          value: !_applyCapToIndex,
-          onChanged: (val) => setState(() => _applyCapToIndex = !val),
-        ),
-        buildInfoBubble(_applyCapToIndex
-            ? 'Cap applies to the baseline index. WHS course adjustments may push the playing HC above it.'
-            : 'Cap is applied to the final playing HC — a player will never exceed $_handicapCap.'),
-
-        const SizedBox(height: AppSpacing.x2l),
-        const Divider(height: 1),
-        const SizedBox(height: AppSpacing.x2l),
 
         // ── TIE BREAK ─────────────────────────────────────────
-        const BoxyArtSectionTitle(title: 'Tie break'),
-        const SizedBox(height: AppSpacing.lg),
-
-        BoxyArtDropdownField<TieBreakMethod>(
-          label: 'Tie Break Method',
-          value: _tieBreak,
-          items: const [
-            DropdownMenuItem(value: TieBreakMethod.back9, child: Text('Standard (Back 9-6-3-1)')),
-            DropdownMenuItem(value: TieBreakMethod.playoff, child: Text('Playoff (Manual Result)')),
-          ],
-          onChanged: (val) { if (val != null) setState(() => _tieBreak = val); },
+        const BoxyArtSectionTitle(title: 'TIE BREAK'),
+        BoxyArtCard(
+          padding: const EdgeInsets.all(AppSpacing.xl),
+          child: Column(
+            children: [
+              BoxyArtDropdownField<TieBreakMethod>(
+                label: 'Tie Break Method',
+                value: _tieBreak,
+                items: const [
+                  DropdownMenuItem(value: TieBreakMethod.back9, child: Text('Standard (Back 9-6-3-1)')),
+                  DropdownMenuItem(value: TieBreakMethod.playoff, child: Text('Playoff (Manual Result)')),
+                ],
+                onChanged: (val) { if (val != null) setState(() => _tieBreak = val); },
+              ),
+              buildInfoBubble('Standard results use reverse hole comparison. Playoff is sudden-death.'),
+            ],
+          ),
         ),
-        buildInfoBubble('Back 9 compares the last 9 holes in reverse order. Playoff is a sudden-death hole-off decided manually.'),
-
-        const SizedBox(height: AppSpacing.x2l),
-        const Divider(height: 1),
-        const SizedBox(height: AppSpacing.x2l),
 
         // ── SERIES / MULTI-ROUND ──────────────────────────────
-        const BoxyArtSectionTitle(title: 'Series / multi-round'),
-        const SizedBox(height: AppSpacing.lg),
-
-        buildSliderField(
-          label: 'Number of Rounds',
-          valueLabel: '$_roundsCount',
-          value: _roundsCount.toDouble(),
-          min: 1, max: 6, divisions: 5,
-          onChanged: (val) => setState(() => _roundsCount = val.round()),
-        ),
-        buildInfoBubble('Leave at 1 for single events. Increase for season-long or multi-round series.'),
-        if (_roundsCount > 1) ...[
-          const SizedBox(height: AppSpacing.x2l),
-          BoxyArtDropdownField<AggregationMethod>(
-            label: 'Series Scoring',
-            value: _aggregation,
-            items: const [
-              DropdownMenuItem(value: AggregationMethod.totalSum, child: Text('Cumulative Score')),
-              DropdownMenuItem(value: AggregationMethod.singleBest, child: Text('Best Round Counts')),
+        const BoxyArtSectionTitle(title: 'ROUNDS'),
+        BoxyArtCard(
+          padding: const EdgeInsets.all(AppSpacing.xl),
+          child: Column(
+            children: [
+              buildSliderField(
+                label: 'Number of Rounds',
+                valueLabel: '$_roundsCount',
+                value: _roundsCount.toDouble(),
+                min: 1, max: 6, divisions: 5,
+                onChanged: (val) => setState(() => _roundsCount = val.round()),
+              ),
+              if (_roundsCount > 1) ...[
+                const BoxyArtDivider(),
+                BoxyArtDropdownField<AggregationMethod>(
+                  label: 'Series Scoring',
+                  value: _aggregation,
+                  items: const [
+                    DropdownMenuItem(value: AggregationMethod.totalSum, child: Text('Cumulative Score')),
+                    DropdownMenuItem(value: AggregationMethod.singleBest, child: Text('Best Round Counts')),
+                  ],
+                  onChanged: (val) { if (val != null) setState(() => _aggregation = val); },
+                ),
+                buildInfoBubble('Cumulative adds all rounds. Best Round counts only the lowest.'),
+              ],
             ],
-            onChanged: (val) { if (val != null) setState(() => _aggregation = val); },
           ),
-          buildInfoBubble('Cumulative adds all round scores. Best Round only counts a player\'s lowest gross round.'),
-        ],
-
-        const SizedBox(height: AppSpacing.x2l),
-        const Divider(height: 1),
-        const SizedBox(height: AppSpacing.x2l),
-
-        // ── TEAM / GROUP SCORING ──────────────────────────────
-        const BoxyArtSectionTitle(title: 'Team / group scoring'),
-        const SizedBox(height: AppSpacing.lg),
-
-        BoxyArtDropdownField<int>(
-          label: 'Best X Scores per Flight',
-          value: _teamBestXCount,
-          items: [1, 2, 3, 4].map((i) => DropdownMenuItem(value: i, child: Text('Best $i Scores'))).toList(),
-          onChanged: (val) { if (val != null) setState(() => _teamBestXCount = val); },
         ),
-        buildInfoBubble('How many individual scores count towards the group total in the flight view.'),
 
-        const SizedBox(height: AppSpacing.x2l),
-        const Divider(height: 1),
-        const SizedBox(height: AppSpacing.x2l),
+        // ── TEAM SCORING ──────────────────────────────────────
+        const BoxyArtSectionTitle(title: 'TEAM SCORING'),
+        BoxyArtCard(
+          padding: const EdgeInsets.all(AppSpacing.xl),
+          child: BoxyArtDropdownField<int>(
+            label: 'Best X Scores per Flight',
+            value: _teamBestXCount,
+            items: [1, 2, 3, 4].map((i) => DropdownMenuItem(value: i, child: Text('Best $i Scores'))).toList(),
+            onChanged: (val) { if (val != null) setState(() => _teamBestXCount = val); },
+          ),
+        ),
 
         // ── GUEST SETTINGS ────────────────────────────────────
         buildGuestSettings(

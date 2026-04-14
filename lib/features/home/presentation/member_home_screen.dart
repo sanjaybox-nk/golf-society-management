@@ -82,7 +82,7 @@ class MemberHomeScreen extends ConsumerWidget {
             sliver: SliverToBoxAdapter(
               child: BoxyArtCard(
                 padding: const EdgeInsets.all(AppSpacing.md),
-                backgroundColor: AppColors.actionMidnight.withValues(alpha: 0.1),
+                backgroundColor: AppColors.actionMidnight.withValues(alpha: AppColors.opacityLow),
                 child: Row(
                   children: [
                     const Icon(Icons.visibility_rounded, color: AppColors.actionMidnight, size: 20),
@@ -121,7 +121,12 @@ class MemberHomeScreen extends ConsumerWidget {
 
         // Notifications & Content - Conditional on having unread updates
         notificationsAsync.when(
-          loading: () => const SliverToBoxAdapter(child: SizedBox.shrink()),
+          loading: () => const SliverPadding(
+            padding: EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+            sliver: SliverToBoxAdapter(
+              child: BoxyArtLoadingCard(useCard: false),
+            ),
+          ),
           error: (err, stack) => const SliverToBoxAdapter(child: SizedBox.shrink()),
           data: (allNotifications) {
             final unreadNotifications = allNotifications
@@ -194,8 +199,13 @@ class MemberHomeScreen extends ConsumerWidget {
               ),
             );
           },
-          loading: () => const SliverToBoxAdapter(child: SizedBox.shrink()),
-                    error: (err, stack) => const SliverToBoxAdapter(child: SizedBox.shrink()),
+          loading: () => const SliverPadding(
+            padding: EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+            sliver: SliverToBoxAdapter(
+              child: BoxyArtLoadingCard(useCard: true),
+            ),
+          ),
+          error: (err, stack) => const SliverToBoxAdapter(child: SizedBox.shrink()),
         ),
 
         // Society Polls
@@ -228,8 +238,13 @@ class MemberHomeScreen extends ConsumerWidget {
               ),
             );
           },
-          loading: () => const SliverToBoxAdapter(child: SizedBox.shrink()),
-                    error: (err, stack) => const SliverToBoxAdapter(child: SizedBox.shrink()),
+          loading: () => const SliverPadding(
+            padding: EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+            sliver: SliverToBoxAdapter(
+              child: BoxyArtLoadingCard(useCard: false),
+            ),
+          ),
+          error: (err, stack) => const SliverToBoxAdapter(child: SizedBox.shrink()),
         ),
 
         // Active Surveys
@@ -264,7 +279,7 @@ class MemberHomeScreen extends ConsumerWidget {
                                 color: StatusColors.negative,
                                 borderRadius: BorderRadius.circular(AppShapes.rXl),
                               ),
-                              child: const Icon(Icons.delete_sweep_rounded, color: Colors.white),
+                              child: const Icon(Icons.delete_sweep_rounded, color: AppColors.pureWhite),
                             ),
                             child: BoxyArtCard(
                               onTap: () => context.push('/surveys/${survey.id}'),
@@ -345,7 +360,7 @@ class MemberHomeScreen extends ConsumerWidget {
               ),
             );
           },
-          loading: () => const SliverToBoxAdapter(child: SizedBox.shrink()),
+          loading: () => const SliverPadding(padding: EdgeInsets.symmetric(horizontal: AppSpacing.xl), sliver: SliverToBoxAdapter(child: BoxyArtLoadingCard(useCard: false))),
           error: (err, stack) => const SliverToBoxAdapter(child: SizedBox.shrink()),
         ),
 
@@ -376,7 +391,7 @@ class MemberHomeScreen extends ConsumerWidget {
               ],
             );
           },
-          loading: () => const SliverToBoxAdapter(child: SizedBox.shrink()),
+          loading: () => const SliverPadding(padding: EdgeInsets.symmetric(horizontal: AppSpacing.xl), sliver: SliverToBoxAdapter(child: BoxyArtLoadingCard(useCard: false))),
           error: (err, stack) => const SliverToBoxAdapter(child: SizedBox.shrink()),
         ),
         
@@ -550,9 +565,9 @@ class MemberHomeScreen extends ConsumerWidget {
         })(),
 
         // Final spacing
-        const SliverPadding(
-          padding: EdgeInsets.only(bottom: 140),
-          sliver: SliverToBoxAdapter(child: SizedBox.shrink()),
+        SliverPadding(
+          padding: const EdgeInsets.only(bottom: AppSpacing.x5l),
+          sliver: const SliverToBoxAdapter(child: SizedBox.shrink()),
         ),
       ],
     );
@@ -625,7 +640,7 @@ class _NextMatchCard extends ConsumerWidget {
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: AppSpacing.xs),
                     decoration: BoxDecoration(
-                      color: Colors.black.withValues(alpha: AppColors.opacityHalf),
+                      color: AppColors.dark900.withValues(alpha: AppColors.opacityHalf),
                       borderRadius: AppShapes.sm,
                       border: Border.all(color: AppColors.pureWhite.withValues(alpha: 0.24)),
                     ),
@@ -1009,8 +1024,8 @@ class _GlobalPollCard extends ConsumerWidget {
                             width: constraints.maxWidth * percent,
                             decoration: BoxDecoration(
                               color: isSelected 
-                                  ? AppColors.lime500.withValues(alpha: 0.12) 
-                                  : AppColors.pureWhite.withValues(alpha: 0.06),
+                                  ? AppColors.lime500.withValues(alpha: AppColors.opacityLow) 
+                                  : AppColors.pureWhite.withValues(alpha: AppColors.opacitySubtle),
                               borderRadius: AppShapes.md,
                             ),
                           );

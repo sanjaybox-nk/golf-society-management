@@ -15,8 +15,8 @@ class SocietyIdentityScreen extends ConsumerWidget {
 
     return HeadlessScaffold(
       title: 'Society Identity',
-      titleSuffix: BoxyArtPill.committee(label: 'ADMIN'),
       subtitle: 'Manage branding and assets',
+      titleSuffix: BoxyArtPill.committee(label: 'ADMIN'),
       showBack: true,
       onBack: () => context.pop(),
       slivers: [
@@ -45,8 +45,8 @@ class SocietyIdentityScreen extends ConsumerWidget {
           ),
         ),
 
-        const SliverToBoxAdapter(
-          child: SizedBox(height: AppSpacing.md),
+        SliverToBoxAdapter(
+          child: SizedBox(height: spacing?.cardToCard ?? AppSpacing.md),
         ),
 
         // Card 2: Society Naming
@@ -66,8 +66,8 @@ class SocietyIdentityScreen extends ConsumerWidget {
           ),
         ),
 
-        const SliverToBoxAdapter(
-          child: SizedBox(height: 100),
+        SliverToBoxAdapter(
+          child: SizedBox(height: spacing?.cardToLabel ?? 100),
         ),
       ],
     );

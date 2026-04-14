@@ -62,122 +62,102 @@ class _ScrambleControlState extends BaseCompetitionControlState<ScrambleControl>
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // ── SCRAMBLE FORMAT ───────────────────────────────────
-        const BoxyArtSectionTitle(title: 'Scramble format'),
-        const SizedBox(height: AppSpacing.lg),
-
-        BoxyArtDropdownField<CompetitionSubtype>(
-          label: 'Scramble Mode',
-          value: effectiveSubtype,
-          items: const [
-            DropdownMenuItem(value: CompetitionSubtype.texas, child: Text('Texas Scramble (Standard)')),
-            DropdownMenuItem(value: CompetitionSubtype.florida, child: Text('Florida Scramble (Step-aside)')),
-          ],
-          onChanged: (val) {
-            if (val != null) setState(() => _subtype = val);
-          },
-        ),
-        buildInfoBubble(_subtype == CompetitionSubtype.texas
-            ? 'Standard team scramble — everyone drives, the team picks the best ball and all play from there.'
-            : 'After each shot, the player whose ball was chosen steps aside and doesn\'t play the next shot.'),
-        const SizedBox(height: AppSpacing.x2l),
-
-        BoxyArtDropdownField<CompetitionFormat>(
-          label: 'Base Scoring Format',
-          value: _underlyingFormat,
-          items: const [
-            DropdownMenuItem(value: CompetitionFormat.stroke, child: Text('Regular Stroke Play (Medal)')),
-            DropdownMenuItem(value: CompetitionFormat.stableford, child: Text('Stableford (Points)')),
-          ],
-          onChanged: (val) {
-            if (val != null) setState(() => _underlyingFormat = val);
-          },
-        ),
-        buildInfoBubble('Stroke Play counts total strokes. Stableford awards points per hole relative to par.'),
-        const SizedBox(height: AppSpacing.x2l),
-
-        BoxyArtDropdownField<int>(
-          label: 'Team Size',
-          value: _teamSize,
-          items: const [
-            DropdownMenuItem(value: 2, child: Text('2-Man Team')),
-            DropdownMenuItem(value: 3, child: Text('3-Man Team')),
-            DropdownMenuItem(value: 4, child: Text('4-Man Team')),
-          ],
-          onChanged: (val) {
-            if (val != null) {
-              setState(() {
-                _teamSize = val;
-                // [FIX] DO NOT auto-set allowance to 0.10 here.
-                // The allowance should be 1.0 if using WHS Method, 
-                // OR manually set via the slider.
-              });
-            }
-          },
-        ),
-        buildInfoBubble('Allowance defaults auto-update to WHS recommendations when you change team size.'),
-
-        const SizedBox(height: AppSpacing.x2l),
-        buildInfoCard(
-          _subtype == CompetitionSubtype.texas
-              ? [
-                  ('Tee Off', 'Everyone drives; team chooses the best ball.'),
-                  ('Drives', 'Must use a minimum number of drives per player (e.g. 3–4 each).'),
-                  ('Fairway', 'Place within 6–12" of the chosen spot.'),
-                  ('Rough', 'Drop within 1 club length (stay in the same condition).'),
-                  ('Putting', 'Repeat process on the green until someone holes out.'),
-                ]
-              : [
-                  ('Tee Off', 'Everyone drives; team chooses the best one to start.'),
-                  ('Step Aside', 'The player whose shot was chosen sits out the NEXT shot.'),
-                  ('Next Shot', 'Remaining teammates play from the chosen spot.'),
-                  ('Rotation', 'Best ball chosen again; the hitter steps aside, previous sitter returns.'),
-                  ('Putting', 'Step-aside rule continues on the green until holed.'),
+        const BoxyArtSectionTitle(title: 'SCRAMBLE FORMAT'),
+        BoxyArtCard(
+          padding: const EdgeInsets.all(AppSpacing.xl),
+          child: Column(
+            children: [
+              BoxyArtDropdownField<CompetitionSubtype>(
+                label: 'Scramble Mode',
+                value: effectiveSubtype,
+                items: const [
+                  DropdownMenuItem(value: CompetitionSubtype.texas, child: Text('Texas Scramble (Standard)')),
+                  DropdownMenuItem(value: CompetitionSubtype.florida, child: Text('Florida Scramble (Step-aside)')),
                 ],
+                onChanged: (val) {
+                  if (val != null) setState(() => _subtype = val);
+                },
+              ),
+              buildInfoBubble(_subtype == CompetitionSubtype.texas
+                  ? 'Standard team scramble — everyone drives, picks the best, all play from there.'
+                  : 'Florida style — the hitter of the best ball steps aside for the next shot.'),
+              const BoxyArtDivider(),
+              BoxyArtDropdownField<CompetitionFormat>(
+                label: 'Base Scoring Format',
+                value: _underlyingFormat,
+                items: const [
+                  DropdownMenuItem(value: CompetitionFormat.stroke, child: Text('Regular Stroke Play (Medal)')),
+                  DropdownMenuItem(value: CompetitionFormat.stableford, child: Text('Stableford (Points)')),
+                ],
+                onChanged: (val) {
+                  if (val != null) setState(() => _underlyingFormat = val);
+                },
+              ),
+              const BoxyArtDivider(),
+              BoxyArtDropdownField<int>(
+                label: 'Team Size',
+                value: _teamSize,
+                items: const [
+                  DropdownMenuItem(value: 2, child: Text('2-Man Team')),
+                  DropdownMenuItem(value: 3, child: Text('3-Man Team')),
+                  DropdownMenuItem(value: 4, child: Text('4-Man Team')),
+                ],
+                onChanged: (val) {
+                  if (val != null) setState(() => _teamSize = val);
+                },
+              ),
+              const BoxyArtDivider(),
+              buildInfoCard(
+                _subtype == CompetitionSubtype.texas
+                    ? [
+                        ('Tee Off', 'Everyone drives; team chooses the best ball.'),
+                        ('Drives', 'Must use a minimum number of drives per player.'),
+                        ('Fairway', 'Place within 6–12" of the spot.'),
+                      ]
+                    : [
+                        ('Tee Off', 'Everyone drives; team chooses the best one.'),
+                        ('Step Aside', 'The chosen hitter sits out the NEXT shot.'),
+                        ('Rotation', 'Previous sitter returns, new hitter sits out.'),
+                      ],
+              ),
+            ],
+          ),
         ),
-
-        const SizedBox(height: AppSpacing.x2l),
-        const Divider(height: 1),
-        const SizedBox(height: AppSpacing.x2l),
 
         // ── HANDICAP ──────────────────────────────────────────
-        const BoxyArtSectionTitle(title: 'Handicap'),
-        const SizedBox(height: AppSpacing.lg),
-
-        _buildTeamHandicapMethodDropdown(),
-        const SizedBox(height: AppSpacing.x2l),
-
-        buildAllowanceSlider(
-          _allowance,
-          (val) => setState(() => _allowance = val),
-          label: 'Team HCP allowance',
-          hint: 'Applied to the combined team course handicap. WHS recommends 10% for a 4-man team.',
+        const BoxyArtSectionTitle(title: 'HANDICAP'),
+        BoxyArtCard(
+          padding: const EdgeInsets.all(AppSpacing.xl),
+          child: Column(
+            children: [
+              _buildTeamHandicapMethodDropdown(),
+              const BoxyArtDivider(),
+              buildAllowanceSlider(
+                _allowance,
+                (val) => setState(() => _allowance = val),
+                label: 'Team HCP allowance',
+                hint: 'Applied to combined team HCP. WHS recommends 10% for a 4-man team.',
+              ),
+              const BoxyArtDivider(),
+              buildCapSlider(
+                _teamCap,
+                (val) => setState(() => _teamCap = val),
+              ),
+              buildInfoBubble('Maximum total strokes the team can receive.'),
+            ],
+          ),
         ),
-        const SizedBox(height: AppSpacing.x2l),
-
-        buildCapSlider(
-          _teamCap,
-          (val) => setState(() => _teamCap = val),
-        ),
-        buildInfoBubble('Maximum total strokes the team can receive. Use this to prevent low-handicap teams from gaining too much advantage.'),
-
-        const SizedBox(height: AppSpacing.x2l),
-        const Divider(height: 1),
-        const SizedBox(height: AppSpacing.x2l),
 
         // ── RULES & ATTRIBUTIONS ──────────────────────────────
-        const BoxyArtSectionTitle(title: 'Rules & attributions'),
-        const SizedBox(height: AppSpacing.lg),
-
-        BoxyArtSwitchField(
-          label: 'Track Shot Attributions',
-          value: _trackShotAttributions,
-          onChanged: (val) => setState(() => _trackShotAttributions = val),
+        const BoxyArtSectionTitle(title: 'RULES & ATTRIBUTIONS'),
+        BoxyArtCard(
+          padding: const EdgeInsets.all(AppSpacing.xl),
+          child: BoxyArtSwitchField(
+            label: 'Track Shot Attributions',
+            value: _trackShotAttributions,
+            onChanged: (val) => setState(() => _trackShotAttributions = val),
+          ),
         ),
-        buildInfoBubble('Enables step-aside enforcement and minimum drives tracking per player.'),
-
-        const SizedBox(height: AppSpacing.x2l),
-        const Divider(height: 1),
-        const SizedBox(height: AppSpacing.x2l),
 
         // ── GUEST SETTINGS ────────────────────────────────────
         buildGuestSettings(

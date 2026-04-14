@@ -14,51 +14,85 @@ class LeaderboardTypeSelectionScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final spacing = theme.extension<AppSpacingTokens>();
+
     return HeadlessScaffold(
       title: 'Leaderboard Formats',
-      titleSuffix: BoxyArtPill.committee(label: 'ADMIN'),
       subtitle: (isTemplate || isPicker) ? 'Select a type to continue' : 'Standard Season Formats',
+      titleSuffix: BoxyArtPill.committee(label: 'ADMIN'),
+      actions: const [],
       showBack: true,
       onBack: () => context.pop(),
       slivers: [
         SliverPadding(
-          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.x2l),
+          padding: const EdgeInsets.only(
+            left: AppSpacing.xl,
+            right: AppSpacing.xl,
+            bottom: AppSpacing.x4l, // Design 4.x: Standardized bottom breathing room
+          ),
           sliver: SliverList(
             delegate: SliverChildListDelegate([
               const BoxyArtSectionTitle(
-                title: 'STANDARD FORMATS',),
-              _TypeTile(
-                title: 'Order of Merit',
-                subtitle: 'Accumulate points from all rounds.',
-                icon: Icons.emoji_events_rounded,
-                color: AppColors.amber500,
-                onTap: () => _navigateToBuilder(context, LeaderboardType.orderOfMerit),
+                title: 'STANDARD FORMATS',
+                isPeeking: true,
               ),
-              SizedBox(height: Theme.of(context).extension<AppSpacingTokens>()?.cardToCard ?? AppSpacing.standard),
-              _TypeTile(
-                title: 'Best of Series',
-                subtitle: 'Count top N scores (e.g. Best 8 of 10).',
-                icon: Icons.list_alt_rounded,
-                color: AppColors.teamA,
-                onTap: () => _navigateToBuilder(context, LeaderboardType.bestOfSeries),
+              StaggeredEntrance(
+                index: 0,
+                child: Padding(
+                  padding: EdgeInsets.only(bottom: spacing?.cardToCard ?? AppSpacing.standard),
+                  child: _TypeTile(
+                    title: 'Order of Merit',
+                    name: 'Order of Merit',
+                    subtitle: 'Accumulate points from all rounds.',
+                    icon: Icons.emoji_events_rounded,
+                    color: AppColors.amber500,
+                    onTap: () => _navigateToBuilder(context, LeaderboardType.orderOfMerit),
+                  ),
+                ),
               ),
-              SizedBox(height: Theme.of(context).extension<AppSpacingTokens>()?.cardToCard ?? AppSpacing.standard),
-              _TypeTile(
-                title: 'Eclectic',
-                subtitle: 'Best score per hole across season.',
-                icon: Icons.grid_on_rounded,
-                color: AppColors.teamB,
-                onTap: () => _navigateToBuilder(context, LeaderboardType.eclectic),
+              StaggeredEntrance(
+                index: 1,
+                child: Padding(
+                  padding: EdgeInsets.only(bottom: spacing?.cardToCard ?? AppSpacing.standard),
+                  child: _TypeTile(
+                    title: 'Best of Series',
+                    name: 'Best of Series',
+                    subtitle: 'Count top N scores (e.g. Best 8 of 10).',
+                    icon: Icons.list_alt_rounded,
+                    color: AppColors.teamA,
+                    onTap: () => _navigateToBuilder(context, LeaderboardType.bestOfSeries),
+                  ),
+                ),
               ),
-              SizedBox(height: Theme.of(context).extension<AppSpacingTokens>()?.cardToCard ?? AppSpacing.standard),
-              _TypeTile(
-                title: 'Birdie Tree',
-                subtitle: 'Track Birdies, Eagles, or Pars.',
-                icon: Icons.park_rounded,
-                color: AppColors.lime500,
-                onTap: () => _navigateToBuilder(context, LeaderboardType.markerCounter),
+              StaggeredEntrance(
+                index: 2,
+                child: Padding(
+                  padding: EdgeInsets.only(bottom: spacing?.cardToCard ?? AppSpacing.standard),
+                  child: _TypeTile(
+                    title: 'Eclectic',
+                    name: 'Eclectic',
+                    subtitle: 'Best score per hole across season.',
+                    icon: Icons.grid_on_rounded,
+                    color: AppColors.teamB,
+                    onTap: () => _navigateToBuilder(context, LeaderboardType.eclectic),
+                  ),
+                ),
               ),
-              const SizedBox(height: 100),
+              StaggeredEntrance(
+                index: 3,
+                child: Padding(
+                  padding: EdgeInsets.only(bottom: spacing?.cardToCard ?? AppSpacing.standard),
+                  child: _TypeTile(
+                    title: 'Birdie Tree',
+                    name: 'Birdie Tree',
+                    subtitle: 'Track Birdies, Eagles, or Pars.',
+                    icon: Icons.park_rounded,
+                    color: AppColors.lime500,
+                    onTap: () => _navigateToBuilder(context, LeaderboardType.markerCounter),
+                  ),
+                ),
+              ),
             ]),
           ),
         ),
@@ -82,6 +116,7 @@ class LeaderboardTypeSelectionScreen extends StatelessWidget {
 
 class _TypeTile extends StatelessWidget {
   final String title;
+  final String name; 
   final String subtitle;
   final IconData icon;
   final Color color;
@@ -89,6 +124,7 @@ class _TypeTile extends StatelessWidget {
 
   const _TypeTile({
     required this.title,
+    required this.name,
     required this.subtitle,
     required this.icon,
     required this.color,
@@ -97,49 +133,50 @@ class _TypeTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     
     return BoxyArtCard(
       onTap: onTap,
-      padding: const EdgeInsets.all(AppSpacing.lg),
+      padding: const EdgeInsets.all(AppSpacing.xl),
       child: Row(
         children: [
-          Container(
-            width: 56,
-            height: 56,
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: AppColors.opacityLow),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(icon, color: color, size: AppShapes.iconLg),
+          // Design 4.x: Square 44px Icon Badge
+          BoxyArtIconBadge(
+            icon: icon,
+            color: color,
+            isTinted: true,
+            size: 44,
+            iconSize: 22,
+            useCircle: false, // Standard for admin selection tiles
           ),
           const SizedBox(width: AppSpacing.lg),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  title,
-                  style: AppTypography.body.copyWith(
-                    fontWeight: AppTypography.weightExtraBold,
-                    color: isDark ? AppColors.pureWhite : AppColors.dark900,
+                  title.toUpperCase(),
+                  style: AppTypography.labelStrong.copyWith(
+                    color: theme.colorScheme.onSurface,
+                    letterSpacing: 1.0,
                   ),
                 ),
-                const SizedBox(height: AppSpacing.xs),
+                const SizedBox(height: 2),
                 Text(
                   subtitle,
-                  style: AppTypography.label.copyWith(
-                    color: isDark ? AppColors.dark300 : AppColors.dark400,
-                    fontSize: AppTypography.sizeLabel,
+                  style: AppTypography.caption.copyWith(
+                    color: isDark ? AppColors.dark200 : AppColors.dark400,
                   ),
                 ),
               ],
             ),
           ),
           Icon(
-            Icons.chevron_right_rounded, 
-            color: isDark ? AppColors.dark300 : AppColors.dark400,
-            size: AppShapes.iconMd,
+            Icons.arrow_forward_ios_rounded, 
+            color: isDark ? AppColors.dark400 : AppColors.dark200, 
+            size: AppShapes.iconXs,
           ),
         ],
       ),

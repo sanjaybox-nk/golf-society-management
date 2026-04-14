@@ -29,8 +29,18 @@ class MemberDetailsScreen extends ConsumerWidget {
     return memberAsync.when(
       data: (member) {
         if (member == null) {
-          return const Scaffold(
-            body: Center(child: Text('Member not found')),
+          return HeadlessScaffold(
+            title: 'Member Details',
+            showBack: true,
+            slivers: [
+              SliverFillRemaining(
+                child: BoxyArtEmptyCard(
+                  title: 'Member Not Found',
+                  message: 'The requested player could not be located in the society roster.',
+                  icon: Icons.person_off_rounded,
+                ),
+              ),
+            ],
           );
         }
         return MemberDetailsModal(
@@ -39,11 +49,33 @@ class MemberDetailsScreen extends ConsumerWidget {
           isModal: false,
         );
       },
-      loading: () => const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
+      loading: () => const HeadlessScaffold(
+        title: 'Member Details',
+        showBack: true,
+        slivers: [
+          SliverPadding(
+            padding: EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+            sliver: SliverToBoxAdapter(
+              child: BoxyArtLoadingCard(useCard: true),
+            ),
+          ),
+        ],
       ),
-      error: (err, stack) => Scaffold(
-        body: Center(child: Text('Error: $err')),
+      error: (err, stack) => HeadlessScaffold(
+        title: 'Member Details',
+        showBack: true,
+        slivers: [
+          SliverPadding(
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+            sliver: SliverToBoxAdapter(
+              child: BoxyArtEmptyCard(
+                title: 'Loading Failed',
+                message: err.toString(),
+                icon: Icons.error_outline_rounded,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

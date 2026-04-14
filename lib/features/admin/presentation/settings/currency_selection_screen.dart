@@ -53,17 +53,20 @@ class _CurrencySelectionScreenState extends ConsumerState<CurrencySelectionScree
     return HeadlessScaffold(
       title: 'Currency',
       subtitle: 'Select society default currency',
+      titleSuffix: BoxyArtPill.committee(label: 'ADMIN'),
       showBack: true,
       onBack: () => context.pop(),
+      actions: const [],
       backgroundColor: beigeBackground,
       slivers: [
         SliverPadding(
-          padding: EdgeInsets.symmetric(
-            horizontal: AppSpacing.xl, 
-            vertical: spacing?.labelToCard ?? AppSpacing.labelToCard
-          ),
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
           sliver: SliverList(
             delegate: SliverChildListDelegate([
+              const BoxyArtSectionTitle(
+                title: 'CURRENCY SELECTOR',
+                isPeeking: true,
+              ),
               // Search Bar standardized with BoxyArtInputField
               BoxyArtInputField(
                 label: 'Search Currencies',
@@ -121,18 +124,14 @@ class _CurrencySelectionScreenState extends ConsumerState<CurrencySelectionScree
                             children: [
                               Text(
                                 c.name.toUpperCase(),
-                                style: TextStyle(
-                                  fontSize: AppTypography.sizeButton,
-                                  fontWeight: AppTypography.weightExtraBold,
-                                  letterSpacing: 0.5,
-                                  color: isDark ? AppColors.pureWhite : AppColors.dark900,
+                                style: AppTypography.labelStrong.copyWith(
+                                  letterSpacing: 1.0,
                                 ),
                               ),
                               const SizedBox(height: 2),
                               Text(
                                 c.code,
-                                style: TextStyle(
-                                  fontSize: AppTypography.sizeLabelStrong,
+                                style: AppTypography.caption.copyWith(
                                   color: isDark ? AppColors.dark300 : AppColors.dark400,
                                 ),
                               ),

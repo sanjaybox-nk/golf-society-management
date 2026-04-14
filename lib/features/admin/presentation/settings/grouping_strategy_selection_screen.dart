@@ -46,8 +46,10 @@ class GroupingStrategySelectionScreen extends ConsumerWidget {
     return HeadlessScaffold(
       title: 'Grouping Strategy',
       subtitle: 'Select automatic pairing logic',
+      titleSuffix: BoxyArtPill.committee(label: 'ADMIN'),
       showBack: true,
       onBack: () => context.pop(),
+      actions: const [],
       backgroundColor: beigeBackground,
       slivers: [
         SliverPadding(
@@ -95,18 +97,14 @@ class GroupingStrategySelectionScreen extends ConsumerWidget {
                             children: [
                               Text(
                                 strategy.label.toUpperCase(),
-                                style: TextStyle(
-                                  fontSize: AppTypography.sizeButton,
-                                  fontWeight: AppTypography.weightExtraBold,
-                                  letterSpacing: 0.5,
-                                  color: isDark ? AppColors.pureWhite : AppColors.dark900,
+                                style: AppTypography.labelStrong.copyWith(
+                                  letterSpacing: 1.0,
                                 ),
                               ),
                               const SizedBox(height: 2),
                               Text(
                                 strategy.description,
-                                style: TextStyle(
-                                  fontSize: AppTypography.sizeLabelStrong,
+                                style: AppTypography.caption.copyWith(
                                   color: isDark ? AppColors.dark300 : AppColors.dark400,
                                   height: 1.3,
                                 ),

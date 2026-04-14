@@ -54,10 +54,9 @@ class MemberTile extends ConsumerWidget {
       ),
       onLongPress: onLongPress,
       padding: const EdgeInsets.all(AppSpacing.large),
-      child: IntrinsicHeight(
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.stretch, // Enable vertical anchoring
-          children: [
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center, // Centered alignment for cleaner baseline
+        children: [
             // 1. Left Section: Identity (Avatar)
             SizedBox(
               width: 68, // Widened to allow for 64px circular avatar
@@ -182,7 +181,7 @@ class MemberTile extends ConsumerWidget {
               SizedBox(
                 width: 80, // Fixed width for action anchoring
                 child: Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  mainAxisSize: MainAxisSize.min, // Allow self-sizing
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     // Top Right: Admin Icon or Role
@@ -195,7 +194,9 @@ class MemberTile extends ConsumerWidget {
                       BoxyArtPill.committee(
                         label: member.societyRole!,
                       ),
-                    
+                    if ((isAdmin && isAdminContext || member.societyRole?.isNotEmpty == true) && canSeeFees)
+                      const SizedBox(height: AppSpacing.md),
+                      
                     // Bottom Right: Fee Pill (RENEWAL tag hidden by preference)
                     if (canSeeFees)
                       BoxyArtFeePill(
@@ -211,8 +212,6 @@ class MemberTile extends ConsumerWidget {
             ],
           ],
         ),
-      ),
-    );
-  }
-
+      );
+    }
 }

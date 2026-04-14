@@ -9,6 +9,7 @@ import '../../../events/logic/event_analysis_engine.dart';
 import '../../../admin/providers/admin_ui_providers.dart';
 import 'package:golf_society/domain/grouping/grouping_service.dart';
 import 'package:golf_society/features/members/presentation/members_provider.dart';
+import 'package:golf_society/domain/models/society_config.dart';
 
 class EventAdminControlsScreen extends ConsumerStatefulWidget {
   final String eventId;
@@ -41,14 +42,13 @@ class _EventAdminControlsScreenState extends ConsumerState<EventAdminControlsScr
 
         return HeadlessScaffold(
           title: 'Control Tower',
-          titleSuffix: BoxyArtPill.committee(label: 'ADMIN'),
           subtitle: event.title,
-
+          titleSuffix: BoxyArtPill.committee(label: 'ADMIN'),
           showBack: true,
           onBack: () => context.goNamed('admin-events'),
           slivers: [
             SliverPadding(
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+              padding: EdgeInsets.symmetric(horizontal: spacing?.cardHorizontalPadding ?? AppSpacing.xl),
               sliver: SliverList(
                 delegate: SliverChildListDelegate([
                   // 1. Status Overview Header
@@ -127,7 +127,10 @@ class _EventAdminControlsScreenState extends ConsumerState<EventAdminControlsScr
                         ),
                         const BoxyArtDivider(),
                         Padding(
-                          padding: const EdgeInsets.all(AppSpacing.xl),
+                          padding: EdgeInsets.symmetric(
+                            horizontal: spacing?.cardHorizontalPadding ?? AppSpacing.xl,
+                            vertical: spacing?.cardVerticalPadding ?? AppSpacing.xl,
+                          ),
                           child: Column(
                             children: [
                               BoxyArtButton(
@@ -324,16 +327,16 @@ class _EventAdminControlsScreenState extends ConsumerState<EventAdminControlsScr
   }
 
   Future<void> _closeEvent(GolfEvent event, AsyncValue<List<Scorecard>> scorecardsAsync) async {
-    final confirmed = await showDialog<bool>(
+    final confirmed = await showBoxyArtDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Close Event?'),
-        content: const Text('This will lock all scorecards, finalize the results, and mark the event as completed.'),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
-          TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Close', style: TextStyle(color: AppColors.coral500))),
-        ],
-      ),
+      title: 'Close Event?',
+      message: 'This will lock all scorecards, finalize the results, and mark the event as completed.',
+      confirmText: 'Close',
+      isDangerous: true,
+      onCancel: () => Navigator.of(context, rootNavigator: true).pop(false),
+      onConfirm: () async {
+        Navigator.of(context, rootNavigator: true).pop(true);
+      },
     );
 
     if (confirmed == true) {

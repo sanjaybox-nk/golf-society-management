@@ -310,7 +310,7 @@ class _PersonalDetailsFormState extends State<PersonalDetailsForm> {
                     itemCount: filteredOptions.length,
                     separatorBuilder: (_, __) => Divider(
                       height: 1, 
-                      color: isDark ? AppColors.dark600 : AppColors.lightBorder.withValues(alpha: 0.5)
+                      color: isDark ? AppColors.dark600 : AppColors.lightBorder.withValues(alpha: AppColors.opacityHalf)
                     ),
                     itemBuilder: (context, index) {
                       final country = filteredOptions[index];

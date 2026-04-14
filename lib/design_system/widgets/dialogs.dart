@@ -10,6 +10,7 @@ class BoxyArtDialog extends StatelessWidget {
   final VoidCallback? onCancel;
   final String? confirmText;
   final String? cancelText;
+  final bool isDangerous;
 
   const BoxyArtDialog({
     super.key,
@@ -21,6 +22,7 @@ class BoxyArtDialog extends StatelessWidget {
     this.onCancel,
     this.confirmText,
     this.cancelText,
+    this.isDangerous = false,
   }) : assert(content != null || message != null, 'Either content or message must be provided');
 
   @override
@@ -76,7 +78,8 @@ class BoxyArtDialog extends StatelessWidget {
                 if (onConfirm != null)
                   BoxyArtButton(
                     title: confirmText ?? 'Confirm',
-                    isPrimary: true,
+                    isPrimary: !isDangerous,
+                    isDangerous: isDangerous,
                     onTap: onConfirm,
                   )
                 else if (onCancel == null && actions == null)
@@ -104,6 +107,7 @@ class BoxyArtDialog extends StatelessWidget {
     VoidCallback? onCancel,
     String? confirmText,
     String? cancelText,
+    bool isDangerous = false,
   }) {
     return showDialog<T>(
       context: context,
@@ -116,6 +120,7 @@ class BoxyArtDialog extends StatelessWidget {
         onCancel: onCancel,
         confirmText: confirmText,
         cancelText: cancelText,
+        isDangerous: isDangerous,
       ),
     );
   }
@@ -132,6 +137,7 @@ Future<T?> showBoxyArtDialog<T>({
   String confirmText = 'Confirm',
   VoidCallback? onCancel,
   String cancelText = 'Cancel',
+  bool isDangerous = false,
 }) {
   return showDialog<T>(
     context: context,
@@ -145,6 +151,7 @@ Future<T?> showBoxyArtDialog<T>({
         onCancel: onCancel,
         confirmText: confirmText,
         cancelText: cancelText,
+        isDangerous: isDangerous,
       );
     },
   );

@@ -38,6 +38,8 @@ class _CommitteeRoleMembersScreenState extends ConsumerState<CommitteeRoleMember
   @override
   Widget build(BuildContext context) {
     final membersAsync = ref.watch(allMembersProvider);
+    final theme = Theme.of(context);
+    final spacing = theme.extension<AppSpacingTokens>();
 
     return HeadlessScaffold(
       title: widget.role,
@@ -46,20 +48,21 @@ class _CommitteeRoleMembersScreenState extends ConsumerState<CommitteeRoleMember
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       slivers: [
         SliverToBoxAdapter(
-          child: Container(
-            padding: const EdgeInsets.fromLTRB(AppSpacing.xl, AppSpacing.x2l, AppSpacing.xl, 0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Design 4.1 Search Bar (Image 2)
-                BoxyArtSearchInput(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(AppSpacing.xl, AppSpacing.xl, AppSpacing.xl, 0),
+                child: BoxyArtSearchInput(
                   label: 'Search Members',
                   hintText: 'Search to assign...',
                   controller: _searchController,
-                  onChanged: (val) {}, // State updated via listener
+                  onChanged: (val) {}, 
                 ),
-              ],
-            ),
+              ),
+              // Standardized search-to-card rhythm
+              SizedBox(height: spacing?.cardToLabel ?? AppSpacing.standard),
+            ],
           ),
         ),
 
@@ -92,35 +95,38 @@ class _CommitteeRoleMembersScreenState extends ConsumerState<CommitteeRoleMember
             });
 
             if (displayList.isEmpty) {
-              return SliverFillRemaining(
-                child: Center(
-                  child: Text(
-                    isSearching ? 'No members found.' : 'No members have this position.',
-                    style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color),
+              return SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+                  child: BoxyArtEmptyCard(
+                    title: isSearching ? 'No members found' : 'No members assigned',
+                    message: isSearching 
+                        ? 'Try a different search term.' 
+                        : 'Search members above to assign them to this role.',
+                    icon: isSearching ? Icons.search_off_rounded : Icons.person_add_rounded,
                   ),
                 ),
               );
             }
 
             return SliverPadding(
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+              padding: const EdgeInsets.only(
+                left: AppSpacing.xl,
+                right: AppSpacing.xl,
+                bottom: AppSpacing.x4l, // Design 4.x: Standardized bottom breathing room
+              ),
               sliver: SliverList(
                 delegate: SliverChildBuilderDelegate(
                   (context, index) {
                     final member = displayList[index];
                     final hasRole = member.societyRole?.toLowerCase() == widget.role.toLowerCase();
 
-                    if (!hasRole) {
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: AppSpacing.md),
-                        child: _buildCandidateTile(member),
-                      );
-                    } else {
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: AppSpacing.md),
-                        child: _buildActiveRoleTile(member),
-                      );
-                    }
+                    return Padding(
+                      padding: EdgeInsets.only(bottom: spacing?.cardToCard ?? AppSpacing.atomic),
+                      child: hasRole 
+                        ? _buildActiveRoleTile(member) 
+                        : _buildCandidateTile(member),
+                    );
                   },
                   childCount: displayList.length,
                 ),
@@ -130,57 +136,28 @@ class _CommitteeRoleMembersScreenState extends ConsumerState<CommitteeRoleMember
           loading: () => const SliverFillRemaining(child: Center(child: CircularProgressIndicator())),
           error: (err, stack) => SliverFillRemaining(child: Center(child: Text('Error: $err'))),
         ),
-        const SliverPadding(padding: EdgeInsets.only(bottom: 100)),
+        const SliverPadding(padding: EdgeInsets.only(bottom: AppSpacing.x4l)),
       ],
     );
   }
 
   // Tile for someone who CAN be added
   Widget _buildCandidateTile(Member member) {
-    return BoxyArtCard(
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
-      child: ListTile(
-        contentPadding: EdgeInsets.zero,
-        leading: CircleAvatar(
-          backgroundColor: AppColors.pureWhite,
-          backgroundImage: member.avatarUrl != null ? NetworkImage(member.avatarUrl!) : null,
-          child: member.avatarUrl == null
-              ? Text(
-                  member.firstName.isNotEmpty ? member.firstName[0] : '',
-                  style: TextStyle(color: Colors.black.withValues(alpha: 0.54)),
-                )
-              : null,
-        ),
-        title: Text('${member.firstName} ${member.lastName}', style: const TextStyle(fontWeight: AppTypography.weightBold)),
-        subtitle: member.societyRole != null && member.societyRole!.isNotEmpty 
-            ? Text(member.societyRole!, style: TextStyle(fontSize: AppTypography.sizeLabel, color: _roleColor)) 
-            : null,
-        trailing: IconButton(
-          icon: Icon(Icons.add_circle, color: _roleColor, size: AppShapes.iconXl),
-          onPressed: () {
-            _updateRole(member, widget.role);
-            _searchController.clear();
-          },
-        ),
-      ),
-    );
-  }
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
 
-  // Tile for someone who HAS the role (Premium 3.1 Style - Image 1)
-  Widget _buildActiveRoleTile(Member member) {
     return BoxyArtCard(
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.md),
-      // Design 4.1 Refining: Borders removed from member cards
+      padding: const EdgeInsets.all(AppSpacing.lg),
       child: Row(
         children: [
           CircleAvatar(
-            radius: 24,
-            backgroundColor: AppColors.pureWhite,
+            radius: 22,
+            backgroundColor: isDark ? AppColors.dark600 : AppColors.dark100,
             backgroundImage: member.avatarUrl != null ? NetworkImage(member.avatarUrl!) : null,
             child: member.avatarUrl == null
                 ? Text(
                     member.firstName.isNotEmpty ? member.firstName[0] : '',
-                    style: TextStyle(fontWeight: AppTypography.weightBold, color: Colors.black.withValues(alpha: 0.54)),
+                    style: AppTypography.label.copyWith(color: AppColors.textTertiary),
                   )
                 : null,
           ),
@@ -188,39 +165,85 @@ class _CommitteeRoleMembersScreenState extends ConsumerState<CommitteeRoleMember
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  '${member.firstName} ${member.lastName}',
-                  style: const TextStyle(
-                    fontWeight: AppTypography.weightBold, 
-                    fontSize: AppTypography.sizeBody,
-                    letterSpacing: 0.2,
+                  member.displayName,
+                  style: AppTypography.label.copyWith(
+                    color: theme.colorScheme.onSurface,
+                    fontWeight: AppTypography.weightBold,
+                    height: 1.2,
                   ),
                 ),
-                const SizedBox(height: 6),
-                // Labeled Badge (Image 1 Style)
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: _roleColor.withValues(alpha: 0.12),
-                    borderRadius: AppShapes.xs,
-                  ),
-                  child: Text(
-                    widget.role,
-                    style: TextStyle(
-                      fontSize: AppTypography.sizeMicro,
-                      fontWeight: AppTypography.weightBold,
-                      color: _roleColor,
-                      letterSpacing: 0.5,
+                if (member.societyRole != null && member.societyRole!.isNotEmpty)
+                  Text(
+                    member.societyRole!,
+                    style: AppTypography.caption.copyWith(
+                      color: theme.primaryColor,
+                      height: 1.0,
                     ),
                   ),
+              ],
+            ),
+          ),
+          IconButton(
+            icon: Icon(Icons.add_circle_outline_rounded, color: theme.primaryColor, size: AppShapes.iconLg),
+            onPressed: () {
+              _updateRole(member, widget.role);
+              _searchController.clear();
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildActiveRoleTile(Member member) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    return BoxyArtCard(
+      padding: const EdgeInsets.all(AppSpacing.lg),
+      child: Row(
+        children: [
+          CircleAvatar(
+            radius: 22,
+            backgroundColor: isDark ? AppColors.dark600 : AppColors.dark100,
+            backgroundImage: member.avatarUrl != null ? NetworkImage(member.avatarUrl!) : null,
+            child: member.avatarUrl == null
+                ? Text(
+                    member.firstName.isNotEmpty ? member.firstName[0] : '',
+                    style: AppTypography.label.copyWith(color: AppColors.textTertiary),
+                  )
+                : null,
+          ),
+          const SizedBox(width: AppSpacing.lg),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  member.displayName,
+                  style: AppTypography.label.copyWith(
+                    color: theme.colorScheme.onSurface,
+                    fontWeight: AppTypography.weightBold,
+                    height: 1.2,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                BoxyArtPill(
+                  label: widget.role,
+                  color: theme.primaryColor,
+                  fontSize: AppTypography.sizeMicro,
+                  hasHorizontalMargin: false,
                 ),
               ],
             ),
           ),
           Switch(
             value: true,
-            activeTrackColor: _roleColor,
+            activeTrackColor: theme.primaryColor,
             thumbColor: const WidgetStatePropertyAll(AppColors.pureWhite),
             trackOutlineColor: const WidgetStatePropertyAll(Colors.transparent),
             onChanged: (val) {

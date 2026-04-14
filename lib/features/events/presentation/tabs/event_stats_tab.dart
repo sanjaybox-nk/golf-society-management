@@ -12,6 +12,9 @@ import 'package:collection/collection.dart';
 import '../../logic/event_scoring_controller.dart';
 import '../../domain/models/processed_event_data.dart';
 import '../events_provider.dart';
+import '../widgets/scorecard_modal.dart';
+import '../../../competitions/presentation/widgets/leaderboard_widget.dart';
+import '../../../members/presentation/members_provider.dart';
 import '../../../competitions/presentation/competitions_provider.dart';
 
 // Providers moved from user_placeholders if they were local or needed here
@@ -137,6 +140,14 @@ class _EventStatsContent extends ConsumerWidget {
     double maxDiff = 0;
     int toughestIdx = 0;
     String toughestName = 'Hole 1';
+    
+    String hotStreakId = '';
+    String bounceBackId = '';
+    String finisherId = '';
+    String blobKingId = '';
+    String grinderId = '';
+    String sniperId = '';
+    String rollercoasterId = '';
 
     if (fs.isNotEmpty) {
       final dist = fs['scoringDistribution'] as Map?;
@@ -171,34 +182,42 @@ class _EventStatsContent extends ConsumerWidget {
           final type = award['type'];
           final displayVal = award['displayValue'];
           final name = award['playerName'] ?? 'Unknown';
+          final pid = (award['playerId'] ?? '').toString();
           
           if (type == 'HOT_STREAK') { 
             hotStreakPlayer = name; 
             maxStreak = (displayVal as num?)?.toInt() ?? 1; 
+            hotStreakId = pid;
           }
           else if (type == 'BOUNCE_BACK') { 
             bounceBackPlayer = name; 
             maxBounceBacks = (displayVal as num?)?.toInt() ?? 1; 
+            bounceBackId = pid;
           }
           else if (type == 'TOP_FINISHER') { 
             finisherPlayer = name; 
             bestFinishScore = (displayVal as num?)?.toInt() ?? (isStableford ? 6 : 12);
+            finisherId = pid;
           }
           else if (type == 'BLOB_KING' || type == 'DISASTER_MASTER') { 
             blobKingPlayer = name; 
             maxBlobs = (displayVal as num?)?.toInt() ?? 1; 
+            blobKingId = pid;
           }
           else if (type == 'CONSISTENT') { 
             grinderPlayer = name; 
             maxParsPlayer = (displayVal as num?)?.toInt() ?? 1; 
+            grinderId = pid;
           }
           else if (type == 'SNIPER') { 
             sniperPlayer = name; 
             maxBirdsPlayer = (displayVal as num?)?.toInt() ?? 1; 
+            sniperId = pid;
           }
           else if (type == 'ROLLERCOASTER') { 
             rollercoasterPlayer = name; 
             maxVariance = (displayVal as num?)?.toDouble() ?? 5.0; 
+            rollercoasterId = pid;
           }
         }
       }
@@ -244,6 +263,7 @@ class _EventStatsContent extends ConsumerWidget {
             }),
           ),
           if (isStableford) ...[
+            SizedBox(height: spacing?.cardToCard ?? AppSpacing.md),
             StaggeredEntrance(
               index: 2,
               child: StablefordDistributionChart(bucketCounts: stablefordBuckets),
@@ -273,47 +293,96 @@ class _EventStatsContent extends ConsumerWidget {
           if (maxStreak > 0)
             StaggeredEntrance(
               index: 7,
-              child: AchievementTile(title: 'HOT STREAK', playerName: hotStreakPlayer, value: '$maxStreak holes Par or better', icon: Icons.local_fire_department, color: AppColors.amber500),
+              child: AchievementTile(
+                title: 'HOT STREAK', 
+                playerName: hotStreakPlayer, 
+                value: '$maxStreak holes Par or better', 
+                icon: Icons.local_fire_department, 
+                color: AppColors.amber500,
+                onTap: hotStreakId.isNotEmpty ? () => _showScorecard(context, ref, hotStreakId, data) : null,
+              ),
             ),
           if (maxBounceBacks > 0) ...[
             SizedBox(height: spacing?.cardToCard ?? AppSpacing.md),
             StaggeredEntrance(
               index: 8,
-              child: AchievementTile(title: 'BOUNCE BACK', playerName: bounceBackPlayer, value: '$maxBounceBacks recoveries today', icon: Icons.trending_up, color: AppColors.teamA),
+              child: AchievementTile(
+                title: 'BOUNCE BACK', 
+                playerName: bounceBackPlayer, 
+                value: '$maxBounceBacks recoveries today', 
+                icon: Icons.trending_up, 
+                color: AppColors.teamA,
+                onTap: bounceBackId.isNotEmpty ? () => _showScorecard(context, ref, bounceBackId, data) : null,
+              ),
             ),
           ],
           if (finisherPlayer != 'None') ...[
             SizedBox(height: spacing?.cardToCard ?? AppSpacing.md),
             StaggeredEntrance(
               index: 9,
-              child: AchievementTile(title: 'TOP FINISHER', playerName: finisherPlayer, value: isStableford ? 'Rallied for $bestFinishScore points on final 3 holes' : 'Total $bestFinishScore on final 3 holes', icon: Icons.flag, color: AppColors.teamB),
+              child: AchievementTile(
+                title: 'TOP FINISHER', 
+                playerName: finisherPlayer, 
+                value: isStableford ? 'Rallied for $bestFinishScore points on final 3 holes' : 'Total $bestFinishScore on final 3 holes', 
+                icon: Icons.flag, 
+                color: AppColors.teamB,
+                onTap: finisherId.isNotEmpty ? () => _showScorecard(context, ref, finisherId, data) : null,
+              ),
             ),
           ],
           const BoxyArtSectionTitle(title: 'Banter & Bragging Rights'),
           if (maxBlobs > 0)
             StaggeredEntrance(
               index: 10,
-              child: AchievementTile(title: 'THE BLOB KING', playerName: blobKingPlayer, value: isStableford ? '$maxBlobs holes with zero points 💀' : '$maxBlobs holes with Triple Bogey+ 💀', icon: Icons.sentiment_very_dissatisfied, color: AppColors.coral500),
+              child: AchievementTile(
+                title: 'THE BLOB KING', 
+                playerName: blobKingPlayer, 
+                value: isStableford ? '$maxBlobs holes with zero points 💀' : '$maxBlobs holes with Triple Bogey+ 💀', 
+                icon: Icons.sentiment_very_dissatisfied, 
+                color: AppColors.coral500,
+                onTap: blobKingId.isNotEmpty ? () => _showScorecard(context, ref, blobKingId, data) : null,
+              ),
             ),
           if (maxParsPlayer > 0) ...[
             SizedBox(height: spacing?.cardToCard ?? AppSpacing.md),
             StaggeredEntrance(
               index: 11,
-              child: AchievementTile(title: 'THE GRINDER', playerName: grinderPlayer, value: 'Most consistent with $maxParsPlayer pars', icon: Icons.shield, color: AppColors.lime500),
+              child: AchievementTile(
+                title: 'THE GRINDER', 
+                playerName: grinderPlayer, 
+                value: 'Most consistent with $maxParsPlayer pars', 
+                icon: Icons.shield, 
+                color: AppColors.lime500,
+                onTap: grinderId.isNotEmpty ? () => _showScorecard(context, ref, grinderId, data) : null,
+              ),
             ),
           ],
           if (maxBirdsPlayer > 0) ...[
             SizedBox(height: spacing?.cardToCard ?? AppSpacing.md),
             StaggeredEntrance(
               index: 12,
-              child: AchievementTile(title: 'THE SNIPER', playerName: sniperPlayer, value: 'Picked off $maxBirdsPlayer birdies', icon: Icons.gps_fixed, color: Colors.blueGrey),
+              child: AchievementTile(
+                title: 'THE SNIPER', 
+                playerName: sniperPlayer, 
+                value: 'Picked off $maxBirdsPlayer birdies', 
+                icon: Icons.gps_fixed, 
+                color: Colors.blueGrey,
+                onTap: sniperId.isNotEmpty ? () => _showScorecard(context, ref, sniperId, data) : null,
+              ),
             ),
           ],
           if (maxVariance > 3.0) ...[
             SizedBox(height: spacing?.cardToCard ?? AppSpacing.md),
             StaggeredEntrance(
               index: 13,
-              child: AchievementTile(title: 'THE ROLLERCOASTER', playerName: rollercoasterPlayer, value: 'Wildest round of the day 🎢', icon: Icons.attractions, color: AppColors.coral400),
+              child: AchievementTile(
+                title: 'THE ROLLERCOASTER', 
+                playerName: rollercoasterPlayer, 
+                value: 'Wildest round of the day 🎢', 
+                icon: Icons.attractions, 
+                color: AppColors.coral400,
+                onTap: rollercoasterId.isNotEmpty ? () => _showScorecard(context, ref, rollercoasterId, data) : null,
+              ),
             ),
           ],
           SizedBox(height: spacing?.cardToCard ?? AppSpacing.md),
@@ -349,6 +418,44 @@ class _EventStatsContent extends ConsumerWidget {
     );
   }
 
+  void _showScorecard(BuildContext context, WidgetRef ref, String playerId, ProcessedEventData data) {
+    final ple = data.leaderboard.firstWhereOrNull((e) => e.entryId == playerId);
+    if (ple == null) return;
+
+    final pps = data.individualScores.firstWhereOrNull((s) => s.playerId == playerId);
+    final membersList = ref.read(allMembersProvider).value ?? [];
+
+    final entry = LeaderboardEntry(
+      entryId: ple.entryId,
+      playerName: ple.playerName,
+      score: ple.score,
+      scoreLabel: ple.scoreLabel,
+      handicap: 0,
+      handicapIndex: ple.handicapIndex ?? 0.0,
+      playingHandicap: ple.individualPlayingHandicaps.isNotEmpty ? ple.individualPlayingHandicaps.first : 0,
+      holesPlayed: ple.holesPlayed,
+      isGuest: ple.isGuest,
+      teamMemberIds: ple.teamMemberIds,
+      teamMemberNames: ple.teamMemberNames,
+      holeScores: ple.holeScores,
+      holeNetScores: ple.holeNetScores,
+      holePoints: ple.holePoints,
+      hasSocietyCut: ple.hasSocietyCut,
+      position: ple.position,
+      thruLabel: pps?.thruLabel,
+      tieBreakLabel: ple.tieBreakLabel,
+    );
+
+    ScorecardModal.show(
+      context,
+      ref,
+      entry: entry,
+      scorecards: const [], // ScorecardModal will use holeScores from entry
+      event: event,
+      comp: comp,
+      membersList: membersList,
+    );
+  }
 
   Widget _buildPersonalRecap({
     required BuildContext context, 

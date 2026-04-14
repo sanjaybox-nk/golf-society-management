@@ -24,8 +24,16 @@ class NotificationInboxScreen extends ConsumerWidget {
         SliverPadding(
           padding: const EdgeInsets.fromLTRB(AppSpacing.xl, AppSpacing.lg, AppSpacing.xl, 100),
           sliver: notificationsAsync.when(
-            loading: () => const SliverToBoxAdapter(child: Center(child: CircularProgressIndicator())),
-            error: (err, stack) => SliverToBoxAdapter(child: Center(child: Text('Error: $err'))),
+            loading: () => const SliverToBoxAdapter(
+              child: BoxyArtLoadingCard(useCard: true),
+            ),
+            error: (err, stack) => SliverToBoxAdapter(
+              child: BoxyArtEmptyCard(
+                title: 'Inbox Unavailable',
+                message: err.toString(),
+                icon: Icons.error_outline_rounded,
+              ),
+            ),
             data: (notifications) {
               if (notifications.isEmpty) {
                 return SliverFillRemaining(
@@ -69,7 +77,7 @@ class NotificationInboxScreen extends ConsumerWidget {
                           alignment: Alignment.centerRight,
                           padding: const EdgeInsets.only(right: AppSpacing.x2l),
                           decoration: BoxDecoration(
-                            color: const Color(0xFFE74C3C),
+                            color: AppColors.coral500,
                             borderRadius: AppShapes.xl,
                           ),
                           child: const Column(

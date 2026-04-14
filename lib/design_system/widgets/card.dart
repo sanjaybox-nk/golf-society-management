@@ -2,6 +2,8 @@ import "package:golf_society/design_system/design_system.dart";
 import 'package:golf_society/utils/string_utils.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:flutter/material.dart';
+
 /// The base card component for the BoxyArt design system.
 /// Features soft diffused shadows, themed tints, and high rounded corners.
 class BoxyArtCard extends ConsumerWidget {
@@ -18,6 +20,7 @@ class BoxyArtCard extends ConsumerWidget {
   final Gradient? gradient;
   final bool showShadow;
   final bool isHero;
+  final bool isHighlighted;
   final List<BoxShadow>? customShadows;
 
   const BoxyArtCard({
@@ -35,6 +38,7 @@ class BoxyArtCard extends ConsumerWidget {
     this.gradient,
     this.showShadow = true,
     this.isHero = false,
+    this.isHighlighted = false,
     this.customShadows,
   });
 
@@ -50,15 +54,22 @@ class BoxyArtCard extends ConsumerWidget {
     final primary = Theme.of(context).primaryColor;
     final baseColor = backgroundColor ?? Theme.of(context).cardColor;
     
-    // Apply tint based on config if no explicit background color is provided
-    final tintedColor = backgroundColor != null 
+    // Enhanced Highlight Logic
+    Color tintedColor = backgroundColor != null 
         ? backgroundColor! 
         : Color.alphaBlend(
             primary.withValues(alpha: config.cardTintIntensity * (isDark ? 0.15 : 0.05)),
             baseColor,
           );
 
-    final effectivelyShowShadow = showShadow && config.useShadows;
+    if (isHighlighted) {
+      tintedColor = Color.alphaBlend(
+        primary.withValues(alpha: isDark ? 0.25 : 0.12),
+        tintedColor,
+      );
+    }
+
+    final effectivelyShowShadow = (showShadow || isHighlighted) && config.useShadows;
 
     return Container(
       width: width,
@@ -69,12 +80,17 @@ class BoxyArtCard extends ConsumerWidget {
         gradient: gradient,
         borderRadius: BorderRadius.circular(radius),
         boxShadow: effectivelyShowShadow 
-            ? (customShadows ?? Theme.of(context).extension<AppShadows>()?.softScale ?? [])
+            ? (customShadows ?? 
+               (isHighlighted 
+                  ? Theme.of(context).extension<AppShadows>()?.softScale 
+                  : Theme.of(context).extension<AppShadows>()?.softScale) ?? [])
             : null,
-        border: config.useBorders 
+        border: (config.useBorders || isHighlighted) 
             ? (border ?? Border.all(
-                color: isDark ? AppColors.pureWhite.withValues(alpha: AppColors.opacityLow) : Colors.black.withValues(alpha: 0.12),
-                width: config.borderWidth,
+                color: isHighlighted 
+                    ? primary.withValues(alpha: 0.5) 
+                    : (isDark ? AppColors.pureWhite.withValues(alpha: AppColors.opacityLow) : Colors.black.withValues(alpha: 0.12)),
+                width: isHighlighted ? config.borderWidth * 1.5 : config.borderWidth,
               ))
             : null,
       ),

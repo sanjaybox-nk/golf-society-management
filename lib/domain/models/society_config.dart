@@ -25,6 +25,7 @@ abstract class SocietyConfig with _$SocietyConfig {
     String? logoUrl,
     @Default(0xFFF7D354) int primaryColor, // Default: BoxyArt Yellow
     @Default(0xFF4ADE80) int secondaryColor, // Default: Emerald Green (Action)
+    @Default(0xFFFF5533) int dangerousColor, // [NEW] High Alert / Dangerous Action color (Coral)
     @Default(0xFFEFEFED) int backgroundColor, // Default: Light Gray/Neutral
     @Default(0xFF4ADE80) int statusPublishedColor, // [NEW] Pill Subset (Emerald Green - Lifecycle)
     @Default(0xFF4ADE80) int statusConfirmedColor, // [NEW] Pill Subset (Emerald Green - Registration)
@@ -74,6 +75,10 @@ abstract class SocietyConfig with _$SocietyConfig {
       '2nd': 1.0,
       '3rd': 0.5,
     }) Map<String, double> societyCutRules,
+    @Default(0) int societyCutEventLimit, // [NEW] 0 = Rest of Season
+    @Default(true) bool societyCutCountPlayedOnly, // [NEW] Toggle: Count all events vs Played only
+    @Default(true) bool societyCutFilterSeason, // [NEW] Cut triggers for Season events
+    @Default(false) bool societyCutFilterInvitational, // [NEW] Cut triggers for Invitationals
     @Default(0.10) double globalMarkupPercentage, // Default: 10%
     @Default(10.0) double guestMarkupExtra, // Default: £10 extra for guests
     @OptionalTimestampConverter() DateTime? globalMembershipEndDate, // [NEW] Society-wide expiry date

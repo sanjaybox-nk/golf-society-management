@@ -1,6 +1,5 @@
 import 'dart:ui';
 import 'dart:typed_data';
-import 'package:csv/csv.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:intl/intl.dart';
 import '../../features/events/domain/registration_logic.dart';
@@ -66,8 +65,18 @@ class CsvExportService {
       addRow(item, 'DINNER');
     }
 
-    // Generate CSV String
-    String csvData = const ListToCsvConverter().convert(rows);
+    // Generate CSV String (Manual implementation for robustness)
+    final buffer = StringBuffer();
+    for (final row in rows) {
+      final line = row.map((e) {
+        final field = e.toString().replaceAll('"', '""');
+        return field.contains(',') || field.contains('"') || field.contains('\n') 
+            ? '"$field"' 
+            : field;
+      }).join(',');
+      buffer.writeln(line);
+    }
+    String csvData = buffer.toString();
 
     // Share/Save the file
     final dateStr = DateFormat('yyyyMMdd').format(event.date);

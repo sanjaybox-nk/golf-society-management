@@ -19,11 +19,8 @@ class AdminSettingsHubScreen extends ConsumerWidget {
       subtitle: 'System Configuration',
       showBack: true,
       slivers: [
-        SliverToBoxAdapter(
-          child: SizedBox(height: spacing?.cardToLabel ?? AppSpacing.cardToLabel),
-        ),
         SliverPadding(
-          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.lg),
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
           sliver: SliverList(
             delegate: SliverChildListDelegate([
               // 1. Society Configuration
@@ -43,24 +40,10 @@ class AdminSettingsHubScreen extends ConsumerWidget {
                     ),
                     const BoxyArtDivider(),
                     BoxyArtNavTile(
-                      icon: Icons.palette_outlined,
-                      title: 'App Appearance',
-                      subtitle: 'Light, dark, and system themes',
-                      onTap: () => context.pushNamed('admin-settings-appearance'),
-                    ),
-                    const BoxyArtDivider(),
-                    BoxyArtNavTile(
-                      icon: Icons.payments_outlined,
-                      title: 'Currency & Treasury',
-                      subtitle: 'Society currency and financial rules',
+                      icon: Icons.account_balance_rounded,
+                      title: 'Starting Balance',
+                      subtitle: 'Society opening bank balance',
                       onTap: () => context.pushNamed('admin-settings-treasury'),
-                    ),
-                    const BoxyArtDivider(),
-                    BoxyArtNavTile(
-                      icon: Icons.groups_outlined,
-                      title: 'Grouping Strategy',
-                      subtitle: 'Default event grouping logic',
-                      onTap: () => context.pushNamed('admin-settings-grouping'),
                     ),
                     const BoxyArtDivider(),
                     BoxyArtNavTile(
@@ -71,45 +54,10 @@ class AdminSettingsHubScreen extends ConsumerWidget {
                     ),
                     const BoxyArtDivider(),
                     BoxyArtNavTile(
-                      icon: Icons.content_cut_rounded,
-                      title: 'Society Cuts',
-                      subtitle: 'Automated winner and podium cuts',
-                      onTap: () => context.pushNamed('admin-settings-cuts'),
-                    ),
-                  ],
-                ),
-              ),
-
-              SizedBox(height: spacing?.cardToLabel ?? AppSpacing.section),
-
-              // 2. Global Management (Seasons & Templates)
-              const BoxyArtSectionTitle(
-                title: 'Global Management',
-                isPeeking: true,
-              ),
-              BoxyArtCard(
-                padding: EdgeInsets.zero,
-                child: Column(
-                  children: [
-                    BoxyArtNavTile(
-                      icon: Icons.calendar_today_rounded,
-                      title: 'Season Management',
-                      subtitle: 'Active seasons and rollover tools',
-                      onTap: () => context.pushNamed('admin-settings-seasons'),
-                    ),
-                    const BoxyArtDivider(),
-                    BoxyArtNavTile(
                       icon: Icons.dashboard_customize_rounded,
                       title: 'Competition Templates',
                       subtitle: 'Pre-configured event game rules',
                       onTap: () => context.pushNamed('admin-settings-templates'),
-                    ),
-                    const BoxyArtDivider(),
-                    BoxyArtNavTile(
-                      icon: Icons.leaderboard_outlined,
-                      title: 'Season Leaderboards',
-                      subtitle: 'Track Order of Merit & stat cycles',
-                      onTap: () => context.pushNamed('admin-settings-leaderboards'),
                     ),
                   ],
                 ),
@@ -165,7 +113,6 @@ class AdminSettingsHubScreen extends ConsumerWidget {
                       icon: Icons.auto_fix_high_rounded,
                       title: 'Initialize Demo Season',
                       subtitle: 'Wipe all and seed full 2025-26 data',
-                      iconColor: AppColors.teamA, 
                       onTap: () => _showSeedConfirmation(context, ref),
                     ),
                     const BoxyArtDivider(),
@@ -173,8 +120,14 @@ class AdminSettingsHubScreen extends ConsumerWidget {
                       icon: Icons.delete_forever_rounded,
                       title: 'System Factory Reset',
                       subtitle: 'Deep wipe (Everything including branding)',
-                      iconColor: Color(config.statusWaitlistColor), 
                       onTap: () => _showSystemResetDialog(context, ref),
+                    ),
+                    const BoxyArtDivider(),
+                    BoxyArtNavTile(
+                      icon: Icons.palette_outlined,
+                      title: 'App Appearance',
+                      subtitle: 'Light, dark, and system themes',
+                      onTap: () => context.pushNamed('admin-settings-appearance'),
                     ),
                   ],
                 ),
@@ -242,7 +195,7 @@ class AdminSettingsHubScreen extends ConsumerWidget {
                 ],
               ),
               
-              const SizedBox(height: AppSpacing.x4l),
+              SizedBox(height: spacing?.cardToLabel ?? AppSpacing.x4l),
             ]),
           ),
         ),

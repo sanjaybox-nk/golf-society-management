@@ -178,6 +178,11 @@ All components use semantic tokens only. No hardcoded hex values in component CS
 - Tags: 3-family system only (Format / Type / Status)
 - Hover: `border-color: rgba(74,222,128,0.25)`
 
+### Administrative Identity (ADMIN Pill)
+- **Standard Placement**: Must be provided to the `titleSuffix` property of the `HeadlessScaffold`.
+- **Constraint**: Decoupled from the `actions` slot to ensure branding remains optically centered and unaffected by functional buttons.
+- **Factory**: `BoxyArtPill.committee(label: 'ADMIN')`.
+
 ### Member Card
 - Avatar: 46px circle, 4-colour ring system (lime / amber / coral / cyan — assigned by `member_id % 4`)
 - Name: Plus Jakarta Sans 700 15pt

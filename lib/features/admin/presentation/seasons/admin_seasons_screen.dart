@@ -18,21 +18,27 @@ class AdminSeasonsScreen extends ConsumerWidget {
     return HeadlessScaffold(
       title: 'Seasons',
       subtitle: 'Archive and setup event seasons',
+      titleSuffix: BoxyArtPill.committee(label: 'ADMIN'),
+      actions: [
+        BoxyArtGlassIconButton(
+          icon: Icons.add_rounded,
+          iconSize: 24,
+          onPressed: () => context.push('/admin/settings/seasons/new'),
+          tooltip: 'Add New Season',
+        ),
+        const SizedBox(width: AppSpacing.sm),
+      ],
       showBack: true,
       onBack: () => context.pop(),
-      titleSuffix: BoxyArtGlassIconButton(
-        icon: Icons.add_rounded,
-        iconSize: 24,
-        onPressed: () => context.push('/admin/settings/seasons/new'),
-        tooltip: 'Add New Season',
-      ),
       slivers: [
         SliverPadding(
-          padding: const EdgeInsets.only(top: AppSpacing.x2l, left: AppSpacing.xl, right: AppSpacing.xl, bottom: AppSpacing.x2l),
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
           sliver: SliverList(
             delegate: SliverChildListDelegate([
-              const BoxyArtSectionTitle(title: 'All Seasons', ),
-              const SizedBox(height: AppSpacing.md),
+              const BoxyArtSectionTitle(
+                title: 'All Seasons',
+                isPeeking: true,
+              ),
               seasonsAsync.when(
                 data: (seasons) {
                   if (seasons.isEmpty) {
@@ -44,7 +50,7 @@ class AdminSeasonsScreen extends ConsumerWidget {
                   }
                   return Column(
                     children: seasons.map((season) => Padding(
-                      padding: const EdgeInsets.only(bottom: AppSpacing.lg),
+                      padding: const EdgeInsets.only(bottom: AppSpacing.standard),
                       child: _SeasonCard(season: season),
                     )).toList(),
                   );

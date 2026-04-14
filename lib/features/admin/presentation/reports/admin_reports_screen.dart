@@ -31,8 +31,8 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen> {
 
     return HeadlessScaffold(
       title: 'Society Hub',
-      titleSuffix: BoxyArtPill.committee(label: 'ADMIN'),
       subtitle: 'Operations & Insights',
+      titleSuffix: BoxyArtPill.committee(label: 'ADMIN'),
       showBack: false,
       leading: Center(
         child: BoxyArtGlassIconButton(
@@ -89,8 +89,22 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen> {
               ]),
             ),
           ),
-          loading: () => const SliverFillRemaining(child: Center(child: CircularProgressIndicator())),
-          error: (err, stack) => SliverFillRemaining(child: Center(child: Text('Error: $err'))),
+          loading: () => const SliverPadding(
+            padding: EdgeInsets.symmetric(horizontal: AppSpacing.standard),
+            sliver: SliverToBoxAdapter(
+              child: BoxyArtLoadingCard(title: 'Generating insights...'),
+            ),
+          ),
+          error: (err, stack) => SliverPadding(
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.standard),
+            sliver: SliverToBoxAdapter(
+              child: BoxyArtEmptyCard(
+                title: 'Insights Unavailable',
+                message: 'Error computing analytics: $err',
+                icon: Icons.error_outline_rounded,
+              ),
+            ),
+          ),
         ),
       ],
     );
@@ -314,7 +328,11 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen> {
               ),
             );
           },
-          loading: () => const Center(child: CircularProgressIndicator()),
+          loading: () => const BoxyArtLoadingCard(
+            useCard: false, 
+            isCompact: true, 
+            title: 'Fetching prizes...',
+          ),
           error: (err, stack) => Text('Error loading awards: $err'),
         ),
       ],
@@ -355,7 +373,11 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen> {
             }
             return _buildNextEventCard(context, next);
           },
-          loading: () => const CircularProgressIndicator(),
+          loading: () => const BoxyArtLoadingCard(
+            useCard: false, 
+            isCompact: true, 
+            title: 'Planning fixtures...',
+          ),
           error: (e, s) => Text('Error: $e'),
         ),
         SizedBox(height: spacing?.cardToLabel ?? AppSpacing.cardToLabel),
@@ -507,7 +529,7 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen> {
         children: [
           BoxyArtIconBadge(
             icon: Icons.calendar_today_rounded,
-            color: const Color(0xFF0EA5E9), // Sky/teal brand color
+            color: AppColors.teamB, // Sky/teal brand color
             isTinted: true,
           ),
           const SizedBox(width: AppSpacing.standard),
@@ -835,7 +857,11 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen> {
           }).toList(),
         );
       },
-      loading: () => const Center(child: CircularProgressIndicator()),
+      loading: () => const BoxyArtLoadingCard(
+        useCard: false, 
+        isCompact: true, 
+        title: 'Opening archive...',
+      ),
       error: (e, s) => Text('Error: $e'),
     );
   }
@@ -935,8 +961,8 @@ class _HubMetricSmall extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const cyanBg = Color(0xFFE0F7FA);
-    const cyanBorder = Color(0xFF26C6DA);
+    final cyanBg = AppColors.teamB.withValues(alpha: 0.1);
+    final cyanBorder = AppColors.teamB.withValues(alpha: 0.4);
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Expanded(
@@ -991,8 +1017,8 @@ class _PrizeBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const cyanBg = Color(0xFFE0F7FA);
-    const cyanBorder = Color(0xFF26C6DA);
+    final cyanBg = AppColors.teamB.withValues(alpha: 0.1);
+    final cyanBorder = AppColors.teamB.withValues(alpha: 0.4);
     final isDark = Theme.of(context).brightness == Brightness.dark;
     
     return Expanded(

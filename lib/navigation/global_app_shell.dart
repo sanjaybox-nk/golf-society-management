@@ -53,19 +53,50 @@ class GlobalAppShell extends ConsumerWidget {
             ? (navigationShell.currentIndex - 5).clamp(0, items.length - 1)
             : navigationShell.currentIndex);
 
-    // 3. Determine "Hub" mode (Event User Tabs use a specific secondary shell)
-    // We check the specific branch indices that represent the Event Hub (Branch 1)
-    // and verify we are actually inside an event sub-route (e.g. /events/123/details)
-    // rather than the root list (/events).
+    // 3. Determine "Hub" mode & Override items if needed
     final location = GoRouterState.of(context).uri.path;
-    
-    // Determine if we should hide the main nav (deep inside an event hub or specific admin pages)
-    // We check for any path that starts with /events/ and contains an ID or sub-route
-    // This is more robust than checking for shell indices.
     final bool isUserEventHub = location.startsWith('/events/') && location != '/events';
     final bool isAdminEventHub = location.startsWith('/admin/events/manage/');
-    final bool isSurveyView = location.contains('/surveys/') && !location.contains('/admin/node'); // Only hide if it's a specific internal node type if needed, but for now let's just make it consistent.
+    final bool isSurveyView = location.contains('/surveys/') && !location.contains('/admin/node');
     final bool isSpecialForm = location.split('/').any((s) => s == 'new' || s == 'edit' || s == 'create');
+
+    // Context-sensitive items for Event Hubs
+    if (isUserEventHub) {
+      final String id = location.split('/')[2];
+      items = [
+        BoxyArtBottomNavItem(label: 'Info', icon: Icons.info_outline_rounded, activeIcon: Icons.info_rounded),
+        BoxyArtBottomNavItem(label: 'Field', icon: Icons.grid_view_rounded, activeIcon: Icons.grid_view_rounded),
+        BoxyArtBottomNavItem(label: 'My Card', icon: Icons.edit_note_rounded, activeIcon: Icons.edit_note_rounded),
+        BoxyArtBottomNavItem(label: 'Scores', icon: Icons.emoji_events_outlined, activeIcon: Icons.emoji_events_rounded),
+        BoxyArtBottomNavItem(label: 'Stats', icon: Icons.analytics_outlined, activeIcon: Icons.analytics_rounded),
+      ];
+    } else if (isAdminEventHub) {
+      items = [
+        BoxyArtBottomNavItem(label: 'Info', icon: Icons.info_outline_rounded, activeIcon: Icons.info_rounded),
+        BoxyArtBottomNavItem(label: 'Field', icon: Icons.grid_view_rounded, activeIcon: Icons.grid_view_rounded),
+        BoxyArtBottomNavItem(label: 'Scores', icon: Icons.emoji_events_outlined, activeIcon: Icons.emoji_events_rounded),
+        BoxyArtBottomNavItem(label: 'Stats', icon: Icons.analytics_outlined, activeIcon: Icons.analytics_rounded),
+        BoxyArtBottomNavItem(label: 'Controls', icon: Icons.settings_rounded, activeIcon: Icons.settings_rounded),
+      ];
+    }
+
+    // Determine correct display index for Hub mode
+    int hubDisplayIndex = 0;
+    if (isUserEventHub) {
+      if (location.endsWith('details')) hubDisplayIndex = 0;
+      else if (location.endsWith('field')) hubDisplayIndex = 1;
+      else if (location.endsWith('live')) hubDisplayIndex = 2;
+      else if (location.endsWith('scores')) hubDisplayIndex = 3;
+      else if (location.endsWith('stats')) hubDisplayIndex = 4;
+    } else if (isAdminEventHub) {
+      if (location.endsWith('details')) hubDisplayIndex = 0;
+      else if (location.endsWith('gallery')) hubDisplayIndex = 1; // Gallery/Field mapped to index 1
+      else if (location.endsWith('scores')) hubDisplayIndex = 2;
+      else if (location.endsWith('stats')) hubDisplayIndex = 3;
+      else if (location.endsWith('controls')) hubDisplayIndex = 4;
+    }
+
+    final int finalDisplayIndex = (isUserEventHub || isAdminEventHub) ? hubDisplayIndex : displayIndex;
 
     final bool isWhiteListed = location.contains('renewal') || 
                                location.contains('ledger') || 
@@ -75,9 +106,7 @@ class GlobalAppShell extends ConsumerWidget {
                                location.contains('compose') || 
                                location.contains('broadcast') || 
                                isSurveyView;
-    final bool isCommsHub = false; // [REMOVED] Hubs no longer hide nav
-    final bool shouldHideMainNav = (isUserEventHub || isAdminEventHub || isSpecialForm || isCommsHub) && !isWhiteListed;
-
+    final bool shouldHideMainNav = (isSpecialForm) && !isWhiteListed;
 
     // 4. Status Bar Styling
     final statusBarIconBrightness = ContrastHelper.getContrastingText(theme.primaryColor) == AppColors.pureWhite
@@ -94,20 +123,29 @@ class GlobalAppShell extends ConsumerWidget {
           final isMobile = constraints.maxWidth < 600;
           
           if (isMobile) {
-            return Scaffold(
-              key: ValueKey('mobile_scaffold_$location'),
-              extendBody: false,
-              extendBodyBehindAppBar: true,
-              primary: false,
-              body: navigationShell,
-              bottomNavigationBar: shouldHideMainNav 
-                ? null 
-                : BoxyArtBottomNavBar(
-                    selectedIndex: displayIndex,
-                    onItemSelected: (index) => _onTap(context, index, isAdmin, branchMap),
-                    items: items,
-                    isAdmin: isAdmin,
+            return Stack(
+              children: [
+                Scaffold(
+                  key: ValueKey('mobile_scaffold_$location'),
+                  extendBody: false,
+                  extendBodyBehindAppBar: true,
+                  primary: false,
+                  body: navigationShell,
+                  bottomNavigationBar: shouldHideMainNav ? null : const SizedBox(height: 86), 
+                ),
+                if (!shouldHideMainNav)
+                  Positioned(
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    child: BoxyArtBottomNavBar(
+                      selectedIndex: finalDisplayIndex,
+                      onItemSelected: (index) => _onTap(context, index, isAdmin, branchMap, isUserEventHub, isAdminEventHub, location),
+                      items: items,
+                      isAdmin: isAdmin,
+                    ),
                   ),
+              ],
             );
           }
 
@@ -118,8 +156,8 @@ class GlobalAppShell extends ConsumerWidget {
               children: [
                 if (!shouldHideMainNav)
                   NavigationRail(
-                    selectedIndex: displayIndex,
-                    onDestinationSelected: (index) => _onTap(context, index, isAdmin, branchMap),
+                    selectedIndex: finalDisplayIndex,
+                    onDestinationSelected: (index) => _onTap(context, index, isAdmin, branchMap, isUserEventHub, isAdminEventHub, location),
                     labelType: NavigationRailLabelType.all,
                     backgroundColor: isDark ? AppColors.dark900 : AppColors.dark50,
                     selectedIconTheme: IconThemeData(color: theme.primaryColor),
@@ -154,14 +192,41 @@ class GlobalAppShell extends ConsumerWidget {
     );
   }
 
-  void _onTap(BuildContext context, int index, bool isAdmin, Map<int, int> branchMap) {
+  void _onTap(BuildContext context, int index, bool isAdmin, Map<int, int> branchMap, bool isUserHub, bool isAdminHub, String location) {
+    if (isUserHub) {
+      final String id = location.split('/')[2];
+      final List<String> paths = [
+        '/events/$id/details',
+        '/events/$id/field',
+        '/events/$id/live',
+        '/events/$id/scores',
+        '/events/$id/stats',
+      ];
+      context.go(paths[index]);
+      return;
+    }
+
+    if (isAdminHub) {
+      final String id = location.split('/')[4];
+      final String prefix = '/admin/events/manage/$id';
+      final List<String> paths = [
+        '$prefix/details',
+        '$prefix/gallery',
+        '$prefix/scores',
+        '$prefix/stats',
+        '$prefix/controls',
+      ];
+      context.go(paths[index]);
+      return;
+    }
+
     // Map UI index back to Branch index
     final int branchIndex = branchMap[index] ?? (isAdmin ? index + 5 : index);
     
     navigationShell.goBranch(
       branchIndex,
-      // If tapping the already selected branch, go back to its initial location
       initialLocation: branchIndex == navigationShell.currentIndex,
     );
   }
 }
+

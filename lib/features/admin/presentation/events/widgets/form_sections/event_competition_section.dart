@@ -126,16 +126,13 @@ class EventCompetitionSection extends ConsumerWidget {
 
 
   Future<bool?> _showSaveConfirm(BuildContext context) {
-    return showDialog<bool>(
+    return showBoxyArtDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text("Save Event First?"),
-        content: const Text("To customize rules, we need to save the basic event details first."),
-        actions: [
-          TextButton(onPressed: () => context.pop(false), child: const Text("Cancel")),
-          TextButton(onPressed: () => context.pop(true), child: const Text("Save & Customize")),
-        ],
-      ),
+      title: "Save Event First?",
+      message: "To customize rules, we need to save the basic event details first.",
+      confirmText: "Save & Customize",
+      onConfirm: () => Navigator.of(context, rootNavigator: true).pop(true),
+      onCancel: () => Navigator.of(context, rootNavigator: true).pop(false),
     );
   }
 }

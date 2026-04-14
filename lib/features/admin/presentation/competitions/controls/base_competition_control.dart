@@ -3,6 +3,7 @@ import 'package:uuid/uuid.dart';
 import 'package:go_router/go_router.dart';
 import 'package:golf_society/domain/models/competition.dart';
 import 'package:golf_society/design_system/design_system.dart';
+import 'package:golf_society/utils/string_utils.dart';
 import '../../../../competitions/presentation/competitions_provider.dart';
 
 abstract class BaseCompetitionControl extends ConsumerStatefulWidget {
@@ -60,27 +61,26 @@ abstract class BaseCompetitionControlState<T extends BaseCompetitionControl> ext
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // ── IDENTITY ──────────────────────────────────────────
           BoxyArtCard(
             padding: const EdgeInsets.all(AppSpacing.xl),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                ModernTextField(
-                  label: widget.isTemplate ? 'Template Name' : 'Game Name (Custom)',
-                  initialValue: name,
-                  onChanged: (val) => name = val,
-                  hintText: widget.isTemplate 
-                      ? 'e.g. Standard Stableford'
-                      : 'e.g. Memorial Trophy',
-                  validator: (val) => (widget.isTemplate && (val == null || val.isEmpty)) ? 'Please enter a name' : null,
-                  icon: Icons.edit_note_rounded,
-                ),
-                const SizedBox(height: AppSpacing.x2l),
-                buildSpecificFields(context),
-              ],
+            child: ModernTextField(
+              label: widget.isTemplate ? 'Template Name' : 'Game Name (Custom)',
+              initialValue: name,
+              onChanged: (val) => name = val,
+              hintText: widget.isTemplate 
+                  ? 'e.g. Standard Stableford'
+                  : 'e.g. Memorial Trophy',
+              validator: (val) => (widget.isTemplate && (val == null || val.isEmpty)) ? 'Please enter a name' : null,
+              icon: Icons.edit_note_rounded,
             ),
           ),
-          const SizedBox(height: AppSpacing.x2l),
+
+          // ── SPECIFIC FIELDS (IMPLEMENTATIONS) ─────────────────
+          buildSpecificFields(context),
+
+          const SizedBox(height: AppSpacing.x4l),
+          
           BoxyArtButton(
             title: widget.isTemplate
               ? (widget.competition == null ? 'Create template' : 'Save template')
@@ -91,6 +91,8 @@ abstract class BaseCompetitionControlState<T extends BaseCompetitionControl> ext
             backgroundColor: Theme.of(context).primaryColor,
             textColor: AppColors.pureWhite,
           ),
+          
+          const SizedBox(height: AppSpacing.x4l),
         ],
       ),
     );
@@ -179,7 +181,6 @@ abstract class BaseCompetitionControlState<T extends BaseCompetitionControl> ext
     String hint = "Fraction of each player's course handicap used in scoring.",
     bool disabled = false,
   }) {
-    final primary = AppColors.lime500;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final pct = (allowance * 100).round();
 
@@ -190,24 +191,14 @@ abstract class BaseCompetitionControlState<T extends BaseCompetitionControl> ext
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              label,
+              toTitleCase(label),
               style: AppTypography.label.copyWith(
-                color: isDark ? AppColors.dark150 : AppColors.dark300,
+                color: isDark ? AppColors.dark150 : AppColors.dark600,
               ),
             ),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: AppSpacing.xs),
-              decoration: BoxDecoration(
-                color: primary.withValues(alpha: AppColors.opacityLow),
-                borderRadius: AppShapes.xl,
-              ),
-              child: Text(
-                pct == 0 ? 'None' : '$pct%',
-                style: AppTypography.label.copyWith(
-                  fontWeight: AppTypography.weightExtraBold, 
-                  color: primary,
-                ),
-              ),
+            BoxyArtPill.format(
+              label: pct == 0 ? 'None' : '$pct%',
+              color: isDark ? AppColors.dark150 : AppColors.dark600,
             ),
           ],
         ),
@@ -220,16 +211,10 @@ abstract class BaseCompetitionControlState<T extends BaseCompetitionControl> ext
               value: allowance,
               divisions: 20,
               label: '$pct%',
+              isNeutral: true,
               onChanged: onChanged,
             ),
           ),
-        ),
-        Row(
-          children: [
-            Text('Min', style: AppTypography.caption.copyWith(color: AppColors.dark300)),
-            const Spacer(),
-            Text('Max', style: AppTypography.caption.copyWith(color: AppColors.dark300)),
-          ],
         ),
         if (hint.isNotEmpty) buildInfoBubble(hint),
       ],
@@ -259,7 +244,6 @@ abstract class BaseCompetitionControlState<T extends BaseCompetitionControl> ext
     required int divisions,
     required ValueChanged<double> onChanged,
   }) {
-    final primaryColor = AppColors.lime500;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Column(
@@ -269,24 +253,14 @@ abstract class BaseCompetitionControlState<T extends BaseCompetitionControl> ext
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              label,
+              toTitleCase(label),
               style: AppTypography.label.copyWith(
-                color: isDark ? AppColors.dark150 : AppColors.dark300,
+                color: isDark ? AppColors.dark150 : AppColors.dark600,
               ),
             ),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: AppSpacing.xs),
-              decoration: BoxDecoration(
-                color: primaryColor.withValues(alpha: AppColors.opacityLow),
-                borderRadius: AppShapes.xl,
-              ),
-              child: Text(
-                valueLabel,
-                style: AppTypography.label.copyWith(
-                  fontWeight: AppTypography.weightExtraBold, 
-                  color: primaryColor,
-                ),
-              ),
+            BoxyArtPill.format(
+              label: valueLabel,
+              color: isDark ? AppColors.dark150 : AppColors.dark600,
             ),
           ],
         ),
@@ -296,24 +270,28 @@ abstract class BaseCompetitionControlState<T extends BaseCompetitionControl> ext
           min: min,
           max: max,
           divisions: divisions,
+          isNeutral: true,
           onChanged: onChanged,
         ),
       ],
     );
   }
 
-  /// Italic help text displayed beneath a field.
-  Widget buildInfoBubble(String text) => Padding(
-    padding: const EdgeInsets.only(top: 6, left: AppSpacing.xs, bottom: 2),
-    child: Text(
-      text,
-      style: AppTypography.micro.copyWith(
-        color: Theme.of(context).brightness == Brightness.dark ? AppColors.dark300 : AppColors.dark400,
-        fontStyle: FontStyle.italic,
-        height: 1.4,
+  /// Standardized monochromatic minimalist metadata tip.
+  Widget buildInfoBubble(String text) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Padding(
+      padding: const EdgeInsets.only(top: AppSpacing.sm),
+      child: Text(
+        text,
+        style: AppTypography.micro.copyWith(
+          color: isDark ? AppColors.dark200 : AppColors.dark400,
+          height: 1.4,
+          fontWeight: AppTypography.weightRegular,
+        ),
       ),
-    ),
-  );
+    );
+  }
 
   /// Tinted info card with a list of (label, description) rows.
   Widget buildInfoCard(List<(String, String)> rows) {
@@ -321,7 +299,7 @@ abstract class BaseCompetitionControlState<T extends BaseCompetitionControl> ext
       width: double.infinity,
       padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.primary.withValues(alpha: AppColors.opacitySubtle),
+        color: Theme.of(context).colorScheme.primary.withValues(alpha: AppColors.opacityLow),
         borderRadius: AppShapes.md,
       ),
       child: Column(
@@ -341,17 +319,19 @@ abstract class BaseCompetitionControlState<T extends BaseCompetitionControl> ext
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         SizedBox(
-          width: AppShapes.borderThin,
+          width: 100,
           child: Text(
             '$label:',
-            style: TextStyle(fontWeight: AppTypography.weightBold, fontSize: AppTypography.sizeLabel, color: theme.colorScheme.primary),
+            style: AppTypography.label.copyWith(
+              fontWeight: AppTypography.weightBold,
+              color: theme.colorScheme.primary,
+            ),
           ),
         ),
         Expanded(
           child: Text(
             value,
-            style: TextStyle(
-              fontSize: AppTypography.sizeLabel,
+            style: AppTypography.label.copyWith(
               height: 1.3,
               fontWeight: isBold ? AppTypography.weightBold : AppTypography.weightRegular,
               color: theme.textTheme.bodyMedium?.color,
@@ -367,38 +347,33 @@ abstract class BaseCompetitionControlState<T extends BaseCompetitionControl> ext
     required bool? separateGuests,
     required ValueChanged<bool?> onSeparateChanged,
   }) {
+    final theme = Theme.of(context);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const BoxyArtSectionTitle(title: 'Guest visibility', isPeeking: true),
-        const SizedBox(height: AppSpacing.lg),
-        BoxyArtDropdownField<bool?>(
-          label: 'Leaderboard Strategy',
-          value: separateGuests,
-          items: [
-            DropdownMenuItem(
-              value: null, 
-              child: Text(
-                'Auto (follow society)', 
-                style: TextStyle(fontWeight: AppTypography.weightBlack, fontSize: AppTypography.sizeLabelStrong, letterSpacing: 1.0, color: AppColors.lime500),
+        const BoxyArtSectionTitle(title: 'GUEST VISIBILITY'),
+        BoxyArtCard(
+          padding: const EdgeInsets.all(AppSpacing.xl),
+          child: BoxyArtDropdownField<bool?>(
+            label: 'Leaderboard Strategy',
+            value: separateGuests,
+            items: [
+              DropdownMenuItem(
+                value: null, 
+                child: const Text('Auto (follow society)'),
               ),
-            ),
-            DropdownMenuItem(
-              value: true, 
-              child: const Text(
-                'Separate section', 
-                style: TextStyle(fontWeight: AppTypography.weightBlack, fontSize: AppTypography.sizeLabelStrong, letterSpacing: 1.0),
+              DropdownMenuItem(
+                value: true, 
+                child: const Text('Separate section'),
               ),
-            ),
-            DropdownMenuItem(
-              value: false, 
-              child: const Text(
-                'Hidden (no guests)', 
-                style: TextStyle(fontWeight: AppTypography.weightBlack, fontSize: AppTypography.sizeLabelStrong, letterSpacing: 1.0),
+              DropdownMenuItem(
+                value: false, 
+                child: const Text('Hidden (no guests)'),
               ),
-            ),
-          ],
-          onChanged: onSeparateChanged,
+            ],
+            onChanged: onSeparateChanged,
+          ),
         ),
       ],
     );

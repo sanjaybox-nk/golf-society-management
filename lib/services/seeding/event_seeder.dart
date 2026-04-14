@@ -14,6 +14,7 @@ import 'package:golf_society/features/events/presentation/events_provider.dart';
 import 'package:golf_society/features/events/domain/registration_logic.dart';
 import 'package:golf_society/domain/scoring/handicap_calculator.dart';
 import 'package:golf_society/domain/grouping/grouping_service.dart';
+import 'package:golf_society/domain/grouping/tee_group.dart';
 import 'data_constants.dart';
 import 'newsletter_templates.dart';
 
@@ -178,7 +179,6 @@ class EventSeeder {
         final memberIdx = (eventIndex * 5 + i) % members.length;
         final m = members[memberIdx];
         if (m.id == 'demo_hero_sanjay') continue;
-        if (m.id == 'demo_m_32' && eventIndex == 16) continue;
         
         bool isWithdrawn = random.nextDouble() < 0.05;
         bool isConfirmed = !isWithdrawn && regs.length < (isSocial ? 60 : 40);

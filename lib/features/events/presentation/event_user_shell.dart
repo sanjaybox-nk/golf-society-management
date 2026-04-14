@@ -35,22 +35,11 @@ class EventUserShell extends ConsumerWidget {
       primary: true,
       extendBody: false,
       body: child,
-      bottomNavigationBar: BoxyArtBottomNavBar(
-        selectedIndex: currentIndex,
-        onItemSelected: (index) {
-          if (index >= 0 && index < tabs.length) {
-            context.go(tabs[index].path);
-          }
-        },
-        items: tabs.map((t) => BoxyArtBottomNavItem(
-          icon: t.icon,
-          activeIcon: t.activeIcon,
-          label: t.label,
-        )).toList(),
-      ),
     );
   }
 }
+
+
 
 class _EventTabConfig {
   final String label;

@@ -37,7 +37,7 @@ class MemberDetailsModal extends ConsumerStatefulWidget {
       // Use branch navigator so the global bottom nav bar stays visible behind the sheet.
       useRootNavigator: false,
       useSafeArea: false, // Background should cover notch
-      backgroundColor: Colors.transparent,
+      backgroundColor: Colors.transparent, // Design 4.x Standard
       elevation: 0,
       builder: (context) => MemberDetailsModal(
         member: member,
@@ -181,7 +181,7 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Please fill in all required fields.'),
-          backgroundColor: Colors.redAccent,
+          backgroundColor: AppColors.coral500, // Standardized alert color
         ),
       );
       return;
@@ -228,7 +228,12 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error: $e'),
+            backgroundColor: AppColors.coral500,
+          ),
+        );
         setState(() => _isSaving = false);
       }
     }
@@ -374,8 +379,17 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
                         if (memberId == null) return const SizedBox.shrink();
                         
                         return ref.watch(memberPerformanceProvider(memberId)).when(
-                          loading: () => const Center(child: CircularProgressIndicator()),
-                          error: (err, stack) => Center(child: Text('Error: $err')),
+                          loading: () => const BoxyArtLoadingCard(
+                            useCard: false,
+                            isCompact: true,
+                            title: 'Fetching performance...',
+                          ),
+                          error: (err, stack) => BoxyArtEmptyState(
+                            title: 'Status Error',
+                            message: err.toString(),
+                            icon: Icons.error_outline_rounded,
+                            isCompact: true,
+                          ),
                           data: (stats) => MemberStatsRow(
                             starts: stats.starts,
                             wins: stats.wins,

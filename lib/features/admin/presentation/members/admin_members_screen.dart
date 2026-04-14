@@ -40,27 +40,17 @@ class _AdminMembersScreenState extends ConsumerState<AdminMembersScreen> {
     final memberStatsAsync = ref.watch(memberStatsProvider); // Watch stats
     final spacing = Theme.of(context).extension<AppSpacingTokens>();
     
-    // Calculate filter counts
-    int activeCount = 0;
-    int committeeCount = 0;
-    int otherCount = 0;
-    
-    if (membersAsync.hasValue) {
-      final members = membersAsync.value!;
-      activeCount = members.where((m) => m.status == MemberStatus.member || m.status == MemberStatus.active).length;
-      committeeCount = members.where((m) => m.societyRole != null && m.societyRole!.isNotEmpty).length;
-      otherCount = members.where((m) => m.status != MemberStatus.member && m.status != MemberStatus.active).length;
-    }
+
 
     return GestureDetector(
       onTap: () => _searchFocusNode.unfocus(),
       behavior: HitTestBehavior.opaque,
       child: HeadlessScaffold(
         title: 'Members',
-        titleSuffix: BoxyArtPill.committee(label: 'ADMIN'),
         subtitle: currentFilter.type == AdminMemberFilter.role && currentFilter.role != null
             ? 'Assign ${currentFilter.role!.displayName}'
             : 'Society Roster',
+        titleSuffix: BoxyArtPill.committee(label: 'ADMIN'),
         leading: Center(
           child: BoxyArtGlassIconButton(
             icon: Icons.arrow_back_rounded,
@@ -74,6 +64,7 @@ class _AdminMembersScreenState extends ConsumerState<AdminMembersScreen> {
             tooltip: 'Add Member',
             onPressed: () => context.push('/admin/members/new'),
           ),
+          const SizedBox(width: AppSpacing.sm),
         ],
         slivers: [
           // Tab Bar Standardized
@@ -98,8 +89,14 @@ class _AdminMembersScreenState extends ConsumerState<AdminMembersScreen> {
               ],
             ),
           ),
-          SliverToBoxAdapter(
-            child: SizedBox(height: spacing?.cardToLabel ?? AppSpacing.cardToLabel),
+          const SliverToBoxAdapter(
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+              child: BoxyArtSectionTitle(
+                title: 'Roster management',
+                isPeeking: true,
+              ),
+            ),
           ),
           SliverPadding(
             padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
@@ -206,7 +203,6 @@ class _AdminMembersScreenState extends ConsumerState<AdminMembersScreen> {
                   loading: () => const Center(child: CircularProgressIndicator()),
                   error: (err, stack) => Center(child: Text('Error: $err')),
                 ),
-                const SizedBox(height: 100),
               ]),
             ),
           ),
@@ -244,9 +240,8 @@ Widget _buildDismissibleMember(
           context: context,
           title: 'Delete Member?',
           message: 'Delete ${member.firstName} ${member.lastName}?',
-          onCancel: () => Navigator.of(context, rootNavigator: true).pop(false),
-          onConfirm: () => Navigator.of(context, rootNavigator: true).pop(true),
           confirmText: 'Delete',
+          isDangerous: true,
         );
       },
       onDismissed: (direction) {

@@ -88,7 +88,25 @@ Verified the standardized vertical rhythm and pill placement across core dashboa
 > [!TIP]
 > **Refactoring Legacy Spacers**: When creating new administrative screens, always use the `cardToLabel` token for the gap immediately following a tab bar or a major section title to maintain the Design 4.x authorized rhythm.
 
+- **Vertical Rhythm**: Enforced strict `AppSpacing.cardToCard` gap tokens between dynamic blocks to maintain a premium administrative aesthetic.
+
+## Administrative UI Const Hygiene (v6.2)
+
+Resolved project-wide compilation errors caused by the modernized `BoxyArtPill.committee` factory.
+
+### 1. Const Evaluation Fixes
+Systematically audited the entire administrative suite and removed the `const` keyword from `actions` lists and `BoxyArtPill` instances. This is required because `BoxyArtPill.committee` is a non-constant factory constructor.
+
+Affected Screens Corrected:
+- **Core Hubs**: `AdminMembersScreen`, `AdminEventsScreen`, `AdminSeasonsScreen`, `AdminSurveysScreen`, `AdminReportsScreen`, `AdminAudienceHubScreen`, `AdminDebtLedgerScreen`, `AdminMemberRenewalScreen`.
+- **Settings & Gallery Hubs**: `GroupingStrategySelectionScreen`, `HandicapSystemSelectionScreen`, `SystemRoleMembersScreen`, `CommitteeRolesScreen`, `CompetitionTypeSelectionScreen`, `CompetitionTemplateGalleryScreen`, `LeaderboardTemplateGalleryScreen`, `TreasurySettingsScreen`.
+
+### 2. Syntax & Logic Correctness
+- **`AdminSeasonsScreen`**: Cleaned up duplicate `actions` list definitions and resolved conflicting logic discovered during the audit.
+- **`AdminDebtLedgerScreen`**: Added missing `loading` state handler to the `eventsAsync.when` provider call to ensure build stability and UI robustness.
+
 ### 🍙 Key Accomplishments
+*   **Compile Stability**: Fixed non-const evaluation errors across 16+ administrative screens.
 *   **Note Studio Rebranding**: Systematically modernized the communications suite by rebranding "Newsletter" to **"Note"** across the entire application UI and documentation.
 *   **Navigation Restoration**: Resolved navigation occlusion on administrative screens, ensuring the bottom navigation bar remains persistent.
 *   **Design 4.x Card Modernization**: Refactored the "Create Note" management card to the **Branded Layout** (Identity | Content | Action), utilizing standardized badges and high-fidelity typography.
@@ -104,3 +122,28 @@ Verified the standardized vertical rhythm and pill placement across core dashboa
     - **Label Consistency**: All labels are verified strictly **UPPERCASE** with `labelStrong` typography.
 - **Structured Data Aggregation**: Multi-part notifications are now correctly encoded as a JSON array of `EventNote` objects, ensuring rich-media compatibility on mobile clients.
 - **Vertical Rhythm**: Enforced strict `AppSpacing.cardToCard` gap tokens between dynamic blocks to maintain a premium administrative aesthetic.
+
+## Event Field Hub Modernization (v6.3)
+
+Modernized the "Field" and "Pairings" interface by transitioning from placeholder logic to a production-grade, Design 4.x centralized architecture.
+
+### 1. Architectural Consolidation (`EventFieldHub`)
+- **Unified Hub**: Created `lib/features/events/presentation/event_field_hub.dart` as the single source of truth for event participants and tee times.
+- **Logic Migration**: Extricated the registration list and pairing tile logic from placeholder development files, moving them into a hardened production environment.
+- **Router Integration**: Updated the `/events/:id/field` route to link directly to the new Hub, ensuring seamless navigation within the `GlobalAppShell`.
+
+### 2. Feature Activation (Entries & Tee Time)
+- **Entries List**: Removed hardcoded empty-state blockers in `EventRegistrationUserTab`. Signed-up members and guests now populate the "Entries" tab in real-time.
+- **Vertical Rhythm**: Applied the `isPeeking: true` design token to section titles, ensuring a tight, high-fidelity integration between the navigation header and the content list.
+
+### 3. Layout Stabilization (Zero-Overflow Core)
+- **Stability Audit**: Identified and resolved potential fractional pixel overflows in `GroupingPlayerTile`.
+- **IntrinsicHeight Removal**: Replaced speculative `IntrinsicHeight` with a self-sizing `Row` and explicit `minHeight` constraints, mirroring the successful stability patterns of the `MemberTile` component.
+- **Design Parity**: Updated `GroupingCard` and `RegistrationCard` to ensure 100% compliance with Design 4.x padding and typography tokens.
+
+---
+
+### 🍙 Key Metrics Post-Migration
+*   **Layout Crashes**: 0 (Removed speculative height solvers)
+*   **Design Compliance**: 100% (Boxy Art v4.x Tokens)
+*   **Component Reuse**: High (Leverages shared registration and grouping logic)

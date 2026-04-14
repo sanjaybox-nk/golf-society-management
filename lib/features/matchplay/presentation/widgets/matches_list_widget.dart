@@ -48,11 +48,11 @@ class MatchesListWidget extends ConsumerWidget {
               },
             );
           },
-          loading: () => const Center(child: CircularProgressIndicator()),
+          loading: () => const BoxyArtLoadingCard(useCard: false),
           error: (e, s) => Center(child: Text('Error: $e')),
         );
       },
-      loading: () => const Center(child: CircularProgressIndicator()),
+      loading: () => const BoxyArtLoadingCard(useCard: false),
       error: (e, s) => Center(child: Text('Error: $e')),
     );
   }

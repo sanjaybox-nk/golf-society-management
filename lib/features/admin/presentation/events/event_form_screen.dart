@@ -38,10 +38,12 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
     final stateAsync = ref.watch(eventFormNotifierProvider);
 
     return stateAsync.when(
-      data: (state) => HeadlessScaffold(
+      data: (state) {
+        final spacing = Theme.of(context).extension<AppSpacingTokens>();
+        return HeadlessScaffold(
         title: state.eventId != null ? 'Event Settings' : 'Create Event',
-        titleSuffix: BoxyArtPill.committee(label: 'ADMIN'),
         subtitle: state.eventId != null ? (state.initialEvent?.title ?? 'Update Details') : 'Create a new society event',
+        titleSuffix: BoxyArtPill.committee(label: 'ADMIN'),
         leadingWidth: 70,
         leading: Center(
           child: BoxyArtGlassIconButton(
@@ -51,6 +53,7 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
           ),
         ),
         actions: [
+          const SizedBox(width: AppSpacing.md),
           if (state.isSaving)
             const SizedBox(
               width: AppSpacing.x4l,
@@ -78,14 +81,15 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
         slivers: [
           SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+              padding: EdgeInsets.symmetric(horizontal: spacing?.cardHorizontalPadding ?? AppSpacing.lg),
               child: state.eventType == EventType.golf 
                 ? _GolfFormBody(state: state)
                 : _SocialFormBody(state: state),
             ),
           ),
         ],
-      ),
+      );
+    },
       loading: () => const Scaffold(body: Center(child: CircularProgressIndicator())),
       error: (e, stack) => Scaffold(
         body: Center(

@@ -169,7 +169,7 @@ class BoxyArtMemberHeaderCard extends ConsumerWidget {
                           if (status != MemberStatus.active && status != MemberStatus.member) ...[
                             BoxyArtPill.status(
                               label: statusLabel.toUpperCase(),
-                              color: _getStatusColor(status, theme.colorScheme.primary),
+                              color: _getStatusColor(status, theme),
                               isLegend: true,
                             ),
                             const SizedBox(height: AppSpacing.xs),
@@ -237,11 +237,11 @@ class BoxyArtMemberHeaderCard extends ConsumerWidget {
     );
   }
 
-  Color _getStatusColor(MemberStatus status, Color primaryColor) {
+  Color _getStatusColor(MemberStatus status, ThemeData theme) {
     switch (status) {
       case MemberStatus.member:
       case MemberStatus.active:
-        return primaryColor;
+        return theme.colorScheme.primary;
       case MemberStatus.pending:
       case MemberStatus.gracePeriod:
         return AppColors.amber500;
@@ -251,7 +251,7 @@ class BoxyArtMemberHeaderCard extends ConsumerWidget {
       case MemberStatus.left:
       case MemberStatus.archived:
       case MemberStatus.inactive:
-        return AppColors.coral500;
+        return theme.colorScheme.error;
     }
   }
 }

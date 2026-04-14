@@ -28,18 +28,18 @@ class _CommitteeRolesScreenState extends ConsumerState<CommitteeRolesScreen> {
   @override
   Widget build(BuildContext context) {
     final membersAsync = ref.watch(allMembersProvider);
+    final theme = Theme.of(context);
+    final spacing = theme.extension<AppSpacingTokens>();
 
     return HeadlessScaffold(
       title: 'Committee Roles',
-      titleSuffix: BoxyArtPill.committee(label: 'ADMIN'),
       subtitle: 'Society specific titles',
+      titleSuffix: BoxyArtPill.committee(label: 'ADMIN'),
+      actions: const [],
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       showBack: true,
       onBack: () => context.pop(),
       slivers: [
-        SliverToBoxAdapter(
-          child: SizedBox(height: Theme.of(context).extension<AppSpacingTokens>()?.cardToLabel ?? AppSpacing.cardToLabel),
-        ),
         membersAsync.when(
           data: (members) {
             final activeCustomRoles = members
@@ -56,7 +56,6 @@ class _CommitteeRolesScreenState extends ConsumerState<CommitteeRolesScreen> {
             final Map<String, int> roleCounts = {};
             for (final m in members) {
               if (m.societyRole != null) {
-                // Find matching standard role or use actual role if custom
                 final matchingStandardRole = _standardRoles.firstWhereOrNull(
                   (sr) => sr.toLowerCase() == m.societyRole!.toLowerCase()
                 );
@@ -66,20 +65,23 @@ class _CommitteeRolesScreenState extends ConsumerState<CommitteeRolesScreen> {
             }
 
             return SliverPadding(
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.lg),
+              padding: const EdgeInsets.only(
+                left: AppSpacing.xl,
+                right: AppSpacing.xl,
+                bottom: AppSpacing.x4l, // Design 4.x: Standardized bottom breathing room
+              ),
               sliver: SliverList(
                 delegate: SliverChildListDelegate([
-                  const BoxyArtSectionTitle(title: 'SOCIETY TITLES', isPeeking: true),
+                  const BoxyArtSectionTitle(title: 'Society Titles', isPeeking: true),
                   ...allRoles.map((role) {
                     final count = roleCounts[role] ?? 0;
                     return Padding(
-                      padding: const EdgeInsets.only(bottom: AppSpacing.lg),
+                      padding: EdgeInsets.only(bottom: spacing?.cardToCard ?? AppSpacing.atomic),
                       child: _buildRoleCard(context, role, count),
                     );
                   }),
-                  const SizedBox(height: AppSpacing.x3l),
+                  const SizedBox(height: AppSpacing.lg),
                   _buildCreateButton(context),
-                  const SizedBox(height: 100),
                 ]),
               ),
             );
@@ -96,31 +98,20 @@ class _CommitteeRolesScreenState extends ConsumerState<CommitteeRolesScreen> {
     final isDark = theme.brightness == Brightness.dark;
     final description = _getRoleDescription(role);
     final icon = _getRoleIcon(role);
-    const identityColor = Colors.cyan; 
-    final bgColor = identityColor.withValues(alpha: AppColors.opacityLow);
 
     return BoxyArtCard(
       onTap: () {
         context.pushNamed('admin-committee-role-members', pathParameters: {'role': role});
       },
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.md), // Design 4.1 Refining: Borders removed from member cards
+      padding: const EdgeInsets.all(AppSpacing.xl),
       child: Row(
         children: [
-          // Circular Icon Container (56x56)
-          Container(
-            width: 56,
-            height: 56,
-            decoration: BoxDecoration(
-              color: bgColor,
-              shape: BoxShape.circle,
-            ),
-            child: Center(
-              child: Icon(
-                icon, 
-                color: identityColor, 
-                size: AppShapes.iconLg,
-              ),
-            ),
+          // Parity with Admin Hub and Competition Templates: Square 44px Badge
+          BoxyArtIconBadge(
+            icon: icon,
+            size: 44,
+            iconSize: 22,
+            useCircle: false,
           ),
           const SizedBox(width: AppSpacing.lg),
           // Content
@@ -133,19 +124,16 @@ class _CommitteeRolesScreenState extends ConsumerState<CommitteeRolesScreen> {
                   children: [
                     Text(
                       role.toUpperCase(),
-                      style: TextStyle(
-                        fontSize: AppTypography.sizeButton,
-                        fontWeight: AppTypography.weightExtraBold,
-                        letterSpacing: 0.5,
-                        color: isDark ? AppColors.pureWhite : AppColors.dark900,
+                      style: AppTypography.labelStrong.copyWith(
+                        color: theme.colorScheme.onSurface,
+                        letterSpacing: 1.0,
                       ),
                     ),
                     if (memberCount > 0) ...[
                       const SizedBox(width: AppSpacing.sm),
-                      // Branding 4.x Token Badge
                       BoxyArtPill(
                         label: '$memberCount',
-                        color: AppColors.scoreEagle,
+                        color: theme.primaryColor,
                         fontSize: AppTypography.sizeMicroSmall,
                         hasHorizontalMargin: false,
                       ),
@@ -156,19 +144,18 @@ class _CommitteeRolesScreenState extends ConsumerState<CommitteeRolesScreen> {
                   const SizedBox(height: 2),
                   Text(
                     description,
-                    style: TextStyle(
-                      fontSize: AppTypography.sizeLabelStrong,
-                      color: isDark ? AppColors.dark300 : AppColors.dark400,
+                    style: AppTypography.caption.copyWith(
+                      color: isDark ? AppColors.dark200 : AppColors.dark400,
                     ),
                   ),
                 ],
               ],
             ),
           ),
-          const Icon(
-            Icons.chevron_right_rounded, 
-            color: AppColors.textSecondary, 
-            size: AppShapes.iconMd,
+          Icon(
+            Icons.arrow_forward_ios_rounded, 
+            color: isDark ? AppColors.dark400 : AppColors.dark200, 
+            size: AppShapes.iconXs,
           ),
         ],
       ),

@@ -123,3 +123,29 @@ The grouping interface follows the **BoxyArt Design 4.1 (True Minimal)** standar
 - **Vertical Rhythm**: Uses standardized `AppSpacingTokens` (e.g., `spacing?.cardToLabel` for tab-to-list gaps, `spacing?.cardToCard` for list item spacing).
 - **Card Styling**: Grouping cards use a clean **Surface background** (`AppColors.surface`) with high corner radii and soft shadows.
 - **Full-Width Actions**: Buttons like **Generate** and **Reset** are standardized to full-width for better touch targets and visual balance within the Hub.
+
+---
+
+## 11. Automated Society Cuts (Handicap Adjustments)
+
+The system includes an automated **Society Cuts Engine** that manages temporary handicap adjustments based on recent high-performance finishes.
+
+### Cutting Logic
+- **Podium Triggers**: Cuts are automatically applied for 1st, 2nd, and 3rd place finishes.
+- **Additive (Stacking) Model**: Cuts are cumulative. If a player wins (e.g., -2.0) and then takes 3rd (e.g., -0.5), their total active cut becomes -2.5. This maintains competitive incentives throughout the season.
+- **Calculation Formula**: `Playing Handicap = (Course Handicap * Allowance) - (Manual Cut + Automated Society Cut)`.
+
+### Expiry and Duration
+- **Duration Limit**: Admins can configure how many events a cut remains active for (e.g., 3 events). If set to 0, cuts last for the remainder of the season.
+- **Validity Types**:
+    - **Held events**: The cut expires after a fixed number of society events occur, regardless of whether the member played.
+    - **Played events**: The cut only decrements when the member actually participates in an event.
+
+### Eligibility Filtering
+Admins can toggle which types of events contribute to and are affected by automated cuts:
+- **Season Events**: Standard order-of-merit events.
+- **Invitational Events**: Majors or special tournaments.
+- **Social Events**: These *never* trigger or apply society cuts.
+
+### Transparency
+- **Locker Room Card**: Members can see their active cut status, the breakdown of contributing finishes, and the remaining validity (event countdown) in their private Locker Room.

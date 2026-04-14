@@ -53,9 +53,12 @@ class _SeasonFormScreenState extends ConsumerState<SeasonFormScreen> {
   Widget build(BuildContext context) {
     return HeadlessScaffold(
       title: widget.season == null ? 'Create Season' : 'Edit Season',
+      subtitle: (widget.season?.name != null) ? widget.season!.name : 'Configure season properties',
+      titleSuffix: BoxyArtPill.committee(label: 'ADMIN'),
       showBack: true,
       onBack: () => context.pop(),
       actions: [
+        const SizedBox(width: AppSpacing.md),
         Padding(
           padding: const EdgeInsets.only(right: AppSpacing.sm, top: AppSpacing.xs),
           child: BoxyArtButton(

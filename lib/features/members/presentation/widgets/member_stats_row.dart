@@ -1,7 +1,4 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:golf_society/design_system/design_system.dart';
-import 'package:golf_society/design_system/widgets/metrics.dart';
 
 class MemberStatsRow extends StatelessWidget {
   final int starts;

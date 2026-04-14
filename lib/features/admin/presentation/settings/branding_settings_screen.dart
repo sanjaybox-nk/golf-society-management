@@ -14,16 +14,14 @@ class BrandingSettingsScreen extends ConsumerWidget {
 
     return HeadlessScaffold(
       title: 'Branding',
-      titleSuffix: BoxyArtPill.committee(label: 'ADMIN'),
       subtitle: 'Customize colors and identity',
+      titleSuffix: BoxyArtPill.committee(label: 'ADMIN'),
       showBack: true,
       onBack: () => context.pop(),
+      actions: const [],
       slivers: [
         SliverPadding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.xl,
-            vertical: AppSpacing.lg,
-          ),
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
           sliver: SliverList(
             delegate: SliverChildListDelegate([
               const BoxyArtSectionTitle(
@@ -507,10 +505,10 @@ class BrandingSettingsScreen extends ConsumerWidget {
                         fontWeight: AppTypography.weightMedium,
                       ),
                     ),
-                    const SizedBox(height: AppSpacing.lg),
+                    SizedBox(height: spacing?.labelToCard ?? AppSpacing.lg),
                     
                     const BoxyArtSectionTitle(title: 'STATUS PILLS (Lifecycle & Registry)', isLevel2: true),
-                    const SizedBox(height: AppSpacing.md),
+                    SizedBox(height: spacing?.cardToCard ?? AppSpacing.md),
                     _StatusColorRow(
                       label: 'Published',
                       color: Color(config.statusPublishedColor),
@@ -611,7 +609,7 @@ class BrandingSettingsScreen extends ConsumerWidget {
                         ],
                       ),
                     ),
-                    const SizedBox(height: AppSpacing.lg),
+                    SizedBox(height: spacing?.labelToCard ?? AppSpacing.lg),
 
                     const BoxyArtSectionTitle(title: 'ICON BADGE STYLE', isLevel2: true),
                     Row(
@@ -743,6 +741,19 @@ class BrandingSettingsScreen extends ConsumerWidget {
                         (c) => controller.setBackgroundColor(c),
                       ),
                     ),
+                    SizedBox(
+                      height: spacing?.labelToCard ?? AppSpacing.labelToCard,
+                    ),
+                    _CompactColorPicker(
+                      label: 'High Alert / Dangerous Action',
+                      color: Color(config.dangerousColor),
+                      onTap: () => _pickColor(
+                        context,
+                        'Dangerous Action',
+                        Color(config.dangerousColor),
+                        (c) => controller.setDangerousColor(c),
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -762,7 +773,7 @@ class BrandingSettingsScreen extends ConsumerWidget {
                   ],
                 ),
               ),
-              const SizedBox(height: 60),
+              SizedBox(height: spacing?.cardToLabel ?? 60),
             ]),
           ),
         ),

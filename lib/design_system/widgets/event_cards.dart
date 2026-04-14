@@ -185,7 +185,7 @@ class BoxyArtEventCard extends ConsumerWidget {
             if (statusPill == null && event.status == EventStatus.inPlay && event.occursToday)
               BoxyArtPill.status(
                 label: 'Live',
-                color: AppColors.coral500,
+                color: theme.colorScheme.error,
                 isAction: true,
               ),
           ],

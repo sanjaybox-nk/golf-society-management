@@ -57,8 +57,8 @@ class _PairsControlState extends BaseCompetitionControlState<PairsControl> {
   @override
   Widget buildSpecificFields(BuildContext context) {
     final title = widget.subtype == CompetitionSubtype.fourball
-        ? 'Match format'
-        : 'Team format';
+        ? 'MATCH FORMAT'
+        : 'TEAM FORMAT';
 
     final effectiveTieBreak = (_scoringFormat == CompetitionFormat.matchPlay && _tieBreak != TieBreakMethod.playoff)
         ? TieBreakMethod.playoff
@@ -69,91 +69,91 @@ class _PairsControlState extends BaseCompetitionControlState<PairsControl> {
       children: [
         // ── FORMAT ────────────────────────────────────────────
         BoxyArtSectionTitle(title: title),
-        const SizedBox(height: AppSpacing.lg),
-
-        BoxyArtDropdownField<CompetitionFormat>(
-          label: 'Scoring Format',
-          value: _scoringFormat,
-          items: const [
-            DropdownMenuItem(value: CompetitionFormat.matchPlay, child: Text('Match Play')),
-            DropdownMenuItem(value: CompetitionFormat.stroke, child: Text('Stroke Play (Medal)')),
-            DropdownMenuItem(value: CompetitionFormat.stableford, child: Text('Stableford')),
-          ],
-          onChanged: (val) {
-            if (val != null) {
-              setState(() {
-                _scoringFormat = val;
-                _allowance = _getDefaultAllowance(val);
-                _tieBreak = val == CompetitionFormat.matchPlay ? TieBreakMethod.playoff : TieBreakMethod.back9;
-              });
-            }
-          },
+        BoxyArtCard(
+          padding: const EdgeInsets.all(AppSpacing.xl),
+          child: Column(
+            children: [
+              BoxyArtDropdownField<CompetitionFormat>(
+                label: 'Scoring Format',
+                value: _scoringFormat,
+                items: const [
+                  DropdownMenuItem(value: CompetitionFormat.matchPlay, child: Text('Match Play')),
+                  DropdownMenuItem(value: CompetitionFormat.stroke, child: Text('Stroke Play (Medal)')),
+                  DropdownMenuItem(value: CompetitionFormat.stableford, child: Text('Stableford')),
+                ],
+                onChanged: (val) {
+                  if (val != null) {
+                    setState(() {
+                      _scoringFormat = val;
+                      _allowance = _getDefaultAllowance(val);
+                      _tieBreak = val == CompetitionFormat.matchPlay ? TieBreakMethod.playoff : TieBreakMethod.back9;
+                    });
+                  }
+                },
+              ),
+              buildInfoBubble(_getScoringFormatDescription(_scoringFormat, widget.subtype)),
+              const BoxyArtDivider(),
+              _buildInfoCardForFormat(),
+            ],
+          ),
         ),
-        buildInfoBubble(_getScoringFormatDescription(_scoringFormat, widget.subtype)),
-        const SizedBox(height: AppSpacing.lg),
-
-        // Format info card
-        _buildInfoCardForFormat(),
-
-        const SizedBox(height: AppSpacing.x2l),
-        const Divider(height: 1),
-        const SizedBox(height: AppSpacing.x2l),
 
         // ── HANDICAP ──────────────────────────────────────────
-        const BoxyArtSectionTitle(title: 'Handicap'),
-        const SizedBox(height: AppSpacing.lg),
-
-        buildAllowanceSlider(
-          _allowance,
-          (val) => setState(() => _allowance = val),
-          label: widget.subtype == CompetitionSubtype.foursomes ? 'Team HCP allowance' : 'Handicap allowance',
-          hint: widget.subtype == CompetitionSubtype.foursomes
-              ? 'WHS recommends 50% of combined team handicap for Foursomes.'
-              : 'Fraction of each player\'s course handicap applied. 100% is standard for Fourball.',
+        const BoxyArtSectionTitle(title: 'HANDICAP'),
+        BoxyArtCard(
+          padding: const EdgeInsets.all(AppSpacing.xl),
+          child: Column(
+            children: [
+              buildAllowanceSlider(
+                _allowance,
+                (val) => setState(() => _allowance = val),
+                label: widget.subtype == CompetitionSubtype.foursomes ? 'Team HCP allowance' : 'Handicap allowance',
+                hint: widget.subtype == CompetitionSubtype.foursomes
+                    ? 'WHS recommends 50% of combined team handicap.'
+                    : '100% is standard for Fourball.',
+              ),
+              const BoxyArtDivider(),
+              buildCapSlider(_handicapCap, (val) => setState(() => _handicapCap = val)),
+              buildInfoBubble('0 = no cap. 1–54 limits each playing handicap.'),
+            ],
+          ),
         ),
-        const SizedBox(height: AppSpacing.x2l),
-
-        buildCapSlider(_handicapCap, (val) => setState(() => _handicapCap = val)),
-        buildInfoBubble('0 = no cap applied. 1–54 limits each player\'s playing handicap to that maximum value.'),
 
         if (_scoringFormat != CompetitionFormat.matchPlay) ...[
-          const SizedBox(height: AppSpacing.x2l),
-          const Divider(height: 1),
-          const SizedBox(height: AppSpacing.x2l),
-
-          // ── TIE BREAK ───────────────────────────────────────
-          const BoxyArtSectionTitle(title: 'Tie break'),
-          const SizedBox(height: AppSpacing.lg),
-
-          BoxyArtDropdownField<TieBreakMethod>(
-            label: 'Tie Break Method',
-            value: effectiveTieBreak,
-            items: TieBreakMethod.values
-                .where((m) => m != TieBreakMethod.playoff)
-                .map((m) {
-                  final lbl = switch (m) {
-                    TieBreakMethod.back9 => 'Standard (Back 9-6-3-1)',
-                    TieBreakMethod.back6 => 'Back 6',
-                    TieBreakMethod.back3 => 'Back 3',
-                    TieBreakMethod.back1 => 'Back 1',
-                    TieBreakMethod.playoff => 'Playoff (Sudden Death)',
-                  };
-                  return DropdownMenuItem(value: m, child: Text(lbl));
-                }).toList(),
-            onChanged: (val) { if (val != null) setState(() => _tieBreak = val); },
+          // ── TIE BREAK & ROUNDS ──────────────────────────────
+          const BoxyArtSectionTitle(title: 'TIE BREAK & ROUNDS'),
+          BoxyArtCard(
+            padding: const EdgeInsets.all(AppSpacing.xl),
+            child: Column(
+              children: [
+                BoxyArtDropdownField<TieBreakMethod>(
+                  label: 'Tie Break Method',
+                  value: effectiveTieBreak,
+                  items: TieBreakMethod.values
+                      .where((m) => m != TieBreakMethod.playoff)
+                      .map((m) {
+                        final lbl = switch (m) {
+                          TieBreakMethod.back9 => 'Standard (Back 9-6-3-1)',
+                          TieBreakMethod.back6 => 'Back 6',
+                          TieBreakMethod.back3 => 'Back 3',
+                          TieBreakMethod.back1 => 'Back 1',
+                          TieBreakMethod.playoff => 'Playoff (Sudden Death)',
+                        };
+                        return DropdownMenuItem(value: m, child: Text(lbl));
+                      }).toList(),
+                  onChanged: (val) { if (val != null) setState(() => _tieBreak = val); },
+                ),
+                const BoxyArtDivider(),
+                buildSliderField(
+                  label: 'Number of Rounds',
+                  valueLabel: '$_roundsCount',
+                  value: _roundsCount.toDouble(),
+                  min: 1, max: 6, divisions: 5,
+                  onChanged: (val) => setState(() => _roundsCount = val.round()),
+                ),
+              ],
+            ),
           ),
-          buildInfoBubble('Back 9 compares the last 9 holes in reverse order to determine who takes priority.'),
-          const SizedBox(height: AppSpacing.x2l),
-
-          // ── SERIES ────────────────────────────────────────
-          buildSliderField(
-            label: 'Number of Rounds',
-            valueLabel: '$_roundsCount',
-            value: _roundsCount.toDouble(),
-            min: 1, max: 6, divisions: 5,
-            onChanged: (val) => setState(() => _roundsCount = val.round()),
-          ),
-          buildInfoBubble('Leave at 1 for single events. Increase for a multi-round pairs series.'),
         ],
       ],
     );

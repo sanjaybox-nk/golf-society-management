@@ -28,8 +28,8 @@ class AdminAudienceHubScreen extends ConsumerWidget {
 
     return HeadlessScaffold(
       title: 'Audience Manager',
-      titleSuffix: BoxyArtPill.committee(label: 'ADMIN'),
       subtitle: 'Manage segments & templates',
+      titleSuffix: BoxyArtPill.committee(label: 'ADMIN'),
       showBack: true,
       leading: Align(
         alignment: Alignment.centerLeft,
@@ -48,10 +48,17 @@ class AdminAudienceHubScreen extends ConsumerWidget {
           onPressed: () => _showCreateListDialog(context, ref),
           tooltip: 'New Audience Group',
         ),
+        const SizedBox(width: AppSpacing.sm),
       ],
       slivers: [
-        SliverToBoxAdapter(
-          child: SizedBox(height: spacing?.cardToLabel ?? AppSpacing.cardToLabel),
+        const SliverToBoxAdapter(
+          child: Padding(
+            padding: EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+            child: BoxyArtSectionTitle(
+              title: 'Mailing lists',
+              isPeeking: true,
+            ),
+          ),
         ),
         
         listsAsync.when(
@@ -96,16 +103,8 @@ class AdminAudienceHubScreen extends ConsumerWidget {
                             context: context,
                             title: 'Delete Group?',
                             message: 'Are you sure you want to delete "${list.name}"?',
-                            actions: [
-                              TextButton(
-                                onPressed: () => Navigator.of(context, rootNavigator: true).pop(false),
-                                child: const Text('Cancel', style: TextStyle(color: AppColors.textSecondary, fontWeight: AppTypography.weightBold)),
-                              ),
-                              TextButton(
-                                onPressed: () => Navigator.of(context, rootNavigator: true).pop(true),
-                                child: const Text('Delete', style: TextStyle(color: AppColors.coral500, fontWeight: AppTypography.weightBold)),
-                              ),
-                            ],
+                            confirmText: 'Delete',
+                            isDangerous: true,
                           );
                         },
                         onDismissed: (_) {

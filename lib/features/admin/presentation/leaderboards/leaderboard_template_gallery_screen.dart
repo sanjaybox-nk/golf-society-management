@@ -19,35 +19,42 @@ class LeaderboardTemplateGalleryScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final spacing = theme.extension<AppSpacingTokens>();
     final typeName = _formatEnum(type.name);
     final templatesAsync = ref.watch(leaderboardTemplatesRepositoryProvider).watchTemplates();
 
     return HeadlessScaffold(
       title: typeName,
+      subtitle: isPicker ? 'Add to season' : 'Create from template',
       titleSuffix: BoxyArtPill.committee(label: 'ADMIN'),
-      subtitle: isPicker ? 'Choose a template to add to your season' : 'Choose a template or start blank',
+      actions: const [],
       showBack: true,
       onBack: () => context.pop(),
       slivers: [
         SliverPadding(
-          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+          padding: const EdgeInsets.only(
+            left: AppSpacing.xl,
+            right: AppSpacing.xl,
+            bottom: AppSpacing.x4l,
+          ),
           sliver: SliverList(
             delegate: SliverChildListDelegate([
               // Start Blank Card (Only available when editing templates in settings)
               if (!isPicker)
-                _buildGalleryCard(
-                  context,
-                  title: 'Start Blank',
-                  subtitle: 'Create a new $typeName from scratch',
-                  icon: Icons.add_circle_outline_rounded,
-                  isPrimary: true,
-                  onTap: () {
-                    context.push('/admin/settings/leaderboards/create/${type.name}');
-                  },
+                StaggeredEntrance(
+                  index: 0,
+                  child: _buildGalleryCard(
+                    context,
+                    title: 'Start Blank',
+                    subtitle: 'Create a new $typeName from scratch',
+                    icon: Icons.add_circle_outline_rounded,
+                    isPrimary: true,
+                    onTap: () {
+                      context.push('/admin/settings/leaderboards/create/${type.name}');
+                    },
+                  ),
                 ),
-
-              if (!isPicker)
-                const SizedBox(height: AppSpacing.lg),
 
               StreamBuilder<List<LeaderboardConfig>>(
                 stream: templatesAsync,
@@ -67,18 +74,22 @@ class LeaderboardTemplateGalleryScreen extends ConsumerWidget {
                     children: [
                       const BoxyArtSectionTitle(
                         title: 'Saved Templates',
-                        isPeeking: true,
                       ),
-                      ...filtered.map((t) => Padding(
-                        padding: const EdgeInsets.only(bottom: AppSpacing.lg),
-                        child: _buildTemplateCard(context, t, ref),
-                      )),
+                      ...filtered.asMap().entries.map((entry) {
+                        final idx = entry.key + (isPicker ? 0 : 1);
+                        final t = entry.value;
+                        return StaggeredEntrance(
+                          index: idx,
+                          child: Padding(
+                            padding: EdgeInsets.only(bottom: spacing?.cardToCard ?? AppSpacing.standard),
+                            child: _buildTemplateCard(context, t, ref),
+                          ),
+                        );
+                      }),
                     ],
                   );
                 },
               ),
-
-              const SizedBox(height: 100),
             ]),
           ),
         ),
@@ -91,7 +102,6 @@ class LeaderboardTemplateGalleryScreen extends ConsumerWidget {
       key: Key(template.id),
       direction: DismissDirection.endToStart,
       background: Container(
-        margin: const EdgeInsets.only(bottom: AppSpacing.lg),
         decoration: BoxDecoration(
           color: AppColors.coral500,
           borderRadius: AppShapes.x2l,
@@ -101,20 +111,17 @@ class LeaderboardTemplateGalleryScreen extends ConsumerWidget {
         child: const Icon(Icons.delete_outline, color: AppColors.pureWhite, size: AppShapes.iconLg),
       ),
       confirmDismiss: (direction) async {
-        if (isPicker) return false; // Can't delete from picker mode usually, or maybe we allow? Let's disallow for safety.
-        return await showDialog<bool>(
+        if (isPicker) return false;
+        return await showBoxyArtDialog<bool>(
           context: context,
-          builder: (context) => AlertDialog(
-            title: const Text("Delete Template?"),
-            content: const Text("Are you sure you want to delete this template?"),
-            actions: [
-              TextButton(onPressed: () => context.pop(false), child: const Text("Cancel")),
-              TextButton(
-                onPressed: () => context.pop(true), 
-                child: const Text("Delete", style: TextStyle(color: AppColors.coral500)),
-              ),
-            ],
-          ),
+          title: 'Delete Template?',
+          message: 'This will permanently remove "${template.name}" from your saved templates.',
+          confirmText: 'Delete',
+          isDangerous: true,
+          onCancel: () => Navigator.of(context, rootNavigator: true).pop(false),
+          onConfirm: () async {
+            Navigator.of(context, rootNavigator: true).pop(true);
+          },
         ) ?? false;
       },
       onDismissed: (direction) {
@@ -131,12 +138,9 @@ class LeaderboardTemplateGalleryScreen extends ConsumerWidget {
         iconColor: _getFormatColor(type),
         onTap: () {
           if (isPicker) {
-             // PICKER MODE: Instantly return this template to be added to the season.
-             // We pass a copy with a NEW ID so it doesn't conflict with the master template.
              final newConfig = template.copyWith(id: const Uuid().v4());
              context.pop(newConfig);
           } else {
-            // TEMPLATE MODE: Edit the template itself
             context.push(
               '/admin/settings/leaderboards/edit/${template.id}',
               extra: template
@@ -149,9 +153,6 @@ class LeaderboardTemplateGalleryScreen extends ConsumerWidget {
               extra: template
             );
         } : null,
-        badges: [
-           // specific badges could go here
-        ],
       ),
     );
   }
@@ -202,48 +203,43 @@ class LeaderboardTemplateGalleryScreen extends ConsumerWidget {
   }) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-
     final effectiveColor = iconColor ?? (isPrimary ? AppColors.lime500 : (isDark ? AppColors.dark300 : AppColors.dark400));
-    final effectiveBg = iconColor?.withValues(alpha: AppColors.opacityLow) ?? (isPrimary ? AppColors.lime500.withValues(alpha: AppColors.opacityLow) : (isDark ? AppColors.dark600 : AppColors.lightHeader));
     
     return BoxyArtCard(
       onTap: onTap,
+      padding: const EdgeInsets.all(AppSpacing.xl),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Container(
-                width: 56,
-                height: 56,
-                decoration: BoxDecoration(
-                  color: effectiveBg,
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  icon, 
-                  color: effectiveColor,
-                  size: AppShapes.iconLg,
-                ),
+              // Design 4.x: Square 44px Icon Badge
+              BoxyArtIconBadge(
+                icon: icon,
+                color: effectiveColor,
+                isTinted: true,
+                size: 44,
+                iconSize: 22,
+                useCircle: false, 
               ),
               const SizedBox(width: AppSpacing.lg),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      title,
-                      style: AppTypography.headline.copyWith(
-                        fontWeight: AppTypography.weightExtraBold,
-                        color: isDark ? AppColors.pureWhite : AppColors.dark900,
+                      title.toUpperCase(),
+                      style: AppTypography.labelStrong.copyWith(
+                        color: theme.colorScheme.onSurface,
+                        letterSpacing: 1.0,
                       ),
                     ),
-                    const SizedBox(height: AppSpacing.xs),
+                    const SizedBox(height: 2),
                     Text(
                       subtitle,
-                      style: AppTypography.label.copyWith(
-                        fontSize: AppTypography.sizeLabel,
-                        color: isDark ? AppColors.dark300 : AppColors.dark400,
+                      style: AppTypography.caption.copyWith(
+                        color: isDark ? AppColors.dark200 : AppColors.dark400,
                       ),
                     ),
                   ],
@@ -251,8 +247,8 @@ class LeaderboardTemplateGalleryScreen extends ConsumerWidget {
               ),
               Icon(
                 Icons.arrow_forward_ios_rounded, 
-                color: isDark ? AppColors.dark400 : AppColors.dark300, 
-                size: AppShapes.iconMd,
+                color: isDark ? AppColors.dark400 : AppColors.dark200, 
+                size: AppShapes.iconXs,
               ),
             ],
           ),

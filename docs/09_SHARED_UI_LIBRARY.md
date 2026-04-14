@@ -18,16 +18,16 @@ The standard shell for all top-level screens. Manages the `CustomScrollView` sli
 ```dart
 HeadlessScaffold(
   title: 'Screen Title',
-  titleSuffix: BoxyArtPill.committee(label: 'ADMIN'), // All admin screens
   subtitle: 'Context line',
+  titleSuffix: BoxyArtPill.committee(label: 'ADMIN'), // Standard for all admin screens
   showBack: true,
-  isPeeking: true, // First section title uses this
+  actions: [ ... ], // Actions are now reserved for functional buttons only
   slivers: [ ... ],
 )
 ```
 
 > [!IMPORTANT]
-> Do NOT use `const` on `HeadlessScaffold` when `titleSuffix` is a non-const widget (e.g. `BoxyArtPill.committee`).
+> The `titleSuffix` slot is the authoritative location for the **ADMIN** identity pill. The legacy `actions` pattern (placing the pill in the actions list) is **deprecated** for administrative context and must be avoided. This ensures branding remains centered and stable regardless of functional action buttons.
 
 ---
 
@@ -54,8 +54,8 @@ BoxyArtSquareBadge(size: 48, isTinted: true, child: Icon(Icons.quiz_rounded))
 ### `BoxyArtInputField` / `BoxyArtFormField`
 Unified design-first input field.
 - **Dynamic Radius**: `config.inputRadius` (default: 12px).
-- **Typography**: `AppTypography.body` for text; `sizeMicro` (10px) + `weightHeavy` for labels.
-- **Label Case**: UPPERCASE labels for high-density admin aesthetics.
+- **Typography**: `AppTypography.body` for text; `AppTypography.label` (13px bold) for labels.
+- **Label Case**: Universal Title Case (v4.1 Policy). Enforced via the `toTitleCase()` utility to match the **Member Details** forms.
 
 ### `BoxyArtRichEditor`
 Premium WYSIWYG editor powered by `flutter_quill`.
@@ -74,6 +74,11 @@ Label + `Switch` in a single row layout. Active state uses `activeTrackColor` (n
 
 ### `BoxyArtFormColumn`
 Vertical column wrapper with standardised gap between form fields.
+
+### `BoxyArtSlider`
+Premium configuration slider with dynamic range support.
+- **Monochromatic Mode**: Set `isNeutral: true` to use the professional administrative greyscale palette instead of branded colors.
+- **Key Parameters**: `value`, `min`, `max`, `divisions`, `label`, `isNeutral`.
 
 ### `BoxyArtFormActionRow`
 Standard "Save / Cancel" row for form footers.
@@ -150,7 +155,7 @@ The standard for status, format, and type classification.
 | `BoxyArtPill.meal(type: ...)` | Meal preference |
 
 > [!CAUTION]
-> `BoxyArtPill.committee()` is NOT a `const` constructor. Do not mark its parent `HeadlessScaffold` as `const`.
+> `BoxyArtPill.committee()` is NOT a `const` constructor. When providing it to `titleSuffix`, the parent `HeadlessScaffold` itself cannot be prefixed with `const`. However, the `actions` list should still be marked `const []` if it is empty to maintain code quality.
 
 ### `BoxyArtPill` Dot Legend mode
 For all `status`, `format`, and `type` pills: renders an 8px coloured dot + text (no background fill, no icon).
@@ -244,17 +249,22 @@ Enforced screens:
 ## 10. Dialogs
 
 ### `showBoxyArtDialog`
-Standard confirmation dialog.
+Managed wrapper for `BoxyArtDialog`. **Mandatory** for all administrative and critical user confirmations (deleting templates, closing events, sync actions).
+
 ```dart
 final result = await showBoxyArtDialog<bool>(
   context: context,
   title: 'Confirm?',
   message: 'This action is irreversible.',
   confirmText: 'Confirm',
-  onCancel: () => Navigator.of(context, rootNavigator: true).pop(),
-  onConfirm: () async { /* ... */ },
+  isDangerous: true, // Use for destructive actions (Delete/Withdraw)
+  onCancel: () => Navigator.of(context, rootNavigator: true).pop(false),
+  onConfirm: () async { Navigator.of(context, rootNavigator: true).pop(true); },
 );
 ```
+
+- **Standards**: Replaces legacy `AlertDialog`. Always use `rootNavigator: true` to ensure the dialog appears above the bottom navigation bar.
+- **Dangerous Mode**: Setting `isDangerous: true` tints the confirm button with `coral500`.
 
 ---
 
@@ -290,3 +300,45 @@ A high-performance asset management widget for society logos.
 Standardized visual mode selector for branding screens.
 - **Functionality**: Controls `ThemeMode` switches (Light/Dark/System).
 - **Visuals**: Branded `InkWell` tile with `AppShapes.md` icon background and `accentColor` active indicators.
+
+## 14. Administrative "Settings Row" Standards (v4.3)
+When building secondary administrative settings screens (e.g. Handicap Cuts, Notification Preferences), follow the **Actions-Right Alignment** pattern:
+
+### `BoxyArtMetricInput`
+Standardized high-density input for numerical settings.
+- **Value Font**: `AppTypography.metricValue` (22px, Black weight).
+- **Suffix Slot**: Right-aligned micro-label suffix ("pt", "events").
+- **Fixed Width**: Input pocket defaults to **140px** to ensure alignment.
+- **Selection Indicator**: Displays a **1.5px primary underline** when focused.
+
+### Layout Guidelines
+1. **Title Case Always**: All labels and descriptions must use Title Case.
+2. **Branded Toggles**: Use `BoxyArtSwitchField` over standard `SwitchListTile`.
+3. **Dividers**: Use `BoxyArtDivider` from the layout library to separate logical rows within a single card.
+
+---
+
+## 15. Admin Control Base Patterns (v4.x)
+
+### `BaseCompetitionControl` (competition controls)
+Abstract base class for all game configuration forms (`StablefordControl`, `StrokePlayControl`, etc.).
+Provides: `buildInfoCard`, `buildInfoRow`, `buildInfoBubble`, `buildAllowanceSlider`, `buildCapSlider`, `buildSliderField`, `buildGuestSettings`.
+
+### `BaseLeaderboardControlMixin` (leaderboard controls)
+Shared mixin for all season leaderboard configuration forms (`OrderOfMeritControl`, `BestOfSeriesControl`, `EclecticControl`, `MarkerCounterControl`).
+Located at: `lib/features/admin/presentation/leaderboards/controls/base_leaderboard_control.dart`
+
+| Helper | Purpose |
+|---|---|
+| `buildInfoCard(rows)` | Primary-colour tinted rule card — adapts to society branding |
+| `buildInfoRow(label, value)` | Label row using `theme.colorScheme.primary` |
+| `buildInfoBubble(text)` | Monochromatic hint beneath fields |
+| `buildPointRow(...)` | Editable position → points row with `BoxyArtPill.format` badges |
+| `buildAddButton(...)` | Outlined secondary button for adding items (e.g. "Add next position") |
+| `formatEnum(val)` | Converts camelCase enum names to Title Case |
+| `ordinal(n)` | Ordinal suffix (1st, 2nd, 3rd…) |
+| `isDarkMode` | Convenience getter for brightness check |
+
+> [!IMPORTANT]
+> Both mixin families use `theme.colorScheme.primary` for info card label colours — never hardcode `AppColors.lime500` for these elements. This ensures society-level branding (set in `SocietyConfig`) automatically propagates to all admin config screens.
+

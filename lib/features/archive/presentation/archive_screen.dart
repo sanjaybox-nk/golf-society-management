@@ -47,8 +47,12 @@ class ArchiveScreen extends ConsumerWidget {
                       }).toList(),
                     );
                   },
-                  loading: () => const Center(child: CircularProgressIndicator()),
-                  error: (err, stack) => Center(child: Text('Error: $err')),
+                  loading: () => const BoxyArtLoadingCard(useCard: true),
+                  error: (err, stack) => BoxyArtEmptyCard(
+                    title: 'Archive Error',
+                    message: err.toString(),
+                    icon: Icons.error_outline_rounded,
+                  ),
                 ),
               ],
             ),
@@ -96,7 +100,7 @@ class _SeasonCard extends StatelessWidget {
           ),
           childrenPadding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
           children: [
-            const Divider(height: 1, color: Color(0xFFEEEEEE)),
+            const BoxyArtDivider(verticalPadding: 0),
             const SizedBox(height: AppSpacing.lg),
             _buildDetailRow(context, 'Player of the Year', poty, Icons.emoji_events_rounded),
             const SizedBox(height: AppSpacing.lg),

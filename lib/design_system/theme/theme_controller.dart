@@ -45,6 +45,13 @@ class ThemeController extends Notifier<SocietyConfig> {
     await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
   }
 
+  Future<void> setDangerousColor(Color color) async {
+    final hex = color.toARGB32();
+    final newConfig = state.copyWith(dangerousColor: hex);
+    state = newConfig;
+    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
+  }
+
   Future<void> setBackgroundColor(Color color) async {
     final hex = color.toARGB32();
     final newConfig = state.copyWith(backgroundColor: hex);
@@ -344,6 +351,30 @@ class ThemeController extends Notifier<SocietyConfig> {
 
   Future<void> setSocietyCutRules(Map<String, double> rules) async {
     final newConfig = state.copyWith(societyCutRules: rules);
+    state = newConfig;
+    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
+  }
+
+  Future<void> setSocietyCutEventLimit(int limit) async {
+    final newConfig = state.copyWith(societyCutEventLimit: limit);
+    state = newConfig;
+    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
+  }
+
+  Future<void> setSocietyCutCountPlayedOnly(bool countPlayedOnly) async {
+    final newConfig = state.copyWith(societyCutCountPlayedOnly: countPlayedOnly);
+    state = newConfig;
+    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
+  }
+
+  Future<void> setSocietyCutFilterSeason(bool active) async {
+    final newConfig = state.copyWith(societyCutFilterSeason: active);
+    state = newConfig;
+    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
+  }
+
+  Future<void> setSocietyCutFilterInvitational(bool active) async {
+    final newConfig = state.copyWith(societyCutFilterInvitational: active);
     state = newConfig;
     await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
   }

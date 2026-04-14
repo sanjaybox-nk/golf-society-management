@@ -1,54 +1,42 @@
 Analyzing Golf Society Management...                            
 
-warning • Dead code • lib/design_system/widgets/badges.dart:246:46 • dead_code
-warning • The left operand can't be null, so the right operand is never executed • lib/design_system/widgets/badges.dart:246:49 • dead_null_aware_expression
-warning • The value of the local variable 'isDark' isn't used • lib/design_system/widgets/badges.dart:423:11 • unused_local_variable
-   info • The import of 'package:flutter/material.dart' is unnecessary because all of the used elements are also provided by the import of '../design_system.dart' • lib/design_system/widgets/image.dart:1:8 • unnecessary_import
-   info • The variable name 'BoxyArtNetworkImage' isn't a lowerCamelCase identifier • lib/design_system/widgets/image.dart:68:14 • non_constant_identifier_names
-warning • The value of the local variable 'isDark' isn't used • lib/design_system/widgets/info_rows.dart:34:11 • unused_local_variable
-warning • The value of the local variable 'badgeColor' isn't used • lib/design_system/widgets/inputs.dart:479:11 • unused_local_variable
-warning • The value of the local variable 'iconColor' isn't used • lib/design_system/widgets/inputs.dart:480:11 • unused_local_variable
-  error • Undefined name 'labelColor' • lib/design_system/widgets/inputs.dart:701:24 • undefined_identifier
-   info • The import of 'package:flutter/material.dart' is unnecessary because all of the used elements are also provided by the import of 'package:golf_society/design_system/design_system.dart' • lib/features/admin/presentation/events/event_fines_workbench_screen.dart:1:8 • unnecessary_import
-warning • The declaration '_updateRegistration' isn't referenced • lib/features/admin/presentation/events/event_fines_workbench_screen.dart:41:8 • unused_element
-warning • The value of the local variable 'spacing' isn't used • lib/features/admin/presentation/events/event_fines_workbench_screen.dart:139:11 • unused_local_variable
-warning • Dead code • lib/features/admin/presentation/events/event_form_notifier.dart:107:32 • dead_code
-warning • The left operand can't be null, so the right operand is never executed • lib/features/admin/presentation/events/event_form_notifier.dart:107:35 • dead_null_aware_expression
-warning • Dead code • lib/features/admin/presentation/events/widgets/form_sections/event_pricing_section.dart:74:39 • dead_code
-warning • The left operand can't be null, so the right operand is never executed • lib/features/admin/presentation/events/widgets/form_sections/event_pricing_section.dart:74:42 • dead_null_aware_expression
-warning • The left operand can't be null, so the right operand is never executed • lib/features/admin/presentation/events/widgets/form_sections/event_pricing_section.dart:76:43 • dead_null_aware_expression
-warning • Unused import: '../../../members/presentation/member_details_modal.dart' • lib/features/admin/presentation/members/admin_member_renewal_screen.dart:6:8 • unused_import
-warning • The value of the local variable 'isDark' isn't used • lib/features/admin/presentation/settings/admin_sponsorship_hub_screen.dart:536:11 • unused_local_variable
-warning • The value of the local variable 'published' isn't used • lib/features/admin/presentation/settings/branding_settings_screen.dart:970:11 • unused_local_variable
-warning • The value of the local variable 'confirmed' isn't used • lib/features/admin/presentation/settings/branding_settings_screen.dart:971:11 • unused_local_variable
-warning • The value of the local variable 'reserved' isn't used • lib/features/admin/presentation/settings/branding_settings_screen.dart:972:11 • unused_local_variable
-warning • The value of the local variable 'waitlist' isn't used • lib/features/admin/presentation/settings/branding_settings_screen.dart:973:11 • unused_local_variable
-warning • The value of the local variable 'withdrawn' isn't used • lib/features/admin/presentation/settings/branding_settings_screen.dart:974:11 • unused_local_variable
-warning • The value of the local variable 'dinner' isn't used • lib/features/admin/presentation/settings/branding_settings_screen.dart:975:11 • unused_local_variable
-warning • The value of the field '_selectedScope' isn't used • lib/features/admin/presentation/settings/treasury_settings_screen.dart:21:10 • unused_field
-warning • The value of the field '_selectedEventId' isn't used • lib/features/admin/presentation/settings/treasury_settings_screen.dart:22:11 • unused_field
-warning • The value of the local variable 'eventsAsync' isn't used • lib/features/admin/presentation/settings/treasury_settings_screen.dart:81:11 • unused_local_variable
-   info • The import of 'package:flutter/material.dart' is unnecessary because all of the used elements are also provided by the import of 'package:golf_society/design_system/design_system.dart' • lib/features/admin/presentation/treasury/admin_debt_ledger_screen.dart:1:8 • unnecessary_import
-warning • The value of the local variable 'cardHeight' isn't used • lib/features/competitions/presentation/widgets/leaderboard_widget.dart:115:18 • unused_local_variable
-   info • Statements in an if should be enclosed in a block • lib/features/events/presentation/event_user_shell.dart:31:41 • curly_braces_in_flow_control_structures
-   info • Statements in an if should be enclosed in a block • lib/features/events/presentation/event_user_shell.dart:32:44 • curly_braces_in_flow_control_structures
-   info • Statements in an if should be enclosed in a block • lib/features/events/presentation/event_user_shell.dart:33:43 • curly_braces_in_flow_control_structures
-   info • Statements in an if should be enclosed in a block • lib/features/events/presentation/event_user_shell.dart:34:45 • curly_braces_in_flow_control_structures
-   info • Statements in an if should be enclosed in a block • lib/features/events/presentation/event_user_shell.dart:35:44 • curly_braces_in_flow_control_structures
-warning • The value of the local variable 'spacing' isn't used • lib/features/events/presentation/events_screen.dart:16:11 • unused_local_variable
-   info • Unnecessary use of multiple underscores • lib/features/events/presentation/tabs/event_user_details_tab.dart:1156:39 • unnecessary_underscores
-   info • Unnecessary use of multiple underscores • lib/features/events/presentation/tabs/event_user_details_tab.dart:1156:43 • unnecessary_underscores
-warning • The value of the local variable 'theme' isn't used • lib/features/events/presentation/widgets/grouping_widgets.dart:370:11 • unused_local_variable
-warning • Unused import: '../features/admin/presentation/surveys/admin_surveys_screen.dart' • lib/navigation/app_router.dart:35:8 • unused_import
-warning • Unused import: '../features/admin/presentation/surveys/survey_editor_screen.dart' • lib/navigation/app_router.dart:36:8 • unused_import
-warning • Unused import: '../features/admin/presentation/surveys/survey_results_screen.dart' • lib/navigation/app_router.dart:37:8 • unused_import
-warning • Unused import: '../features/admin/presentation/events/event_admin_grouping_screen.dart' • lib/navigation/app_router.dart:45:8 • unused_import
-warning • Unused import: '../features/admin/presentation/events/event_admin_scorecards_screen.dart' • lib/navigation/app_router.dart:46:8 • unused_import
-warning • Unused import: '../features/admin/presentation/events/event_airdrop_control_screen.dart' • lib/navigation/app_router.dart:48:8 • unused_import
-warning • Unused import: '../features/admin/presentation/events/feed_item_editor_screen.dart' • lib/navigation/app_router.dart:55:8 • unused_import
-warning • The declaration '_branchAdminSurveysKey' isn't referenced • lib/navigation/app_router.dart:79:7 • unused_element
-warning • The declaration '_userHubNavigatorKey' isn't referenced • lib/navigation/app_router.dart:83:7 • unused_element
-warning • The declaration '_adminHubNavigatorKey' isn't referenced • lib/navigation/app_router.dart:84:7 • unused_element
-warning • The value of the local variable 'isDesktop' isn't used • lib/navigation/global_app_shell.dart:64:17 • unused_local_variable
+warning • The value of the local variable 'theme' isn't used • lib/features/admin/presentation/admin_dashboard_screen.dart:154:11 • unused_local_variable
+   info • Unnecessary 'const' keyword • lib/features/admin/presentation/events/event_field_admin_screen.dart:35:30 • unnecessary_const
+warning • The value of the local variable 'activeCount' isn't used • lib/features/admin/presentation/members/admin_members_screen.dart:44:9 • unused_local_variable
+warning • The value of the local variable 'committeeCount' isn't used • lib/features/admin/presentation/members/admin_members_screen.dart:45:9 • unused_local_variable
+warning • The value of the local variable 'otherCount' isn't used • lib/features/admin/presentation/members/admin_members_screen.dart:46:9 • unused_local_variable
+   info • The import of 'package:flutter/material.dart' is unnecessary because all of the used elements are also provided by the import of 'package:golf_society/design_system/design_system.dart' • lib/features/admin/presentation/notifications/distribution_list_modal.dart:2:8 • unnecessary_import
+warning • Unused import: 'package:golf_society/domain/models/member.dart' • lib/features/admin/presentation/notifications/distribution_list_modal.dart:6:8 • unused_import
+warning • Unused import: 'distribution_list_provider.dart' • lib/features/admin/presentation/notifications/distribution_list_modal.dart:8:8 • unused_import
+   info • The import of 'package:flutter/material.dart' is unnecessary because all of the used elements are also provided by the import of '../../../../design_system/design_system.dart' • lib/features/admin/presentation/settings/app_appearance_screen.dart:1:8 • unnecessary_import
+warning • The value of the local variable 'spacing' isn't used • lib/features/admin/presentation/settings/app_appearance_screen.dart:14:11 • unused_local_variable
+   info • The import of 'package:flutter/material.dart' is unnecessary because all of the used elements are also provided by the import of '../../../../design_system/design_system.dart' • lib/features/admin/presentation/settings/society_identity_screen.dart:1:8 • unnecessary_import
+warning • The value of the local variable 'spacing' isn't used • lib/features/admin/presentation/settings/society_identity_screen.dart:14:11 • unused_local_variable
+   info • The import of 'package:flutter/material.dart' is unnecessary because all of the used elements are also provided by the import of '../../../../../design_system/design_system.dart' • lib/features/admin/presentation/settings/widgets/logo_picker.dart:1:8 • unnecessary_import
+   info • The import of 'package:flutter/material.dart' is unnecessary because all of the used elements are also provided by the import of '../../../../../design_system/design_system.dart' • lib/features/admin/presentation/settings/widgets/theme_mode_tile.dart:1:8 • unnecessary_import
+   info • 'groupValue' is deprecated and shouldn't be used. Use a RadioGroup ancestor to manage group value instead. This feature was deprecated after v3.32.0-0.0.pre • lib/features/admin/presentation/settings/widgets/theme_mode_tile.dart:50:15 • deprecated_member_use
+   info • 'onChanged' is deprecated and shouldn't be used. Use RadioGroup to handle value change instead. This feature was deprecated after v3.32.0-0.0.pre • lib/features/admin/presentation/settings/widgets/theme_mode_tile.dart:51:15 • deprecated_member_use
+  error • The named parameter 'loading' is required, but there's no corresponding argument • lib/features/admin/presentation/treasury/admin_debt_ledger_screen.dart:264:28 • missing_required_argument
+  error • The constructor being called isn't a const constructor • lib/features/admin/presentation/treasury/admin_debt_ledger_screen.dart:423:23 • const_with_non_const
+  error • The constructor being called isn't a const constructor • lib/features/admin/presentation/treasury/admin_debt_ledger_screen.dart:430:19 • const_with_non_const
+  error • The constructor being called isn't a const constructor • lib/features/admin/presentation/treasury/admin_debt_ledger_screen.dart:435:19 • const_with_non_const
+  error • The name '_' is already defined • lib/features/competitions/presentation/standings/leaderboard_table_view.dart:33:29 • duplicate_definition
+warning • The value of the local variable 'spacing' isn't used • lib/features/events/presentation/widgets/event_leaderboard.dart:39:11 • unused_local_variable
+warning • The declaration '_buildSubtleNavButton' isn't referenced • lib/features/events/presentation/widgets/hole_by_hole_scoring_widget.dart:467:10 • unused_element
+warning • A value for optional parameter 'isPrimary' isn't ever given • lib/features/events/presentation/widgets/hole_by_hole_scoring_widget.dart:467:120 • unused_element_parameter
+   info • The import of 'package:golf_society/design_system/widgets/metrics.dart' is unnecessary because all of the used elements are also provided by the import of 'package:golf_society/design_system/design_system.dart' • lib/features/events/presentation/widgets/registration_stats_card.dart:4:8 • unnecessary_import
+warning • The value of the local variable 'vPadding' isn't used • lib/features/events/presentation/widgets/registration_stats_card.dart:60:18 • unused_local_variable
+warning • The value of the local variable 'hPadding' isn't used • lib/features/events/presentation/widgets/registration_stats_card.dart:61:18 • unused_local_variable
+   info • The import of 'package:flutter/material.dart' is unnecessary because all of the used elements are also provided by the import of 'package:golf_society/design_system/design_system.dart' • lib/features/home/presentation/widgets/home_welcome_hero.dart:1:8 • unnecessary_import
+warning • The value of the local variable 'theme' isn't used • lib/features/home/presentation/widgets/home_welcome_hero.dart:20:11 • unused_local_variable
+warning • The value of the local variable 'primaryColor' isn't used • lib/features/home/presentation/widgets/home_welcome_hero.dart:22:11 • unused_local_variable
+warning • The value of the local variable 'isBio' isn't used • lib/features/members/presentation/member_details_modal.dart:590:11 • unused_local_variable
+warning • The value of the local variable 'theme' isn't used • lib/features/members/presentation/members_screen.dart:108:27 • unused_local_variable
+   info • The import of 'package:flutter/material.dart' is unnecessary because all of the used elements are also provided by the import of 'package:golf_society/design_system/design_system.dart' • lib/features/members/presentation/widgets/member_stats_row.dart:1:8 • unnecessary_import
+warning • Unused import: 'package:flutter_riverpod/flutter_riverpod.dart' • lib/features/members/presentation/widgets/member_stats_row.dart:2:8 • unused_import
+   info • The import of 'package:golf_society/design_system/widgets/metrics.dart' is unnecessary because all of the used elements are also provided by the import of 'package:golf_society/design_system/design_system.dart' • lib/features/members/presentation/widgets/member_stats_row.dart:4:8 • unnecessary_import
+  error • The name 'ListToCsvConverter' isn't a class • lib/utils/csv_export_service.dart:70:28 • creation_with_non_type
+   info • 'Share' is deprecated and shouldn't be used. Use SharePlus instead • lib/utils/csv_export_service.dart:76:11 • deprecated_member_use
+   info • 'shareXFiles' is deprecated and shouldn't be used. Use SharePlus.instance.share() instead • lib/utils/csv_export_service.dart:76:17 • deprecated_member_use
 
-50 issues found. (ran in 11.9s)
+38 issues found. (ran in 25.4s)

@@ -175,34 +175,38 @@ Granular, token-based controls used for technical design system alignment.
 - **Prohibited**: `ALL-CAPS` section titles, `UPPERCASE` tab labels, shouting pill labels.
 - **Exception**: Acronyms (GPS, OoM, HC, PHC) may retain caps.
 
-### Admin Identity Standard
-All primary administrative `HeadlessScaffold` screens must include:
-```dart
-titleSuffix: BoxyArtPill.committee(label: 'ADMIN'),
-```
-This is a non-negotiable visual signifier of administrative context.
+### Admin Identity Standard (titleSuffix v4.3+)
+All primary administrative screens (Events, Members, Settings) MUST use the **titleSuffix Identity** pattern. This places the "ADMIN" signifier directly next to the screen title, establishing a consistent administrative context while freeing the `actions` slot for functional buttons.
 
-### isPeeking Pattern
-The first `BoxyArtSectionTitle` in any `HeadlessScaffold` sliver list must use `isPeeking: true` to eliminate the redundant top margin:
 ```dart
-const BoxyArtSectionTitle(title: 'Section Name', isPeeking: true),
-```
-
-### Section Header Rhythm (32/8)
-- **Before** section title: `32px` (Section tier)
-- **After** section title to card: `8px` (Atomic tier, handled internally by `BoxyArtSectionTitle`)
-
-### Dynamic Card Rhythm
-All vertical gaps between cards in list views must use dynamic tokens:
-```dart
-SizedBox(height: spacing?.cardToCard ?? AppSpacing.standard)
+HeadlessScaffold(
+  title: 'Control Tower',
+  titleSuffix: BoxyArtPill.committee(label: 'ADMIN'),
+  actions: [
+    // functional actions only (e.g. Help, Save)
+  ],
+)
 ```
 
-### Universal Card Title (Admin Gallery Screens)
-All main titles in administrative gallery cards (Templates, Roles, Types) must use:
-```dart
-style: AppTypography.headline.copyWith(fontWeight: AppTypography.weightExtraBold)
-```
+### Pocketed Input Pattern (v4.3)
+For high-density administrative settings (e.g. Society Cuts), use the **Pocketed Input Pattern**. This places labels and inputs in a single row within a themed "pocket" for maximum data density.
+
+- **Background**: `isDark ? AppColors.dark600 : AppColors.lightHeader`
+- **Typography**: `AppTypography.displayLargeBody` or `metricValue` (22px, Black weight) for values.
+- **Alignment**: Right-aligned numerical values with a minimum width of **140px** to ensure consistency across different suffixes ("pt", "events").
+- **Spacing**: Vertical internal padding `AppSpacing.md` with `BoxyArtDivider` for row separation.
+
+### Admin Content Rhythm (Design 4.x)
+To maintain the "Boxy" look across the administrative suite, all slivers must follow the **Card-to-Label (16/32)** rhythm:
+
+| Transition | Spacing Token | Value |
+|---|---|---|
+| Card to next Label | `spacing.cardToLabel` | 32px |
+| Label to next Card | `spacing.labelToCard` | 8px |
+| Card to Card (List) | `spacing.cardToCard` | 16px |
+
+> [!IMPORTANT]
+> Always extract `AppSpacingTokens` in the `build` method. Never assume `AppSpacing.large` will look correct in high-density modes.
 
 ---
 

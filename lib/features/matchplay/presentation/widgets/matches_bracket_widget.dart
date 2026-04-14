@@ -91,7 +91,7 @@ class MatchesBracketWidget extends ConsumerWidget {
                             onPressed: () => _qualifyFromGroups(ref, event, scorecards),
                             label: const Text('Qualify from Groups'),
                             icon: const Icon(Icons.star),
-                            backgroundColor: Colors.blueAccent,
+                            backgroundColor: AppColors.actionMidnight,
                           ),
                         ],
                       ],
@@ -100,11 +100,11 @@ class MatchesBracketWidget extends ConsumerWidget {
               ],
             );
           },
-          loading: () => const Center(child: CircularProgressIndicator()),
+          loading: () => const BoxyArtLoadingCard(useCard: false),
           error: (e, s) => Center(child: Text('Error: $e')),
         );
       },
-      loading: () => const Center(child: CircularProgressIndicator()),
+      loading: () => const BoxyArtLoadingCard(useCard: false),
       error: (e, s) => Center(child: Text('Error: $e')),
     );
   }
@@ -179,7 +179,7 @@ class _BracketMatchTile extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: AppSpacing.x3l),
       decoration: BoxDecoration(
-        color: Colors.black,
+        color: AppColors.dark900,
         borderRadius: AppShapes.sm,
         border: Border.all(color: AppColors.pureWhite.withValues(alpha: 0.12)),
         boxShadow: Theme.of(context).extension<AppShadows>()?.softScale ?? [],

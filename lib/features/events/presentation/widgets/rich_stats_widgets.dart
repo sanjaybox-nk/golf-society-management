@@ -603,6 +603,7 @@ class AchievementTile extends StatelessWidget {
   final String value;
   final IconData icon;
   final Color color;
+  final VoidCallback? onTap;
 
   const AchievementTile({
     super.key,
@@ -611,6 +612,7 @@ class AchievementTile extends StatelessWidget {
     required this.value,
     required this.icon,
     required this.color,
+    this.onTap,
   });
 
   @override
@@ -621,57 +623,62 @@ class AchievementTile extends StatelessWidget {
 
     return BoxyArtCard(
       padding: EdgeInsets.zero,
-      child: Container(
-        padding: EdgeInsets.symmetric(vertical: vPadding, horizontal: hPadding),
-        decoration: BoxDecoration(
-          border: Border(left: BorderSide(color: color, width: AppSpacing.xs)),
-        ),
-        child: Row(
-          children: [
-            // Premium Icon Container
-            Container(
-              padding: const EdgeInsets.all(AppSpacing.md),
-              decoration: BoxDecoration(
-                color: color.withValues(alpha: AppColors.opacityLow),
-                borderRadius: AppShapes.lg,
-                border: Border.all(color: color.withValues(alpha: AppColors.opacityLow)),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: AppShapes.lg,
+        child: Container(
+          padding: EdgeInsets.symmetric(vertical: vPadding, horizontal: hPadding),
+          decoration: BoxDecoration(
+            border: Border(left: BorderSide(color: color, width: AppSpacing.xs)),
+          ),
+          child: Row(
+            children: [
+              // Premium Icon Container
+              Container(
+                padding: const EdgeInsets.all(AppSpacing.md),
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: AppColors.opacityLow),
+                  borderRadius: AppShapes.lg,
+                  border: Border.all(color: color.withValues(alpha: AppColors.opacityLow)),
+                ),
+                child: Icon(icon, color: color, size: 26),
               ),
-              child: Icon(icon, color: color, size: 26),
-            ),
-            const SizedBox(width: AppSpacing.lg),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: AppTypography.label.copyWith(
-                      color: AppColors.dark900,
-                      fontWeight: AppTypography.weightSemibold,
-                      letterSpacing: 1.2,
+              const SizedBox(width: AppSpacing.lg),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: AppTypography.label.copyWith(
+                        color: AppColors.dark900,
+                        fontWeight: AppTypography.weightSemibold,
+                        letterSpacing: 1.2,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: AppSpacing.xs),
-                  Text(
-                    toTitleCase(playerName),
-                    style: AppTypography.body.copyWith(
-                      fontWeight: AppTypography.weightExtraBold,
-                      fontSize: AppTypography.sizeBody,
-                      letterSpacing: -0.4,
+                    const SizedBox(height: AppSpacing.xs),
+                    Text(
+                      toTitleCase(playerName),
+                      style: AppTypography.body.copyWith(
+                        fontWeight: AppTypography.weightExtraBold,
+                        fontSize: AppTypography.sizeBody,
+                        letterSpacing: -0.4,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    value,
-                    style: AppTypography.label.copyWith(
-                      color: AppColors.dark300,
+                    const SizedBox(height: 2),
+                    Text(
+                      value,
+                      style: AppTypography.label.copyWith(
+                        color: AppColors.dark300,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-            Icon(Icons.chevron_right_rounded, color: AppColors.dark100, size: AppShapes.iconMd),
-          ],
+              if (onTap != null)
+                Icon(Icons.chevron_right_rounded, color: AppColors.dark100, size: AppShapes.iconMd),
+            ],
+          ),
         ),
       ),
     );

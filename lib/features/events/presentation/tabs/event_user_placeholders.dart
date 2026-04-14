@@ -1286,24 +1286,13 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
   }
 
   Future<void> _submitScorecard(String scorecardId) async {
-    final confirmed = await showDialog<bool>(
+    final confirmed = await showBoxyArtDialog<bool>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Submit Scorecard?'),
-        content: const Text(
-          'Are you sure you want to submit your scorecard? You will not be able to edit it afterwards.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Submit'),
-          ),
-        ],
-      ),
+      title: 'Submit Scorecard?',
+      message: 'Are you sure you want to submit your scorecard? You will not be able to edit it afterwards.',
+      confirmText: 'Submit',
+      onConfirm: () => Navigator.of(context, rootNavigator: true).pop(true),
+      onCancel: () => Navigator.of(context, rootNavigator: true).pop(false),
     );
 
     if (confirmed == true && mounted) {
@@ -1326,24 +1315,13 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
   }
 
   Future<void> _confirmUnsubmit(String scorecardId) async {
-    final confirmed = await showDialog<bool>(
+    final confirmed = await showBoxyArtDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Unsubmit Scorecard?'),
-        content: const Text(
-          'This will reopen your scorecard for editing. You will need to submit it again when finished.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Unsubmit'),
-          ),
-        ],
-      ),
+      title: 'Unsubmit Scorecard?',
+      message: 'This will reopen your scorecard for editing. You will need to submit it again when finished.',
+      confirmText: 'Unsubmit',
+      onConfirm: () => Navigator.of(context, rootNavigator: true).pop(true),
+      onCancel: () => Navigator.of(context, rootNavigator: true).pop(false),
     );
 
     if (confirmed == true) {
@@ -1369,24 +1347,13 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
 
   // Define Format Helper
   Future<void> _copyScoresFromPartner(Scorecard partnerCard) async {
-    final confirmed = await showDialog<bool>(
+    final confirmed = await showBoxyArtDialog<bool>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Sync Scores?'),
-        content: const Text(
-          'This will copy all scores from your partner to your scorecard. Any existing scores on your card will be overwritten.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Sync'),
-          ),
-        ],
-      ),
+      title: 'Sync Scores?',
+      message: 'This will copy all scores from your partner to your scorecard. Any existing scores on your card will be overwritten.',
+      confirmText: 'Sync',
+      onConfirm: () => Navigator.of(context, rootNavigator: true).pop(true),
+      onCancel: () => Navigator.of(context, rootNavigator: true).pop(false),
     );
 
     if (confirmed == true) {

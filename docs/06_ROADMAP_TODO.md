@@ -10,6 +10,12 @@ This document tracks the remaining work required to take **Golf Society Manageme
     - [ ] Create `prod` project in Firebase Console.
     - [ ] Configure Firestore Security Rules (Strict ownership checks).
     - [ ] Set up Cloud Functions for scheduled logic (e.g., closing event registration).
+- [x] **Society Cuts UI Standardization** (Completed 2026-04-11)
+    - [x] Refactored Global Settings to "Boxy Art" tokens.
+    - [x] Moved main access and global rule toggle to Admin Dashboard (Daily Operations).
+    - [x] Implemented conditional visibility in Event Controls (Only shows Manual workbench when needed).
+    - [x] Removed hardcoded gradients and scaling animations.
+    - [!] **Architectural Note**: Implemented dual-level access (Global/Event-specific) to ensure handicap integrity while maintaining operational speed.
 - [ ] **Authentication**
     - [ ] Implement `FirebaseAuth` (Email/Password).
     - [ ] Build **Login Screen** (using BoxyArt inputs).
@@ -32,6 +38,10 @@ This document tracks the remaining work required to take **Golf Society Manageme
     - [x] **Grouping Hub Card**: Implemented a unified UI for generation strategy, tee seed, and interval controls, replacing the legacy toolbar.
     - [ ] **Payment Integration**: Stripe/Apple Pay for event fees.
     - [x] **Social & AGM Support**: Tailored admin UI and models for non-golf events.
+    - [x] **Event Field Hub Modernization (Design 4.x)** (Completed 2026-04-13): 
+        - [x] Migrated Field and Tee Time logic to a centralized `EventFieldHub`.
+        - [x] Activated real registration data lists (Entries tab).
+        - [x] Refined vertical rhythm and grouping card stability.
     - [ ] **Check-in System**: Scanner or manual toggle for day-of events.
 - [ ] **Scorecard & Results**
     - [x] **Competition Setup**: Define rules, formats, and handicap allowances.
@@ -59,10 +69,12 @@ This document tracks the remaining work required to take **Golf Society Manageme
     - [ ] **Management UI**: Dedicated Admin screen for defining society-wide divisions.
     - [ ] **Member Assignment**: Easy allocation of members to one or more divisions.
     - [ ] **Per-Division Leaderboards**: Filterable OOM and Eclectic reports targeting specific player categories.
-- [ ] **Locker Room (Profile)**
+- [x] **Member Hub Modernization (Design 4.x)** (Completed 2026-04-13)
+    - [x] **Universal Tokenization**: Purged all legacy `Colors.*` constants in favor of branded `AppColors` tokens across all member-facing interfaces.
+    - [x] **Branded Async Patterns**: Standardized loading and error states using `BoxyArtLoadingCard` and `BoxyArtEmptyState` components.
+    - [x] **Standardized Architecture**: Migrated all member landing pages to the `HeadlessScaffold` pattern for consistent vertical rhythm and navigation shell persistence.
+    - [x] **Identity Hub Modernization**: Refactored the `MemberDetailsModal` and `PersonalDetailsForm` with Design 4.x spacing and accessibility standards.
 - [x] **Edit Profile**: Form to update handicap, phone, etc.
-- [x] **Profile Input Stability**: ListenableBuilder refactor to prevent cursor jumping.
-- [x] **Photo Upload**: Profile picture management (5MB limit).
 - [x] **Stats Engine (Design 4.x Upgrade)**: Rich Stats Dashboard with Society & Personal comparative views. Features **StaggeredEntrance** motion, **isPeeking** rhythm, and premium **AppGradients**.
 - [x] **Design 4.x Rhythm Archetype**: Standardized vertical "beats" (16pt gap above label, 8pt gap below) across Stats and Leaderboard modules.
 - [x] **Communications & Notifications**
@@ -84,6 +96,10 @@ This document tracks the remaining work required to take **Golf Society Manageme
     - [x] **Status Color System**: Semantic palette for consistent status indicators.
     - [x] **Contrast Helper**: Automatic text color calculation for accessibility.
     - [x] **Administrative Identity Modernization (v4.2)**: Extricated Society Identity (Name/Logo) and Appearance (Theme Mode) into a focused admin hub, decoupling daily branding from technical design tokens.
+- [x] **Administrative Branding Pill Standardization (v4.3)** (Completed 2026-04-14):
+    - [x] Migrated the `ADMIN` branding pill from header `actions` to `titleSuffix` across all 27+ administrative screens.
+    - [x] Decoupled branding from functional action buttons to improve vertical rhythm and layout stability.
+    - [x] Performed a final global audit to ensure 100% codebase compliance with the new standard.
 - [x] **Society Reporting Hub (Premium Suite)**
     - [x] **Executive Dashboard**: Season progress, society pulse, and treasury overview.
     - [x] **Financial Tracking**: Treasury ledger with automated Club Bill logic (Green Fees/Catering) and centralized Miscellaneous Expense management.
@@ -97,6 +113,10 @@ This document tracks the remaining work required to take **Golf Society Manageme
 - [x] **Global Administrative Identity & Vertical Rhythm Standard (v4.x)**: Systematic application of the `ADMIN` pill across all secondary consoles and standardization of tabbed interface spacing using the `cardToLabel` token (16px) for optimized optical rhythm.
 - [x] **Administrative Console Phase 2 Standardization (v4.x)**: Refactored Event, Competition, and Settings hubs to eliminate all-caps and implement high-precision vertical rhythm via the `isPeeking: true` token.
 - [x] **Design 4.x Empty State Modernization (v4.x)**: Replaced all legacy legacy `BoxyArtEmptyState` components with premium `BoxyArtEmptyCard` across the entire administrative suite (Events, Grouping, Role Management, and Global Errors).
+- [x] **Design 4.x Spacing & Card Standardization (v4.3)** (Completed 2026-04-11):
+    - [x] Fully tokenized all vertical rhythm using `AppSpacingTokens` in Society Cuts, Control Tower, and Event Forms.
+    - [x] Standardized `BoxyArtCard` padding to dynamically inherit society-specific branding.
+    - [x] Implemented the **Pocketed Input Pattern** for high-density settings.
 - [x] **True Minimal v3.7 Redesign**
     - [x] **Universal Title Case**: Elimination of all-caps across entire app interface.
     - [x] **Pill-to-Legend Shift**: Converted badge components to minimalist dot + text indicators.
@@ -111,6 +131,13 @@ This document tracks the remaining work required to take **Golf Society Manageme
     - [x] **Duplicate Elimination**: Deleted legacy `ModernMemberCard` and feature-specific pills.
     - [x] **Library Standardized**: Cleaned up `metrics.dart` and standardized `BoxyArtPill` as single source of truth.
     - [x] **SDK & Theme Restoration (Apr 2026)**: Successful modernization to Flutter 3.41 / Dart 3.11 and synchronization of Design 4.x badge tokens across all hubs.
+- [x] **Society Cuts Restructure (Apr 2026)**: Moved global configuration to Admin Dashboard and implemented conditional manual workbench in Event Controls.
+
+## 3. Architecture & Patterns
+#### Society Cuts Access Logic
+Cuts follow a dual-accessibility pattern based on administrative context:
+- **Global Configuration**: Accessed via the **Admin Console (Dashboard)**. This Hub allows admins to toggle between *Manual*, *Global*, or *Off* modes and define society-wide penalty rules.
+- **Event Manual Overrides**: The workbench tile in the **Control Tower (Event Controls)** is now conditional. It only appears if the global mode is set to **Manual**, ensuring a cleaner workspace for societies using automated or disabled cuts.
 
 ## 3. Policy & Compliance
 - [ ] **Legal Documents**
@@ -139,6 +166,7 @@ This document tracks the remaining work required to take **Golf Society Manageme
     - [x] **Match Play Simulation**: Automated match outcomes and standings verification.
     - [x] **Code Quality Hardening**: Achievement of "Zero Error" state across the entire codebase (Feb 2026).
     - [x] **Admin Console Zero-Errors Initiative (Apr 2026)**: Full v4.0/4.1 standardisation across all admin hubs. Resolved all syntax corruption, undefined identifiers, deprecated API usages (`activeColor`, `value`), unused elements, and async-gap context violations. Project exits `flutter analyze` with **exit code 0**.
+    - [x] **Administrative UI Const Hygiene (v6.2)**: Resolved project-wide compilation errors caused by non-const factory usage (`BoxyArtPill.committee`) in `actions` lists across 16+ administrative screens.
     - [x] **Scaling Verification**: Simulation of 60+ member seasons with realistic data distribution.
 
 ## 5. Deployment

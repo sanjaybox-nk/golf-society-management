@@ -5,7 +5,9 @@ import 'package:golf_society/domain/models/handicap_system.dart';
 import 'package:golf_society/features/members/presentation/profile_provider.dart';
 import 'package:golf_society/features/members/presentation/members_provider.dart';
 import 'package:golf_society/features/members/presentation/widgets/member_stats_row.dart';
+import 'package:golf_society/features/members/presentation/widgets/member_cuts_card.dart';
 import '../../home/presentation/home_providers.dart';
+import '../../events/presentation/events_provider.dart';
 
 class LockerScreen extends ConsumerWidget {
   const LockerScreen({super.key});
@@ -102,7 +104,7 @@ class LockerScreen extends ConsumerWidget {
                 )
               else
                 BoxyArtCard(
-                  backgroundColor: AppColors.lime500.withValues(alpha: 0.05),
+                  backgroundColor: AppColors.lime500.withValues(alpha: AppColors.opacityLow),
                   child: Column(
                     children: [
                       Icon(Icons.sports_golf_rounded, color: AppColors.lime500, size: 40),
@@ -121,6 +123,27 @@ class LockerScreen extends ConsumerWidget {
                   ),
                 ),
               SizedBox(height: spacing?.cardToCard ?? AppSpacing.standard),
+
+              // Society Cuts Card (Transparency for members)
+              Consumer(
+                builder: (context, ref, _) {
+                  final eventsAsync = ref.watch(eventsProvider);
+                  final config = ref.watch(themeControllerProvider);
+                  
+                  return eventsAsync.when(
+                    data: (events) => Padding(
+                      padding: const EdgeInsets.only(bottom: AppSpacing.standard),
+                      child: MemberCutsCard(
+                        memberId: user.id,
+                        allEvents: events,
+                        config: config,
+                      ),
+                    ),
+                    loading: () => const BoxyArtLoadingCard(useCard: false, isCompact: true),
+                    error: (e, s) => const SizedBox.shrink(), // Silent for cuts unless critical
+                  );
+                },
+              ),
 
               // Financial Status Section
               Consumer(
@@ -174,8 +197,8 @@ class LockerScreen extends ConsumerWidget {
                         ),
                       );
                     },
-                    loading: () => const SizedBox.shrink(),
-                    error: (e, s) => const SizedBox.shrink(),
+                    loading: () => const BoxyArtLoadingCard(useCard: false, isCompact: true),
+                    error: (e, s) => const SizedBox.shrink(), // Silent for finances header
                   );
                 },
               ),
@@ -189,7 +212,7 @@ class LockerScreen extends ConsumerWidget {
                       return Padding(
                         padding: const EdgeInsets.only(bottom: AppSpacing.x2l),
                         child: BoxyArtCard(
-                          backgroundColor: primary.withValues(alpha: AppColors.opacitySubtle),
+                          backgroundColor: primary.withValues(alpha: AppColors.opacityLow),
                           border: Border.all(color: primary.withValues(alpha: AppColors.opacityLow)),
                           child: Row(
                             children: [
@@ -223,7 +246,7 @@ class LockerScreen extends ConsumerWidget {
                         ),
                       );
                     },
-                    loading: () => const SizedBox.shrink(),
+                    loading: () => const BoxyArtLoadingCard(useCard: false, isCompact: true),
                     error: (e, s) => const SizedBox.shrink(),
                   );
                 },
@@ -284,8 +307,12 @@ class LockerScreen extends ConsumerWidget {
                           ),
                         ],
                       ),
-                      loading: () => const SizedBox(height: 240, child: Center(child: CircularProgressIndicator())),
-                      error: (e, s) => const SizedBox.shrink(),
+                      loading: () => const BoxyArtLoadingCard(
+                        title: 'Preparing locker...',
+                        message: 'Fetching highlights',
+                        isCompact: true,
+                      ),
+                      error: (e, s) => BoxyArtEmptyState(title: 'Stats Error', message: 'Unable to load performance highlights', icon: Icons.error_outline_rounded, isCompact: true),
                     );
                   },
                 ),
@@ -321,14 +348,14 @@ class LockerScreen extends ConsumerWidget {
                       icon: Icons.shield_outlined,
                       title: 'Privacy & Security',
                       subtitle: 'Manage your security settings',
-                      iconColor: Colors.cyan,
+                      iconColor: AppColors.teamB, // Standardized from Colors.cyan
                       onTap: () {},
                     ),
                     BoxyArtNavTile(
                       icon: Icons.help_outline_rounded,
                       title: 'Help & Support',
                       subtitle: 'FAQs and support chat',
-                      iconColor: AppColors.teamB,
+                      iconColor: AppColors.textTertiary, // Standardized from AppColors.teamB
                       onTap: () {},
                     ),
                   ],
@@ -342,7 +369,7 @@ class LockerScreen extends ConsumerWidget {
                     // Sign Out Logic
                   },
                   style: TextButton.styleFrom(
-                    foregroundColor: Colors.redAccent,
+                    foregroundColor: AppColors.coral500, // Standardized from Colors.redAccent
                     padding: const EdgeInsets.symmetric(horizontal: AppSpacing.x2l, vertical: AppSpacing.md),
                   ),
                   child: const Text(

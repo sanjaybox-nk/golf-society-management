@@ -21,8 +21,8 @@ class AdminEventsScreen extends ConsumerWidget {
 
     return HeadlessScaffold(
       title: 'Events',
-      titleSuffix: BoxyArtPill.committee(label: 'ADMIN'),
       subtitle: 'Society events and calendar',
+      titleSuffix: BoxyArtPill.committee(label: 'ADMIN'),
       showBack: false,
       leading: Center(
         child: BoxyArtGlassIconButton(
@@ -37,6 +37,7 @@ class AdminEventsScreen extends ConsumerWidget {
           tooltip: 'Create Event',
           onPressed: () => context.push('/admin/events/new'),
         ),
+        const SizedBox(width: AppSpacing.sm),
       ],
       slivers: [
         // Filter Bar (Harmonized with main EventsScreen)
@@ -52,7 +53,6 @@ class AdminEventsScreen extends ConsumerWidget {
             isExpanded: true,
           ),
         ),
-        SliverToBoxAdapter(child: SizedBox(height: spacing?.cardToLabel ?? AppSpacing.cardToLabel)),
 
         if (filter == EventFilter.season) ...[
           // Upcoming Section
@@ -93,7 +93,9 @@ class AdminEventsScreen extends ConsumerWidget {
           _buildEventList(context, ref, socialAsync, 'Social'),
         ],
 
-        SliverToBoxAdapter(child: SizedBox(height: spacing?.cardToLabel ?? AppSpacing.section)),
+        SliverToBoxAdapter(
+          child: SizedBox(height: spacing?.cardToLabel ?? AppSpacing.cardToLabel),
+        ),
       ],
     );
   }
@@ -177,16 +179,8 @@ class _AdminEventRow extends ConsumerWidget {
           context: context,
           title: 'Delete Event?',
           message: 'Are you sure you want to delete "${event.title}"?',
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context, rootNavigator: true).pop(false),
-              child: const Text('Cancel', style: TextStyle(color: AppColors.textSecondary, fontWeight: AppTypography.weightBold)),
-            ),
-            TextButton(
-              onPressed: () => Navigator.of(context, rootNavigator: true).pop(true),
-              child: const Text('Delete', style: TextStyle(color: AppColors.coral500, fontWeight: AppTypography.weightBold)),
-            ),
-          ],
+          confirmText: 'Delete',
+          isDangerous: true,
         );
       },
       onDismissed: (direction) {

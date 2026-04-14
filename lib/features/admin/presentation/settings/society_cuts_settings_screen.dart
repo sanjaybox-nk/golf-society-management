@@ -1,8 +1,9 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:golf_society/design_system/design_system.dart';
 import 'package:golf_society/domain/models/society_config.dart';
-import 'package:golf_society/features/events/presentation/events_provider.dart';
+import 'package:golf_society/features/admin/logic/society_cuts_impact_provider.dart';
 
 class SocietyCutsSettingsScreen extends ConsumerStatefulWidget {
   const SocietyCutsSettingsScreen({super.key});
@@ -13,6 +14,7 @@ class SocietyCutsSettingsScreen extends ConsumerStatefulWidget {
 
 class _SocietyCutsSettingsScreenState extends ConsumerState<SocietyCutsSettingsScreen> {
   final Map<String, TextEditingController> _controllers = {};
+  int _selectedTabIndex = 0;
 
   @override
   void initState() {
@@ -46,222 +48,272 @@ class _SocietyCutsSettingsScreenState extends ConsumerState<SocietyCutsSettingsS
     final spacing = Theme.of(context).extension<AppSpacingTokens>();
     final config = ref.watch(themeControllerProvider);
     final currentMode = config.societyCutMode;
-    final upcomingEventsAsync = ref.watch(upcomingEventsProvider);
     final theme = Theme.of(context);
+    final impactsAsync = ref.watch(societyCutsImpactProvider);
 
     return HeadlessScaffold(
       title: 'Society Cuts',
       subtitle: (config.societyCutMode != SocietyCutMode.off) ? 'Active' : 'Disabled',
+      titleSuffix: BoxyArtPill.committee(label: 'ADMIN'),
       showBack: true,
       onBack: () => context.pop(),
+      actions: const [],
       slivers: [
-        SliverPadding(
-          padding: EdgeInsets.symmetric(
-            horizontal: AppSpacing.xl, 
-            vertical: spacing?.labelToCard ?? AppSpacing.labelToCard
+        // 1. Tab Bar
+        SliverToBoxAdapter(
+          child: ModernUnderlinedFilterBar<int>(
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+            isExpanded: true,
+            tabs: const [
+              ModernFilterTab(label: 'Rules', value: 0),
+              ModernFilterTab(label: 'Impacts', value: 1),
+            ],
+            selectedValue: _selectedTabIndex,
+            onTabSelected: (v) => setState(() => _selectedTabIndex = v),
           ),
-          sliver: SliverList(
-            delegate: SliverChildListDelegate([
-              // 1. Mode Selector
-              const BoxyArtSectionTitle(title: 'Selection Mode'),
-              BoxyArtCard(
-                padding: const EdgeInsets.all(AppSpacing.md),
-                child: Row(
-                  children: [
-                    _buildModeOption(context, SocietyCutMode.off, 'OFF', Icons.power_settings_new_rounded),
-                    const SizedBox(width: AppSpacing.sm),
-                    _buildModeOption(context, SocietyCutMode.global, 'GLOBAL', Icons.auto_graph_rounded),
-                    const SizedBox(width: AppSpacing.sm),
-                    _buildModeOption(context, SocietyCutMode.manual, 'MANUAL', Icons.touch_app_rounded),
-                  ],
-                ),
-              ),
-              const SizedBox(height: AppSpacing.x3l),
+        ),
 
-              if (currentMode == SocietyCutMode.off)
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 60),
-                  child: Center(
-                    child: Column(
+        if (_selectedTabIndex == 0)
+          SliverPadding(
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+            sliver: SliverList(
+              delegate: SliverChildListDelegate([
+                // 1. Mode Selector
+                const BoxyArtSectionTitle(
+                  title: 'Selection Mode',
+                  isPeeking: true,
+                ),
+                BoxyArtCard(
+                  child: BoxyArtSegmentedControl<SocietyCutMode>(
+                    value: config.societyCutMode,
+                    options: const [
+                      BoxyOption(value: SocietyCutMode.off, label: 'Off', icon: Icons.power_settings_new_rounded),
+                      BoxyOption(value: SocietyCutMode.global, label: 'Global', icon: Icons.auto_graph_rounded),
+                      BoxyOption(value: SocietyCutMode.manual, label: 'Manual', icon: Icons.touch_app_rounded),
+                    ],
+                    onChanged: (mode) => ref.read(themeControllerProvider.notifier).setSocietyCutMode(mode),
+                  ),
+                ),
+
+                if (currentMode == SocietyCutMode.off)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      vertical: AppSpacing.x4l,
+                      horizontal: AppSpacing.lg,
+                    ),
+                    child: const BoxyArtEmptyCard(
+                      title: 'Society Cuts Disabled',
+                      message: 'Select a mode above to begin',
+                      icon: Icons.shield_outlined,
+                    ),
+                  ),
+
+                if (currentMode == SocietyCutMode.global) ...[
+                  const BoxyArtSectionTitle(title: 'Rules & Logic'),
+                  BoxyArtCard(
+                    padding: const EdgeInsets.all(AppSpacing.xl),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Container(
-                          width: 80,
-                          height: 80,
-                          decoration: BoxDecoration(
-                            color: theme.dividerColor.withValues(alpha: AppColors.opacitySubtle),
-                            shape: BoxShape.circle,
-                          ),
-                          child: Icon(Icons.shield_outlined, size: AppShapes.iconXl, color: theme.dividerColor.withValues(alpha: AppColors.opacityMuted)),
+                        const BoxyArtIconBadge(
+                          icon: Icons.info_outline_rounded,
                         ),
-                        const SizedBox(height: AppSpacing.x2l),
-                        Text(
-                          'SOCIETY CUTS DISABLED',
-                          style: AppTypography.label.copyWith(
-                            color: theme.dividerColor.withValues(alpha: AppColors.opacityHalf),
-                            letterSpacing: 2,
+                        const SizedBox(width: AppSpacing.lg),
+                        Expanded(
+                          child: Text(
+                            'Cuts follow an Additive Model (cumulative for each podium finish). These rules remain active for a Limited Duration based on the event limit and eligibility settings selected below.',
+                            style: AppTypography.bodySmall.copyWith(
+                              color: theme.colorScheme.onSurface.withValues(alpha: AppColors.opacityStrong),
+                              height: 1.5,
+                              fontWeight: AppTypography.weightMedium,
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: AppSpacing.sm),
-                        Text(
-                          'Select a mode above to begin',
-                          style: AppTypography.caption.copyWith(color: theme.dividerColor.withValues(alpha: AppColors.opacityMuted)),
                         ),
                       ],
                     ),
                   ),
-                ),
-
-              if (currentMode == SocietyCutMode.global) ...[
-                const BoxyArtSectionTitle(title: 'Cut Rules (Shots)'),
-                BoxyArtCard(
-                  padding: const EdgeInsets.all(AppSpacing.xl),
-                  child: Column(
-                    children: config.societyCutRules.entries.map((entry) {
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: AppSpacing.lg),
-                        child: Row(
+                  const BoxyArtSectionTitle(title: 'Cut Results (Shots)'),
+                  BoxyArtCard(
+                    child: Column(
+                      children: config.societyCutRules.entries.map((entry) {
+                        final isLast = entry.key == config.societyCutRules.keys.last;
+                        return Column(
                           children: [
-                            Expanded(child: Text(entry.key, style: AppTypography.label)),
-                            const SizedBox(width: AppSpacing.lg),
-                            SizedBox(
-                              width: 80,
-                              child: TextField(
-                                keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                                textAlign: TextAlign.center,
-                                style: const TextStyle(fontWeight: AppTypography.weightBlack),
-                                decoration: const InputDecoration(
-                                  suffixText: 'pt',
-                                  isDense: true,
-                                ),
-                                controller: _controllers.putIfAbsent(
-                                  entry.key,
-                                  () => TextEditingController(text: entry.value.toString()),
-                                ),
-                                onChanged: (v) => _updateRule(entry.key, v),
-                              ),
+                            BoxyArtMetricInput(
+                              label: '${entry.key} Place',
+                              subtitle: 'Adjustment for a ${entry.key} finish',
+                              value: _controllers[entry.key]!.text,
+                              suffixText: 'shots',
+                              onChanged: (v) => _updateRule(entry.key, v),
                             ),
+                            if (!isLast) ...[
+                              const SizedBox(height: AppSpacing.lg),
+                              BoxyArtDivider(verticalPadding: AppSpacing.xs),
+                              const SizedBox(height: AppSpacing.xs),
+                            ],
                           ],
-                        ),
-                      );
-                    }).toList(),
-                  ),
-                ),
-                const SizedBox(height: AppSpacing.md),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
-                  child: Text(
-                    'In Global mode, cuts are applied automatically based on 1st/2nd/3rd finishers of previous season events.',
-                    style: AppTypography.caption.copyWith(color: AppColors.dark300, fontStyle: FontStyle.italic),
-                  ),
-                ),
-              ],
-
-              if (currentMode == SocietyCutMode.manual) ...[
-                const BoxyArtSectionTitle(title: 'Manual Overrides'),
-                Padding(
-                  padding: EdgeInsets.zero,
-                  child: Text(
-                    'Select an upcoming event to apply specific shot adjustments for individual players.',
-                    style: AppTypography.caption.copyWith(color: AppColors.dark300),
-                  ),
-                ),
-                SizedBox(height: spacing?.labelToCard ?? AppSpacing.labelToCard),
-                upcomingEventsAsync.when(
-                  loading: () => const Center(child: CircularProgressIndicator()),
-                  error: (err, stack) => Center(child: Text('Error: $err')),
-                  data: (events) {
-                    if (events.isEmpty) {
-                      return Padding(
-                        padding: const EdgeInsets.symmetric(vertical: AppSpacing.x4l),
-                        child: Center(
-                          child: Text('No upcoming events found', style: AppTypography.label.copyWith(color: theme.dividerColor)),
-                        ),
-                      );
-                    }
-                    return Column(
-                      children: events.map((event) {
-                        return Padding(
-                          padding: EdgeInsets.only(bottom: spacing?.labelToCard ?? AppSpacing.labelToCard),
-                          child: BoxyArtNavTile(
-                            title: event.title.toUpperCase(),
-                            subtitle: 'TAP TO APPLY INDIVIDUAL CUTS',
-                            icon: Icons.content_cut_rounded,
-                            iconColor: AppColors.lime500,
-                            onTap: () => context.go('/admin/events/manage/${event.id}/manual-cuts'),
-                          ),
                         );
                       }).toList(),
-                    );
-                  },
-                ),
-              ],
-              const SizedBox(height: 100),
-            ]),
-          ),
-        ),
-      ],
-    );
-  }
+                    ),
+                  ),
+                  const BoxyArtSectionTitle(title: 'Rule Duration'),
+                  BoxyArtCard(
+                    child: Column(
+                      children: [
+                        BoxyArtMetricInput(
+                          label: 'Active for',
+                          subtitle: 'Number of events the cut stays active (0 = Rest of season)',
+                          value: config.societyCutEventLimit.toString(),
+                          suffixText: 'events',
+                          onChanged: (v) {
+                            final limit = int.tryParse(v) ?? 0;
+                            ref.read(themeControllerProvider.notifier).setSocietyCutEventLimit(limit);
+                          },
+                        ),
+                        const SizedBox(height: AppSpacing.lg),
+                        BoxyArtDivider(verticalPadding: AppSpacing.sm),
+                        const SizedBox(height: AppSpacing.sm),
+                        BoxyArtSwitchField(
+                          label: 'Only count played events',
+                          subtitle: 'Only events the member participates in count towards the limit',
+                          value: config.societyCutCountPlayedOnly,
+                          onChanged: (v) => ref.read(themeControllerProvider.notifier).setSocietyCutCountPlayedOnly(v),
+                          labelColor: theme.colorScheme.onSurface,
+                        ),
+                      ],
+                    ),
+                  ),
+                  const BoxyArtSectionTitle(title: 'Event Eligibility'),
+                  BoxyArtCard(
+                    child: Column(
+                      children: [
+                        BoxyArtSwitchField(
+                          label: 'Season events',
+                          subtitle: 'Podium finishes in league events trigger automated cuts',
+                          value: config.societyCutFilterSeason,
+                          onChanged: (v) => ref.read(themeControllerProvider.notifier).setSocietyCutFilterSeason(v),
+                          labelColor: theme.colorScheme.onSurface,
+                        ),
+                        const SizedBox(height: AppSpacing.sm),
+                        BoxyArtDivider(verticalPadding: AppSpacing.sm),
+                        const SizedBox(height: AppSpacing.sm),
+                        BoxyArtSwitchField(
+                          label: 'Invitationals',
+                          subtitle: 'Podium finishes in invitational events trigger automated cuts',
+                          value: config.societyCutFilterInvitational,
+                          onChanged: (v) => ref.read(themeControllerProvider.notifier).setSocietyCutFilterInvitational(v),
+                          labelColor: theme.colorScheme.onSurface,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
 
-  Widget _buildModeOption(BuildContext context, SocietyCutMode mode, String label, IconData icon) {
-    final config = ref.watch(themeControllerProvider);
-    final isSelected = config.societyCutMode == mode;
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-
-    return Expanded(
-      child: GestureDetector(
-        onTap: () => ref.read(themeControllerProvider.notifier).setSocietyCutMode(mode),
-        child: AnimatedContainer(
-          duration: AppAnimations.medium,
-          curve: Curves.easeInOut,
-          padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
-          decoration: BoxDecoration(
-            color: isSelected 
-                ? theme.colorScheme.primary.withValues(alpha: AppColors.opacitySubtle) 
-                : Colors.transparent,
-            borderRadius: AppShapes.lg,
-            border: Border.all(
-              color: isSelected ? theme.colorScheme.primary.withValues(alpha: AppColors.opacityMedium) : Colors.transparent,
-              width: AppShapes.borderThin,
+                if (currentMode == SocietyCutMode.manual) ...[
+                  const BoxyArtSectionTitle(title: 'Manual Overrides'),
+                  BoxyArtCard(
+                    padding: const EdgeInsets.all(AppSpacing.xl),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const BoxyArtIconBadge(
+                          icon: Icons.info_outline_rounded,
+                        ),
+                        const SizedBox(width: AppSpacing.lg),
+                        Expanded(
+                          child: Text(
+                            'Manual overrides are managed on a per-event basis. Visit the Control Tower for any upcoming event to configure specific shot adjustments for individual members.',
+                            style: AppTypography.bodySmall.copyWith(
+                              color: theme.colorScheme.onSurface.withValues(alpha: AppColors.opacityStrong),
+                              height: 1.5,
+                              fontWeight: AppTypography.weightMedium,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.x2l),
+                  BoxyArtButton(
+                    title: 'Go to Events',
+                    icon: Icons.event_note_rounded,
+                    isGhost: true,
+                    onTap: () => context.go('/admin/events'),
+                  ),
+                ],
+              ]),
             ),
           ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: isSelected 
-                      ? theme.colorScheme.primary.withValues(alpha: AppColors.opacityLow)
-                      : (isDark ? AppColors.dark800 : AppColors.dark50),
-                  borderRadius: AppShapes.md,
-                ),
-                child: Icon(
-                  icon, 
-                  size: AppShapes.iconMd,
-                  color: isSelected 
-                      ? theme.colorScheme.primary 
-                      : (isDark ? AppColors.dark400 : AppColors.dark300),
+
+        if (_selectedTabIndex == 1)
+          impactsAsync.when(
+            loading: () => const SliverPadding(
+              padding: EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+              sliver: SliverToBoxAdapter(
+                child: BoxyArtLoadingCard(title: 'Calculating impacts...'),
+              ),
+            ),
+            error: (err, stack) => SliverPadding(
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+              sliver: SliverToBoxAdapter(
+                child: BoxyArtEmptyCard(
+                  title: 'Calculation Error',
+                  message: 'Could not determine cut impacts: $err',
+                  icon: Icons.error_outline_rounded,
                 ),
               ),
-              const SizedBox(height: AppSpacing.md),
-              Text(
-                label,
-                style: AppTypography.label.copyWith(
-                  fontSize: AppTypography.sizeCaptionStrong,
-                  letterSpacing: 1,
-                  color: isSelected 
-                      ? theme.colorScheme.primary 
-                      : (isDark ? AppColors.dark400 : AppColors.dark300),
-                  fontWeight: isSelected ? AppTypography.weightBlack : AppTypography.weightMedium,
+            ),
+            data: (impacts) {
+              if (impacts.isEmpty) {
+                return SliverPadding(
+                  padding: EdgeInsets.only(
+                    top: spacing?.cardToLabel ?? AppSpacing.cardToLabel,
+                    left: AppSpacing.xl,
+                    right: AppSpacing.xl,
+                    bottom: AppSpacing.x4l,
+                  ),
+                  sliver: const SliverToBoxAdapter(
+                    child: BoxyArtEmptyCard(
+                      title: 'No Active Cuts',
+                      message: 'There are currently no members with active performance adjustments.',
+                      icon: Icons.done_all_rounded,
+                    ),
+                  ),
+                );
+              }
+
+              return SliverPadding(
+                padding: EdgeInsets.only(
+                  top: spacing?.cardToLabel ?? AppSpacing.cardToLabel,
+                  left: AppSpacing.xl,
+                  right: AppSpacing.xl,
+                  bottom: AppSpacing.lg,
                 ),
-              ),
-            ],
+                sliver: SliverList(
+                  delegate: SliverChildBuilderDelegate(
+                    (context, index) {
+                      final impact = impacts[index];
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: AppSpacing.md),
+                        child: BoxyArtMemberRow(
+                          name: impact.member.displayName,
+                          initials: '${impact.member.firstName[0]}${impact.member.lastName[0]}',
+                          avatarUrl: impact.member.avatarUrl,
+                          score: '-${impact.breakdown.totalCut.toStringAsFixed(1)}',
+                          scoreColor: AppColors.coral500,
+                          secondaryName: impact.breakdown.sources.firstOrNull?.eventName,
+                          hasSocietyCut: true,
+                          accentColor: impact.isManual ? AppColors.amber500 : AppColors.coral500,
+                        ),
+                      );
+                    },
+                    childCount: impacts.length,
+                  ),
+                ),
+              );
+            },
           ),
-        ),
-      ),
+      ],
     );
   }
 }

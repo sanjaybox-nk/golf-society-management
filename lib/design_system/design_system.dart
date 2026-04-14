@@ -10,6 +10,7 @@ export 'atoms/buttons/boxy_art_icon_buttons.dart';
 // Atoms - Inputs
 export 'atoms/inputs/boxy_art_text_field.dart';
 export 'atoms/inputs/boxy_art_search_input.dart';
+export 'atoms/inputs/boxy_art_metric_input.dart';
 
 // Legacy Widgets (to be decomposed)
 export 'widgets/admin_shortcut_action.dart';
@@ -19,6 +20,7 @@ export 'widgets/badges.dart';
 export 'widgets/bottom_sheets.dart';
 export 'widgets/empty_states.dart';
 export 'widgets/boxy_art_empty_card.dart';
+export 'widgets/boxy_art_loading_card.dart';
 export 'widgets/dialogs.dart';
 export 'widgets/error_handler.dart';
 export 'widgets/floating_action_bar.dart';

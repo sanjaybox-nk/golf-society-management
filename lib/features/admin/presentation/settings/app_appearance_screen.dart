@@ -15,10 +15,11 @@ class AppAppearanceScreen extends ConsumerWidget {
 
     return HeadlessScaffold(
       title: 'App Appearance',
-      titleSuffix: BoxyArtPill.committee(label: 'ADMIN'),
       subtitle: 'Customize light and dark mode',
+      titleSuffix: BoxyArtPill.committee(label: 'ADMIN'),
       showBack: true,
       onBack: () => context.pop(),
+      actions: const [],
       slivers: [
         // Heading Section
         const SliverPadding(

@@ -16,96 +16,114 @@ class CompetitionTypeSelectionScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final spacing = Theme.of(context).extension<AppSpacingTokens>();
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     final title = (isTemplate || isPicker) ? 'Select Game Type' : 'New Template Type';
 
     return HeadlessScaffold(
       title: title,
-      titleSuffix: BoxyArtPill.committee(label: 'ADMIN'),
+      actions: [
+        BoxyArtPill.committee(label: 'ADMIN'),
+        const SizedBox(width: AppSpacing.md),
+      ],
       showBack: true,
       onBack: () => context.pop(),
       slivers: [
         SliverPadding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.xl,
-          ),
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
           sliver: SliverList(
             delegate: SliverChildListDelegate([
-              if (formatFilter == null || formatFilter == 'stableford') ...[
-                _TypeTile(
-                  title: 'Stableford',
-                  subtitle: 'Points based on handicap. Best for mixed ability.',
-                  icon: Icons.format_list_numbered_rounded,
-                  color: AppColors.amber500,
-                  onTap: () => _navigateToBuilder(context, CompetitionFormat.stableford),
+              // 1. Individual Formats
+              if (formatFilter == null || 
+                  ['stableford', 'stroke', 'maxScore'].any((f) => formatFilter == f)) ...[
+                const BoxyArtSectionTitle(title: 'INDIVIDUAL FORMATS'),
+                BoxyArtCard(
+                  padding: EdgeInsets.zero,
+                  child: Column(
+                    children: [
+                      if (formatFilter == null || formatFilter == 'stableford')
+                        _ModernTypeTile(
+                          title: 'Stableford',
+                          subtitle: 'Points based on handicap. Best for mixed ability.',
+                          icon: Icons.format_list_numbered_rounded,
+                          onTap: () => _navigateToBuilder(context, CompetitionFormat.stableford),
+                          showDivider: formatFilter == null || formatFilter == 'stableford',
+                        ),
+                      if (formatFilter == null || formatFilter == 'stroke')
+                        _ModernTypeTile(
+                          title: 'Stroke Play (Medal)',
+                          subtitle: 'Count every shot. The pure test of golf.',
+                          icon: Icons.golf_course_rounded,
+                          onTap: () => _navigateToBuilder(context, CompetitionFormat.stroke),
+                          showDivider: formatFilter == null,
+                        ),
+                      if (formatFilter == null || formatFilter == 'maxScore')
+                        _ModernTypeTile(
+                          title: 'Max Score',
+                          subtitle: 'Stroke play with a cap per hole (e.g. Par + 3).',
+                          icon: Icons.vertical_align_top_rounded,
+                          onTap: () => _navigateToBuilder(context, CompetitionFormat.maxScore),
+                          showDivider: false,
+                        ),
+                    ],
+                  ),
                 ),
-                SizedBox(height: spacing?.cardToCard ?? AppSpacing.standard),
               ],
-              
-              if (formatFilter == null || formatFilter == 'stroke') ...[
-                _TypeTile(
-                  title: 'Stroke Play (Medal)',
-                  subtitle: 'Count every shot. The pure test of golf.',
-                  icon: Icons.golf_course_rounded,
-                  color: AppColors.teamA,
-                  onTap: () => _navigateToBuilder(context, CompetitionFormat.stroke),
-                ),
-                SizedBox(height: spacing?.cardToCard ?? AppSpacing.standard),
-              ],
-              
-              if (formatFilter == null || formatFilter == 'maxScore') ...[
-                _TypeTile(
-                  title: 'Max Score',
-                  subtitle: 'Stroke play with a cap per hole (e.g. Par + 3).',
-                  icon: Icons.vertical_align_top_rounded,
-                  color: AppColors.lime500,
-                  onTap: () => _navigateToBuilder(context, CompetitionFormat.maxScore),
-                ),
-                const SizedBox.shrink(), // Section title handles its own top padding
-              ],
- 
+
+              // 2. Head-to-head
               if (formatFilter == null) ...[
-                const BoxyArtSectionTitle(title: 'Head-to-head', isPeeking: true),
-                _TypeTile(
-                  title: 'Match Play',
-                  subtitle: 'Hole-by-hole knockout battles.',
-                  icon: Icons.compare_arrows_rounded,
-                  color: AppColors.coral500,
-                  onTap: () => _navigateToBuilder(context, CompetitionFormat.matchPlay),
+                const BoxyArtSectionTitle(title: 'HEAD-TO-HEAD'),
+                BoxyArtCard(
+                  padding: EdgeInsets.zero,
+                  child: _ModernTypeTile(
+                    title: 'Match Play',
+                    subtitle: 'Hole-by-hole knockout battles.',
+                    icon: Icons.compare_arrows_rounded,
+                    onTap: () => _navigateToBuilder(context, CompetitionFormat.matchPlay),
+                    showDivider: false,
+                  ),
                 ),
-                const SizedBox.shrink(),
               ],
- 
+
+              // 3. Pairs Formats
               if (formatFilter == null) ...[
-                const BoxyArtSectionTitle(title: 'Pairs formats', isPeeking: true),
-                _TypeTile(
-                  title: 'Fourball (Better Ball)',
-                  subtitle: 'Pairs play own ball. Best score counts.',
-                  icon: Icons.people_outline_rounded,
-                  color: AppColors.teamA,
-                  onTap: () => _navigateToBuilder(context, CompetitionSubtype.fourball),
+                const BoxyArtSectionTitle(title: 'PAIRS FORMATS'),
+                BoxyArtCard(
+                  padding: EdgeInsets.zero,
+                  child: Column(
+                    children: [
+                      _ModernTypeTile(
+                        title: 'Fourball (Better Ball)',
+                        subtitle: 'Pairs play own ball. Best score counts.',
+                        icon: Icons.people_outline_rounded,
+                        onTap: () => _navigateToBuilder(context, CompetitionSubtype.fourball),
+                        showDivider: true,
+                      ),
+                      _ModernTypeTile(
+                        title: 'Foursomes (Alternate Shot)',
+                        subtitle: 'Partners alternate hitting one ball.',
+                        icon: Icons.sync_alt_rounded,
+                        onTap: () => _navigateToBuilder(context, CompetitionSubtype.foursomes),
+                        showDivider: false,
+                      ),
+                    ],
+                  ),
                 ),
-                SizedBox(height: spacing?.cardToCard ?? AppSpacing.standard),
-                _TypeTile(
-                  title: 'Foursomes (Alternate Shot)',
-                  subtitle: 'Partners alternate hitting one ball.',
-                  icon: Icons.sync_alt_rounded,
-                  color: AppColors.guestPurple,
-                  onTap: () => _navigateToBuilder(context, CompetitionSubtype.foursomes),
-                ),
-                const SizedBox.shrink(),
               ],
- 
+
+              // 4. Team Formats
               if (formatFilter == null) ...[
-                const BoxyArtSectionTitle(title: 'Team formats', isPeeking: true),
-                _TypeTile(
-                  title: 'Scramble',
-                  subtitle: 'Texas/Florida Scramble. Team aggregate play.',
-                  icon: Icons.group_work_rounded,
-                  color: AppColors.teamB,
-                  onTap: () => _navigateToBuilder(context, CompetitionFormat.scramble),
+                const BoxyArtSectionTitle(title: 'TEAM FORMATS'),
+                BoxyArtCard(
+                  padding: EdgeInsets.zero,
+                  child: _ModernTypeTile(
+                    title: 'Scramble',
+                    subtitle: 'Texas/Florida Scramble. Team aggregate play.',
+                    icon: Icons.group_work_rounded,
+                    onTap: () => _navigateToBuilder(context, CompetitionFormat.scramble),
+                    showDivider: false,
+                  ),
                 ),
-                SizedBox(height: spacing?.cardToCard ?? AppSpacing.standard),
               ],
               
               const SizedBox(height: AppSpacing.x4l),
@@ -117,9 +135,7 @@ class CompetitionTypeSelectionScreen extends StatelessWidget {
   }
 
   void _navigateToBuilder(BuildContext context, dynamic type) async {
-    // type can be CompetitionFormat or CompetitionSubtype
     final typeName = type is CompetitionFormat ? type.name : (type as CompetitionSubtype).name;
-    
     final base = isPicker ? '/admin/events/competitions/new/gallery' : '/admin/settings/templates/gallery';
     final result = await context.push<String>('$base/$typeName');
     
@@ -129,90 +145,93 @@ class CompetitionTypeSelectionScreen extends StatelessWidget {
   }
 }
 
-class _TypeTile extends StatelessWidget {
+class _ModernTypeTile extends StatelessWidget {
   final String title;
   final String subtitle;
   final IconData icon;
-  final Color color;
   final VoidCallback onTap;
+  final bool showDivider;
 
-  const _TypeTile({
+  const _ModernTypeTile({
     required this.title,
     required this.subtitle,
     required this.icon,
-    required this.color,
     required this.onTap,
+    this.showDivider = false,
   });
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     final parts = title.split(' (');
     final mainTitle = parts[0];
     final bracketText = parts.length > 1 ? '(${parts[1]}' : null;
 
-    return BoxyArtCard(
-      onTap: onTap,
-      padding: const EdgeInsets.all(AppSpacing.xl),
-      child: Row(
-        children: [
-          // Icon Avatar with soft background
-          Container(
-            width: 56,
-            height: 56,
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: AppColors.opacityLow),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(icon, color: color, size: AppShapes.iconLg),
-          ),
-          const SizedBox(width: AppSpacing.xl),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+    return Column(
+      children: [
+        InkWell(
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.all(AppSpacing.xl),
+            child: Row(
               children: [
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.baseline,
-                  textBaseline: TextBaseline.alphabetic,
-                  children: [
-                    Text(
-                      mainTitle,
-                      style: AppTypography.headline.copyWith(
-                        fontWeight: AppTypography.weightExtraBold,
-                        letterSpacing: AppTypography.lsTight,
+                BoxyArtIconBadge(
+                  icon: icon,
+                  size: 44,
+                  iconSize: 22,
+                ),
+                const SizedBox(width: AppSpacing.lg),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.baseline,
+                        textBaseline: TextBaseline.alphabetic,
+                        children: [
+                          Text(
+                            mainTitle.toUpperCase(),
+                            style: AppTypography.labelStrong.copyWith(
+                              color: theme.colorScheme.onSurface,
+                              letterSpacing: 1.0,
+                            ),
+                          ),
+                          if (bracketText != null) ...[
+                            const SizedBox(width: AppSpacing.xs),
+                            Text(
+                              bracketText,
+                              style: AppTypography.caption.copyWith(
+                                color: isDark ? AppColors.dark300 : AppColors.dark400,
+                                fontWeight: AppTypography.weightBold,
+                              ),
+                            ),
+                          ],
+                        ],
                       ),
-                    ),
-                    if (bracketText != null) ...[
-                      const SizedBox(width: 6),
+                      const SizedBox(height: 2),
                       Text(
-                        bracketText,
-                        style: TextStyle(
-                          fontSize: AppTypography.sizeLabel,
-                          fontWeight: AppTypography.weightBold,
-                          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.4),
+                        subtitle,
+                        style: AppTypography.caption.copyWith(
+                          color: isDark ? AppColors.dark200 : AppColors.dark400,
+                          fontWeight: AppTypography.weightMedium,
                         ),
                       ),
                     ],
-                  ],
-                ),
-                const SizedBox(height: AppSpacing.xs),
-                Text(
-                  subtitle,
-                  style: TextStyle(
-                    fontSize: AppTypography.sizeBodySmall,
-                    fontWeight: AppTypography.weightMedium,
-                    color: Theme.of(context).colorScheme.onSurface.withValues(alpha: AppColors.opacityHalf),
-                    height: 1.2,
                   ),
+                ),
+                Icon(
+                  Icons.arrow_forward_ios_rounded, 
+                  color: isDark ? AppColors.dark400 : AppColors.dark200, 
+                  size: AppShapes.iconXs,
                 ),
               ],
             ),
           ),
-          Icon(
-            Icons.chevron_right_rounded, 
-            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: AppColors.opacityMedium),
-          ),
-        ],
-      ),
+        ),
+        if (showDivider) const BoxyArtDivider(verticalPadding: 0),
+      ],
     );
   }
 }
