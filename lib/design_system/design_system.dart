@@ -11,6 +11,7 @@ export 'atoms/buttons/boxy_art_icon_buttons.dart';
 export 'atoms/inputs/boxy_art_text_field.dart';
 export 'atoms/inputs/boxy_art_search_input.dart';
 export 'atoms/inputs/boxy_art_metric_input.dart';
+export 'atoms/indicators/boxy_art_indicator.dart';
 
 // Legacy Widgets (to be decomposed)
 export 'widgets/admin_shortcut_action.dart';

@@ -95,9 +95,9 @@ class EventAdminScorecardEditorScreen extends ConsumerWidget {
                         padding: const EdgeInsets.only(bottom: AppSpacing.x2l),
                         child: Row(
                           children: [
-                            BoxyArtPill.hc(label: _formatHcp(baseHcp)),
-                            const SizedBox(width: AppSpacing.sm),
-                            BoxyArtPill.phc(context: context, label: '$phc'),
+                            BoxyArtIndicator.hc(label: _formatHcp(baseHcp)),
+                            const SizedBox(width: AppSpacing.md),
+                            BoxyArtIndicator.phc(context: context, label: '$phc'),
                             const Spacer(),
                             // Tee pill matching design
                             BoxyArtPill.tee(label: playerTeeName, teeColor: _getTeeColor(playerTeeName, playerTeeConfig.tees)),

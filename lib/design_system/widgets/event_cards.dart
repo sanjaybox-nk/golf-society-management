@@ -45,7 +45,7 @@ class BoxyArtEventCard extends ConsumerWidget {
         : AppColors.dark300;
 
     final content = Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // 1. Identity Column (Badge + Tags)
         SizedBox(
@@ -95,7 +95,7 @@ class BoxyArtEventCard extends ConsumerWidget {
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.center, // Vertically centered
+            mainAxisAlignment: MainAxisAlignment.start, // Aligned to top with badge
             children: [
               Text(
                 toTitleCase(event.title),
@@ -126,7 +126,7 @@ class BoxyArtEventCard extends ConsumerWidget {
                       text: event.courseName ?? 'TBA',
                       style: TextStyle(
                         color: subtextColor,
-                        fontWeight: AppTypography.weightBold,
+                        fontWeight: AppTypography.weightSemibold,
                       ),
                     ),
                   ],
@@ -187,6 +187,7 @@ class BoxyArtEventCard extends ConsumerWidget {
                 label: 'Live',
                 color: theme.colorScheme.error,
                 isAction: true,
+                hasHorizontalMargin: false,
               ),
           ],
         ),

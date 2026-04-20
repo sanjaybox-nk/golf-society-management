@@ -14,6 +14,8 @@ import 'package:golf_society/features/admin/providers/admin_ui_providers.dart';
 import 'package:golf_society/features/notifications/domain/notification_broadcast_service.dart';
 import 'package:golf_society/features/matchplay/domain/golf_event_match_extensions.dart';
 import 'package:golf_society/features/events/domain/registration_logic.dart';
+import 'package:golf_society/features/events/domain/models/processed_event_data.dart';
+import 'package:golf_society/features/events/logic/event_scoring_controller.dart';
 import './admin_grouping_hub_card.dart';
 
 class AdminGroupingHubContent extends ConsumerStatefulWidget {
@@ -95,6 +97,11 @@ class _AdminGroupingHubContentState extends ConsumerState<AdminGroupingHubConten
             Future.microtask(() => ref.read(groupingLocalGroupsProvider.notifier).setGroups(localGroups));
         }
         
+        // Fetch Centralized Computed Data
+        final scoringData = ref.watch(eventScoringControllerProvider(widget.eventId));
+        final computedEntries = { for (var e in scoringData.leaderboard) e.entryId: e };
+        final computedGroupResults = { for (var g in scoringData.groupRankings) g.groupIndex : g };
+        
         // Calculate Unassigned Players
         return SliverToBoxAdapter(
           child: Padding(
@@ -108,7 +115,22 @@ class _AdminGroupingHubContentState extends ConsumerState<AdminGroupingHubConten
 
                 if (localGroups != null) ...[
                   const SizedBox(height: AppSpacing.standard),
-                   _buildGroupingListLayout(context, ref, event, localGroups, memberMap, history, scorecardsAsync, rules: comp?.rules, useWhs: config.useWhsHandicaps, isLocked: isLocked, matchPlayMode: matchPlayMode, selectedForSwap: selectedForSwap),
+                  _buildGroupingListLayout(
+                    context, 
+                    ref, 
+                    event, 
+                    localGroups, 
+                    memberMap, 
+                    history, 
+                    scorecardsAsync, 
+                    rules: comp?.rules, 
+                    useWhs: config.useWhsHandicaps, 
+                    isLocked: isLocked, 
+                    matchPlayMode: matchPlayMode, 
+                    selectedForSwap: selectedForSwap, 
+                    computedEntries: computedEntries,
+                    computedGroupResults: computedGroupResults,
+                  ),
                 ],
               ],
             ),
@@ -167,7 +189,7 @@ class _AdminGroupingHubContentState extends ConsumerState<AdminGroupingHubConten
     }
   }
 
-  Widget _buildGroupingListLayout(BuildContext context, WidgetRef ref, GolfEvent event, List<TeeGroup> localGroups, Map<String, Member> memberMap, List<GolfEvent> history, AsyncValue<List<Scorecard>> scorecardsAsync, {CompetitionRules? rules, bool useWhs = true, required bool isLocked, required bool matchPlayMode, required TeeGroupParticipant? selectedForSwap}) {
+  Widget _buildGroupingListLayout(BuildContext context, WidgetRef ref, GolfEvent event, List<TeeGroup> localGroups, Map<String, Member> memberMap, List<GolfEvent> history, AsyncValue<List<Scorecard>> scorecardsAsync, {CompetitionRules? rules, bool useWhs = true, required bool isLocked, required bool matchPlayMode, required TeeGroupParticipant? selectedForSwap, Map<String, ProcessedLeaderboardEntry>? computedEntries, Map<int, ProcessedGroupResult>? computedGroupResults}) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 100),
       child: Column(
@@ -190,11 +212,15 @@ class _AdminGroupingHubContentState extends ConsumerState<AdminGroupingHubConten
               isSelected: (p) => p == selectedForSwap,
               matchPlayMode: matchPlayMode,
               matches: event.matches,
+              groupIndex: index,
               hcMap: {for (var p in localGroups.expand((g) => g.players)) (p.isGuest ? '${p.registrationMemberId}_guest' : p.registrationMemberId): p.handicapIndex},
                scorecardMap: scorecardsAsync.asData?.value != null 
                    ? {for (var s in scorecardsAsync.asData!.value) s.entryId: s}
                    : null,
-              showScoring: false,
+              isScoreMode: true, 
+              showScoring: true, 
+              computedEntries: computedEntries,
+              computedGroupResults: computedGroupResults,
             ),
           );
         }).toList(),

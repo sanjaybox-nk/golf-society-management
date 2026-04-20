@@ -2,6 +2,7 @@ import 'package:golf_society/design_system/design_system.dart';
 import 'package:golf_society/domain/models/competition.dart';
 import 'package:golf_society/domain/models/scorecard.dart';
 import 'package:golf_society/utils/string_utils.dart';
+import 'package:golf_society/features/matchplay/domain/match_play_calculator.dart';
 
 class LeaderboardWidget extends StatelessWidget {
   final List<LeaderboardEntry> entries;
@@ -318,14 +319,14 @@ class LeaderboardCard extends StatelessWidget {
                                 TextSpan(
                                   text: rawScore,
                                   style: AppTypography.displayHeading.copyWith(
-                                    fontSize: 24,
+                                    fontSize: (rawScore.length > 5) ? 18 : 24, // Smaller font for "Won 3 & 2"
                                     fontWeight: AppTypography.weightBlack,
                                     color: hasScore ? theme.colorScheme.primary : AppColors.coral500,
                                     height: 1,
                                     letterSpacing: -0.5,
                                   ),
                                 ),
-                                if (hasScore && isStableford)
+                                if (hasScore && isStableford && !rawScore.contains('UP') && !rawScore.contains('DN') && !rawScore.contains('AS') && !rawScore.contains('&'))
                                   TextSpan(
                                     text: ' pts',
                                     style: AppTypography.label.copyWith(

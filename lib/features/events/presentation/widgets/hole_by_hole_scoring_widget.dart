@@ -301,6 +301,7 @@ class _HoleByHoleScoringWidgetState extends ConsumerState<HoleByHoleScoringWidge
     }
 
     final int currentScore = (widget.selectedTab == MarkerTab.player ? _localScores : _verifierScores)[currentHoleNum] ?? par;
+    final bool isReadOnly = !widget.isAdmin && (widget.event.isScoringLocked == true || widget.event.status == EventStatus.completed);
 
     return Column(
       children: [
@@ -415,8 +416,8 @@ class _HoleByHoleScoringWidgetState extends ConsumerState<HoleByHoleScoringWidge
                                 _buildMiniCircleButton(
                                   context, 
                                   Icons.remove, 
-                                  () => _setScore(currentHoleNum, currentScore - 1, isVerifier: widget.selectedTab == MarkerTab.verifier),
-                                  isDisabled: currentScore <= 1,
+                                  () => _setScore(currentHoleNum, currentScore - 1, isVerifier: widget.selectedTab == MarkerTab.verifier, isReadOnly: isReadOnly),
+                                  isDisabled: isReadOnly || currentScore <= 1,
                                 ),
                                 Container(
                                   width: 44,
@@ -431,7 +432,8 @@ class _HoleByHoleScoringWidgetState extends ConsumerState<HoleByHoleScoringWidge
                                 _buildMiniCircleButton(
                                   context, 
                                   Icons.add, 
-                                  () => _setScore(currentHoleNum, currentScore + 1, isVerifier: widget.selectedTab == MarkerTab.verifier),
+                                  () => _setScore(currentHoleNum, currentScore + 1, isVerifier: widget.selectedTab == MarkerTab.verifier, isReadOnly: isReadOnly),
+                                  isDisabled: isReadOnly,
                                 ),
                               ],
                             ),
@@ -564,7 +566,9 @@ class _HoleByHoleScoringWidgetState extends ConsumerState<HoleByHoleScoringWidge
   }
 
 
-  void _setScore(int holeNum, int score, {bool isVerifier = false}) {
+  void _setScore(int holeNum, int score, {bool isVerifier = false, bool isReadOnly = false}) {
+    if (isReadOnly) return;
+    
     setState(() {
       final map = isVerifier ? _verifierScores : _localScores;
       

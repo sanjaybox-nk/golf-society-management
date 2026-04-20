@@ -124,6 +124,12 @@ class _SeasonCard extends StatelessWidget {
                 ],
               ),
             )),
+            const SizedBox(height: AppSpacing.xl),
+            BoxyArtButton(
+              title: 'VIEW FULL STANDINGS', 
+              fullWidth: true,
+              onTap: () => context.push('/locker/standings?seasonId=${season.id}'),
+            ),
           ],
         ),
       ),

@@ -217,6 +217,13 @@ class EventLogisticsSection extends ConsumerWidget {
                     value: state.isInvitational,
                     onChanged: (v) => ref.read(eventFormNotifierProvider.notifier).updateIsInvitational(v),
                   ),
+                  const SizedBox(height: AppSpacing.md),
+                  BoxyArtSwitchField(
+                    label: 'Enable Guest Entry',
+                    subtitle: "Allow members to register guests for this event.",
+                    value: state.allowGuests,
+                    onChanged: (v) => ref.read(eventFormNotifierProvider.notifier).updateAllowGuests(v),
+                  ),
                 ],
               ],
             ),

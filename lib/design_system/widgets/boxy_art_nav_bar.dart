@@ -77,7 +77,7 @@ class BoxyArtBottomNavBar extends StatelessWidget {
                           color: isSelected 
                               ? (isDark ? theme.colorScheme.primary : AppColors.dark950) 
                               : unselectedItemColor,
-                          letterSpacing: 0.1,
+                          letterSpacing: 0.2,
                           decoration: TextDecoration.none, // Safety override
                         ),
                         maxLines: 1,

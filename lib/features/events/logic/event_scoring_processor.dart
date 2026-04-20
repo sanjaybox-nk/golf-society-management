@@ -9,6 +9,10 @@ import 'package:golf_society/features/events/logic/event_analysis_engine.dart';
 import 'package:golf_society/features/events/presentation/state/marker_selection_provider.dart'; // MarkerSelection
 import '../domain/models/processed_event_data.dart';
 import 'package:collection/collection.dart';
+import '../domain/registration_logic.dart';
+import '../../matchplay/domain/match_play_calculator.dart';
+import '../../matchplay/domain/match_definition.dart';
+import '../../matchplay/domain/golf_event_match_extensions.dart';
 
 class EventScoringProcessor {
   static ProcessedEventData process({
@@ -23,6 +27,12 @@ class EventScoringProcessor {
     final rules = comp.rules;
     final teeOverrides = markerSelection.teeOverrides;
     final manualCuts = event.manualCuts;
+
+    // 27. [NEW] Synchronize "Playing" set with RegistrationLogic (FCFS + Capacity Aware)
+    final playingItems = RegistrationLogic.getPlayingParticipants(event);
+    final playingIds = playingItems.map((item) {
+      return item.isGuest ? '${item.registration.memberId}_guest' : item.registration.memberId;
+    }).toSet();
 
     // 1. Process Individual Scores
     final List<ProcessedPlayerScore> individualScores = [];
@@ -66,15 +76,12 @@ class EventScoringProcessor {
       
       final bool hasScores = (liveCard != null && liveCard.holeScores.any((h) => h != null)) || (seededResult != null);
       
-      // Filter out waitlisted registrations unless they actively have an active live scorecard 
-      if (reg?.statusOverride == 'waitlist' && liveCard == null) continue;
+      // [NEW] Master Filter: Must be in the "Playing" set or be the current user (Admin/Test)
+      final bool isMe = currentUserId != null && (effectivePid == currentUserId || basePid == currentUserId);
+      if (!playingIds.contains(effectivePid) && !isMe) continue;
       
       // Guests MUST have score data to appear on the leaderboard (per user request)
       if (isGuest && !hasScores) continue;
-
-      // Members stay if they have a registration OR scores OR a live scorecard OR they are the current user (Dev/Test)
-      final bool isMe = currentUserId != null && (effectivePid == currentUserId || basePid == currentUserId);
-      if (!isGuest && reg == null && !hasScores && liveCard == null && !isMe) continue;
 
       // Resolve Handicap Index
       double index = 18.0;
@@ -137,7 +144,72 @@ class EventScoringProcessor {
       ));
     }
 
-    // 2. Process Leaderboard
+    // 2. [NEW] Pre-calculate Match Play results
+    final Map<String, MatchResult> playerMatchResults = {};
+    final bool isFourball = comp.rules.subtype == CompetitionSubtype.fourball || 
+                       event.matches.any((m) => m.type == MatchType.fourball);
+    final bool isMatchPlayEvent = rules.format == CompetitionFormat.matchPlay || event.matches.isNotEmpty;
+
+    if (isMatchPlayEvent) {
+      // 2a. Process Explicit Matches
+      for (final match in event.matches) {
+        final result = MatchPlayCalculator.calculate(
+          match: match,
+          scorecards: liveScorecards,
+          courseConfig: event.courseConfig,
+          holesToPlay: 18,
+        );
+        for (final id in [...match.team1Ids, ...match.team2Ids]) {
+          playerMatchResults[id] = result;
+        }
+      }
+
+      // 2b. Virtual Match Detection (for groups without explicit match definitions)
+      final groupsData = event.grouping['groups'] as List?;
+      if (groupsData != null) {
+        for (int groupIdx = 0; groupIdx < groupsData.length; groupIdx++) {
+           final group = TeeGroup.fromJson(groupsData[groupIdx]);
+           
+           // If any player in the group doesn't have a result yet, try virtual match
+           final needsVirtualMatch = group.players.any((p) {
+             final pid = p.isGuest ? '${p.registrationMemberId}_guest' : p.registrationMemberId;
+             return !playerMatchResults.containsKey(pid);
+           });
+
+           if (needsVirtualMatch) {
+              if (isFourball && group.players.length >= 4) {
+                final t1Ids = group.players.take(2).map((p) => p.isGuest ? '${p.registrationMemberId}_guest' : p.registrationMemberId).toList();
+                final t2Ids = group.players.skip(2).take(2).map((p) => p.isGuest ? '${p.registrationMemberId}_guest' : p.registrationMemberId).toList();
+                final res = MatchPlayCalculator.calculate(
+                  match: MatchDefinition(id: 'v_${groupIdx}', type: MatchType.fourball, team1Ids: t1Ids, team2Ids: t2Ids),
+                  scorecards: liveScorecards,
+                  courseConfig: event.courseConfig,
+                  holesToPlay: 18,
+                );
+                for (final id in [...t1Ids, ...t2Ids]) playerMatchResults[id] = res;
+              } else if (group.players.length >= 2) {
+                // Singles matches for pairs
+                for (int i = 0; i < group.players.length; i += 2) {
+                  if (i + 1 < group.players.length) {
+                    final p1Id = group.players[i].isGuest ? '${group.players[i].registrationMemberId}_guest' : group.players[i].registrationMemberId;
+                    final p2Id = group.players[i+1].isGuest ? '${group.players[i+1].registrationMemberId}_guest' : group.players[i+1].registrationMemberId;
+                    final res = MatchPlayCalculator.calculate(
+                      match: MatchDefinition(id: 'id_v_${groupIdx}_$i', type: MatchType.singles, team1Ids: [p1Id], team2Ids: [p2Id]),
+                      scorecards: liveScorecards,
+                      courseConfig: event.courseConfig,
+                      holesToPlay: 18,
+                    );
+                    playerMatchResults[p1Id] = res;
+                    playerMatchResults[p2Id] = res;
+                  }
+                }
+              }
+           }
+        }
+      }
+    }
+
+    // 3. Process Leaderboard
     final List<ProcessedLeaderboardEntry> leaderboard = [];
     final currentFormat = rules.format;
     final isTeamComp = rules.effectiveMode != CompetitionMode.singles;
@@ -195,6 +267,31 @@ class EventScoringProcessor {
           }
         }
 
+        final matchResult = playerMatchResults[p.playerId];
+        final String? matchStatusLabel;
+        final int? matchLead;
+
+        if (matchResult != null) {
+          final isT1 = event.matches.any((m) => m.team1Ids.contains(p.playerId));
+          matchLead = isT1 ? matchResult.score : -matchResult.score;
+          final absLead = matchLead.abs();
+          final remaining = 18 - matchResult.holesPlayed;
+
+          if (absLead > remaining) {
+            final prefix = matchLead > 0 ? 'WIN' : 'LOSS';
+            matchStatusLabel = remaining > 0 ? '$prefix $absLead & $remaining' : '$prefix $absLead UP';
+          } else if (matchLead > 0) {
+            matchStatusLabel = '$absLead UP';
+          } else if (matchLead < 0) {
+            matchStatusLabel = '$absLead DN';
+          } else {
+            matchStatusLabel = remaining == 0 ? 'HALVED' : 'AS';
+          }
+        } else {
+          matchStatusLabel = null;
+          matchLead = null;
+        }
+
         leaderboard.add(ProcessedLeaderboardEntry(
           entryId: p.playerId,
           playerName: p.playerName,
@@ -214,6 +311,9 @@ class EventScoringProcessor {
           handicapIndex: p.handicapIndex,
           tieBreakLabel: calculateTieBreakLabel(p.result),
           scoringStatus: _resolveScoringStatus(liveScorecards.firstWhereOrNull((s) => s.entryId == p.playerId)),
+          matchStatus: matchStatusLabel,
+          matchScore: matchLead,
+          isMatch: matchResult != null,
         ));
       }
     } else {
@@ -257,6 +357,32 @@ class EventScoringProcessor {
               return _resolveScoringStatus(card);
             }).firstWhere((s) => s != ScoringStatus.ok, orElse: () => ScoringStatus.ok);
 
+            final String teamLeaderId = playerIds.firstOrNull ?? '';
+            final teamMatchResult = playerMatchResults[teamLeaderId];
+            final String? teamMatchStatusLabel;
+            final int? teamMatchLead;
+
+            if (teamMatchResult != null) {
+              final isT1 = event.matches.any((m) => m.team1Ids.contains(teamLeaderId));
+              teamMatchLead = isT1 ? teamMatchResult.score : -teamMatchResult.score;
+              final absLead = teamMatchLead.abs();
+              final remaining = 18 - teamMatchResult.holesPlayed;
+
+              if (absLead > remaining) {
+                final prefix = teamMatchLead > 0 ? 'WIN' : 'LOSS';
+                teamMatchStatusLabel = remaining > 0 ? '$prefix $absLead & $remaining' : '$prefix $absLead UP';
+              } else if (teamMatchLead > 0) {
+                teamMatchStatusLabel = '$absLead UP';
+              } else if (teamMatchLead < 0) {
+                teamMatchStatusLabel = '$absLead DN';
+              } else {
+                teamMatchStatusLabel = remaining == 0 ? 'HALVED' : 'AS';
+              }
+            } else {
+              teamMatchStatusLabel = null;
+              teamMatchLead = null;
+            }
+
             teamEntries.add(ProcessedLeaderboardEntry(
               entryId: playerIds.join('_'),
               playerName: names.join(' / '),
@@ -281,6 +407,9 @@ class EventScoringProcessor {
               position: 0,
               tieBreakMetrics: _calculateTieBreakMetrics(finalResult),
               scoringStatus: teamStatus,
+              matchStatus: teamMatchStatusLabel,
+              matchScore: teamMatchLead,
+              isMatch: teamMatchResult != null,
             ));
          }
       }
@@ -329,6 +458,11 @@ class EventScoringProcessor {
         : [];
     
     final List<ProcessedGroupResult> groupRankings = [];
+    final bool isFourballRule = rules.subtype == CompetitionSubtype.fourball;
+    final isPairs = rules.mode == CompetitionMode.pairs;
+    final isScramblePairs = rules.format == CompetitionFormat.scramble && rules.teamSize == 2;
+    final isSplitTeam = isFourballRule || isPairs || isScramblePairs;
+
     for (var group in groups) {
        final groupIndividualResults = group.players.map((p) {
          final pid = p.isGuest ? '${p.registrationMemberId}_guest' : p.registrationMemberId;
@@ -342,11 +476,42 @@ class EventScoringProcessor {
             bestX: rules.teamBestXCount,
           );
 
+          int? sideAScore;
+          int? sideBScore;
+          String? sideALabel;
+          String? sideBLabel;
+
+          if (isSplitTeam && groupIndividualResults.length >= 2) {
+             // Side A (Players 0-1)
+             final sideAResults = groupIndividualResults.take(2).toList();
+             final sideARes = isScramblePairs 
+                ? sideAResults.first // Scramble pairs already have 1 result usually, but safeguard
+                : ScoringCalculator.calculateBestBall(individualResults: sideAResults, holes: event.courseConfig.holes, format: rules.format);
+             
+             sideAScore = sideARes.score;
+             sideALabel = sideARes.label;
+
+             // Side B (Players 2-3)
+             if (groupIndividualResults.length >= 4) {
+                final sideBResults = groupIndividualResults.skip(2).take(2).toList();
+                final sideBRes = isScramblePairs
+                   ? sideBResults.first
+                   : ScoringCalculator.calculateBestBall(individualResults: sideBResults, holes: event.courseConfig.holes, format: rules.format);
+                
+                sideBScore = sideBRes.score;
+                sideBLabel = sideBRes.label;
+             }
+          }
+
           groupRankings.add(ProcessedGroupResult(
             groupIndex: group.index,
             label: groupResult.label,
             totalScore: groupResult.totalScore,
             tieBreakMetrics: groupResult.tieBreakMetrics,
+            sideAScore: sideAScore,
+            sideBScore: sideBScore,
+            sideALabel: sideALabel,
+            sideBLabel: sideBLabel,
           ));
         }
     }

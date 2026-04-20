@@ -162,58 +162,41 @@ class BoxyArtMemberHeaderCard extends ConsumerWidget {
                       
                       const SizedBox(height: AppSpacing.md),
                       
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // 1. Primary Status Header Row
-                          if (status != MemberStatus.active && status != MemberStatus.member) ...[
-                            BoxyArtPill.status(
-                              label: statusLabel.toUpperCase(),
-                              color: _getStatusColor(status, theme),
-                              isLegend: true,
-                            ),
-                            const SizedBox(height: AppSpacing.xs),
-                          ],
-
-                          // 2. Personal Accolades / Roles Row
-                          Wrap(
-                            spacing: AppSpacing.xs,
-                            runSpacing: AppSpacing.xs,
-                            children: [
-                              // Role Badge
-                              if (isAdminContext && role != null && role != MemberRole.member)
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: AppSpacing.sm,
-                                    vertical: 4,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: theme.colorScheme.primary.withValues(alpha: 0.1),
-                                    borderRadius: BorderRadius.circular(config.cardRadius / 2),
-                                    border: Border.all(
-                                      color: theme.colorScheme.primary.withValues(alpha: 0.3),
-                                      width: 1,
-                                    ),
-                                  ),
-                                  child: Text(
-                                    role!.displayName.toUpperCase(),
-                                    style: theme.textTheme.labelSmall?.copyWith(
-                                      color: theme.colorScheme.primary,
-                                      fontWeight: FontWeight.w900,
-                                      letterSpacing: 0.5,
-                                    ),
-                                  ),
-                                ),
-
-                              // Society Role Badge
-                              if (societyRole != null && societyRole!.isNotEmpty)
-                                GestureDetector(
-                                  onTap: onSocietyRoleTap,
-                                  child: BoxyArtPill.committee(label: societyRole!),
-                                ),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            // 1. Status (Expired, etc.)
+                            if (status != MemberStatus.active && status != MemberStatus.member) ...[
+                              BoxyArtIndicator(
+                                label: statusLabel,
+                                dotColor: status.color,
+                                hasHorizontalMargin: false,
+                              ),
+                              const SizedBox(height: AppSpacing.xs),
                             ],
-                          ),
-                        ],
+
+                            // 2. Society Role Badge (Social Secretary, etc.)
+                            if (societyRole != null && societyRole!.isNotEmpty) ...[
+                              BoxyArtIndicator(
+                                label: societyRole!,
+                                dotColor: AppColors.amber500,
+                                onTap: onSocietyRoleTap,
+                                hasHorizontalMargin: false,
+                              ),
+                              const SizedBox(height: AppSpacing.xs),
+                            ],
+
+                            // 3. Member Role Badge (Admin, etc.) - BOTTOM ALIGNED
+                            if (isAdminContext && role != null && role != MemberRole.member)
+                              BoxyArtIndicator(
+                                label: role!.displayName,
+                                dotColor: theme.colorScheme.primary,
+                                hasHorizontalMargin: false,
+                              ),
+                          ],
+                        ),
                       ),
                     ],
                   ),

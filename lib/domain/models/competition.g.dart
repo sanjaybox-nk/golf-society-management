@@ -66,11 +66,16 @@ _CompetitionRules _$CompetitionRulesFromJson(Map<String, dynamic> json) =>
       teamHandicapMethod: $enumDecodeNullable(
               _$TeamHandicapMethodEnumMap, json['teamHandicapMethod']) ??
           TeamHandicapMethod.whs,
-      separateGuests: json['separateGuests'] as bool?,
       oomExcludedRoundIds: (json['oomExcludedRoundIds'] as List<dynamic>?)
               ?.map((e) => e as String)
               .toList() ??
           const [],
+      tournamentFormat: $enumDecodeNullable(
+              _$TournamentFormatEnumMap, json['tournamentFormat']) ??
+          TournamentFormat.knockout,
+      seedingLogic:
+          $enumDecodeNullable(_$SeedingLogicEnumMap, json['seedingLogic']) ??
+              SeedingLogic.random,
     );
 
 Map<String, dynamic> _$CompetitionRulesToJson(_CompetitionRules instance) =>
@@ -99,8 +104,9 @@ Map<String, dynamic> _$CompetitionRulesToJson(_CompetitionRules instance) =>
       'useMixedTeeAdjustment': instance.useMixedTeeAdjustment,
       'teamHandicapMethod':
           _$TeamHandicapMethodEnumMap[instance.teamHandicapMethod]!,
-      'separateGuests': instance.separateGuests,
       'oomExcludedRoundIds': instance.oomExcludedRoundIds,
+      'tournamentFormat': _$TournamentFormatEnumMap[instance.tournamentFormat]!,
+      'seedingLogic': _$SeedingLogicEnumMap[instance.seedingLogic]!,
     };
 
 const _$CompetitionFormatEnumMap = {
@@ -120,6 +126,7 @@ const _$CompetitionSubtypeEnumMap = {
   CompetitionSubtype.foursomes: 'foursomes',
   CompetitionSubtype.ryderCup: 'ryderCup',
   CompetitionSubtype.teamMatchPlay: 'teamMatchPlay',
+  CompetitionSubtype.matchPlaySeason: 'matchPlaySeason',
 };
 
 const _$CompetitionModeEnumMap = {
@@ -152,6 +159,17 @@ const _$TeamHandicapMethodEnumMap = {
   TeamHandicapMethod.whs: 'whs',
   TeamHandicapMethod.average: 'average',
   TeamHandicapMethod.sum: 'sum',
+};
+
+const _$TournamentFormatEnumMap = {
+  TournamentFormat.knockout: 'knockout',
+  TournamentFormat.divisions: 'divisions',
+};
+
+const _$SeedingLogicEnumMap = {
+  SeedingLogic.random: 'random',
+  SeedingLogic.seeded: 'seeded',
+  SeedingLogic.ranking: 'ranking',
 };
 
 _Competition _$CompetitionFromJson(Map<String, dynamic> json) => _Competition(

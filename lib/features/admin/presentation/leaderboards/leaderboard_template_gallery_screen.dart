@@ -4,6 +4,7 @@ import 'package:golf_society/domain/models/leaderboard_config.dart';
 import 'package:golf_society/design_system/design_system.dart';
 import '../../../../features/events/presentation/events_provider.dart';
 import 'package:uuid/uuid.dart';
+import 'widgets/leaderboard_shared_widgets.dart';
 
 class LeaderboardTemplateGalleryScreen extends ConsumerWidget {
   final LeaderboardType type;
@@ -25,8 +26,8 @@ class LeaderboardTemplateGalleryScreen extends ConsumerWidget {
     final templatesAsync = ref.watch(leaderboardTemplatesRepositoryProvider).watchTemplates();
 
     return HeadlessScaffold(
-      title: typeName,
-      subtitle: isPicker ? 'Add to season' : 'Create from template',
+      title: '$typeName Library',
+      subtitle: isPicker ? 'Assign to current season' : 'Manage format blueprints',
       titleSuffix: BoxyArtPill.committee(label: 'ADMIN'),
       actions: const [],
       showBack: true,
@@ -44,16 +45,56 @@ class LeaderboardTemplateGalleryScreen extends ConsumerWidget {
               if (!isPicker)
                 StaggeredEntrance(
                   index: 0,
-                  child: _buildGalleryCard(
-                    context,
-                    title: 'Start Blank',
-                    subtitle: 'Create a new $typeName from scratch',
-                    icon: Icons.add_circle_outline_rounded,
-                    isPrimary: true,
-                    onTap: () {
-                      context.push('/admin/settings/leaderboards/create/${type.name}');
-                    },
-                  ),
+                  child: Padding(
+                    padding: EdgeInsets.only(bottom: spacing?.cardToCard ?? AppSpacing.standard),
+                        child: BoxyArtCard(
+                          onTap: () {
+                            context.push('/admin/settings/leaderboards/create/${type.name}');
+                          },
+                          child: Row(
+                            children: [
+                              BoxyArtIconBadge(
+                                icon: _getFormatIcon(type),
+                                color: _getFormatColor(type),
+                                isTinted: true,
+                                size: 44,
+                                iconSize: 22,
+                                useCircle: false, 
+                              ),
+                              const SizedBox(width: AppSpacing.lg),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'START BLANK',
+                                      style: AppTypography.labelStrong.copyWith(
+                                        letterSpacing: 1.0,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      'Create a new $typeName from scratch',
+                                      style: AppTypography.caption.copyWith(
+                                        color: theme.brightness == Brightness.dark 
+                                            ? AppColors.dark200 
+                                            : AppColors.dark400,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Icon(
+                                Icons.add_rounded, 
+                                color: theme.brightness == Brightness.dark 
+                                    ? AppColors.dark400 
+                                    : AppColors.dark200, 
+                                size: AppShapes.iconMd,
+                              ),
+                            ],
+                          ),
+                        ),
+                    ),
                 ),
 
               StreamBuilder<List<LeaderboardConfig>>(
@@ -104,7 +145,7 @@ class LeaderboardTemplateGalleryScreen extends ConsumerWidget {
       background: Container(
         decoration: BoxDecoration(
           color: AppColors.coral500,
-          borderRadius: AppShapes.x2l,
+          borderRadius: AppShapes.xl,
         ),
         alignment: Alignment.centerRight,
         padding: const EdgeInsets.only(right: AppSpacing.x2l),
@@ -130,15 +171,16 @@ class LeaderboardTemplateGalleryScreen extends ConsumerWidget {
           const SnackBar(content: Text("Template deleted"), duration: Duration(seconds: 2)),
         );
       },
-      child: _buildGalleryCard(
-        context,
-        title: template.name,
-        subtitle: 'Custom Template', 
-        icon: _getFormatIcon(type),
-        iconColor: _getFormatColor(type),
+      child: LeaderboardRulesCard(
+        config: template,
+        showChevron: true,
         onTap: () {
           if (isPicker) {
-             final newConfig = template.copyWith(id: const Uuid().v4());
+             // Create a season-bound instance from the blueprint
+             final newConfig = template.copyWith(
+               id: const Uuid().v4(),
+               scope: LeaderboardScope.seasonOnly,
+             );
              context.pop(newConfig);
           } else {
             context.push(
@@ -147,12 +189,6 @@ class LeaderboardTemplateGalleryScreen extends ConsumerWidget {
             );
           }
         },
-        onChevronTap: !isPicker ? () {
-           context.push(
-              '/admin/settings/leaderboards/edit/${template.id}',
-              extra: template
-            );
-        } : null,
       ),
     );
   }
@@ -190,75 +226,5 @@ class LeaderboardTemplateGalleryScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildGalleryCard(
-    BuildContext context, {
-    required String title,
-    required String subtitle,
-    required IconData icon,
-    required VoidCallback onTap,
-    VoidCallback? onChevronTap,
-    bool isPrimary = false,
-    Color? iconColor,
-    List<Widget>? badges,
-  }) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    final effectiveColor = iconColor ?? (isPrimary ? AppColors.lime500 : (isDark ? AppColors.dark300 : AppColors.dark400));
-    
-    return BoxyArtCard(
-      onTap: onTap,
-      padding: const EdgeInsets.all(AppSpacing.xl),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              // Design 4.x: Square 44px Icon Badge
-              BoxyArtIconBadge(
-                icon: icon,
-                color: effectiveColor,
-                isTinted: true,
-                size: 44,
-                iconSize: 22,
-                useCircle: false, 
-              ),
-              const SizedBox(width: AppSpacing.lg),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      title.toUpperCase(),
-                      style: AppTypography.labelStrong.copyWith(
-                        color: theme.colorScheme.onSurface,
-                        letterSpacing: 1.0,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      subtitle,
-                      style: AppTypography.caption.copyWith(
-                        color: isDark ? AppColors.dark200 : AppColors.dark400,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Icon(
-                Icons.arrow_forward_ios_rounded, 
-                color: isDark ? AppColors.dark400 : AppColors.dark200, 
-                size: AppShapes.iconXs,
-              ),
-            ],
-          ),
-          if (badges != null && badges.isNotEmpty) ...[
-            const SizedBox(height: AppSpacing.lg),
-            Wrap(spacing: 0, runSpacing: 8, children: badges),
-          ],
-        ],
-      ),
-    );
-  }
 }
 

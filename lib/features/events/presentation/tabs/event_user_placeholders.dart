@@ -72,6 +72,7 @@ class EventGroupingUserTab extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final spacing = Theme.of(context).extension<AppSpacingTokens>();
     final eventsAsync = ref.watch(eventsProvider);
     final membersAsync = ref.watch(allMembersProvider);
     final compAsync = ref.watch(competitionDetailProvider(eventId));
@@ -126,14 +127,14 @@ class EventGroupingUserTab extends ConsumerWidget {
           ],
           slivers: [
             SliverToBoxAdapter(
-              child: Transform.translate(
-                offset: const Offset(0, -16.0),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
-                  child: _FieldHubToggle(),
-                ),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+                child: _FieldHubToggle(),
               ),
             ),
+            // Standardized rhythm (tabToContent)
+            SliverToBoxAdapter(child: SizedBox(height: spacing?.tabToContent ?? AppSpacing.tabToContent)),
+            
             if (ref.watch(eventFieldTabProvider) == 0)
               // Registrations View (Entries)
               SliverPadding(
@@ -173,7 +174,12 @@ class EventGroupingUserTab extends ConsumerWidget {
                 )
               else
                 SliverPadding(
-                   padding: const EdgeInsets.fromLTRB(AppSpacing.xl, 0, AppSpacing.xl, AppSpacing.pageBottom),
+                   padding: EdgeInsets.fromLTRB(
+                     AppSpacing.xl, 
+                     0, 
+                     AppSpacing.xl, 
+                     AppSpacing.pageBottom,
+                   ),
                    sliver: SliverList(
                       delegate: SliverChildBuilderDelegate(
                          (context, index) {
@@ -183,8 +189,8 @@ class EventGroupingUserTab extends ConsumerWidget {
                             final history = events.where((e) => e.seasonId == event.seasonId && e.date.isBefore(event.date)).toList();
                             final comp = compAsync.value;
                             
-                            // Authoritative score/PHC data from central engine
-                            final scoringData = ref.watch(eventScoringControllerProvider(eventId));
+                             final scoringData = ref.watch(eventScoringControllerProvider(eventId));
+                             final computedEntries = { for (var e in scoringData.leaderboard) e.entryId : e };
                              final Map<String, String> scoreMap = { for (var s in scoringData.individualScores) s.playerId : s.result.label };
                              final Map<String, int> phcMap = { for (var s in scoringData.individualScores) s.playerId : s.playingHandicap.round() };
                              final Map<String, String> thruMap = { for (var s in scoringData.individualScores) if (s.thruLabel != null) s.playerId : s.thruLabel! };
@@ -206,7 +212,7 @@ class EventGroupingUserTab extends ConsumerWidget {
                                   rules: comp?.rules,
                                   courseConfig: event.courseConfig,
                                   isAdmin: false,
-                                  isScoreMode: false,
+                                  isScoreMode: true,
                                   scoreMap: scoreMap,
                                   phcMap: phcMap,
                                   hcMap: { for (var s in scoringData.individualScores) s.playerId : s.handicapIndex },
@@ -216,6 +222,8 @@ class EventGroupingUserTab extends ConsumerWidget {
                                    statusMap: statusMap,
                                    winnerMap: winnerMap,
                                    showScoring: event.isGroupingPublished, // Surface results once groups are public
+                                   computedEntries: computedEntries,
+                                   matches: event.matches,
                                 ),
                             );
                          },
@@ -295,6 +303,7 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
 
   @override
   Widget build(BuildContext context) {
+    final spacing = Theme.of(context).extension<AppSpacingTokens>();
     final eventsAsync = ref.watch(eventsProvider);
     final compAsync = ref.watch(competitionDetailProvider(widget.eventId));
     final scoringData = ref.watch(eventScoringControllerProvider(widget.eventId));
@@ -413,7 +422,7 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
                 ),
               ],
               pinnedBottom: _buildPinnedScoring(event, comp, scoringData, effectiveRules),
-              pinnedBottomPadding: AppSpacing.md,
+              pinnedBottomPadding: AppSpacing.lg,
               slivers: [
                 if (event.matches.isNotEmpty)
                   SliverToBoxAdapter(
@@ -425,7 +434,8 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
                       ),
                     ),
                   ),
-                const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.xs)),
+                // Standardized rhythm (tabToContent)
+                SliverToBoxAdapter(child: SizedBox(height: spacing?.tabToContent ?? AppSpacing.tabToContent)),
                 SliverPadding(
                   padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
                   sliver: SliverToBoxAdapter(
@@ -941,9 +951,9 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
               // 2. Handicap Info (Right)
               Row(
                 children: [
-                  BoxyArtPill.hc(label: _formatHcp(displayBaseHcp)),
-                  const SizedBox(width: AppSpacing.xs),
-                  BoxyArtPill.phc(context: context, label: '$displayPlayingHcp${hasSocietyCutActual ? '*' : ''}'),
+                  BoxyArtIndicator.hc(label: _formatHcp(displayBaseHcp)),
+                  const SizedBox(width: AppSpacing.md),
+                  BoxyArtIndicator.phc(context: context, label: '$displayPlayingHcp${hasSocietyCutActual ? '*' : ''}'),
                 ],
               ),
             ],
@@ -1741,6 +1751,7 @@ class TournamentScoresUserTab extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final spacing = Theme.of(context).extension<AppSpacingTokens>();
     final eventsAsync = ref.watch(eventsProvider);
     final compAsync = ref.watch(competitionDetailProvider(eventId));
     final currentTab = ref.watch(eventScoresHubTabProvider);
@@ -1766,11 +1777,14 @@ class TournamentScoresUserTab extends ConsumerWidget {
 
               slivers: [
                 SliverPadding(
-                  padding: const EdgeInsets.only(left: AppSpacing.xl, right: AppSpacing.xl, bottom: AppSpacing.md),
+                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
                   sliver: SliverToBoxAdapter(
                     child: _ScoresHubToggle(event: event),
                   ),
                 ),
+                // Standardized rhythm (tabToContent)
+                SliverToBoxAdapter(child: SizedBox(height: spacing?.tabToContent ?? AppSpacing.tabToContent)),
+                
                 SliverPadding(
                   padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
                   sliver: SliverToBoxAdapter(
@@ -2091,14 +2105,19 @@ class GroupScoresViewState extends ConsumerState<GroupScoresView> {
         }
     }
 
+    final isMatchPlay = widget.rules.format == CompetitionFormat.matchPlay;
+
     return Column(
       children: [
-        if (podiumEntries.isNotEmpty)
+        if (podiumEntries.isNotEmpty && !isMatchPlay)
           GroupingPodiumHeader(
             entries: podiumEntries,
             onTap: _scrollToGroup,
           ),
-        const BoxyArtSectionTitle(title: 'Group Scores'),
+        BoxyArtSectionTitle(
+          title: isMatchPlay ? 'Matches' : 'Group Scores',
+          followsCard: true,
+        ),
         ListView.builder(
           padding: EdgeInsets.zero,
           shrinkWrap: true,
@@ -2128,8 +2147,12 @@ class GroupScoresViewState extends ConsumerState<GroupScoresView> {
                 hcMap: hcMap,
                 statusMap: statusMap,
                 matchPlayMode: widget.rules.format == CompetitionFormat.matchPlay || widget.rules.subtype == CompetitionSubtype.fourball,
+                matches: widget.event.matches,
                 betterBallMap: betterBallMap,
                 groupIndex: index,
+                showScoring: true,
+                computedEntries: { for (var e in data.leaderboard) e.entryId : e },
+                computedGroupResults: { for (var g in data.groupRankings) g.groupIndex : g },
               ),
             );
           },

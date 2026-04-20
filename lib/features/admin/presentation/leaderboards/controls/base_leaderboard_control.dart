@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
 import 'package:golf_society/design_system/design_system.dart';
+import 'package:golf_society/domain/models/leaderboard_config.dart';
 
 /// Shared Design 4.x helper methods for all leaderboard controls.
 /// Mirrors the [BaseCompetitionControl] pattern so the two families stay in sync.
@@ -15,49 +15,61 @@ mixin BaseLeaderboardControlMixin<T extends StatefulWidget> on State<T> {
     return Container(
       width: double.infinity,
       margin: const EdgeInsets.only(top: AppSpacing.x2l),
-      padding: const EdgeInsets.all(AppSpacing.lg),
+      padding: const EdgeInsets.all(AppSpacing.xl),
       decoration: BoxDecoration(
         color: Theme.of(context)
             .colorScheme
             .primary
-            .withValues(alpha: AppColors.opacityLow),
+            .withValues(alpha: isDarkMode ? 0.08 : 0.05),
         borderRadius: AppShapes.md,
+        border: Border.all(
+          color: Theme.of(context)
+              .colorScheme
+              .primary
+              .withValues(alpha: isDarkMode ? 0.15 : 0.1),
+          width: 1,
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: rows.expand((r) => [
-          buildInfoRow(r.$1, r.$2),
-          if (r != rows.last) const SizedBox(height: AppSpacing.sm),
+          buildInfoRow(r.$1, r.$2, isLast: r == rows.last),
+          if (r != rows.last) const SizedBox(height: AppSpacing.md),
         ]).toList(),
       ),
     );
   }
 
   /// Single label + description row inside an info card.
-  Widget buildInfoRow(String label, String value, {bool isBold = false}) {
+  Widget buildInfoRow(String label, String value, {bool isBold = false, bool isLast = false}) {
     final theme = Theme.of(context);
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         SizedBox(
-          width: 90,
-          child: Text(
-            label.toUpperCase(),
-            style: AppTypography.micro.copyWith(
-              fontWeight: AppTypography.weightBold,
-              color: theme.colorScheme.primary,
+          width: 80,
+          child: Padding(
+            padding: const EdgeInsets.only(top: 2),
+            child: Text(
+              label.toUpperCase(),
+              style: AppTypography.micro.copyWith(
+                fontWeight: AppTypography.weightBlack,
+                color: theme.colorScheme.primary,
+                letterSpacing: 1.2,
+              ),
             ),
           ),
         ),
+        const SizedBox(width: AppSpacing.md),
         Expanded(
           child: Text(
             value,
             style: AppTypography.label.copyWith(
-              height: 1.3,
+              height: 1.4,
               fontWeight: isBold
                   ? AppTypography.weightBold
                   : AppTypography.weightRegular,
-              color: theme.textTheme.bodyMedium?.color,
+              color: isDarkMode ? AppColors.dark100 : AppColors.dark700,
             ),
           ),
         ),
@@ -224,6 +236,36 @@ mixin BaseLeaderboardControlMixin<T extends StatefulWidget> on State<T> {
         isSecondary: true,
         icon: icon,
       ),
+    );
+  }
+
+  /// Shared scope selector for filtering events (Season vs Invitational).
+  Widget buildScopeSelector({
+    required LeaderboardScope value,
+    required ValueChanged<LeaderboardScope?> onChanged,
+  }) {
+    final description = switch (value) {
+      LeaderboardScope.seasonOnly => 'Only counts Standard Season events.',
+      LeaderboardScope.invitationalsOnly => 'Only counts Invitational / Non-Season events.',
+      LeaderboardScope.global => 'Counts ALL events in the season date range.',
+    };
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        BoxyArtDropdownField<LeaderboardScope>(
+          label: 'Event Scope',
+          value: value,
+          items: LeaderboardScope.values
+              .map((v) => DropdownMenuItem(
+                    value: v,
+                    child: Text(formatEnum(v.name)),
+                  ))
+              .toList(),
+          onChanged: onChanged,
+        ),
+        buildInfoBubble(description),
+      ],
     );
   }
 }

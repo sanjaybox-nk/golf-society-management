@@ -18,8 +18,8 @@ class LeaderboardTypeSelectionScreen extends StatelessWidget {
     final spacing = theme.extension<AppSpacingTokens>();
 
     return HeadlessScaffold(
-      title: 'Leaderboard Formats',
-      subtitle: (isTemplate || isPicker) ? 'Select a type to continue' : 'Standard Season Formats',
+      title: 'Leaderboard Control',
+      subtitle: 'Manage standing blueprints by format',
       titleSuffix: BoxyArtPill.committee(label: 'ADMIN'),
       actions: const [],
       showBack: true,

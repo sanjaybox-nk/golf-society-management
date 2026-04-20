@@ -51,6 +51,7 @@ abstract class SocietyConfig with _$SocietyConfig {
     @Default(16.0) double cardToCardSpacing, // [NEW] Vertical rhythm: Card to Card (List Density)
     @Default(16.0) double cardVerticalPadding, // [NEW] Global Card Internal Padding
     @Default(16.0) double cardHorizontalPadding, // [NEW] Global Card Internal Padding
+    @Default(16.0) double tabToContentSpacing, // [NEW] Vertical rhythm: Tab to Content
     @Default(0x264ADE80) int iconBadgeFillColor, // [NEW] Icon Badge BG (15% Emerald)
     @Default(0xFF4ADE80) int iconBadgeIconColor, // [NEW] Icon Badge Glyph (Emerald)
     @Default(1.0) double iconBadgeOpacity, // [NEW] Icon Badge background opacity

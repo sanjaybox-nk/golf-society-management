@@ -12,6 +12,8 @@ import '../../../../domain/models/course_config.dart';
 import '../../../matchplay/domain/match_play_calculator.dart';
 import '../../../matchplay/domain/match_definition.dart';
 import 'course_info_card.dart';
+import '../../../competitions/data/scorecard_repository.dart';
+import '../../../competitions/presentation/competitions_provider.dart';
 
 
 class ScorecardModal {
@@ -243,9 +245,27 @@ class ScorecardModal {
                                     Row(
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
+                                        if (isAdmin && actualScorecard.status == ScorecardStatus.submitted)
+                                          IconButton(
+                                            icon: const Icon(Icons.check_circle_outline_rounded, color: AppColors.lime500),
+                                            tooltip: 'Approve Scorecard',
+                                            onPressed: () async {
+                                              final confirmed = await showBoxyArtDialog<bool>(
+                                                context: context,
+                                                title: 'Approve Scorecard?',
+                                                message: 'Mark this scorecard as Reviewed.',
+                                                confirmText: 'Approve',
+                                              );
+                                              if (confirmed == true) {
+                                                await ref.read(scorecardRepositoryProvider).updateScorecardStatus(actualScorecard.id, ScorecardStatus.reviewed);
+                                                if (context.mounted) Navigator.pop(context);
+                                              }
+                                            },
+                                          ),
                                         if (isAdmin)
                                           IconButton(
                                             icon: const Icon(Icons.edit_note_rounded, color: AppColors.lime500),
+                                            tooltip: 'Edit Scores',
                                             onPressed: () {
                                               Navigator.pop(context); // Close modal
                                               context.push('/admin/events/manage/${Uri.encodeComponent(event.id)}/scores/${entry.entryId}');
@@ -286,10 +306,10 @@ class ScorecardModal {
                                 const SizedBox(height: AppSpacing.sm),
                                 Row(
                                   children: [
-                                    BoxyArtPill.hc(label: entry.handicapIndex.toStringAsFixed(1)),
+                                    BoxyArtIndicator.hc(label: entry.handicapIndex.toStringAsFixed(1)),
                                     if (entry.playingHandicap != null) ...[
-                                      const SizedBox(width: AppSpacing.xs),
-                                      BoxyArtPill.phc(context: context, label: '${entry.playingHandicap}'),
+                                      const SizedBox(width: AppSpacing.md),
+                                      BoxyArtIndicator.phc(context: context, label: '${entry.playingHandicap}'),
                                     ],
                                     const Spacer(),
                                     BoxyArtPill.tee(label: teeName, teeColor: teeColor),

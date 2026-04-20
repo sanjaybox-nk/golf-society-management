@@ -15,7 +15,9 @@ class _MatchPlayControlState extends BaseCompetitionControlState<MatchPlayContro
   double _allowance = 1.0;
   int _handicapCap = 28;
   TieBreakMethod _tieBreak = TieBreakMethod.playoff;
-  bool? _separateGuests;
+  TournamentFormat _tournamentFormat = TournamentFormat.knockout;
+  SeedingLogic _seedingLogic = SeedingLogic.random;
+  CompetitionMode _seasonMode = CompetitionMode.singles;
 
   @override
   CompetitionFormat get format => CompetitionFormat.matchPlay;
@@ -24,18 +26,14 @@ class _MatchPlayControlState extends BaseCompetitionControlState<MatchPlayContro
   void initState() {
     super.initState();
     if (widget.competition != null) {
-      final existingSubtype = widget.competition!.rules.subtype;
-      if (existingSubtype == CompetitionSubtype.none ||
-          existingSubtype == CompetitionSubtype.fourball ||
-          existingSubtype == CompetitionSubtype.foursomes ||
-          existingSubtype == CompetitionSubtype.ryderCup ||
-          existingSubtype == CompetitionSubtype.teamMatchPlay) {
-        _subtype = existingSubtype;
-      }
-      _allowance = widget.competition!.rules.handicapAllowance;
-      _handicapCap = widget.competition!.rules.handicapCap;
-      _tieBreak = widget.competition!.rules.tieBreak;
-      _separateGuests = widget.competition!.rules.separateGuests;
+      final rules = widget.competition!.rules;
+      _subtype = rules.subtype;
+      _allowance = rules.handicapAllowance;
+      _handicapCap = rules.handicapCap;
+      _tieBreak = rules.tieBreak;
+      _tournamentFormat = rules.tournamentFormat;
+      _seedingLogic = rules.seedingLogic;
+      _seasonMode = rules.mode;
     } else {
       _updateDefaultAllowance();
     }
@@ -79,6 +77,7 @@ class _MatchPlayControlState extends BaseCompetitionControlState<MatchPlayContro
                 value: effectiveSubtype,
                 items: const [
                   DropdownMenuItem(value: CompetitionSubtype.none, child: Text('Singles Match Play')),
+                  DropdownMenuItem(value: CompetitionSubtype.matchPlaySeason, child: Text('Season Tournament')),
                   DropdownMenuItem(value: CompetitionSubtype.ryderCup, child: Text('Ryder Cup (Team)')),
                   DropdownMenuItem(value: CompetitionSubtype.teamMatchPlay, child: Text('Team Match Play')),
                 ],
@@ -135,12 +134,47 @@ class _MatchPlayControlState extends BaseCompetitionControlState<MatchPlayContro
             ],
           ),
         ),
-
-        // ── GUEST SETTINGS ────────────────────────────────────
-        buildGuestSettings(
-          separateGuests: _separateGuests,
-          onSeparateChanged: (val) => setState(() => _separateGuests = val),
-        ),
+        const BoxyArtDivider(),
+        if (_subtype == CompetitionSubtype.matchPlaySeason) ...[
+          const BoxyArtSectionTitle(title: 'TOURNAMENT SETTINGS'),
+          BoxyArtCard(
+            padding: const EdgeInsets.all(AppSpacing.xl),
+            child: Column(
+              children: [
+                BoxyArtDropdownField<CompetitionMode>(
+                  label: 'Tournament Mode',
+                  value: _seasonMode,
+                  items: const [
+                    DropdownMenuItem(value: CompetitionMode.singles, child: Text('Singles (1 vs 1)')),
+                    DropdownMenuItem(value: CompetitionMode.pairs, child: Text('Pairs (2 vs 2)')),
+                  ],
+                  onChanged: (val) { if (val != null) setState(() => _seasonMode = val); },
+                ),
+                const BoxyArtDivider(),
+                BoxyArtDropdownField<TournamentFormat>(
+                  label: 'Competitive Structure',
+                  value: _tournamentFormat,
+                  items: const [
+                    DropdownMenuItem(value: TournamentFormat.knockout, child: Text('Knockout Bracket')),
+                    DropdownMenuItem(value: TournamentFormat.divisions, child: Text('Divisions (Round Robin)')),
+                  ],
+                  onChanged: (val) { if (val != null) setState(() => _tournamentFormat = val); },
+                ),
+                const BoxyArtDivider(),
+                BoxyArtDropdownField<SeedingLogic>(
+                  label: 'Seeding Logic',
+                  value: _seedingLogic,
+                  items: const [
+                    DropdownMenuItem(value: SeedingLogic.random, child: Text('Random Draw')),
+                    DropdownMenuItem(value: SeedingLogic.seeded, child: Text('Seeded (By Handicap)')),
+                    DropdownMenuItem(value: SeedingLogic.ranking, child: Text('Merit (By OOM Ranking)')),
+                  ],
+                  onChanged: (val) { if (val != null) setState(() => _seedingLogic = val); },
+                ),
+              ],
+            ),
+          ),
+        ],
       ],
     );
   }
@@ -178,7 +212,8 @@ class _MatchPlayControlState extends BaseCompetitionControlState<MatchPlayContro
 
   @override
   CompetitionRules buildRules() {
-    CompetitionMode mode = CompetitionMode.singles;
+    CompetitionMode mode = _subtype == CompetitionSubtype.matchPlaySeason ? _seasonMode : CompetitionMode.singles;
+
     if (_subtype == CompetitionSubtype.fourball || _subtype == CompetitionSubtype.foursomes) {
       mode = CompetitionMode.pairs;
     } else if (_subtype == CompetitionSubtype.ryderCup || _subtype == CompetitionSubtype.teamMatchPlay) {
@@ -193,7 +228,8 @@ class _MatchPlayControlState extends BaseCompetitionControlState<MatchPlayContro
       handicapCap: _handicapCap,
       tieBreak: _tieBreak,
       holeByHoleRequired: true,
-      separateGuests: _separateGuests,
+      tournamentFormat: _tournamentFormat,
+      seedingLogic: _seedingLogic,
     );
   }
 

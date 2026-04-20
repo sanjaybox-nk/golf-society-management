@@ -105,6 +105,8 @@ class EventFormNotifier extends AsyncNotifier<EventFormState> {
       awards: e.awards,
       notes: e.notes,
       extraCosts: e.extraCosts,
+      separateGuests: e.separateGuests,
+      allowGuests: e.allowGuests,
     );
   }
 
@@ -129,6 +131,7 @@ class EventFormNotifier extends AsyncNotifier<EventFormState> {
   void updateTeeOffInterval(int v) => state = AsyncData(state.value!.copyWith(teeOffInterval: v));
   void updateShowRegistrationButton(bool v) => state = AsyncData(state.value!.copyWith(showRegistrationButton: v));
   void updateIsInvitational(bool v) => state = AsyncData(state.value!.copyWith(isInvitational: v));
+  void updateAllowGuests(bool v) => state = AsyncData(state.value!.copyWith(allowGuests: v));
   
   void updateCourse(Course course) {
     final tee = course.tees.firstOrNull;
@@ -176,6 +179,8 @@ class EventFormNotifier extends AsyncNotifier<EventFormState> {
     }
     state = AsyncData(s.copyWith(oomExcludedRoundIds: excluded));
   }
+
+  void updateSeparateGuests(bool? v) => state = AsyncData(state.value!.copyWith(separateGuests: v));
 
   // Image Picking
   Future<void> pickImage() async {
@@ -403,6 +408,8 @@ class EventFormNotifier extends AsyncNotifier<EventFormState> {
         secondaryTemplateId: s.secondaryTemplateId,
         grouping: updatedGrouping,
         extraCosts: s.extraCosts,
+        separateGuests: s.separateGuests,
+        allowGuests: s.allowGuests,
       );
     }
 
@@ -454,6 +461,8 @@ class EventFormNotifier extends AsyncNotifier<EventFormState> {
       endDate: s.endDate,
       secondaryTemplateId: s.secondaryTemplateId,
       extraCosts: s.extraCosts,
+      separateGuests: s.separateGuests,
+      allowGuests: s.allowGuests,
     );
   }
 

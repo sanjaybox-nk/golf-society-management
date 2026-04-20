@@ -77,6 +77,27 @@ To ensure consistent resolution across scoring and registration:
 
 ---
 
+## Match Play Partner Handshaking
+
+For events configured with **Pairs Match Play** rules, the registration flow includes a specialized **Handshake Partner** logic.
+
+### 1. The Selection Phase
+Members must select a partner from the society roster to complete their registration. This stores two key fields in the database:
+- `partnerId`: The selected partner's unique ID.
+- `partnerName`: The display name of the partner.
+
+### 2. Handshake Reciprocity
+To prevent naming mismatches and "orphan" pairs:
+- If **Member A** selects **Member B**, the system automatically mirrors this on Member B's registration.
+- If **Member B** has not yet registered, Member A's selection creates a "Reserved" placeholder for Member B, ensuring they are linked as a single unit for the Draw Manager.
+
+### 3. Entrant Promotion
+Once both partners are **Confirmed**, the `MatchPlayEntrantService` maps them into a single `MatchPlayEntrant` unit.
+- **Member-Guest Pairings**: If a member registers with a guest, they are mapped as a single unit using the `GUEST_` prefix logic.
+- **Member-Member Pairings**: Mapped as a single unit using both member IDs, ensuring they are seeded together.
+
+---
+
 ## Metrics & Reporting
 
 The Admin Dashboard provides real-time metrics. Here is how they are calculated:

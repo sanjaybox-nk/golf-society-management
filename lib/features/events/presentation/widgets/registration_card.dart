@@ -20,6 +20,9 @@ class RegistrationCard extends ConsumerWidget {
   final bool isGuest;
   final bool isDinnerOnly;
   final bool isAdmin;
+  final double? handicap;
+  final int? playingHandicap;
+  final bool hasSocietyCut;
   
   // Interaction Callbacks
   final Function(RegistrationStatus)? onStatusChanged;
@@ -45,6 +48,9 @@ class RegistrationCard extends ConsumerWidget {
     this.isGuest = false,
     this.isDinnerOnly = false,
     this.isAdmin = false,
+    this.handicap,
+    this.playingHandicap,
+    this.hasSocietyCut = false,
     this.onStatusChanged,
     this.onBuggyToggle,
     this.onBreakfastToggle,
@@ -145,12 +151,14 @@ class RegistrationCard extends ConsumerWidget {
                           Expanded(
                             child: Text(
                               toTitleCase(name),
-                              style: AppTypography.headline,
+                              style: AppTypography.memberName.copyWith(
+                                color: theme.colorScheme.onSurface,
+                              ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
-                          _buildStatusPill(context, config, status),
+                          // Status pill removed from here to move under name
                         ],
                       ),
                       if (isGuest)
@@ -163,6 +171,34 @@ class RegistrationCard extends ConsumerWidget {
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
+                      
+                      // Metadata Row: [Status] [PHC]
+                      Builder(
+                        builder: (context) {
+                          final statusIndicator = _buildStatusPill(context, config, status);
+                          final hasStatus = statusIndicator is! SizedBox;
+                          final hasPHC = playingHandicap != null;
+
+                          if (!hasStatus && !hasPHC) return const SizedBox.shrink();
+
+                          return Padding(
+                            padding: const EdgeInsets.only(top: AppSpacing.xs),
+                            child: Row(
+                              children: [
+                                if (hasStatus) statusIndicator,
+                                if (hasStatus && hasPHC) const SizedBox(width: AppSpacing.md),
+                                if (hasPHC) 
+                                  BoxyArtIndicator.phc(
+                                    context: context,
+                                    label: '$playingHandicap${hasSocietyCut ? '*' : ''}',
+                                    hasHorizontalMargin: false,
+                                    fontSize: 11.0,
+                                  ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
                     ],
                   ),
 
@@ -284,7 +320,12 @@ class RegistrationCard extends ConsumerWidget {
         return const SizedBox.shrink();
     }
 
-    return BoxyArtPill.status(label: text, color: color, hasHorizontalMargin: false);
+    return BoxyArtIndicator(
+      label: text,
+      dotColor: color,
+      hasHorizontalMargin: false,
+      fontSize: 11.0,
+    );
   }
 
 

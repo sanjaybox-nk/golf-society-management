@@ -15,12 +15,16 @@ enum OOMRankingBasis { stableford, gross }
 
 enum ScoringType { accumulative, position }
 
+enum LeaderboardScope { seasonOnly, invitationalsOnly, global }
+
 @freezed
 abstract class LeaderboardConfig with _$LeaderboardConfig {
   const LeaderboardConfig._();
+
   const factory LeaderboardConfig.orderOfMerit({
     required String id,
     required String name,
+    @Default(LeaderboardScope.seasonOnly) LeaderboardScope scope,
     @Default(OOMSource.position) OOMSource source,
     @Default(OOMRankingBasis.stableford) OOMRankingBasis rankingBasis,
     @Default({}) Map<int, int> positionPointsMap,
@@ -31,6 +35,7 @@ abstract class LeaderboardConfig with _$LeaderboardConfig {
   const factory LeaderboardConfig.bestOfSeries({
     required String id,
     required String name,
+    @Default(LeaderboardScope.seasonOnly) LeaderboardScope scope,
     @Default(8) int bestN,
     @Default(BestOfMetric.stableford) BestOfMetric metric,
     @Default(ScoringType.accumulative) ScoringType scoringType,
@@ -42,6 +47,7 @@ abstract class LeaderboardConfig with _$LeaderboardConfig {
   const factory LeaderboardConfig.eclectic({
     required String id,
     required String name,
+    @Default(LeaderboardScope.seasonOnly) LeaderboardScope scope,
     @Default(EclecticMetric.strokes) EclecticMetric metric,
     @Default(0) int handicapPercentage, // e.g., 50% of final handicap
   }) = EclecticConfig;
@@ -49,6 +55,7 @@ abstract class LeaderboardConfig with _$LeaderboardConfig {
   const factory LeaderboardConfig.markerCounter({
     required String id,
     required String name,
+    @Default(LeaderboardScope.seasonOnly) LeaderboardScope scope,
     required Set<MarkerType> targetTypes,
     @Default(HoleFilter.all) HoleFilter holeFilter,
     @Default(MarkerRankingMethod.count) MarkerRankingMethod rankingMethod,

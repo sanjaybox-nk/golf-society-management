@@ -18,6 +18,8 @@ import '../../../events/presentation/widgets/grouping_widgets.dart';
 import '../../../matchplay/domain/match_definition.dart';
 import '../../../matchplay/domain/golf_event_match_extensions.dart';
 import '../../logic/society_cuts_engine.dart';
+import '../../logic/event_scoring_controller.dart';
+import '../../../events/domain/models/processed_event_data.dart';
 
 class EventAdminGroupingScreen extends ConsumerStatefulWidget {
   final String eventId;
@@ -350,45 +352,54 @@ class _EventAdminGroupingScreenState extends ConsumerState<EventAdminGroupingScr
   }
 
   Widget _buildGroupingList(GolfEvent event, Map<String, Member> memberMap, List<GolfEvent> history, AsyncValue<List<Scorecard>> scorecardsAsync, {CompetitionRules? rules, bool useWhs = true}) {
-    return ReorderableListView.builder(
-      onReorder: (oldIndex, newIndex) {
-        setState(() {
-          if (newIndex > oldIndex) newIndex -= 1;
-          final item = _localGroups!.removeAt(oldIndex);
-          _localGroups!.insert(newIndex, item);
-          
-          // Re-index and update tee times if needed
-          _updateGroupIndicesAndTimes(event);
-          _updateDirty(true);
-        });
-      },
-      scrollController: _scrollController,
-      padding: const EdgeInsets.fromLTRB(AppSpacing.xl, AppSpacing.lg, AppSpacing.xl, 100),
-      itemCount: _localGroups!.length,
-      itemBuilder: (context, index) {
-        final group = _localGroups![index];
-        return Padding(
-          key: ValueKey('group_${group.index}_${group.teeTime.millisecondsSinceEpoch}'),
-          padding: const EdgeInsets.only(bottom: AppSpacing.md),
-          child: GroupingCard(
-          group: group,
-          memberMap: memberMap,
-          history: history,
-          totalGroups: _localGroups!.length,
-          rules: rules,
-          courseConfig: event.courseConfig,
-          useWhs: useWhs,
-          isAdmin: true,
-          isLocked: _isLocked ?? false,
-          onMove: _handleMove,
-          onAction: (action, p, g) => _handlePlayerAction(action, p, g),
-          onTapParticipant: _handleParticipantTap,
-          isSelected: (p) => p == _selectedForSwap,
-          matchPlayMode: _matchPlayMode,
-          matches: _localMatches ?? [],
-          scorecardMap: scorecardsAsync.asData?.value != null 
-              ? {for (var s in scorecardsAsync.asData!.value) s.entryId: s}
-              : null,
+        // Fetch Centralized Computed Data
+        final scoringData = ref.watch(eventScoringControllerProvider(widget.eventId));
+        final computedEntries = { for (var e in scoringData.leaderboard) e.entryId: e };
+
+        return ReorderableListView.builder(
+          onReorder: (oldIndex, newIndex) {
+            setState(() {
+              if (newIndex > oldIndex) newIndex -= 1;
+              final item = _localGroups!.removeAt(oldIndex);
+              _localGroups!.insert(newIndex, item);
+              
+              // Re-index and update tee times if needed
+              _updateGroupIndicesAndTimes(event);
+              _updateDirty(true);
+            });
+          },
+          scrollController: _scrollController,
+          padding: const EdgeInsets.fromLTRB(AppSpacing.xl, AppSpacing.lg, AppSpacing.xl, 100),
+          itemCount: _localGroups!.length,
+          itemBuilder: (context, index) {
+            final group = _localGroups![index];
+            return Padding(
+              key: ValueKey('group_${group.index}_${group.teeTime.millisecondsSinceEpoch}'),
+              padding: const EdgeInsets.only(bottom: AppSpacing.md),
+              child: GroupingCard(
+              group: group,
+              memberMap: memberMap,
+              history: history,
+              totalGroups: _localGroups!.length,
+              rules: rules,
+              courseConfig: event.courseConfig,
+              useWhs: useWhs,
+              isAdmin: true,
+              isLocked: _isLocked ?? false,
+              onMove: _handleMove,
+              onAction: (action, p, g) => _handlePlayerAction(action, p, g),
+              onTapParticipant: _handleParticipantTap,
+              isSelected: (p) => p == _selectedForSwap,
+              matchPlayMode: _matchPlayMode,
+              matches: _localMatches ?? [],
+              computedEntries: computedEntries,
+              computedGroupResults: { for (var g in scoringData.groupRankings) g.groupIndex : g },
+              groupIndex: index,
+              scorecardMap: scorecardsAsync.asData?.value != null 
+                  ? {for (var s in scorecardsAsync.asData!.value) s.entryId: s}
+                  : null,
+              isScoreMode: true,
+              showScoring: true,
           emptySlotBuilder: (g) => DragTarget<Map<String, dynamic>>(
             onWillAcceptWithDetails: (details) => _isLocked != true && (details.data['group'] != g || g.players.length < 4),
             onAcceptWithDetails: (details) {

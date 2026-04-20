@@ -17,7 +17,6 @@ class _StablefordControlState extends BaseCompetitionControlState<StablefordCont
   int _roundsCount = 1;
   AggregationMethod _aggregation = AggregationMethod.stablefordSum;
   bool _useMixedTeeAdjustment = false;
-  bool? _separateGuests;
   bool _isGross = false;
   bool _applyCapToIndex = false;
   int _teamBestXCount = 1;
@@ -39,7 +38,6 @@ class _StablefordControlState extends BaseCompetitionControlState<StablefordCont
       _applyCapToIndex = widget.competition!.rules.applyCapToIndex;
       _teamBestXCount = widget.competition!.rules.teamBestXCount;
       _useMixedTeeAdjustment = widget.competition!.rules.useMixedTeeAdjustment;
-      _separateGuests = widget.competition!.rules.separateGuests;
     }
   }
 
@@ -149,12 +147,6 @@ class _StablefordControlState extends BaseCompetitionControlState<StablefordCont
             onChanged: (val) { if (val != null) setState(() => _teamBestXCount = val); },
           ),
         ),
-
-        // ── GUEST SETTINGS ────────────────────────────────────
-        buildGuestSettings(
-          separateGuests: _separateGuests,
-          onSeparateChanged: (val) => setState(() => _separateGuests = val),
-        ),
       ],
     );
   }
@@ -174,7 +166,6 @@ class _StablefordControlState extends BaseCompetitionControlState<StablefordCont
       applyCapToIndex: _applyCapToIndex,
       teamBestXCount: _teamBestXCount,
       useMixedTeeAdjustment: _useMixedTeeAdjustment,
-      separateGuests: _separateGuests,
     );
   }
 }

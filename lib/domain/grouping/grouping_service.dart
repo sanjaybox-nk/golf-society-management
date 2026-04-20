@@ -174,24 +174,27 @@ class GroupingService {
     int num4Balls = 0;
     int num3Balls = 0;
     
-    // [FIX] Scramble 3-Man Override
-    // If Scramble & TeamSize=3, we force ALL groups to be max 3 players (3-balls)
+    final isMatchPlay = rules?.format == CompetitionFormat.matchPlay;
     final is3ManScramble = rules?.format == CompetitionFormat.scramble && rules?.teamSize == 3;
-    
+    int num2Balls = 0;
+
     if (is3ManScramble) {
        // Force 3-balls
-       // e.g. 10 players -> 3, 3, 3, 1 (Wait... 1 is not valid)
-       // Standard logic: N = 3 groups.
        num3Balls = (totalPlayers / 3).ceil(); 
        num4Balls = 0;
-       // Note: This might leave the last group with 1 or 2 players if not divisible by 3.
-       // Refinement: If 10 players, we want 3 groups: 4, 3, 3? NO, strict 3-man means we can't have 4.
-       // So 3, 3, 3, 1 is the only math way. 
-       // Admin will have to deal with the remainder manually.
+    } else if (isMatchPlay) {
+       // Match Play: ONLY 2 or 4 players per group. No 3-balls allowed.
+       num4Balls = (totalPlayers / 4).floor();
+       if (totalPlayers % 4 == 2) {
+         num2Balls = 1;
+       } else if (totalPlayers % 4 == 1 || totalPlayers % 4 == 3) {
+         // Fallback if totalPlayers is somehow odd (seeder fix should prevent this)
+         // but for safety, we'll use a 3-ball or 1-ball equivalent and let admin handle it
+         num3Balls = 1;
+         num4Balls = (totalPlayers - 3) ~/ 4;
+       }
     } else {
       // Standard Logic to distribute N into groups of 3 and 4
-      // We want to maximize 4-balls, but must use only 3 or 4.
-      // N = 4x + 3y
       for (int y = 0; y <= totalPlayers / 3; y++) {
         int remaining = totalPlayers - (3 * y);
         if (remaining >= 0 && remaining % 4 == 0) {
@@ -207,14 +210,19 @@ class GroupingService {
     DateTime currentTime = event.teeOffTime ?? DateTime.now();
     int interval = event.teeOffInterval;
 
-    // Start with 3-balls (per user request)
-    for (int i = 0; i < num3Balls; i++) {
+    // Start with 2-balls
+    for (int i = 0; i < num2Balls; i++) {
       groups.add(TeeGroup(index: i, teeTime: currentTime, players: []));
+      currentTime = currentTime.add(Duration(minutes: interval));
+    }
+    // Then 3-balls
+    for (int i = 0; i < num3Balls; i++) {
+      groups.add(TeeGroup(index: num2Balls + i, teeTime: currentTime, players: []));
       currentTime = currentTime.add(Duration(minutes: interval));
     }
     // Then 4-balls
     for (int i = 0; i < num4Balls; i++) {
-      groups.add(TeeGroup(index: num3Balls + i, teeTime: currentTime, players: []));
+      groups.add(TeeGroup(index: num2Balls + num3Balls + i, teeTime: currentTime, players: []));
       currentTime = currentTime.add(Duration(minutes: interval));
     }
 
@@ -238,7 +246,11 @@ class GroupingService {
     for (var slot in slots) {
       // Find a group with enough space
       TeeGroup? target;
-      int maxGroupSize(int index) => index < num3Balls ? 3 : 4;
+      int maxGroupSize(int index) {
+        if (index < num2Balls) return 2;
+        if (index < num2Balls + num3Balls) return 3;
+        return 4;
+      }
 
       for (var group in groups) {
           if (group.players.length + slot.players.length <= maxGroupSize(group.index)) {

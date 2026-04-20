@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:collection/collection.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:golf_society/domain/models/golf_event.dart';
 import 'package:golf_society/domain/models/season.dart';
@@ -69,6 +70,12 @@ final activeSeasonProvider = Provider<AsyncValue<Season?>>((ref) {
       return null;
     }
   });
+});
+
+// Specific Season Provider
+final seasonByIdProvider = Provider.family<AsyncValue<Season?>, String>((ref, id) {
+  final seasonsAsync = ref.watch(seasonsProvider);
+  return seasonsAsync.whenData((seasons) => seasons.firstWhereOrNull((s) => s.id == id));
 });
 
 // 2. Main Events Stream (Published + Completed for members)

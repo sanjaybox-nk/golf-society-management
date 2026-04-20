@@ -161,6 +161,8 @@ abstract class GolfEvent with _$GolfEvent {
     @Default([]) List<EventExtraCost> extraCosts,
     @Default(0.0) double charityPot,
     String? groupingStrategy, // [NEW] Per event grouping logic override
+    bool? separateGuests, // [NEW] null=auto, true=separate, false=merge
+    @Default(true) bool allowGuests, // [NEW] Explicitly enable/disable guest participation
   }) = _GolfEvent;
 
   bool get isClosed => status == EventStatus.completed || status == EventStatus.cancelled;

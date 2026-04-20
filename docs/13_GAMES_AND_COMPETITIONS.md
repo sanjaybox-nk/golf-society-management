@@ -22,7 +22,7 @@ The primary driver of the scoring logic.
 | **Stableford** | None, Gross Stableford | Points based on score relative to par. |
 | **Stroke Play** | None | Traditional medal play (gross or net). |
 | **Max Score** | None | Stroke play with a cap per hole (e.g., Net Double Bogey). The UI enforces this cap during entry. |
-| **Match Play** | Knockout, League | Head-to-head competition. Uses a consolidated calculation engine for total parity. |
+| **Match Play** | Knockout, League, matchPlaySeason | Head-to-head competition. Brackets/Divisions managed via specialized feature module. |
 | **Scramble** | Texas, Florida | Team-based "best ball" scramble. Supports Stroke Play or Stableford as an `underlyingFormat`. |
 | **Pairs** | Fourball, Foursomes | Partner-based formats. Fourball shows individual scores per player with better-ball aggregate per pair in the footer. |
 
@@ -83,21 +83,28 @@ A shared mixin (`controls/base_leaderboard_control.dart`) provides all controls 
 - Marker chips: Selected state uses `theme.colorScheme.primary` with `AppColors.pureWhite` label (was hardcoded `AppColors.lime500`)
 - Save button: `backgroundColor: Theme.of(context).primaryColor` + dynamic title (`'Create leaderboard'` vs `'Save changes'`)
 
-## 4. Seasonal Standings Hub
-Introduced in Feb 2026, the Standings Hub provides a premium home for long-term competition.
+## 4. Seasonal Standings Hub & Spoke
+Introduced in early 2026 and modernized in April 2026, the Standings Hub provides a premium home for long-term competition using a discoverable **Hub & Spoke** architecture.
 
-### 4.1 Admin Oversight
+### 4.1 Hub Design (Design 4.x)
+Members access the hub via `Locker -> Season Standings`.
+- **Peeking Header**: Uses the premium Design 4.x "Peeking" title pattern, where the season name and standings year are integrated into a high-fidelity header transition.
+- **Discoverable Menu**: Leaderboards (OoM, Eclectic, etc.) are presented as interactive cards with standardized `BoxyArtIconBadge` icons.
+- **Live Leader Info**: Each card displays the current 1st place player and their total points, with a specific "YOU" highlight if the authenticated member is the leader.
+
+### 4.2 High-Fidelity Detail View (Spoke)
+Tapping a hub card navigates to the specific leaderboard detail screen (`SeasonLeaderboardDetailScreen`).
+- **Premium Podium**: Visual highlights for the top 3 players (Gold/Silver/Bronze) featuring high-fidelity avatar rings and rank badges.
+- **Branded Stage**: A dedicated "Stage" component at the podium base provides visual depth and thematic anchoring.
+- **Standing List**: A tight, data-dense list of the entire field featuring tokenized borders and personal best indicators for the current member.
+- **Summary Sheets**: Tapping a player row opens a deep-dive performance sheet showing rounds played, handicap trajectory, and best round metrics.
+
+### 4.3 Admin Oversight
 Admins manage seasonal standings via a centralized **SEASON** tab in the Leaderboards section.
-- **Multiple Formats**: Admins can track OOM, Eclectic, and Birdie Tree standings simultaneously.
-- **Quick Setup**: Direct access to configuration builders for each seasonal format.
+- **Multiple Formats**: Track OoM, Eclectic, and Birdie Tree standings simultaneously.
+- **Action Bolt**: Quick access to calculation overrides and refresh triggers via the standardized administrative "Bolt" menu.
 
-### 4.2 Member Experience
-Members access the hub via `Locker -> Season Standings`, featuring:
-- **Podium View**: Visual highlights for the top 3 players (Gold/Silver/Bronze).
-- **Personal Context**: Immediate identification of the member's rank and trajectory on the home screen.
-- **Format-Specific Breakdowns**: Tapping a player row opens a deep-dive sheet (e.g., viewing an Eclectic Best Scorecard or Birdie count).
-
-## 4. Enhanced Event Leaderboard
+## 5. Enhanced Event Leaderboard
 
 The event leaderboard provides a real-time view of the field with advanced presentation features:
 
@@ -146,7 +153,7 @@ All player entries on the leaderboard and admin scoring lists share a unified "U
     - **Scoring Impact**: Cuts are subtracted from the player's calculated Playing Handicap (PHC) across all supported formats (Stableford, Medal, etc.).
     - **Dynamic Sync**: Saving cuts automatically triggers a recalculation of any snapshotted group handicaps on the tee sheet to maintain absolute data consistency.
 
-## 5. UI Flow
+## 6. UI Flow
 
 ### Selecting a Format
 Admins are presented with a simplified selector:
@@ -160,7 +167,7 @@ Admins are presented with a simplified selector:
 -   **Start Blank**: Create a one-off custom rule set for a special event.
 -   **Save as Template**: Any custom game can be saved back to the library for future use.
 
-## 4. Event Customization Workflow
+## 7. Event Customization Workflow
 
 When an Admin creates or edits an event, the system ensures a seamless flow for game rules. Starting in April 2026, the editor (Competition Builder) has been modernized to adhere to **Design 4.x (True Minimal)** standards.
 
@@ -183,7 +190,7 @@ Admins can select a template and immediately click **CUSTOMIZE RULES**. If the e
 - **Cache Invalidation**: After saving changes in the Competition Builder, the system explicitly invalidates the `competitionDetailProvider` cache to ensure the Event Form reflects the new rules immediately.
 - **Compute Versioning**: Any customized game (not a template) has its `computeVersion` incremented to flag it as "Customized" in the UI.
 
-## 5. Rule Visualization (Hardened Competition Card)
+## 8. Rule Visualization (Hardened Competition Card)
 
 The rules are presented via the `CompetitionRulesCard`, which uses a **Hardened Standalone Architecture** (introduced Feb 2026) to ensure absolute visual parity and visibility across all sections of the app (Template Gallery, Event Detail, and Admin Form).
 
@@ -203,23 +210,27 @@ The rules are presented via the `CompetitionRulesCard`, which uses a **Hardened 
 - **Duration**: [Multi-day] (Teal) – Shown if the event spans multiple days.
 - **Specifics**: Only shown if non-default (e.g., [4 Drives], [Cap: 18], [Single Best], [Stableford Base]).
 
-## 6. Matchplay Engine
+## 9. Match Play Management (Design 4.x)
 
-The Matchplay module is designed to be "Event-Aware" but not "Event-Dependent."
+Introduced in April 2026, the Match Play management system provides a professional-grade administrative workflow for specialized tournaments.
 
-### 6.1 Independent Mode (Knockouts)
-Matchplay competitions can run as separate entities with their own lifecycle.
-- **Visual Bracket**: Automated tree-view for knockout rounds.
-- **Deadline Management**: Rounds have fixed deadlines; results can be entered manually as a final score (e.g., "3 & 2").
+### 9.1 The Draw Manager
+The **Draw Manager** is an "Event-Aware" hub that centralizes the creation of bracket and division structures directly from event data.
+- **Contextual Initialization**: When launched from an event, it automatically syncs confirmed registrations and inherits competition rules (Singles/Pairs, Seeding Logic).
+- **Entrant Mapping**: Utilizes the `MatchPlayEntrantService` to convert event registrations into competition units (including Partner Handshakes).
 
-### 6.3 Secondary Games (Overlays)
-Administrators can configure a **Secondary Game** (typically a Match Play overlay) to run alongside the primary competition.
-- **Support**: Available when the primary format is Stableford or Stroke Play.
-- **Independence**: The secondary game has its own `CompetitionRules` and can be customized independently of the main event rules.
-- **UI Card**: Displays as a secondary configuration card in the Event Form with its own badge-based summary.
-- **Player View**: Players see rules for both the primary and secondary games in their event details tab.
+### 9.2 Competition Modes
+- **Standalone Knockouts**: Automated tree-view for single-elimination rounds with fixed deadlines.
+- **Divisions (Round Robin)**: Grouping logic for league-style play where winners advance to a final knockout bracket.
+- **Secondary Game Overlays**: Match Play can run as a secondary competition overlaying a standard Stableford/Stroke Play event.
 
-## 7. Scoring Status Lifecycle
+### 9.3 Visual Bracket Tree
+Members interact with the tournament via a high-fidelity, scrollable bracket featuring:
+- **Stroke Transparency**: Automated display of handicap adjustments (strokes received) per match.
+- **Live Scoring**: Derived "Holes Up" status synced from live scorecards.
+- **Interactive Navigation**: Seamless switching between Division standings and the Knockout bracket.
+
+## 10. Scoring Status Lifecycle
 
 To ensure data integrity, Admin's have granular control over when scoring is available.
 
@@ -229,7 +240,7 @@ To ensure data integrity, Admin's have granular control over when scoring is ava
 | **Live (Manual)** | `scoringForceActive` | Scoring is enabled regardless of the current date. |
 | **Locked** | `isScoringLocked` | Scorecards are read-only; final positions are frozen. |
 
-## 9. Scoring Accuracy & Verification
+## 11. Scoring Accuracy & Verification
 
 The scoring engine is hardened against edge cases to ensure 100% accuracy and absolute parity across all user and admin views. All competitive logic follows a **"Calculate Once, Display Everywhere"** architecture.
 

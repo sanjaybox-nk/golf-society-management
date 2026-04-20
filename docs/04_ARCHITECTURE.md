@@ -25,10 +25,10 @@ lib/
 │   │   ├── settings/       # Branding, sponsorship, roles
 │   │   ├── surveys/        # Survey admin (editor, results)
 │   │   └── treasury/       # Debt ledger, fines, charity
-│   └── matchplay/          # Specialized Match Play Engine
+│   └── matchplay/          # Specialized Match Play Module (Standalone logic)
 ├── domain/                 # Core Business Logic & Entities
 │   ├── models/             # Shared Data Models (Freezed + JsonSerializable)
-│   ├── scoring/            # Scoring calculators (Stableford, Medal, Matchplay)
+│   ├── scoring/            # Centralized Scoring Engine (Stableford, Medal, Scramble)
 │   └── handicap/           # WHS / PHC calculation logic
 ├── services/               # Infrastructure (Auth, Firebase, Storage, Seeding)
 ├── utils/                  # Helper functions (Dates, Strings, Currency)

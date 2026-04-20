@@ -49,6 +49,8 @@ _SocietyConfig _$SocietyConfigFromJson(Map<String, dynamic> json) =>
           (json['cardVerticalPadding'] as num?)?.toDouble() ?? 16.0,
       cardHorizontalPadding:
           (json['cardHorizontalPadding'] as num?)?.toDouble() ?? 16.0,
+      tabToContentSpacing:
+          (json['tabToContentSpacing'] as num?)?.toDouble() ?? 16.0,
       iconBadgeFillColor:
           (json['iconBadgeFillColor'] as num?)?.toInt() ?? 0x264ADE80,
       iconBadgeIconColor:
@@ -146,6 +148,7 @@ Map<String, dynamic> _$SocietyConfigToJson(_SocietyConfig instance) =>
       'cardToCardSpacing': instance.cardToCardSpacing,
       'cardVerticalPadding': instance.cardVerticalPadding,
       'cardHorizontalPadding': instance.cardHorizontalPadding,
+      'tabToContentSpacing': instance.tabToContentSpacing,
       'iconBadgeFillColor': instance.iconBadgeFillColor,
       'iconBadgeIconColor': instance.iconBadgeIconColor,
       'iconBadgeOpacity': instance.iconBadgeOpacity,

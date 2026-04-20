@@ -74,7 +74,7 @@ class AppTheme {
           cardToLabel: config.cardToLabelSpacing,
           cardToCard: config.cardToCardSpacing,
           cardVerticalPadding: config.cardVerticalPadding,
-          cardHorizontalPadding: config.cardHorizontalPadding,
+          cardHorizontalPadding: config.cardHorizontalPadding, tabToContent: config.tabToContentSpacing,
         ),
       ],
 
@@ -194,12 +194,21 @@ class AppTheme {
         space: 1,
       ),
 
-      // Components - Dialog
       dialogTheme: DialogThemeData(
         backgroundColor: AppColors.dark700,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(config.cardRadius * 1.5)),
         titleTextStyle: AppTypography.displaySubPage.copyWith(color: AppColors.dark60),
         contentTextStyle: AppTypography.body.copyWith(color: AppColors.dark150),
+      ),
+      
+      // Components - SnackBar (v4.x Floating Parity)
+      snackBarTheme: SnackBarThemeData(
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: AppColors.dark900,
+        contentTextStyle: AppTypography.label.copyWith(color: AppColors.dark60),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(config.cardRadius)),
+        insetPadding: const EdgeInsets.only(bottom: 100, left: AppSpacing.xl, right: AppSpacing.xl),
+        elevation: 8,
       ),
     );
   }
@@ -263,7 +272,7 @@ class AppTheme {
           cardToLabel: config.cardToLabelSpacing,
           cardToCard: config.cardToCardSpacing,
           cardVerticalPadding: config.cardVerticalPadding,
-          cardHorizontalPadding: config.cardHorizontalPadding,
+          cardHorizontalPadding: config.cardHorizontalPadding, tabToContent: config.tabToContentSpacing,
         ),
       ],
 
@@ -334,11 +343,20 @@ class AppTheme {
         indicatorSize: TabBarIndicatorSize.label,
       ),
 
-      // Components - Divider
       dividerTheme: const DividerThemeData(
         color: AppColors.lightBorder,
         thickness: 1,
         space: 1,
+      ),
+
+      // Components - SnackBar (v4.x Floating Parity)
+      snackBarTheme: SnackBarThemeData(
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: AppColors.dark950,
+        contentTextStyle: AppTypography.label.copyWith(color: Colors.white),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(config.cardRadius)),
+        insetPadding: const EdgeInsets.only(bottom: 100, left: AppSpacing.xl, right: AppSpacing.xl),
+        elevation: 12,
       ),
     );
   }

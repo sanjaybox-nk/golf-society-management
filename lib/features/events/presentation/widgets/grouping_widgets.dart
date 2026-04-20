@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:golf_society/design_system/design_system.dart';
 import 'package:golf_society/utils/string_utils.dart';
 import 'package:golf_society/domain/models/member.dart';
+import '../../domain/models/processed_event_data.dart';
 import 'package:golf_society/domain/models/golf_event.dart';
 import 'package:golf_society/domain/models/competition.dart';
 import 'package:golf_society/domain/models/scorecard.dart';
@@ -83,8 +84,9 @@ class GroupingPlayerTile extends ConsumerWidget {
   final ScoringStatus scoringStatus;
   final bool hasSocietyCut;
   final bool isStableford;
-  final String? matchSide;
+  final String? matchSide; // [NEW] Side A or B for Match Play
   final int? phcOverride;
+  final bool hasGuestInGroup; // [NEW] Member who brought a guest
 
   const GroupingPlayerTile({
     super.key,
@@ -115,25 +117,26 @@ class GroupingPlayerTile extends ConsumerWidget {
     this.hasGuestInGroup = false,
   });
 
-  final bool hasGuestInGroup; // [NEW] Member who brought a guest
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     // Single Source of Truth: PHC comes from stored grouping data.
     final int displayPhc = phcOverride ?? player.playingHandicap.round();
 
-    // Calculate Variety Color for card accent bar
+    // Calculate Variety Color (Priority: Match Side > Grouping History)
     Color? varietyColor;
-    if (!player.isGuest) {
-      final matches = GroupingService.getTeeTimeVariety(
+    if (matchSide != null) {
+       // Match Play side coloring
+       varietyColor = (matchSide == 'A') ? AppColors.lime600 : AppColors.amber500;
+    } else if (!player.isGuest) {
+      final matchesCount = GroupingService.getTeeTimeVariety(
         player.registrationMemberId,
         group.index,
         totalGroups,
         history,
       );
-      if (matches == 0) {
+      if (matchesCount == 0) {
         varietyColor = AppColors.lime600;
-      } else if (matches == 1) {
+      } else if (matchesCount == 1) {
         varietyColor = AppColors.amber500;
       } else {
         varietyColor = AppColors.coral500;
@@ -144,7 +147,7 @@ class GroupingPlayerTile extends ConsumerWidget {
     final spacing = theme.extension<AppSpacingTokens>();
     final double vPadding = (spacing?.cardVerticalPadding ?? AppSpacing.lg) * 0.8;
     final double hPadding = (spacing?.cardHorizontalPadding ?? AppSpacing.lg) * 0.8;
-    final double cardHeight = vPadding * 4.2; // Adjusted to prevent overflow in compact mode
+    final double cardHeight = vPadding * 4.5; // Standardized with Leaderboard
 
     // Score Text Formatting (v4.0 standardized)
     final bool hasScore = isScoreMode && (scoreDisplay != null && scoreDisplay != '-');
@@ -268,11 +271,12 @@ class GroupingPlayerTile extends ConsumerWidget {
                     runSpacing: 4,
                     crossAxisAlignment: WrapCrossAlignment.center,
                     children: [
-                      BoxyArtPill.hc(
+                      BoxyArtIndicator.hc(
                         label: (handicapIndex ?? player.handicapIndex).toStringAsFixed(1),
                         hasHorizontalMargin: false,
                       ),
-                      BoxyArtPill.phc(
+                      const SizedBox(width: AppSpacing.md),
+                      BoxyArtIndicator.phc(
                         context: context,
                         label: '$displayPhc',
                         hasHorizontalMargin: false,
@@ -334,14 +338,14 @@ class GroupingPlayerTile extends ConsumerWidget {
                               TextSpan(
                                 text: rawScore,
                                 style: AppTypography.displayHeading.copyWith(
-                                  fontSize: 24,
+                                  fontSize: (rawScore.length > 5) ? 18 : 24, // Optimized for verbose match results
                                   fontWeight: AppTypography.weightBlack,
                                   color: theme.colorScheme.primary,
                                   height: 1,
                                   letterSpacing: -0.5,
                                 ),
                               ),
-                              if (isStableford)
+                              if (isStableford && matchSide == null && rawScore.length <= 5 && !rawScore.contains('UP') && !rawScore.contains('DN') && !rawScore.contains('AS') && !rawScore.contains('&'))
                                 TextSpan(
                                   text: ' pts',
                                   style: AppTypography.label.copyWith(
@@ -484,6 +488,8 @@ class GroupingCard extends StatelessWidget {
   final Map<String, ScoringStatus>? statusMap;
   final int? groupIndex;
   final bool showScoring; // [NEW] Master toggle for hiding all scores/winners in organization views
+  final Map<String, ProcessedLeaderboardEntry>? computedEntries; // [NEW] Centralized results lookup
+  final Map<int, ProcessedGroupResult>? computedGroupResults; // [NEW] Centralized group results lookup
 
   const GroupingCard({
     super.key,
@@ -516,29 +522,29 @@ class GroupingCard extends StatelessWidget {
     this.statusMap,
     this.groupIndex,
     this.showScoring = true,
+    this.computedEntries,
+    this.computedGroupResults,
   });
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    // Recalculate Total PHC dynamically to respect capping rules
+    final spacing = Theme.of(context).extension<AppSpacingTokens>();
+    
+    // 1. Calculate Total PHC dynamically
     double displayTotalHandicap = 0;
     if (rules != null) {
       final isScramble = rules!.format == CompetitionFormat.scramble;
       final isFoursomes = rules!.subtype == CompetitionSubtype.foursomes;
 
       if (isScramble || isFoursomes) {
-        // Use Team PHC calculation (Aggregate)
-        final List<double> indices = group.players
-            .map((p) => p.handicapIndex)
-            .toList();
+        final List<double> indices = group.players.map((p) => p.handicapIndex).toList();
         displayTotalHandicap = HandicapCalculator.calculateTeamHandicap(
           individualIndices: indices,
           rules: rules!,
           courseConfig: courseConfig ?? const CourseConfig(),
         ).toDouble();
       } else {
-        // Individual Sum (Singles, Fourball, etc.)
         for (var p in group.players) {
           final id = p.isGuest ? '${p.registrationMemberId}_guest' : p.registrationMemberId;
           final livePhc = phcMap?[id];
@@ -549,108 +555,70 @@ class GroupingCard extends StatelessWidget {
       displayTotalHandicap = group.totalHandicap.roundToDouble();
     }
 
-    // --- Scoring Mode Logic (Winners & Team Total) ---
     final isStableford = rules?.format == CompetitionFormat.stableford;
     final isScramble = rules?.format == CompetitionFormat.scramble;
     final isFourball = rules?.subtype == CompetitionSubtype.fourball;
     final int bestX = rules?.teamBestXCount ?? 2;
-
-
-
-    // [NEW] Relative PHC Map for Match Play formats
-    final Map<String, int> relativePhcMap = phcMap != null
-        ? Map.from(phcMap!)
-        : {};
-
-
-    // 1. Determine Relative PHCs (Subracting min) - ONLY for Match Play
     final isMatchPlay = rules?.format == CompetitionFormat.matchPlay;
+
+    // 2. Relative PHC Map for Match Play
+    final Map<String, int> relativePhcMap = phcMap != null ? Map.from(phcMap!) : {};
     if (isMatchPlay && rules != null) {
       final List<String> playerIds = group.players.map((p) => p.isGuest ? '${p.registrationMemberId}_guest' : p.registrationMemberId).toList();
       final Map<String, double> playerIndices = { for (var p in group.players) (p.isGuest ? '${p.registrationMemberId}_guest' : p.registrationMemberId) : p.handicapIndex };
-      
-      // GroupingCard already has access to courseConfig and rules
       final baseRating = courseConfig?.rating ?? 72.0;
       
       final Map<String, int> centralizedStrokes = MatchPlayCalculator.calculateRelativeStrokes(
         playerIds: playerIds,
         playerIndices: playerIndices,
-        courseConfigs: { for (var id in playerIds) id : courseConfig ?? const CourseConfig() }, // Assuming same config for all in this simplified view
+        courseConfigs: { for (var id in playerIds) id : courseConfig ?? const CourseConfig() },
         rules: rules!,
         baseRating: baseRating,
       );
-      
       relativePhcMap.addAll(centralizedStrokes);
     }
 
-    // 2. Calculate Match Status (Live) - Only for Fourball Match Play
-    MatchResult? matchResult;
-    if (isScoreMode && scorecardMap != null && isMatchPlay) {
-      final team1Ids = group.players
-          .take(2)
-          .map(
-            (p) => p.isGuest
-                ? '${p.registrationMemberId}_guest'
-                : p.registrationMemberId,
-          )
-          .toList();
-      final team2Ids = group.players
-          .skip(2)
-          .take(2)
-          .map(
-            (p) => p.isGuest
-                ? '${p.registrationMemberId}_guest'
-                : p.registrationMemberId,
-          )
-          .toList();
-
-      if (team1Ids.isNotEmpty && team2Ids.isNotEmpty) {
-        final virtualMatch = MatchDefinition(
-          id: 'virtual_${group.index}',
-          type: MatchType.fourball,
-          team1Ids: team1Ids,
-          team2Ids: team2Ids,
-          strokesReceived: relativePhcMap,
-        );
-
-        final groupCards = scorecardMap!.values
-            .where(
-              (s) =>
-                  team1Ids.contains(s.entryId) || team2Ids.contains(s.entryId),
-            )
-            .toList();
-
-        if (groupCards.isNotEmpty) {
-          matchResult = MatchPlayCalculator.calculate(
-            match: virtualMatch,
-            scorecards: groupCards,
-            courseConfig: courseConfig ?? const CourseConfig(),
-            holesToPlay: 18,
-          );
-
+    // 3. Centralized Result Mapping (Unified source of truth)
+    final Map<String, MatchResult> playerMatchResults = {};
+    if (isScoreMode && computedEntries != null) {
+      for (final id in group.players.map((p) => p.isGuest ? '${p.registrationMemberId}_guest' : p.registrationMemberId)) {
+        final entry = computedEntries![id];
+        if (entry != null && entry.isMatch && entry.matchStatus != null) {
+           // Create a lightweight result for display
+           playerMatchResults[id] = MatchResult(
+             matchId: 'centralized',
+             winningTeamIndex: entry.matchScore != null ? (entry.matchScore! > 0 ? 0 : 1) : -1,
+             status: entry.matchStatus!,
+             score: entry.matchScore ?? 0,
+             holeResults: [],
+             holesPlayed: entry.holesPlayed,
+             isFinal: entry.matchStatus!.startsWith('WIN') || entry.matchStatus!.startsWith('LOSS') || entry.matchStatus == 'HALVED',
+           );
         }
       }
     }
 
-    // Split Team Logic (e.g. 2-Man Scramble in a 4-Ball, or any Pairs competition)
-    final bool isSplitTeam =
-        ((isScramble && rules?.teamSize == 2) ||
-            (rules?.mode == CompetitionMode.pairs) ||
-            isFourball) &&
-        group.players.length >= 3;
+    // 4. Split Team Logic (CENTRALIZED)
+    final bool isSplitTeam = ((isScramble && rules?.teamSize == 2) || (rules?.mode == CompetitionMode.pairs) || isFourball) && group.players.length >= 3;
+    final groupResult = (groupIndex != null && computedGroupResults != null) 
+        ? computedGroupResults![groupIndex!] 
+        : null;
+    
+    int teamAScore = groupResult?.sideAScore ?? 0;
+    int teamBScore = groupResult?.sideBScore ?? 0;
+    String? teamALabel = groupResult?.sideALabel;
+    String? teamBLabel = groupResult?.sideBLabel;
+    
+    bool hasScoreA = teamALabel != null && teamALabel != '-';
+    bool hasScoreB = teamBLabel != null && teamBLabel != '-';
 
-    int teamAScore = 0;
-    int teamBScore = 0;
-    bool hasScoreA = false;
-    bool hasScoreB = false;
-
-    final Map<String, bool> internalWinnerMap = winnerMap != null
-        ? Map.from(winnerMap!)
-        : {};
+    // 5. Scoring & Winners
+    final Map<String, bool> internalWinnerMap = winnerMap != null ? Map.from(winnerMap!) : {};
+    final Map<String, String?> playerScoresForTies = {};
+    final Map<String, int> scoreFreq = {};
 
     if (isScoreMode && scoreMap != null) {
       final List<MapEntry<String, int>> playerScores = [];
-
       int parseScore(String text) {
         if (text == 'E') return 0;
         final clean = text.replaceAll('+', '').trim();
@@ -659,140 +627,45 @@ class GroupingCard extends StatelessWidget {
 
       for (int i = 0; i < group.players.length; i++) {
         final p = group.players[i];
-        final id = p.isGuest
-            ? '${p.registrationMemberId}_guest'
-            : p.registrationMemberId;
+        final id = p.isGuest ? '${p.registrationMemberId}_guest' : p.registrationMemberId;
         final scoreText = scoreMap![id];
 
         if (scoreText != null && scoreText != '-') {
           final score = parseScore(scoreText);
           playerScores.add(MapEntry(id, score));
-
-          // Split Team Accumulation (Fourball/Pairs)
-          if (isSplitTeam) {
-            if (i < 2) {
-              // Team A
-              if (isScramble) {
-                teamAScore = score; // Shared score
-              } else {
-                teamAScore = hasScoreA ? math.max(teamAScore, score) : score;
-              }
-              hasScoreA = true;
-            } else {
-              // Team B
-              if (isScramble) {
-                teamBScore = score;
-              } else {
-                teamBScore = hasScoreB ? math.max(teamBScore, score) : score;
-              }
-              hasScoreB = true;
-            }
-          }
+          playerScoresForTies[id] = scoreText;
+          scoreFreq[scoreText] = (scoreFreq[scoreText] ?? 0) + 1;
         }
       }
 
-      if (playerScores.isNotEmpty) {
-        if (!isScramble) {
-          // Find individual winners in group (Standard Format)
-          // If Stableford: Higher is better. If Strokeplay/MaxScore: Lower is better.
-          if (isStableford) {
-            playerScores.sort((a, b) => b.value.compareTo(a.value));
-          } else {
-            // Strokeplay/MaxScore/etc: Lower is better
-            playerScores.sort((a, b) => a.value.compareTo(b.value));
-          }
-
-          // Only mark the first one as the winner to avoid showing multiple trophies in a group
-          if (playerScores.isNotEmpty) {
-            internalWinnerMap[playerScores.first.key] = true;
-          }
-
-          // Calculate Group Total (Best X)
-          final count = playerScores.length < bestX
-              ? playerScores.length
-              : bestX;
-          for (int i = 0; i < count; i++) {
-
-          }
-        } else if (!isSplitTeam) {
-          // Standard Scramble (One Team)
-          // Score is shared, so just take the first one found
-
+      if (playerScores.isNotEmpty && !isScramble && !isSplitTeam) {
+        if (isStableford) {
+          playerScores.sort((a, b) => b.value.compareTo(a.value));
         } else {
-          // Fourball/Pairs: Use better-ball of side A and B to find winner if needed
-          if (hasScoreA && hasScoreB) {
-            if (isStableford) {
-              if (teamAScore > teamBScore) {
-                for (final p in group.players.take(2)) {
-                  internalWinnerMap[p.isGuest
-                          ? '${p.registrationMemberId}_guest'
-                          : p.registrationMemberId] =
-                      true;
-                }
-              } else if (teamBScore > teamAScore) {
-                for (final p in group.players.skip(2).take(2)) {
-                  internalWinnerMap[p.isGuest
-                          ? '${p.registrationMemberId}_guest'
-                          : p.registrationMemberId] =
-                      true;
-                }
-              }
-            } else {
-              // Stroke/Medal: Lower is better
-              if (teamAScore < teamBScore) {
-                for (final p in group.players.take(2)) {
-                  internalWinnerMap[p.isGuest
-                          ? '${p.registrationMemberId}_guest'
-                          : p.registrationMemberId] =
-                      true;
-                }
-              } else if (teamBScore < teamAScore) {
-                for (final p in group.players.skip(2).take(2)) {
-                  internalWinnerMap[p.isGuest
-                          ? '${p.registrationMemberId}_guest'
-                          : p.registrationMemberId] =
-                      true;
-                }
-              }
-            }
-          }
+          playerScores.sort((a, b) => a.value.compareTo(b.value));
         }
+        if (playerScores.isNotEmpty) internalWinnerMap[playerScores.first.key] = true;
       }
     }
 
-    final spacing = Theme.of(context).extension<AppSpacingTokens>();
-
-    // --- PRE-CALCULATE TIES FOR DISPLAY ---
-    final Map<String, String?> playerScoresForTies = {};
-    final Map<String, int> scoreFreq = {};
-    for (var p in group.players) {
-      final id = p.isGuest ? '${p.registrationMemberId}_guest' : p.registrationMemberId;
-      final score = scoreMap?[id];
-      if (score != null && score != '-') {
-        playerScoresForTies[id] = score;
-        scoreFreq[score] = (scoreFreq[score] ?? 0) + 1;
-      }
-    }
-
-    // --- PRE-CALCULATE GROUP SCORING ---
-    // Reuse existing isStableford and bestX defined above
+    // 6. Group Total
     int groupTotalCount = 0;
     if (showScoring && isScoreMode && scoreMap != null) {
-      final List<int> groupScores = [];
+      final List<int> groupTotalScores = [];
       for (var p in group.players) {
         final id = p.isGuest ? '${p.registrationMemberId}_guest' : p.registrationMemberId;
         final s = scoreMap![id];
         if (s != null && s != '-') {
           final val = int.tryParse(s);
-          if (val != null) groupScores.add(val);
+          if (val != null) groupTotalScores.add(val);
         }
       }
-      if (groupScores.isNotEmpty) {
-        if (bestX < groupScores.length) {
-          groupScores.sort((a, b) => b.compareTo(a));
-          groupTotalCount = groupScores.take(bestX).fold(0, (sum, val) => sum + val);
+      if (groupTotalScores.isNotEmpty) {
+        if (bestX < groupTotalScores.length) {
+          groupTotalScores.sort((a, b) => b.compareTo(a));
+          groupTotalCount = groupTotalScores.take(bestX).fold(0, (sum, val) => sum + val);
         } else {
-          groupTotalCount = groupScores.fold(0, (sum, val) => sum + val);
+          groupTotalCount = groupTotalScores.fold(0, (sum, val) => sum + val);
         }
       }
     }
@@ -802,279 +675,311 @@ class GroupingCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Group ${group.index + 1}',
+                style: AppTypography.displaySection.copyWith(
+                  color: isDark ? AppColors.pureWhite : AppColors.dark900,
+                  fontWeight: AppTypography.weightExtraBold,
+                  fontSize: AppTypography.sizeLargeBody,
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: 6),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.primary,
+                  borderRadius: AppShapes.xl,
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.access_time_filled_rounded, size: AppShapes.iconXs, color: AppColors.pureWhite),
+                    const SizedBox(width: 6),
+                    Text(_formatTime(context, group.teeTime), style: AppTypography.label.copyWith(color: AppColors.pureWhite)),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: spacing?.labelToCard ?? AppSpacing.md),
+          // 7. Render Players (Match Play aware reordering)
+          ...() {
+            final List<Widget> children = [];
+            final List<TeeGroupParticipant> players = List.from(group.players);
+            
+            // Reordering for Match Play Forced Adjacency
+            if (isMatchPlay || matchPlayMode || matches.isNotEmpty) {
+              final List<TeeGroupParticipant> ordered = [];
+              final Set<String> processedIds = {};
+              
+              for (final match in (matches ?? [])) {
+                final allMatchIds = [...match.team1Ids, ...match.team2Ids];
+                // Check if this match belongs to this group
+                bool matchInGroup = false;
+                for (var p in players) {
+                  final pid = p.isGuest ? '${p.registrationMemberId}_guest' : p.registrationMemberId;
+                  if (allMatchIds.contains(pid) || allMatchIds.contains(p.registrationMemberId)) {
+                    matchInGroup = true;
+                    break;
+                  }
+                }
+                
+                if (matchInGroup) {
+                  final List<TeeGroupParticipant> team1 = [];
+                  final List<TeeGroupParticipant> team2 = [];
+                  
+                  for (var p in players) {
+                    final pid = p.isGuest ? '${p.registrationMemberId}_guest' : p.registrationMemberId;
+                    if (processedIds.contains(pid)) continue;
+                    
+                    if (match.team1Ids.contains(pid) || match.team1Ids.contains(p.registrationMemberId)) {
+                      team1.add(p);
+                    } else if (match.team2Ids.contains(pid) || match.team2Ids.contains(p.registrationMemberId)) {
+                      team2.add(p);
+                    }
+                  }
+                  
+                  if (team1.isNotEmpty || team2.isNotEmpty) {
+                    ordered.addAll(team1);
+                    // Mark as processed
+                    for (var p in team1) processedIds.add(p.isGuest ? '${p.registrationMemberId}_guest' : p.registrationMemberId);
+                    
+                    // Inject VS indicator if both sides exist
+                    if (team1.isNotEmpty && team2.isNotEmpty) {
+                       // We'll mark the index where VS should go later or handle it in the widget list
+                    }
+                    
+                    ordered.addAll(team2);
+                    for (var p in team2) processedIds.add(p.isGuest ? '${p.registrationMemberId}_guest' : p.registrationMemberId);
+                  }
+                }
+              }
+              // Add remaining players
+              for (var p in players) {
+                final pid = p.isGuest ? '${p.registrationMemberId}_guest' : p.registrationMemberId;
+                if (!processedIds.contains(pid)) ordered.add(p);
+              }
+              
+              // Second pass: Create widgets with VS
+              for (int i = 0; i < ordered.length; i++) {
+                final p = ordered[i];
+                final id = p.isGuest ? '${p.registrationMemberId}_guest' : p.registrationMemberId;
+                
+                // Identify match and side
+                String? matchSide;
+                MatchDefinition? currentMatch;
+                for (final match in (matches ?? [])) {
+                  // Robust matching: Check specific participant ID first, then fall back to member ID
+                  final bool isTeam1 = match.team1Ids.contains(id) || (!p.isGuest && match.team1Ids.contains(p.registrationMemberId));
+                  final bool isTeam2 = match.team2Ids.contains(id) || (!p.isGuest && match.team2Ids.contains(p.registrationMemberId));
+
+                  if (isTeam1) { 
+                    matchSide = 'A'; currentMatch = match; break; 
+                  } else if (isTeam2) { 
+                    matchSide = 'B'; currentMatch = match; break; 
+                  }
+                }
+
+                // Render Tile
+                final participantMatchResult = playerMatchResults[id];
+                final bool hasCentralMatchStatus = participantMatchResult != null;
+                final bool effectiveIsMatchPlay = isMatchPlay || matchPlayMode || (matches.isNotEmpty) || hasCentralMatchStatus;
+                
+                String? scoreForTile;
+                if (effectiveIsMatchPlay && hasCentralMatchStatus) {
+                  scoreForTile = participantMatchResult!.status;
+                } else if (showScoring && scoreMap != null && !effectiveIsMatchPlay) {
+                  scoreForTile = scoreMap![id];
+                }
+
+                final bool hasGuestInGroupP = !p.isGuest && group.players.any((other) => other.isGuest && other.registrationMemberId == p.registrationMemberId);
+                
+                final baseTile = GroupingPlayerTile(
+                  player: p,
+                  group: group,
+                  member: memberMap[p.registrationMemberId],
+                  history: history,
+                  totalGroups: totalGroups,
+                  rules: rules,
+                  courseConfig: courseConfig,
+                  useWhs: useWhs,
+                  isAdmin: isAdmin,
+                  isSelected: isSelected?.call(p) ?? false,
+                  onAction: onAction,
+                  isScoreMode: isScoreMode,
+                  scoreDisplay: scoreForTile,
+                  isWinner: showScoring ? (internalWinnerMap[id] ?? false) : false,
+                  thruLabel: showScoring ? (thruMap?[id]) : null,
+                  handicapIndex: hcMap?[id],
+                  scoringStatus: statusMap?[id] ?? ScoringStatus.ok,
+                  onTap: () => onTapParticipant?.call(p, group),
+                  hasSocietyCut: p.hasSocietyCut,
+                  hasGuestInGroup: hasGuestInGroupP,
+                  matchSide: matchSide,
+                );
+
+                children.add(isAdmin ? _wrapWithDraggable(context, p, baseTile) : baseTile);
+
+                // Inject VS Lettering / Separation
+                final bool isMatchPlayOrPairs = matchPlayMode || isMatchPlay || (rules?.mode == CompetitionMode.pairs) || (rules?.format == CompetitionFormat.matchPlay);
+                final bool isLastPlayerSubgroup = i < ordered.length - 1;
+                
+                bool shouldInjectVS = false;
+                final bool isSingles = rules?.mode == CompetitionMode.singles;
+
+                if (matchSide == 'A' && isLastPlayerSubgroup) {
+                   final nextP = ordered[i+1];
+                   final nextId = nextP.isGuest ? '${nextP.registrationMemberId}_guest' : nextP.registrationMemberId;
+                   // If next player is explicitly on Team 2 of the same match
+                   if (currentMatch != null && (currentMatch.team2Ids.contains(nextId) || currentMatch.team2Ids.contains(nextP.registrationMemberId))) {
+                      shouldInjectVS = true;
+                   }
+                } else if (matchSide == null && isMatchPlayOrPairs && isLastPlayerSubgroup && (ordered.length == 2 || ordered.length == 4)) {
+                  // Fallback: Smart split for Match Play groups without formal match definitions
+                  if (isSingles) {
+                    // Singles: Split every 2 players
+                    if (i % 2 == 0) shouldInjectVS = true;
+                  } else {
+                    // Pairs: Split exactly in half
+                    if (i == (ordered.length ~/ 2 - 1)) shouldInjectVS = true;
+                  }
+                }
+
+                if (shouldInjectVS) {
+                    children.add(
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm), 
+                        child: Row(
+                          children: [
+                            Expanded(child: Divider(color: (isDark ? AppColors.pureWhite : AppColors.dark900).withValues(alpha: 0.1), thickness: 1)),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+                              child: Text(
+                                'VS',
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: AppTypography.weightBlack,
+                                  color: (isDark ? AppColors.pureWhite : AppColors.dark900).withValues(alpha: 0.5),
+                                  letterSpacing: 4.0,
+                                ),
+                              ),
+                            ),
+                            Expanded(child: Divider(color: (isDark ? AppColors.pureWhite : AppColors.dark900).withValues(alpha: 0.1), thickness: 1)),
+                          ],
+                        ),
+                      ),
+                    );
+                } else if (isLastPlayerSubgroup) {
+                    // Standard spacing between teammates or non-match-play groups
+                    children.add(SizedBox(height: spacing?.labelToCard ?? AppSpacing.md));
+                }
+              }
+            } else {
+              // Legacy Flat List / Split Team Logic
+              for (int index = 0; index < group.players.length; index++) {
+                final p = group.players[index];
+                final id = p.isGuest ? '${p.registrationMemberId}_guest' : p.registrationMemberId;
+                
+                final baseTile = GroupingPlayerTile(
+                  player: p,
+                  group: group,
+                  member: memberMap[p.registrationMemberId],
+                  history: history,
+                  totalGroups: totalGroups,
+                  rules: rules,
+                  courseConfig: courseConfig,
+                  useWhs: useWhs,
+                  isAdmin: isAdmin,
+                  isSelected: isSelected?.call(p) ?? false,
+                  onAction: onAction,
+                  isScoreMode: isScoreMode,
+                  scoreDisplay: (showScoring && scoreMap != null && !matchPlayMode && !isMatchPlay) ? scoreMap![id] : null,
+                  isWinner: showScoring ? (internalWinnerMap[id] ?? false) : false,
+                  thruLabel: showScoring ? (thruMap?[id]) : null,
+                  handicapIndex: hcMap?[id],
+                  scoringStatus: statusMap?[id] ?? ScoringStatus.ok,
+                  onTap: () => onTapParticipant?.call(p, group),
+                  hasSocietyCut: p.hasSocietyCut,
+                  hasGuestInGroup: !p.isGuest && group.players.any((other) => other.isGuest && other.registrationMemberId == p.registrationMemberId),
+                );
+
+                Widget playerWidget = isAdmin ? _wrapWithDraggable(context, p, baseTile) : baseTile;
+
+                if (isSplitTeam && index == 1) {
+                  children.add(Column(mainAxisSize: MainAxisSize.min, children: [
+                    playerWidget,
+                    if (showScoring && isScoreMode && hasScoreA)
+                      Padding(
+                        padding: const EdgeInsets.only(top: AppSpacing.sm),
+                        child: Align(
+                          alignment: Alignment.centerRight,
+                          child: Text(
+                            'SIDE A: $teamALabel',
+                            style: AppTypography.label.copyWith(color: AppColors.lime600, fontWeight: AppTypography.weightExtraBold, fontSize: 10),
+                          ),
+                        ),
+                      ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
+                      child: Row(children: [
+                        Expanded(child: Divider(color: AppColors.dark400, height: 1)),
+                        Padding(padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm), child: Text('VS', style: TextStyle(fontSize: AppTypography.sizeCaption, fontWeight: AppTypography.weightBold, color: Colors.black.withValues(alpha: 0.54)))),
+                        Expanded(child: Divider(color: AppColors.dark400, height: 1)),
+                      ]),
+                    ),
+                  ]));
+                } else if (isSplitTeam && index == 3 && showScoring && isScoreMode && hasScoreB) {
+                   children.add(Column(mainAxisSize: MainAxisSize.min, children: [
+                     playerWidget,
+                     Padding(
+                       padding: const EdgeInsets.only(top: AppSpacing.sm),
+                       child: Align(
+                         alignment: Alignment.centerRight,
+                         child: Text(
+                           'SIDE B: $teamBLabel',
+                           style: AppTypography.label.copyWith(color: AppColors.amber500, fontWeight: AppTypography.weightExtraBold, fontSize: 10),
+                         ),
+                       ),
+                     ),
+                   ]));
+                } else {
+                  children.add(Column(mainAxisSize: MainAxisSize.min, children: [
+                    playerWidget,
+                    if (index != group.players.length - 1) SizedBox(height: spacing?.labelToCard ?? AppSpacing.md),
+                  ]));
+                }
+              }
+            }
+            return children;
+          }(),
+          if (isAdmin && group.players.length < 4) emptySlotBuilder?.call(group) ?? const SizedBox.shrink(),
+          SizedBox(height: spacing?.cardToCard ?? AppSpacing.md),
           Padding(
             padding: EdgeInsets.zero,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  'Group ${group.index + 1}',
-                  style: AppTypography.displaySection.copyWith(
-                    color: isDark ? AppColors.pureWhite : AppColors.dark900,
-                    fontWeight: AppTypography.weightExtraBold,
-                    fontSize: AppTypography.sizeLargeBody, // Standardized 4.x token
+                if (showScoring && isScoreMode && groupTotalCount > 0)
+                  Text(
+                    isScramble ? 'Team Score: $groupTotalCount${isStableford ? ' pts' : ''}' : 'Group (Best $bestX): $groupTotalCount${isStableford ? ' pts' : ''}',
+                    style: AppTypography.label.copyWith(color: Theme.of(context).colorScheme.primary, fontWeight: AppTypography.weightExtraBold, fontSize: 12, letterSpacing: -0.2),
                   ),
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.md,
-                    vertical: 6,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.primary,
-                    borderRadius: AppShapes.xl,
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(
-                        Icons.access_time_filled_rounded,
-                        size: AppShapes.iconXs,
-                        color: AppColors.pureWhite,
-                      ),
-                      const SizedBox(width: 6),
-                      Text(
-                        _formatTime(context, group.teeTime),
-                        style: AppTypography.label.copyWith(
-                          color: AppColors.pureWhite,
-                          letterSpacing: 0.1,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+                const Spacer(),
+                if (isFourball)
+                  Text(rules?.format == CompetitionFormat.matchPlay ? 'Match Play (Rel)' : 'Fourball (Pairs)', style: AppTypography.label.copyWith(color: isDark ? AppColors.dark100 : AppColors.dark900, fontWeight: AppTypography.weightBold, fontSize: 12, letterSpacing: -0.2))
+                else if (isScramble)
+                  BoxyArtPill.phc(context: context, label: 'Team: ${displayTotalHandicap.toInt()}', hasHorizontalMargin: false)
+                else
+                  BoxyArtPill.phc(context: context, label: 'Total: ${displayTotalHandicap.toInt()}', hasHorizontalMargin: false),
               ],
             ),
           ),
-          SizedBox(height: spacing?.labelToCard ?? AppSpacing.md),
-
-
-            // --- PLAYERS LIST ---
-            ...group.players.asMap().entries.map((entry) {
-              final index = entry.key;
-              final p = entry.value;
-
-              // Check if this player is a member who HAS a guest in this group
-
-              final id = p.isGuest
-                  ? '${p.registrationMemberId}_guest'
-                  : p.registrationMemberId;
-
-              String? matchSide;
-              if (matchPlayMode) {
-                // 1. Check for explicit Match Definition link
-                for (final match in matches) {
-                  if (match.team1Ids.contains(p.registrationMemberId)) {
-                    matchSide = 'A';
-                    break;
-                  } else if (match.team2Ids.contains(p.registrationMemberId)) {
-                    matchSide = 'B';
-                    break;
-                  }
-                }
-                // 2. Fallback to Group Index (0-1 = A, 2-3 = B) for Fourball match play
-                if (matchSide == null && isFourball) {
-                  matchSide = index < 2 ? 'A' : 'B';
-                }
-              }
-
-              String? scoreForTile;
-              if (matchPlayMode && matchResult != null && matchSide != null) {
-                final int lead = matchSide == 'A'
-                    ? matchResult.score
-                    : -matchResult.score;
-                final int remaining = 18 - matchResult.holesPlayed;
-
-                if (lead > 0) {
-                  if (lead > remaining) {
-                    scoreForTile = remaining > 0
-                        ? 'WIN $lead & $remaining'
-                        : 'WIN $lead UP';
-                  } else {
-                    scoreForTile = '$lead UP';
-                  }
-                } else if (lead < 0) {
-                  final dn = lead.abs();
-                  if (dn > remaining) {
-                    scoreForTile = remaining > 0
-                        ? 'LOSS $dn & $remaining'
-                        : 'LOSS $dn DN';
-                  } else {
-                    scoreForTile = '$dn DN';
-                  }
-                } else {
-                  scoreForTile = remaining == 0 ? 'HALVED' : 'AS';
-                }
-              } else {
-                scoreForTile = scoreMap?[id];
-              }
-
-              // Calculate Tie-Break Differentiator (Only if tied)
-              String? relevantTieBreak;
-              if (showScoring && isScoreMode) {
-                final score = playerScoresForTies[id];
-                if (score != null && (scoreFreq[score] ?? 0) > 1) {
-                  // Find all players with this same score in THIS group
-                  final tiedIds = playerScoresForTies.entries
-                      .where((e) => e.value == score)
-                      .map((e) => e.key)
-                      .toList();
-                  
-                  if (tiedIds.length > 1) {
-                    final labels = tiedIds.map((tid) => tieBreakMap?[tid] ?? '').toList();
-                    final segmentsList = labels.map((l) => l.split(RegExp(r'[,•]')).map((s) => s.trim()).toList()).toList();
-                    
-                    int diffIndex = 0;
-                    int maxSegs = segmentsList.isEmpty ? 0 : segmentsList[0].length;
-                    
-                    for (int i = 0; i < maxSegs; i++) {
-                      final currentVals = segmentsList.map((list) => i < list.length ? list[i] : '').toSet();
-                      if (currentVals.length > 1) {
-                        diffIndex = i;
-                        break;
-                      }
-                    }
-                    
-                    final mySegments = (tieBreakMap?[id] ?? '').split(RegExp(r'[,•]')).map((s) => s.trim()).toList();
-                    if (diffIndex < mySegments.length) {
-                      relevantTieBreak = mySegments[diffIndex];
-                    }
-                  }
-                }
-              }
-
-              final ScoringStatus status = statusMap?[id] ?? ScoringStatus.ok;
-
-              // Check if this player is a member who HAS a guest in this group
-              final bool hasGuestInGroup = !p.isGuest && group.players.any((other) => 
-                  other.isGuest && other.registrationMemberId == p.registrationMemberId);
-
-              final baseTile = GroupingPlayerTile(
-                player: p,
-                group: group,
-                member: memberMap[p.registrationMemberId],
-                history: history,
-                totalGroups: totalGroups,
-                rules: rules,
-                courseConfig: courseConfig,
-                useWhs: useWhs,
-                isAdmin: isAdmin,
-                isSelected: isSelected?.call(p) ?? false,
-                onAction: onAction,
-                isScoreMode: isScoreMode,
-                scoreDisplay: showScoring ? scoreForTile : null,
-                isWinner: showScoring ? (internalWinnerMap[id] ?? false) : false,
-                tieBreakLabel: relevantTieBreak,
-                thruLabel: showScoring ? (thruMap?[id]) : null,
-                handicapIndex: hcMap?[id],
-                scoringStatus: status,
-                onTap: () => onTapParticipant?.call(p, group),
-                hasSocietyCut: p.hasSocietyCut,
-                hasGuestInGroup: hasGuestInGroup,
-              );
-
-              final isLast = index == group.players.length - 1;
-              final playerWidget = isAdmin
-                  ? _wrapWithDraggable(context, p, baseTile)
-                  : baseTile;
-
-              // [SPLIT TEAM DIVIDER]
-              // If Split Team mode, add a divider after the 2nd player (index 1)
-              if (isSplitTeam && index == 1) {
-                return Column(
-                  children: [
-                    playerWidget,
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: AppSpacing.md), // Increased for split team separation
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: Divider(
-                              color: AppColors.dark400,
-                              height: 1,
-                            ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
-                            child: Text(
-                              'VS',
-                              style: TextStyle(
-                                fontSize: AppTypography.sizeCaption,
-                                fontWeight: AppTypography.weightBold,
-                                color: Colors.black.withValues(alpha: 0.54),
-                              ),
-                            ),
-                          ),
-                          Expanded(
-                            child: Divider(
-                              color: AppColors.dark400,
-                              height: 1,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                );
-              }
-
-              return Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  playerWidget,
-                  if (!isLast) SizedBox(height: spacing?.labelToCard ?? AppSpacing.md),
-                ],
-              );
-            }),
-
-            if (isAdmin && group.players.length < 4)
-              emptySlotBuilder?.call(group) ?? const SizedBox.shrink(),
-            
-            // Sub-Card Spacing
-            SizedBox(height: spacing?.cardToCard ?? AppSpacing.md),
-            
-            // Footer (Group Total & PHC)
-            Padding(
-              padding: EdgeInsets.zero,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  if (showScoring && isScoreMode && groupTotalCount > 0)
-                    Text(
-                      isScramble
-                          ? 'Team Score: $groupTotalCount${isStableford ? ' pts' : ''}'
-                          : 'Group (Best $bestX): $groupTotalCount${isStableford ? ' pts' : ''}',
-                      style: AppTypography.label.copyWith(
-                        color: Theme.of(context).colorScheme.primary,
-                        fontWeight: AppTypography.weightExtraBold,
-                        fontSize: 12,
-                        letterSpacing: -0.2,
-                      ),
-                    ),
-                  const Spacer(),
-                  if (isFourball)
-                    Text(
-                      rules?.format == CompetitionFormat.matchPlay
-                          ? 'Match Play (Rel)'
-                          : 'Fourball (Pairs)',
-                      style: AppTypography.label.copyWith(
-                        color: isDark ? AppColors.dark100 : AppColors.dark900,
-                        fontWeight: AppTypography.weightBold,
-                        fontSize: 12,
-                        letterSpacing: -0.2,
-                      ),
-                    )
-                  else if (isScramble)
-                    BoxyArtPill.phc(context: context, label: 'Team: ${displayTotalHandicap.toInt()}', hasHorizontalMargin: false)
-                  else
-                    BoxyArtPill.phc(context: context, label: 'Total: ${displayTotalHandicap.toInt()}', hasHorizontalMargin: false),
-                ],
-              ),
-            ),
-          ],
-        ),
-      );
-    }
+        ],
+      ),
+    );
+  }
 
 
 

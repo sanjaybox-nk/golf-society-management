@@ -354,9 +354,10 @@ mixin _$CompetitionRules {
   int get teamSize;
   bool get useMixedTeeAdjustment; // [NEW] C.R. - Par adjustment
   TeamHandicapMethod get teamHandicapMethod; // [NEW] Scramble method
-  bool?
-      get separateGuests; // [UPDATED] Single override: null = follow society, true = separate, false = hidden
-  List<String> get oomExcludedRoundIds;
+  List<String>
+      get oomExcludedRoundIds; // [NEW] Rounds to skip in season standings
+  TournamentFormat get tournamentFormat;
+  SeedingLogic get seedingLogic;
 
   /// Create a copy of CompetitionRules
   /// with the given fields replaced by the non-null parameter values.
@@ -416,10 +417,12 @@ mixin _$CompetitionRules {
                 other.useMixedTeeAdjustment == useMixedTeeAdjustment) &&
             (identical(other.teamHandicapMethod, teamHandicapMethod) ||
                 other.teamHandicapMethod == teamHandicapMethod) &&
-            (identical(other.separateGuests, separateGuests) ||
-                other.separateGuests == separateGuests) &&
             const DeepCollectionEquality()
-                .equals(other.oomExcludedRoundIds, oomExcludedRoundIds));
+                .equals(other.oomExcludedRoundIds, oomExcludedRoundIds) &&
+            (identical(other.tournamentFormat, tournamentFormat) ||
+                other.tournamentFormat == tournamentFormat) &&
+            (identical(other.seedingLogic, seedingLogic) ||
+                other.seedingLogic == seedingLogic));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -448,13 +451,14 @@ mixin _$CompetitionRules {
         teamSize,
         useMixedTeeAdjustment,
         teamHandicapMethod,
-        separateGuests,
-        const DeepCollectionEquality().hash(oomExcludedRoundIds)
+        const DeepCollectionEquality().hash(oomExcludedRoundIds),
+        tournamentFormat,
+        seedingLogic
       ]);
 
   @override
   String toString() {
-    return 'CompetitionRules(format: $format, subtype: $subtype, mode: $mode, handicapMode: $handicapMode, handicapCap: $handicapCap, handicapAllowance: $handicapAllowance, teamHandicapCap: $teamHandicapCap, underlyingFormat: $underlyingFormat, useCourseAllowance: $useCourseAllowance, maxScoreConfig: $maxScoreConfig, roundsCount: $roundsCount, aggregation: $aggregation, tieBreak: $tieBreak, holeByHoleRequired: $holeByHoleRequired, minDrivesPerPlayer: $minDrivesPerPlayer, useWHSScrambleAllowance: $useWHSScrambleAllowance, trackShotAttributions: $trackShotAttributions, applyCapToIndex: $applyCapToIndex, teamBestXCount: $teamBestXCount, teamSize: $teamSize, useMixedTeeAdjustment: $useMixedTeeAdjustment, teamHandicapMethod: $teamHandicapMethod, separateGuests: $separateGuests, oomExcludedRoundIds: $oomExcludedRoundIds)';
+    return 'CompetitionRules(format: $format, subtype: $subtype, mode: $mode, handicapMode: $handicapMode, handicapCap: $handicapCap, handicapAllowance: $handicapAllowance, teamHandicapCap: $teamHandicapCap, underlyingFormat: $underlyingFormat, useCourseAllowance: $useCourseAllowance, maxScoreConfig: $maxScoreConfig, roundsCount: $roundsCount, aggregation: $aggregation, tieBreak: $tieBreak, holeByHoleRequired: $holeByHoleRequired, minDrivesPerPlayer: $minDrivesPerPlayer, useWHSScrambleAllowance: $useWHSScrambleAllowance, trackShotAttributions: $trackShotAttributions, applyCapToIndex: $applyCapToIndex, teamBestXCount: $teamBestXCount, teamSize: $teamSize, useMixedTeeAdjustment: $useMixedTeeAdjustment, teamHandicapMethod: $teamHandicapMethod, oomExcludedRoundIds: $oomExcludedRoundIds, tournamentFormat: $tournamentFormat, seedingLogic: $seedingLogic)';
   }
 }
 
@@ -487,8 +491,9 @@ abstract mixin class $CompetitionRulesCopyWith<$Res> {
       int teamSize,
       bool useMixedTeeAdjustment,
       TeamHandicapMethod teamHandicapMethod,
-      bool? separateGuests,
-      List<String> oomExcludedRoundIds});
+      List<String> oomExcludedRoundIds,
+      TournamentFormat tournamentFormat,
+      SeedingLogic seedingLogic});
 
   $MaxScoreConfigCopyWith<$Res>? get maxScoreConfig;
 }
@@ -528,8 +533,9 @@ class _$CompetitionRulesCopyWithImpl<$Res>
     Object? teamSize = null,
     Object? useMixedTeeAdjustment = null,
     Object? teamHandicapMethod = null,
-    Object? separateGuests = freezed,
     Object? oomExcludedRoundIds = null,
+    Object? tournamentFormat = null,
+    Object? seedingLogic = null,
   }) {
     return _then(_self.copyWith(
       format: null == format
@@ -620,14 +626,18 @@ class _$CompetitionRulesCopyWithImpl<$Res>
           ? _self.teamHandicapMethod
           : teamHandicapMethod // ignore: cast_nullable_to_non_nullable
               as TeamHandicapMethod,
-      separateGuests: freezed == separateGuests
-          ? _self.separateGuests
-          : separateGuests // ignore: cast_nullable_to_non_nullable
-              as bool?,
       oomExcludedRoundIds: null == oomExcludedRoundIds
           ? _self.oomExcludedRoundIds
           : oomExcludedRoundIds // ignore: cast_nullable_to_non_nullable
               as List<String>,
+      tournamentFormat: null == tournamentFormat
+          ? _self.tournamentFormat
+          : tournamentFormat // ignore: cast_nullable_to_non_nullable
+              as TournamentFormat,
+      seedingLogic: null == seedingLogic
+          ? _self.seedingLogic
+          : seedingLogic // ignore: cast_nullable_to_non_nullable
+              as SeedingLogic,
     ));
   }
 
@@ -762,8 +772,9 @@ extension CompetitionRulesPatterns on CompetitionRules {
             int teamSize,
             bool useMixedTeeAdjustment,
             TeamHandicapMethod teamHandicapMethod,
-            bool? separateGuests,
-            List<String> oomExcludedRoundIds)?
+            List<String> oomExcludedRoundIds,
+            TournamentFormat tournamentFormat,
+            SeedingLogic seedingLogic)?
         $default, {
     required TResult orElse(),
   }) {
@@ -793,8 +804,9 @@ extension CompetitionRulesPatterns on CompetitionRules {
             _that.teamSize,
             _that.useMixedTeeAdjustment,
             _that.teamHandicapMethod,
-            _that.separateGuests,
-            _that.oomExcludedRoundIds);
+            _that.oomExcludedRoundIds,
+            _that.tournamentFormat,
+            _that.seedingLogic);
       case _:
         return orElse();
     }
@@ -838,8 +850,9 @@ extension CompetitionRulesPatterns on CompetitionRules {
             int teamSize,
             bool useMixedTeeAdjustment,
             TeamHandicapMethod teamHandicapMethod,
-            bool? separateGuests,
-            List<String> oomExcludedRoundIds)
+            List<String> oomExcludedRoundIds,
+            TournamentFormat tournamentFormat,
+            SeedingLogic seedingLogic)
         $default,
   ) {
     final _that = this;
@@ -868,8 +881,9 @@ extension CompetitionRulesPatterns on CompetitionRules {
             _that.teamSize,
             _that.useMixedTeeAdjustment,
             _that.teamHandicapMethod,
-            _that.separateGuests,
-            _that.oomExcludedRoundIds);
+            _that.oomExcludedRoundIds,
+            _that.tournamentFormat,
+            _that.seedingLogic);
       case _:
         throw StateError('Unexpected subclass');
     }
@@ -912,8 +926,9 @@ extension CompetitionRulesPatterns on CompetitionRules {
             int teamSize,
             bool useMixedTeeAdjustment,
             TeamHandicapMethod teamHandicapMethod,
-            bool? separateGuests,
-            List<String> oomExcludedRoundIds)?
+            List<String> oomExcludedRoundIds,
+            TournamentFormat tournamentFormat,
+            SeedingLogic seedingLogic)?
         $default,
   ) {
     final _that = this;
@@ -942,8 +957,9 @@ extension CompetitionRulesPatterns on CompetitionRules {
             _that.teamSize,
             _that.useMixedTeeAdjustment,
             _that.teamHandicapMethod,
-            _that.separateGuests,
-            _that.oomExcludedRoundIds);
+            _that.oomExcludedRoundIds,
+            _that.tournamentFormat,
+            _that.seedingLogic);
       case _:
         return null;
     }
@@ -976,8 +992,9 @@ class _CompetitionRules implements CompetitionRules {
       this.teamSize = 4,
       this.useMixedTeeAdjustment = false,
       this.teamHandicapMethod = TeamHandicapMethod.whs,
-      this.separateGuests,
-      final List<String> oomExcludedRoundIds = const []})
+      final List<String> oomExcludedRoundIds = const [],
+      this.tournamentFormat = TournamentFormat.knockout,
+      this.seedingLogic = SeedingLogic.random})
       : _oomExcludedRoundIds = oomExcludedRoundIds;
   factory _CompetitionRules.fromJson(Map<String, dynamic> json) =>
       _$CompetitionRulesFromJson(json);
@@ -1050,11 +1067,8 @@ class _CompetitionRules implements CompetitionRules {
   @JsonKey()
   final TeamHandicapMethod teamHandicapMethod;
 // [NEW] Scramble method
-  @override
-  final bool? separateGuests;
-// [UPDATED] Single override: null = follow society, true = separate, false = hidden
   final List<String> _oomExcludedRoundIds;
-// [UPDATED] Single override: null = follow society, true = separate, false = hidden
+// [NEW] Scramble method
   @override
   @JsonKey()
   List<String> get oomExcludedRoundIds {
@@ -1063,6 +1077,14 @@ class _CompetitionRules implements CompetitionRules {
     // ignore: implicit_dynamic_type
     return EqualUnmodifiableListView(_oomExcludedRoundIds);
   }
+
+// [NEW] Rounds to skip in season standings
+  @override
+  @JsonKey()
+  final TournamentFormat tournamentFormat;
+  @override
+  @JsonKey()
+  final SeedingLogic seedingLogic;
 
   /// Create a copy of CompetitionRules
   /// with the given fields replaced by the non-null parameter values.
@@ -1126,10 +1148,12 @@ class _CompetitionRules implements CompetitionRules {
                 other.useMixedTeeAdjustment == useMixedTeeAdjustment) &&
             (identical(other.teamHandicapMethod, teamHandicapMethod) ||
                 other.teamHandicapMethod == teamHandicapMethod) &&
-            (identical(other.separateGuests, separateGuests) ||
-                other.separateGuests == separateGuests) &&
             const DeepCollectionEquality()
-                .equals(other._oomExcludedRoundIds, _oomExcludedRoundIds));
+                .equals(other._oomExcludedRoundIds, _oomExcludedRoundIds) &&
+            (identical(other.tournamentFormat, tournamentFormat) ||
+                other.tournamentFormat == tournamentFormat) &&
+            (identical(other.seedingLogic, seedingLogic) ||
+                other.seedingLogic == seedingLogic));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -1158,13 +1182,14 @@ class _CompetitionRules implements CompetitionRules {
         teamSize,
         useMixedTeeAdjustment,
         teamHandicapMethod,
-        separateGuests,
-        const DeepCollectionEquality().hash(_oomExcludedRoundIds)
+        const DeepCollectionEquality().hash(_oomExcludedRoundIds),
+        tournamentFormat,
+        seedingLogic
       ]);
 
   @override
   String toString() {
-    return 'CompetitionRules(format: $format, subtype: $subtype, mode: $mode, handicapMode: $handicapMode, handicapCap: $handicapCap, handicapAllowance: $handicapAllowance, teamHandicapCap: $teamHandicapCap, underlyingFormat: $underlyingFormat, useCourseAllowance: $useCourseAllowance, maxScoreConfig: $maxScoreConfig, roundsCount: $roundsCount, aggregation: $aggregation, tieBreak: $tieBreak, holeByHoleRequired: $holeByHoleRequired, minDrivesPerPlayer: $minDrivesPerPlayer, useWHSScrambleAllowance: $useWHSScrambleAllowance, trackShotAttributions: $trackShotAttributions, applyCapToIndex: $applyCapToIndex, teamBestXCount: $teamBestXCount, teamSize: $teamSize, useMixedTeeAdjustment: $useMixedTeeAdjustment, teamHandicapMethod: $teamHandicapMethod, separateGuests: $separateGuests, oomExcludedRoundIds: $oomExcludedRoundIds)';
+    return 'CompetitionRules(format: $format, subtype: $subtype, mode: $mode, handicapMode: $handicapMode, handicapCap: $handicapCap, handicapAllowance: $handicapAllowance, teamHandicapCap: $teamHandicapCap, underlyingFormat: $underlyingFormat, useCourseAllowance: $useCourseAllowance, maxScoreConfig: $maxScoreConfig, roundsCount: $roundsCount, aggregation: $aggregation, tieBreak: $tieBreak, holeByHoleRequired: $holeByHoleRequired, minDrivesPerPlayer: $minDrivesPerPlayer, useWHSScrambleAllowance: $useWHSScrambleAllowance, trackShotAttributions: $trackShotAttributions, applyCapToIndex: $applyCapToIndex, teamBestXCount: $teamBestXCount, teamSize: $teamSize, useMixedTeeAdjustment: $useMixedTeeAdjustment, teamHandicapMethod: $teamHandicapMethod, oomExcludedRoundIds: $oomExcludedRoundIds, tournamentFormat: $tournamentFormat, seedingLogic: $seedingLogic)';
   }
 }
 
@@ -1199,8 +1224,9 @@ abstract mixin class _$CompetitionRulesCopyWith<$Res>
       int teamSize,
       bool useMixedTeeAdjustment,
       TeamHandicapMethod teamHandicapMethod,
-      bool? separateGuests,
-      List<String> oomExcludedRoundIds});
+      List<String> oomExcludedRoundIds,
+      TournamentFormat tournamentFormat,
+      SeedingLogic seedingLogic});
 
   @override
   $MaxScoreConfigCopyWith<$Res>? get maxScoreConfig;
@@ -1241,8 +1267,9 @@ class __$CompetitionRulesCopyWithImpl<$Res>
     Object? teamSize = null,
     Object? useMixedTeeAdjustment = null,
     Object? teamHandicapMethod = null,
-    Object? separateGuests = freezed,
     Object? oomExcludedRoundIds = null,
+    Object? tournamentFormat = null,
+    Object? seedingLogic = null,
   }) {
     return _then(_CompetitionRules(
       format: null == format
@@ -1333,14 +1360,18 @@ class __$CompetitionRulesCopyWithImpl<$Res>
           ? _self.teamHandicapMethod
           : teamHandicapMethod // ignore: cast_nullable_to_non_nullable
               as TeamHandicapMethod,
-      separateGuests: freezed == separateGuests
-          ? _self.separateGuests
-          : separateGuests // ignore: cast_nullable_to_non_nullable
-              as bool?,
       oomExcludedRoundIds: null == oomExcludedRoundIds
           ? _self._oomExcludedRoundIds
           : oomExcludedRoundIds // ignore: cast_nullable_to_non_nullable
               as List<String>,
+      tournamentFormat: null == tournamentFormat
+          ? _self.tournamentFormat
+          : tournamentFormat // ignore: cast_nullable_to_non_nullable
+              as TournamentFormat,
+      seedingLogic: null == seedingLogic
+          ? _self.seedingLogic
+          : seedingLogic // ignore: cast_nullable_to_non_nullable
+              as SeedingLogic,
     ));
   }
 

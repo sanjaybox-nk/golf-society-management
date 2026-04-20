@@ -50,81 +50,71 @@ class ModernMetricStat extends ConsumerWidget {
     final theme = Theme.of(context);
     final config = ref.watch(themeControllerProvider);
     
-    // Design 4.x (Boxy Art 4.0) Standard Constants
-    final radius = config.accentRadius;
-    
-    // 1. Background Logic
-    final Color baseBgColor = color ?? (isSolid 
-        ? theme.colorScheme.primary 
-        : Color(config.iconBadgeFillColor));
-    
-    final double effectiveAlpha = isSolid ? 1.0 : config.accentOpacity;
-    final Color effectiveBgColor = baseBgColor.withValues(alpha: effectiveAlpha);
-    final borderOpacity = isSolid ? 0.0 : (config.accentOpacity * 2).clamp(0.0, 1.0);
+    // 1. Universal Badge Token Logic
+    final Color badgeFill = Color(config.iconBadgeFillColor);
+    final Color badgeContent = AppColors.dark800;
+    final double badgeOpacity = config.iconBadgeOpacity;
 
-    final Color effectiveIconColor = iconColor ?? (isSolid 
-        ? AppColors.pureWhite 
-        : Color(config.iconBadgeIconColor));
-
-    // Refinement: Final Symmetry Redesign
-    // Ensures all metrics have identical font sizes and centered data baselines.
     return Container(
       padding: EdgeInsets.symmetric(
-        vertical: isCompact ? 14.0 : AppSpacing.sm,
-        horizontal: isCompact ? 4.0 : AppSpacing.md,
+        vertical: isCompact ? AppSpacing.md : AppSpacing.lg,
+        horizontal: AppSpacing.sm,
       ),
       decoration: BoxDecoration(
-        color: effectiveBgColor.withValues(alpha: effectiveAlpha),
-        borderRadius: BorderRadius.circular(radius),
+        color: badgeFill.withValues(alpha: badgeOpacity),
+        borderRadius: BorderRadius.circular(config.accentRadius),
         border: Border.all(
-          color: effectiveBgColor.withValues(alpha: borderOpacity),
+          color: badgeFill.withValues(alpha: badgeOpacity * 2).withValues(alpha: 0.1),
           width: 1,
         ),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          // Row 1: Unified Data Cluster (Icon + Optional Metric Value)
+          // Row 1: Unified Data Cluster (Icon + Metric Value)
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              if (icon != null)
+              if (icon != null) ...[
                 Icon(
                   icon, 
-                  size: (isCompact || value.isEmpty) ? 22 : 18, 
-                  color: effectiveIconColor,
+                  size: isCompact ? 18 : 22, 
+                  color: AppColors.pureWhite,
                 ),
-              if (value.isNotEmpty) ...[
-                const SizedBox(width: AppSpacing.atomic),
-                Text(
+                const SizedBox(width: AppSpacing.xs),
+              ],
+              Flexible(
+                child: Text(
                   value,
                   style: (isCompact 
-                        ? AppTypography.body.copyWith(fontSize: 15, fontWeight: AppTypography.weightHeavy) 
+                        ? AppTypography.label.copyWith(fontSize: 15) 
                         : AppTypography.metricValue
                     ).copyWith(
-                      color: isSolid ? AppColors.pureWhite : AppColors.dark900,
-                      height: 1.1,
+                      color: badgeContent,
+                      height: 1.0,
                     ),
                   textAlign: TextAlign.center,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
-              ],
+              ),
             ],
           ),
           
-          const SizedBox(height: AppSpacing.sm),
+          const SizedBox(height: 6),
 
           // Row 2: Standardized Context Label
           Text(
             label.toUpperCase(),
-            style: AppTypography.metricLabel.copyWith(
-              color: isSolid 
-                  ? AppColors.pureWhite.withValues(alpha: 0.8) 
-                  : (color ?? AppColors.dark800),
-              fontSize: isCompact ? 9 : 10,
-              height: 1.1,
+            style: AppTypography.label.copyWith(
+              color: badgeContent.withValues(alpha: 0.8),
+              fontSize: 10,
+              fontWeight: AppTypography.weightBold,
+              letterSpacing: AppTypography.lsMicro,
+              height: 1.0,
             ),
             textAlign: TextAlign.center,
             maxLines: 1,

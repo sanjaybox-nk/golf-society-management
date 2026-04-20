@@ -189,16 +189,19 @@ class EventRegistrationUserTab extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Content Spacing (Standardized cardToLabel gap for Tab-to-Label transition)
-        SizedBox(height: spacing?.cardToLabel ?? AppSpacing.cardToLabel),
-
-        // METRICS CARD
-        const BoxyArtSectionTitle(title: 'Registration Stats', isPeeking: true),
+        // Content Spacing handled by BoxyArtSectionTitle's internal padding (cardToLabel default)
+        const BoxyArtSectionTitle(
+          title: 'Registration Stats',
+          topPadding: 0,
+        ),
         RegistrationStatsCard(event: event, isCompact: false, showAdminMetrics: isAdminMode),
 
         // PLAYING MEMBERS
         if (itemViewModels.any((vm) => vm.status == RegistrationStatus.confirmed && vm.item.isGuest == false)) ...[
-          BoxyArtSectionTitle(title: 'Playing Members (${itemViewModels.where((vm) => vm.status == RegistrationStatus.confirmed && vm.item.isGuest == false).length})'),
+        BoxyArtSectionTitle(
+          title: 'Playing Members (${itemViewModels.where((vm) => vm.status == RegistrationStatus.confirmed && vm.item.isGuest == false).length})',
+          followsCard: true,
+        ),
           ...itemViewModels.where((vm) => vm.status == RegistrationStatus.confirmed && vm.item.isGuest == false).map((vm) => Padding(
             padding: EdgeInsets.only(bottom: Theme.of(context).extension<AppSpacingTokens>()?.cardToCard ?? AppSpacing.md),
             child: RegistrationCard(
@@ -215,6 +218,8 @@ class EventRegistrationUserTab extends ConsumerWidget {
               isGuest: false,
               isAdmin: false,
               memberProfile: vm.memberProfile,
+              handicap: vm.item.registration.handicap,
+              playingHandicap: vm.item.registration.playingHandicap,
             ),
           )),
         ],
@@ -238,6 +243,8 @@ class EventRegistrationUserTab extends ConsumerWidget {
               isGuest: true,
               isAdmin: false,
               memberProfile: vm.memberProfile,
+              handicap: double.tryParse(vm.item.registration.guestHandicap ?? ''),
+              playingHandicap: null,
             ),
           )),
         ],
@@ -261,6 +268,8 @@ class EventRegistrationUserTab extends ConsumerWidget {
               isGuest: false,
               isAdmin: false,
               memberProfile: vm.memberProfile,
+              handicap: vm.item.registration.handicap,
+              playingHandicap: vm.item.registration.playingHandicap,
             ),
           )),
         ],
@@ -284,6 +293,8 @@ class EventRegistrationUserTab extends ConsumerWidget {
               isGuest: true,
               isAdmin: false,
               memberProfile: vm.memberProfile,
+              handicap: double.tryParse(vm.item.registration.guestHandicap ?? ''),
+              playingHandicap: null,
             ),
           )),
         ],
@@ -307,6 +318,8 @@ class EventRegistrationUserTab extends ConsumerWidget {
               isGuest: false,
               isAdmin: false,
               memberProfile: vm.memberProfile,
+              handicap: vm.item.registration.handicap,
+              playingHandicap: vm.item.registration.playingHandicap,
             ),
           )),
         ],
@@ -330,6 +343,8 @@ class EventRegistrationUserTab extends ConsumerWidget {
               isGuest: true,
               isAdmin: false,
               memberProfile: vm.memberProfile,
+              handicap: double.tryParse(vm.item.registration.guestHandicap ?? ''),
+              playingHandicap: null,
             ),
           )),
         ],
@@ -351,6 +366,8 @@ class EventRegistrationUserTab extends ConsumerWidget {
               isDinnerOnly: true,
               isAdmin: false,
               memberProfile: vm.memberProfile,
+              handicap: vm.item.registration.handicap,
+              playingHandicap: vm.item.registration.playingHandicap,
             ),
           )),
         ],
@@ -368,9 +385,10 @@ class EventRegistrationUserTab extends ConsumerWidget {
               attendingBreakfast: false,
               attendingLunch: false,
               attendingDinner: false,
-              hasPaid: vm.item.registration.hasPaid,
               isAdmin: false,
               memberProfile: vm.memberProfile,
+              handicap: vm.item.registration.handicap,
+              playingHandicap: vm.item.registration.playingHandicap,
             ),
           )),
         ],

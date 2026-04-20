@@ -213,6 +213,8 @@ _GolfEvent _$GolfEventFromJson(Map<String, dynamic> json) => _GolfEvent(
           const [],
       charityPot: (json['charityPot'] as num?)?.toDouble() ?? 0.0,
       groupingStrategy: json['groupingStrategy'] as String?,
+      separateGuests: json['separateGuests'] as bool?,
+      allowGuests: json['allowGuests'] as bool? ?? true,
     );
 
 Map<String, dynamic> _$GolfEventToJson(_GolfEvent instance) =>
@@ -281,6 +283,8 @@ Map<String, dynamic> _$GolfEventToJson(_GolfEvent instance) =>
       'extraCosts': instance.extraCosts.map((e) => e.toJson()).toList(),
       'charityPot': instance.charityPot,
       'groupingStrategy': instance.groupingStrategy,
+      'separateGuests': instance.separateGuests,
+      'allowGuests': instance.allowGuests,
     };
 
 const _$EventStatusEnumMap = {

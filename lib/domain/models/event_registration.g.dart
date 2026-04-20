@@ -38,6 +38,8 @@ _EventRegistration _$EventRegistrationFromJson(Map<String, dynamic> json) =>
       statusOverride: json['statusOverride'] as String?,
       buggyStatusOverride: json['buggyStatusOverride'] as String?,
       guestBuggyStatusOverride: json['guestBuggyStatusOverride'] as String?,
+      partnerId: json['partnerId'] as String?,
+      partnerName: json['partnerName'] as String?,
       history: (json['history'] as List<dynamic>?)
               ?.map((e) =>
                   RegistrationHistoryItem.fromJson(e as Map<String, dynamic>))
@@ -82,6 +84,8 @@ Map<String, dynamic> _$EventRegistrationToJson(_EventRegistration instance) =>
       'statusOverride': instance.statusOverride,
       'buggyStatusOverride': instance.buggyStatusOverride,
       'guestBuggyStatusOverride': instance.guestBuggyStatusOverride,
+      'partnerId': instance.partnerId,
+      'partnerName': instance.partnerName,
       'history': instance.history?.map((e) => e.toJson()).toList(),
       'fines': instance.fines.map((e) => e.toJson()).toList(),
       'fineAmount': instance.fineAmount,

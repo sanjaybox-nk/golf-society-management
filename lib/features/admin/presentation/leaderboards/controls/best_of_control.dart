@@ -23,6 +23,7 @@ class _BestOfSeriesControlState extends State<BestOfSeriesControl>
   late ScoringType _scoringType;
   late TiePolicy _tiePolicy;
   late Map<int, int> _positionPoints;
+  late LeaderboardScope _scope;
   bool _isSaving = false;
 
   @override
@@ -33,6 +34,7 @@ class _BestOfSeriesControlState extends State<BestOfSeriesControl>
     _bestNController = TextEditingController(text: (config?.bestN ?? 8).toString());
     _appearancePointsController =
         TextEditingController(text: (config?.appearancePoints ?? 0).toString());
+    _scope = config?.scope ?? LeaderboardScope.seasonOnly;
 
     _metric = config?.metric ?? BestOfMetric.stableford;
     if (_metric == BestOfMetric.position) {
@@ -76,12 +78,22 @@ class _BestOfSeriesControlState extends State<BestOfSeriesControl>
           const BoxyArtSectionTitle(title: 'LEADERBOARD DETAILS', isPeeking: true),
           BoxyArtCard(
             padding: const EdgeInsets.all(AppSpacing.xl),
-            child: BoxyArtInputField(
-              label: 'Name',
-              controller: _nameController,
-              hint: 'e.g. Best of Series',
-              prefixIcon: Icon(Icons.list_alt_rounded),
-              validator: (v) => (v == null || v.isEmpty) ? 'Required' : null,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                BoxyArtInputField(
+                  label: 'Name',
+                  controller: _nameController,
+                  hint: 'e.g. Best of Series',
+                  prefixIcon: Icon(Icons.list_alt_rounded),
+                  validator: (v) => (v == null || v.isEmpty) ? 'Required' : null,
+                ),
+                const SizedBox(height: AppSpacing.lg),
+                buildScopeSelector(
+                  value: _scope,
+                  onChanged: (v) => setState(() => _scope = v as LeaderboardScope),
+                ),
+              ],
             ),
           ),
 
@@ -251,6 +263,7 @@ class _BestOfSeriesControlState extends State<BestOfSeriesControl>
     final config = LeaderboardConfig.bestOfSeries(
       id: widget.existingConfig?.id ?? const Uuid().v4(),
       name: _nameController.text.trim(),
+      scope: _scope,
       bestN: int.parse(_bestNController.text),
       metric: _metric,
       scoringType: _scoringType,

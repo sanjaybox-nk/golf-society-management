@@ -89,14 +89,8 @@ class _AdminMembersScreenState extends ConsumerState<AdminMembersScreen> {
               ],
             ),
           ),
-          const SliverToBoxAdapter(
-            child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: AppSpacing.xl),
-              child: BoxyArtSectionTitle(
-                title: 'Roster management',
-                isPeeking: true,
-              ),
-            ),
+          SliverToBoxAdapter(
+            child: SizedBox(height: spacing?.cardToLabel ?? AppSpacing.cardToLabel),
           ),
           SliverPadding(
             padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
@@ -155,9 +149,95 @@ class _AdminMembersScreenState extends ConsumerState<AdminMembersScreen> {
                     final sortedMembers = [...filtered];
                     sortedMembers.sort((a, b) => a.lastName.compareTo(b.lastName));
 
+                    if (currentFilter.type == AdminMemberFilter.other) {
+                      // Group by status
+                      final grouped = <MemberStatus, List<Member>>{};
+                      for (final m in sortedMembers) {
+                        grouped.putIfAbsent(m.status, () => []).add(m);
+                      }
+
+                      // Define display order for status groups
+                      const statusPriority = {
+                        MemberStatus.expired: 0,
+                        MemberStatus.suspended: 1,
+                        MemberStatus.pending: 2,
+                        MemberStatus.left: 3,
+                        MemberStatus.archived: 4,
+                      };
+
+                      final sortedStatuses = grouped.keys.toList()
+                        ..sort((a, b) => (statusPriority[a] ?? 99).compareTo(statusPriority[b] ?? 99));
+
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          for (int i = 0; i < sortedStatuses.length; i++) ...[
+                            () {
+                              final status = sortedStatuses[i];
+                              final groupMembers = grouped[status]!;
+                              return Column(
+                                mainAxisSize: MainAxisSize.min,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  BoxyArtSectionTitle(
+                                    title: status.displayName,
+                                    count: groupMembers.length,
+                                    isPeeking: i == 0, // 8px below search, 16px below cards
+                                  ),
+                                  ...groupMembers.asMap().entries.map((entry) {
+                                    final m = entry.value;
+                                    final eventCount = memberStatsAsync.value?[m.id] ?? 0;
+                                    final isAlreadyInRole = m.role == currentFilter.role;
+                                    final isLastGroupMember = entry.key == groupMembers.length - 1;
+
+                                    return Padding(
+                                      padding: EdgeInsets.only(
+                                        bottom: isLastGroupMember ? 0 : (spacing?.cardToCard ?? AppSpacing.md),
+                                      ),
+                                      child: _buildDismissibleMember(
+                                        context, 
+                                        ref, 
+                                        m,
+                                        secondaryMetricLabel: 'Events',
+                                        secondaryMetricValue: '$eventCount',
+                                        trailing: currentFilter.type == AdminMemberFilter.role && !isAlreadyInRole
+                                            ? BoxyArtButton(
+                                                title: 'Assign',
+                                                isSmall: true,
+                                                onTap: () async {
+                                                  final messenger = ScaffoldMessenger.of(context);
+                                                  final confirmed = await showBoxyArtDialog<bool>(
+                                                    context: context,
+                                                    title: 'Assign Role?',
+                                                    message: 'Assign ${m.firstName} as ${currentFilter.role!.displayName}?',
+                                                    confirmText: 'Assign',
+                                                  );
+                                                  if (confirmed == true) {
+                                                    ref.read(membersRepositoryProvider).updateMember(
+                                                      m.copyWith(role: currentFilter.role!),
+                                                    );
+                                                    messenger.showSnackBar(
+                                                      SnackBar(content: Text('${m.firstName} is now ${currentFilter.role!.displayName}')),
+                                                    );
+                                                  }
+                                                },
+                                              )
+                                            : isAlreadyInRole 
+                                                ? BoxyArtPill(label: 'Current', color: AppColors.lime500, hasHorizontalMargin: false)
+                                                : null,
+                                      ),
+                                    );
+                                  }),
+                                ],
+                              );
+                            }(),
+                          ],
+                        ],
+                      );
+                    }
+
                     return Column(
-                      children: [
-                        ...sortedMembers.map((member) {
+                      children: sortedMembers.map((member) {
                         final eventCount = memberStatsAsync.value?[member.id] ?? 0;
                         final isAlreadyInRole = member.role == currentFilter.role;
 
@@ -196,8 +276,7 @@ class _AdminMembersScreenState extends ConsumerState<AdminMembersScreen> {
                                     : null,
                           ),
                         );
-                        }),
-                      ],
+                      }).toList(),
                     );
                   },
                   loading: () => const Center(child: CircularProgressIndicator()),

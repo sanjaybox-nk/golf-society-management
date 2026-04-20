@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:uuid/uuid.dart';
 import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -53,6 +54,7 @@ class SeedingService {
       debugPrint('Wipe completed.');
 
       debugPrint('Seeding new demo season foundation...');
+      await _seedGlobalLeaderboardTemplates();
       await _seedDemoSeason();
 
       debugPrint('Restoring society branding and setting renewal defaults + sponsors...');
@@ -425,7 +427,7 @@ class SeedingService {
       (title: 'Society Summer BBQ', format: CompetitionFormat.stableford, isInvitational: false, isSeasonEvent: false, subtype: CompetitionSubtype.none, date: DateTime(2025, 7, 19), status: EventStatus.completed, isMultiDay: false, endDate: null, eventType: EventType.social),
       (title: 'Annual Awards Dinner', format: CompetitionFormat.stableford, isInvitational: false, isSeasonEvent: false, subtype: CompetitionSubtype.none, date: DateTime(2026, 3, 11), status: EventStatus.completed, isMultiDay: false, endDate: null, eventType: EventType.social),
 
-      (title: 'Live Invitational Match Play', format: CompetitionFormat.matchPlay, isInvitational: true, isSeasonEvent: false, subtype: CompetitionSubtype.none, date: now, status: EventStatus.inPlay, isMultiDay: false, endDate: null, eventType: EventType.golf),
+      (title: 'Invitational Match Play', format: CompetitionFormat.matchPlay, isInvitational: true, isSeasonEvent: false, subtype: CompetitionSubtype.none, date: now, status: EventStatus.inPlay, isMultiDay: false, endDate: null, eventType: EventType.golf),
       (title: 'Spring Social Night', format: CompetitionFormat.stableford, isInvitational: false, isSeasonEvent: false, subtype: CompetitionSubtype.none, date: now.add(const Duration(days: 7)), status: EventStatus.published, isMultiDay: false, endDate: null, eventType: EventType.social),
       (title: 'May Spring Medal', format: CompetitionFormat.stableford, isInvitational: false, isSeasonEvent: true, subtype: CompetitionSubtype.none, date: now.add(const Duration(days: 14)), status: EventStatus.published, isMultiDay: false, endDate: null, eventType: EventType.golf),
     ];
@@ -497,8 +499,60 @@ class SeedingService {
     }
   }
 
+  Future<void> _seedGlobalLeaderboardTemplates() async {
+    final repo = ref.read(leaderboardTemplatesRepositoryProvider);
+    
+    // We define the "Big 5" standard blueprints for a society
+    final templates = [
+      LeaderboardConfig.orderOfMerit(
+        id: 'oom_standard_blueprint',
+        name: 'Order of Merit',
+        scope: LeaderboardScope.global,
+        source: OOMSource.position,
+        appearancePoints: 2,
+        positionPointsMap: {1: 25, 2: 18, 3: 15, 4: 12, 5: 10, 6: 8, 7: 6, 8: 4, 9: 2, 10: 1},
+      ),
+      LeaderboardConfig.bestOfSeries(
+        id: 'best_of_standard_blueprint',
+        name: 'Best of 5 Series',
+        scope: LeaderboardScope.global,
+        bestN: 5,
+        metric: BestOfMetric.stableford,
+      ),
+      LeaderboardConfig.eclectic(
+        id: 'eclectic_standard_blueprint',
+        name: 'Season Eclectic',
+        scope: LeaderboardScope.global,
+        metric: EclecticMetric.strokes,
+      ),
+      LeaderboardConfig.markerCounter(
+        id: 'birdie_tree_standard_blueprint',
+        name: 'Birdie Tree',
+        scope: LeaderboardScope.global,
+        targetTypes: {MarkerType.birdie, MarkerType.eagle, MarkerType.albatross},
+      ),
+      LeaderboardConfig.markerCounter(
+        id: 'par3_series_standard_blueprint',
+        name: 'Par 3 Challenge',
+        scope: LeaderboardScope.global,
+        targetTypes: {MarkerType.birdie, MarkerType.eagle, MarkerType.holeInOne},
+        holeFilter: HoleFilter.par3,
+      ),
+    ];
+
+    for (final template in templates) {
+      // Update if exists (blueprint matches), otherwise add
+      await repo.updateTemplate(template).catchError((_) => repo.addTemplate(template));
+    }
+  }
+
   Future<String> _seedSeason() async {
     final repo = ref.read(seasonsRepositoryProvider);
+    final templateRepo = ref.read(leaderboardTemplatesRepositoryProvider);
+    
+    // Fetch the 5 templates from the library
+    final templates = await templateRepo.watchTemplates().first;
+    
     final season = Season(
       id: 'demo_season_2025_2026',
       name: 'Demo Season 25-26',
@@ -507,31 +561,11 @@ class SeedingService {
       endDate: DateTime(2026, 4, 30),
       status: SeasonStatus.active,
       isCurrent: true,
-      leaderboards: [
-        LeaderboardConfig.orderOfMerit(
-          id: 'oom_demo_2026',
-          name: 'Order of Merit',
-          source: OOMSource.position,
-          appearancePoints: 2,
-          positionPointsMap: {1: 25, 2: 18, 3: 15, 4: 12, 5: 10, 6: 8, 7: 6, 8: 4, 9: 2, 10: 1},
-        ),
-        LeaderboardConfig.bestOfSeries(
-          id: 'best_5_demo_2026',
-          name: 'Best of 5 Series',
-          bestN: 5,
-          metric: BestOfMetric.stableford,
-        ),
-        LeaderboardConfig.eclectic(
-          id: 'eclectic_demo_2026',
-          name: 'Season Eclectic',
-          metric: EclecticMetric.strokes,
-        ),
-        LeaderboardConfig.markerCounter(
-          id: 'birdie_tree_demo_2026',
-          name: 'Birdie Tree',
-          targetTypes: {MarkerType.birdie, MarkerType.eagle, MarkerType.albatross},
-        ),
-      ],
+      leaderboards: templates.map((t) => t.copyWith(
+        id: Uuid().v4(), // Instantiate as a unique season subscription
+        scope: LeaderboardScope.seasonOnly,
+        // Name is preserved from 't.name'
+      )).toList(),
     );
 
     try { await repo.deleteSeason(season.id); } catch (_) {}

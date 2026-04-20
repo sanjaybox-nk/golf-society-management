@@ -246,7 +246,10 @@ class _EventStatsContent extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         if (statsMode == 0) ...[
-          const BoxyArtSectionTitle(title: 'Society Hero Recap', isPeeking: true),
+          const BoxyArtSectionTitle(
+            title: 'Society Hero Recap',
+            topPadding: 0,
+          ),
           if (eclecticRound.any((s) => s != null))
             StaggeredEntrance(
               index: 0,
@@ -269,7 +272,10 @@ class _EventStatsContent extends ConsumerWidget {
               child: StablefordDistributionChart(bucketCounts: stablefordBuckets),
             ),
           ],
-          const BoxyArtSectionTitle(title: 'Performance Trends'),
+          const BoxyArtSectionTitle(
+            title: 'Performance Trends',
+            followsCard: true,
+          ),
           StaggeredEntrance(
             index: 3,
             child: SplitPerformanceCard(front9Avg: front9AvgVal, back9Avg: back9AvgVal, isStableford: isStableford),
@@ -279,7 +285,10 @@ class _EventStatsContent extends ConsumerWidget {
             index: 4,
             child: ParTypeBreakdown(parTypeAverages: parTypeAverages),
           ),
-          const BoxyArtSectionTitle(title: 'Course Analysis'),
+          const BoxyArtSectionTitle(
+            title: 'Course Analysis',
+            followsCard: true,
+          ),
           StaggeredEntrance(
             index: 5,
             child: DifficultyHeatmap(holeAverages: holeAverages, holes: holes),
@@ -289,7 +298,10 @@ class _EventStatsContent extends ConsumerWidget {
             index: 6,
             child: HoleDifficultyChart(holeAverages: holeAverages, holes: holes),
           ),
-          const BoxyArtSectionTitle(title: 'Hall of Fame'),
+          const BoxyArtSectionTitle(
+            title: 'Hall of Fame',
+            followsCard: true,
+          ),
           if (maxStreak > 0)
             StaggeredEntrance(
               index: 7,
@@ -330,7 +342,10 @@ class _EventStatsContent extends ConsumerWidget {
               ),
             ),
           ],
-          const BoxyArtSectionTitle(title: 'Banter & Bragging Rights'),
+          const BoxyArtSectionTitle(
+            title: 'Banter & Bragging Rights',
+            followsCard: true,
+          ),
           if (maxBlobs > 0)
             StaggeredEntrance(
               index: 10,
@@ -522,7 +537,10 @@ class _EventStatsContent extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const BoxyArtSectionTitle(title: 'Personal Performance'),
+        const BoxyArtSectionTitle(
+          title: 'Personal Performance',
+          topPadding: 0,
+        ),
         if (myAwards.isNotEmpty) ...[
           Container(
             width: double.infinity,

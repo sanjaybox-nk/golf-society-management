@@ -209,6 +209,12 @@ class ThemeController extends Notifier<SocietyConfig> {
     await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
   }
 
+  Future<void> setTabToContentSpacing(double spacing) async {
+    final newConfig = state.copyWith(tabToContentSpacing: spacing);
+    state = newConfig;
+    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
+  }
+
   Future<void> setIconBadgeFillColor(Color color) async {
     final newConfig = state.copyWith(iconBadgeFillColor: color.toARGB32());
     state = newConfig;

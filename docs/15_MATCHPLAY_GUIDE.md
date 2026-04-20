@@ -1,58 +1,66 @@
 # Matchplay Module Technical Guide
 
-The Matchplay module introduces head-to-head competitive logic to the society. It supports both standalone knockout tournaments and "layered" matches that occur during regular society events.
+The Matchplay module introduces head-to-head competitive logic to the society. It supports standalone knockout tournaments, "layered" matches during regular events, and structured **Season Tournaments**.
 
 ## 1. Core Architecture
 
-The system uses three primary models to manage matchplay:
+The system uses specialized models and services isolated within the `matchplay` feature module:
 
-- **`MatchplayComp`**: The container for a tournament (e.g., "2026 Knockout Cup").
-- **`MatchplayRound`**: Represents a stage in the tournament (e.g., "Round of 16" or "Quarter Finals").
-- **`MatchplayMatch`**: An individual contest between two opponents.
+- **`MatchPlayTournament`**: The primary container for a tournament lifecycle (Seeds, Entrants, Draws, Divisions).
+- **`MatchPlayEntrant`**: Represents a competing unit (Singles player or a Pair). 
+- **`MatchDefinition`**: Unified model for individual match contests, supporting automated strokes and derived status.
+- **`MatchPlayEntrantService`**: Logic for mapping event registrations or leaderboards into tournament entrants.
 
 ## 2. Competitive Modes
 
-### Standalone Knockouts
-Matches are played independently of society events.
-- **Manual Entry**: Players or admins enter the final result (e.g., "Won 4 & 3").
-- **Bracket Management**: The system automatically advances winners to the next `MatchplayRound`.
+### Standalone / Layered Knockouts
+Matches can be played independently or as an overlay on a regular society event.
+- **Derived Status**: Real-time calculation of "Holes Up" using the `MatchPlayCalculator`. Parity is maintained across all views (Leaderboard, Scorecard, Grouping).
 
-### Derived Status
-The match status is calculated in real-time by comparing net scores hole-by-hole using the authoritative **`MatchPlayCalculator`** engine. This ensures absolute parity across the Hero Scoring View, Grouping Card, Leaderboard, and Scorecard Modal—preventing scoring discrepancies between different parts of the application.
-- **Universal Result Standard**: All views display the same derivation (e.g., "WIN 4 & 3", "2 UP", "DORMIE", or "A/S").
-- **Authoritative Relative Strokes**: Receiving strokes relative to the lowest player is centrally computed in `MatchPlayCalculator.calculateRelativeStrokes`.
-- **Tee Parity**: Derived status resolution automatically accounts for the authoritative Pars and SIs from each player's specific tee, ensuring "Holes Up" calculations are always based on the correct hole par.
+### Season Tournaments (`matchPlaySeason`)
+Structured competitions typically spanning multiple events or months.
+- **Knockout Bracket**: Standard single-elimination tournament.
+- **Divisions (Round Robin)**: Players are grouped into divisions, playing every other member before advancing to a final knockout stage.
 
-## 3. Handicap Logic (`MatchplayHandicapCalculator`)
+## 3. Registration & Partner Handshaking
 
-Matchplay uses **Relative Strokes Received**.
-1. Calculate the Course Handicap for both players.
-2. Determine the difference between the two (e.g., Player A: 12, Player B: 18 -> Difference: 6).
-3. Apply the Competition Allowance (e.g., 90% of 6 = 5.4, rounded to 5).
-4. Assign strokes to the 5 holes with the lowest Stroke Index (SI 1 through 5).
+When a "Pairs" Match Play event is published, the registration flow undergoes a specialized transformation:
 
-## 4. Result States
+### The Handshake Workflow
+1. **Selection**: A member selects their partner from the society roster during registration.
+2. **Persistence**: The registration record stores `partnerId` and `partnerName`.
+3. **Validation**: The system ensures a "handshake" consistency (e.g., if Player A picks Player B, Player B is automatically registered as Player A's partner).
 
-Matches track status using a standardized format:
-- **`2 UP`**: Player A is leading by 2 holes.
-- **`A/S`** (All Square): The match is currently tied.
-- **`Dormie`**: The leading player is ahead by the same number of holes remaining.
-- **`3 & 2`**: The match ended on the 16th hole with one player 3 up.
+## 4. Seeding & Draw Management
 
-## 6. Admin Workflow (Layered Matches)
+The **Match Play Draw Manager** (Design 4.x) is the administrative hub for bracket generation.
 
-1. **Event Setup**: Select a Match Play template as a **Secondary Game** overlay in the `EventFormScreen`.
-2. **Customization**: Use the **CUSTOMIZE RULES** button on the secondary card to fine-tune handicap allowances or tie-break methods specifically for the match overlay.
-3. **Pairings**: On the **Grouping Screen**, toggle on **Match Play Mode**.
-4. **Interactive Setup**: Use the **Tap-to-Swap** feature on the tee group cards to quickly assign players to Side A and Side B of each match.
-5. **Sync**: Matches are automatically synced to the event's match definitions upon saving the tee sheet.
+### Seeding Logic
+- **Random**: Arbitrary placement in the bracket.
+- **Seeded**: Positions assigned based on current WHS Handicap Index.
+- **Merit (Ranking)**: Positions assigned based on the current Order of Merit (OOM) standings.
 
-## 7. Implementation Status
+### The Draw Manager Workflow
+Launched directly from an event, the manager:
+1. **Syncs Registrations**: Automatically pulls confirmed entrants and pairings.
+2. **Validates Counts**: Ensures the entrant count fits a standard bracket (8, 16, 32) or handles "Byes".
+3. **Generates Matrix**: Builds the complete `MatchDefinition` list for the tournament lifecycle.
 
-- [x] Data Models (`MatchplayComp`, `MatchplayRound`, etc.)
-- [x] Handicap & Strokes Received Logic
+## 5. Result States & Derivement
+
+Matches track status using a standardized format derived centrally:
+- **`2 UP`**: Leading by 2 holes.
+- **`A/S`** (All Square): Match is tied.
+- **`Dormie`**: Leading player is ahead by the same number of holes remaining.
+- **`3 & 2`**: Match ended on the 16th hole with one player 3 up.
+
+## 6. Implementation Status (Updated April 2026)
+
+- [x] Data Models (`MatchPlayTournament`, `MatchDefinition`)
+- [x] Handicap & Automated Strokes Logic
 - [x] Leaderboard Format Awareness
-- [x] Secondary Game (Overlay) Toggle & Independent Customization
-- [x] Interactive Match Pairing (Tap-to-Swap) on Grouping Screen
-- [ ] Visual Bracket Tree UI
-- [x] Layered Match Overlay in Scorecard Entry (via Derived Status)
+- [x] Visual Bracket Tree UI (Design 4.x)
+- [x] Match Play Draw Manager (Event-Bound)
+- [x] Partner Handshake Registration Logic
+- [x] Season Tournament Subtype (`matchPlaySeason`)
+- [x] Seeding Logic (Random, Seeded, Merit)

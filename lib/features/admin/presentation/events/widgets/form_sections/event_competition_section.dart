@@ -68,6 +68,22 @@ class EventCompetitionSection extends ConsumerWidget {
                     onRemove: () => ref.read(eventFormNotifierProvider.notifier).updateTemplateId(null),
                     customizeLabel: state.isCustomized ? "Customized" : "Customize",
                   ),
+                  const SizedBox(height: AppSpacing.lg),
+                  BoxyArtCard(
+                    padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
+                    child: BoxyArtSwitchField(
+                      label: 'Separate Guests in Standings',
+                      value: state.separateGuests ?? (!state.isInvitational),
+                      onChanged: (v) => ref.read(eventFormNotifierProvider.notifier).updateSeparateGuests(v),
+                    ),
+                  ),
+                  const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: 4),
+                    child: Text(
+                      'By default, guests are merged in Invitationals and separated in Official games.',
+                      style: TextStyle(color: AppColors.textSecondary, fontSize: 11),
+                    ),
+                  ),
                   if (state.isMultiDay && displayComp.rules.roundsCount > 1) ...[
                     const SizedBox(height: AppSpacing.lg),
                     const Text(

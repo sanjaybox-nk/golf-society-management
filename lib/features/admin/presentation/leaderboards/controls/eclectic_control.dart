@@ -19,6 +19,7 @@ class _EclecticControlState extends State<EclecticControl>
   late TextEditingController _nameController;
   late EclecticMetric _metric;
   double _handicapPercentage = 0;
+  late LeaderboardScope _scope;
   bool _isSaving = false;
 
   @override
@@ -28,6 +29,7 @@ class _EclecticControlState extends State<EclecticControl>
     _nameController = TextEditingController(text: config?.name ?? 'Eclectic');
     _metric = config?.metric ?? EclecticMetric.strokes;
     _handicapPercentage = (config?.handicapPercentage ?? 0).toDouble();
+    _scope = config?.scope ?? LeaderboardScope.seasonOnly;
   }
 
   @override
@@ -49,12 +51,22 @@ class _EclecticControlState extends State<EclecticControl>
           const BoxyArtSectionTitle(title: 'LEADERBOARD DETAILS', isPeeking: true),
           BoxyArtCard(
             padding: const EdgeInsets.all(AppSpacing.xl),
-            child: BoxyArtInputField(
-              label: 'Name',
-              controller: _nameController,
-              hint: 'e.g. Eclectic',
-              prefixIcon: Icon(Icons.grid_on_rounded),
-              validator: (v) => (v == null || v.isEmpty) ? 'Required' : null,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                BoxyArtInputField(
+                  label: 'Name',
+                  controller: _nameController,
+                  hint: 'e.g. Eclectic',
+                  prefixIcon: Icon(Icons.grid_on_rounded),
+                  validator: (v) => (v == null || v.isEmpty) ? 'Required' : null,
+                ),
+                const SizedBox(height: AppSpacing.lg),
+                buildScopeSelector(
+                  value: _scope,
+                  onChanged: (v) => setState(() => _scope = v as LeaderboardScope),
+                ),
+              ],
             ),
           ),
 
@@ -165,6 +177,7 @@ class _EclecticControlState extends State<EclecticControl>
     final config = LeaderboardConfig.eclectic(
       id: widget.existingConfig?.id ?? const Uuid().v4(),
       name: _nameController.text.trim(),
+      scope: _scope,
       metric: _metric,
       handicapPercentage: _handicapPercentage.toInt(),
     );

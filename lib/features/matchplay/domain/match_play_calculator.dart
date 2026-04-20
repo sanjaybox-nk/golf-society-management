@@ -63,9 +63,9 @@ class MatchPlayCalculator {
       return MatchResult(matchId: match.id, winningTeamIndex: -1, status: 'TBD', score: 0, holeResults: [], holesPlayed: 0, isFinal: false);
     }
 
-    // Identify participants
-    final t1Cards = scorecards.where((s) => match.team1Ids.contains(s.entryId.replaceFirst('_guest', '')) || match.team1Ids.contains(s.entryId)).toList();
-    final t2Cards = scorecards.where((s) => match.team2Ids.contains(s.entryId.replaceFirst('_guest', '')) || match.team2Ids.contains(s.entryId)).toList();
+    // Identify participants strictly by unique ID (handling both memberId and memberId_guest)
+    final t1Cards = scorecards.where((s) => match.team1Ids.contains(s.entryId)).toList();
+    final t2Cards = scorecards.where((s) => match.team2Ids.contains(s.entryId)).toList();
 
     for (int i = 0; i < holesToPlay; i++) {
       if (i >= holes.length) break;
@@ -111,31 +111,20 @@ class MatchPlayCalculator {
     // Determine Result Text
     if (matchFinalized) {
       final winningTeam = currentScore > 0 ? 0 : 1;
-      // Logic: Score is stored as UP holes.
-      // E.g. 15 holes played. Score +4. Remaining 3.
-      // Status: 4&3.
-      // Wait, calculation:
-      // If score is +4 after 15 holes. 3 left. 4 > 3 is true.
-      // So status is 4&3.
-      
-      // But standard notation is "X & Y" where X is lead, Y is holes to play.
-      // Y = holesRemaining (from loop break above?)
-      // Loop ends. i was 14 (15th hole). holesRemaining was 3.
-      // Correct.
-      
       final margin = currentScore.abs();
-      // Recalculate remaining from loop break
-      final remaining = holesToPlay - holesCompleted; 
-      finalStatus = '$margin & $remaining'; 
+      final remaining = holesToPlay - holesCompleted;
+      
+      if (currentScore == 0) {
+        finalStatus = 'HALVED';
+      } else {
+        finalStatus = remaining > 0 ? '$margin & $remaining' : '$margin UP';
+      }
       winner = winningTeam;
     } else {
       // In Progress / All Square / Dormie
       if (currentScore == 0) {
         finalStatus = 'A/S';
         winner = -1;
-        if (holesCompleted == holesToPlay) {
-          matchFinalized = true;
-        }
       } else {
         final leader = currentScore > 0 ? 0 : 1; // 0=Team1
         final margin = currentScore.abs();
@@ -143,20 +132,11 @@ class MatchPlayCalculator {
         
         // Check Dormie (Margin == Remaining)
         if (margin == remaining && remaining > 0) {
-           finalStatus = '$margin UP'; // Or "Dormie $margin"? Often just "2 UP" is shown until win.
-           // Usually shown as "2 UP"
+           finalStatus = 'DORMIE $margin'; 
         } else {
            finalStatus = '$margin UP';
         }
-        
-        // If 18 holes played and score not 0
-        if (holesCompleted == holesToPlay) {
-           finalStatus = '$margin UP'; // e.g. "1 UP" or "2 UP"
-           winner = leader;
-           matchFinalized = true; 
-        } else {
-           winner = leader; // Leader so far
-        }
+        winner = leader; 
       }
     }
 
@@ -198,9 +178,8 @@ class MatchPlayCalculator {
        // Implementation Plan assumption: `strokesReceived` = { 'playerB_id': 5 } 
        // If player not in map, 0 strokes.
        
-       // Clean ID
-       final cleanId = card.entryId.replaceFirst('_guest', '');
-       final strokesGiven = strokesReceived[cleanId] ?? 0;
+       // Use unique entryId for stroke lookup (no suffix stripping to avoid host/guest conflation)
+       final strokesGiven = strokesReceived[card.entryId] ?? 0;
        
        // Distribute strokes by SI
        // If strokesGiven = 5. Get shots on SI 1-5.

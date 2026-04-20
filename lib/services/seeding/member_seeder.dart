@@ -56,7 +56,7 @@ class MemberSeeder {
       'Senior statesman. Plays the percentages with deadly accuracy.',
     ];
 
-    for (int i = 0; i < 74; i++) {
+    for (int i = 0; i < 92; i++) { // Increased to 92 to add 18 status-test members (3 per exception status)
         bool isFemale = i < 25;
         final fNameList = isFemale ? SeedingData.femaleFirstNames : SeedingData.maleFirstNames;
         final fName = fNameList[i % fNameList.length];
@@ -73,13 +73,48 @@ class MemberSeeder {
 
         double hc = (i < 10) ? (1.0 + random.nextDouble() * 5) : ((i < 40) ? (6.0 + random.nextDouble() * 14) : (20.0 + random.nextDouble() * 16));
         if (isFemale) hc += 2.0;
-        final membershipEnd = DateTime(2026, 1, 1).add(Duration(days: i * 10));
-        final hasRequested = i % 15 == 0;
-        final isExpired = membershipEnd.isBefore(DateTime.now());
-        final currentStatus = isExpired ? MemberStatus.expired : MemberStatus.active;
+
+        // Date Logic for context
+        DateTime joinedDate = DateTime(2025, 1, 1).add(Duration(days: i * 3));
+        DateTime membershipEnd = DateTime(2026, 1, 1).add(Duration(days: i * 10));
         
+        MemberStatus currentStatus;
+        bool hasPaid = true;
+
+        if (i >= 74) {
+          // Comprehensive Status Demo Scenario (74-91)
+          // Create 3 members for each "Exception" status
+          final exceptionIndex = i - 74;
+          final statusSet = [
+            MemberStatus.pending,     // 74, 75, 76
+            MemberStatus.gracePeriod,   // 77, 78, 79
+            MemberStatus.suspended,    // 80, 81, 82
+            MemberStatus.left,         // 83, 84, 85
+            MemberStatus.archived,     // 86, 87, 88
+            MemberStatus.expired,      // 89, 90, 91
+          ];
+          
+          currentStatus = statusSet[exceptionIndex ~/ 3];
+          hasPaid = currentStatus == MemberStatus.pending ? false : (exceptionIndex % 2 == 0);
+          
+          if (currentStatus == MemberStatus.left || currentStatus == MemberStatus.archived) {
+             joinedDate = DateTime(2024, 1, 1).add(Duration(days: exceptionIndex * 15));
+             membershipEnd = DateTime(2024, 12, 31).subtract(Duration(days: exceptionIndex * 2));
+             hasPaid = false;
+          } else if (currentStatus == MemberStatus.expired || currentStatus == MemberStatus.gracePeriod) {
+             membershipEnd = DateTime.now().subtract(const Duration(days: 5));
+          }
+        } else {
+          // Current Market Members
+          final isExpired = membershipEnd.isBefore(DateTime.now());
+          currentStatus = isExpired ? MemberStatus.expired : MemberStatus.active;
+          hasPaid = !isExpired;
+        }
+        
+        final hasRequested = i % 15 == 0 && i < 74;
+
         double initialCredit = 0.0;
-        if (i % 5 == 0 && i != 0) {
+        if (i % 5 == 0 && i != 0 && i < 74) {
           initialCredit = -1 * (10.0 + random.nextInt(90).toDouble());
         }
 
@@ -93,13 +128,13 @@ class MemberSeeder {
           role: systemRole,
           societyRole: role,
           status: currentStatus,
-          joinedDate: DateTime(2025, 1, 1).add(Duration(days: i * 3)),
+          joinedDate: joinedDate,
           membershipEndDate: membershipEnd,
           renewalStatus: hasRequested ? MemberRenewalStatus.renew : MemberRenewalStatus.none,
-          hasPaid: !isExpired,
+          hasPaid: hasPaid,
           gender: isFemale ? 'Female' : 'Male',
           phone: '+44 7${100000000 + i}',
-          bio: bio,
+          bio: i >= 74 ? 'Demo member for ${currentStatus.name} status testing.' : bio,
           avatarUrl: SeedingData.avatarUrls[i % SeedingData.avatarUrls.length],
           allowSocialEventsOnly: false,
           accountCredit: initialCredit,

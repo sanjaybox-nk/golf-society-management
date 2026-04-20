@@ -1,12 +1,20 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:uuid/uuid.dart';
 import 'package:golf_society/design_system/design_system.dart';
 import 'package:golf_society/utils/string_utils.dart';
 
-
 import 'package:golf_society/domain/models/season.dart';
+import 'package:golf_society/domain/models/leaderboard_config.dart';
 import '../../../events/presentation/events_provider.dart';
+import '../leaderboards/controls/oom_control.dart';
+import '../leaderboards/controls/best_of_control.dart';
+import '../leaderboards/controls/eclectic_control.dart';
+import '../leaderboards/controls/marker_counter_control.dart';
+import '../leaderboards/controls/base_leaderboard_control.dart';
+import 'widgets/leaderboard_template_selector.dart';
+import '../../../competitions/services/leaderboard_invoker_service.dart';
 
 class SeasonFormScreen extends ConsumerStatefulWidget {
   final Season? season;
@@ -27,6 +35,7 @@ class _SeasonFormScreenState extends ConsumerState<SeasonFormScreen> {
   late DateTime _startDate;
   late DateTime _endDate;
   late SeasonStatus _status;
+  late List<LeaderboardConfig> _leaderboards;
   bool _isSaving = false;
   bool _isCurrent = false;
 
@@ -40,6 +49,7 @@ class _SeasonFormScreenState extends ConsumerState<SeasonFormScreen> {
     _endDate = s?.endDate ?? DateTime(DateTime.now().year, 12, 31);
     _status = s?.status ?? SeasonStatus.active;
     _isCurrent = s?.isCurrent ?? false;
+    _leaderboards = List.from(s?.leaderboards ?? []);
   }
 
   @override
@@ -59,6 +69,16 @@ class _SeasonFormScreenState extends ConsumerState<SeasonFormScreen> {
       onBack: () => context.pop(),
       actions: [
         const SizedBox(width: AppSpacing.md),
+        if (widget.season != null)
+          Padding(
+            padding: const EdgeInsets.only(top: AppSpacing.xs),
+            child: BoxyArtButton(
+              title: 'Sync',
+              isGhost: true,
+              icon: Icons.sync_rounded,
+              onTap: _syncStandings,
+            ),
+          ),
         Padding(
           padding: const EdgeInsets.only(right: AppSpacing.sm, top: AppSpacing.xs),
           child: BoxyArtButton(
@@ -72,7 +92,11 @@ class _SeasonFormScreenState extends ConsumerState<SeasonFormScreen> {
       ],
       slivers: [
         SliverPadding(
-          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: 0),
+          padding: EdgeInsets.only(
+            left: AppSpacing.xl,
+            right: AppSpacing.xl,
+            bottom: MediaQuery.of(context).padding.bottom + 100,
+          ),
           sliver: SliverToBoxAdapter(
             child: Form(
               key: _formKey,
@@ -143,7 +167,17 @@ class _SeasonFormScreenState extends ConsumerState<SeasonFormScreen> {
                     value: _isCurrent,
                     onChanged: (v) => setState(() => _isCurrent = v),
                   ),
-                  const SizedBox(height: 100),
+
+                  const BoxyArtSectionTitle(title: 'Season Standings'),
+                  _buildLeaderboardsList(),
+                  const SizedBox(height: AppSpacing.xl),
+                  BoxyArtButton(
+                    title: 'Add from Template',
+                    isSecondary: true,
+                    icon: Icons.add_to_photos_rounded,
+                    fullWidth: true,
+                    onTap: _showTemplateSelector,
+                  ),
                 ],
               ),
             ),
@@ -153,6 +187,162 @@ class _SeasonFormScreenState extends ConsumerState<SeasonFormScreen> {
     );
   }
 
+  Widget _buildLeaderboardsList() {
+    if (_leaderboards.isEmpty) {
+      return BoxyArtCard(
+        padding: const EdgeInsets.all(AppSpacing.x2l),
+        child: Center(
+          child: Column(
+            children: [
+              Icon(
+                Icons.leaderboard_outlined,
+                size: 40,
+                color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.5),
+              ),
+              const SizedBox(height: AppSpacing.md),
+              Text(
+                'No leaderboards assigned',
+                style: AppTypography.label.copyWith(
+                  color: AppColors.dark400,
+                ),
+              ),
+              const SizedBox(height: AppSpacing.xs),
+              Text(
+                'Add templates to track points throughout the season.',
+                textAlign: TextAlign.center,
+                style: AppTypography.micro.copyWith(
+                  color: AppColors.dark400,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return Column(
+      children: _leaderboards.map((l) => Padding(
+        padding: const EdgeInsets.only(bottom: AppSpacing.md),
+        child: BoxyArtCard(
+          child: Row(
+            children: [
+              BoxyArtIconBadge(
+                icon: l.map(
+                  orderOfMerit: (_) => Icons.format_list_numbered_rounded,
+                  bestOfSeries: (_) => Icons.stars_rounded,
+                  eclectic: (_) => Icons.grid_on_rounded,
+                  markerCounter: (_) => Icons.emoji_events_rounded,
+                ),
+                color: Theme.of(context).colorScheme.primary,
+              ),
+              const SizedBox(width: AppSpacing.md),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(l.name, style: AppTypography.cardTitle),
+                    Row(
+                      children: [
+                        BoxyArtPill.status(
+                          label: toSentenceCase(l.scope.name),
+                          color: l.scope == LeaderboardScope.global 
+                              ? AppColors.lime500 
+                              : AppColors.teamA,
+                        ),
+                        const SizedBox(width: AppSpacing.xs),
+                        Expanded(
+                          child: Text(
+                            _getFormatConfigSummary(l),
+                            style: AppTypography.micro.copyWith(color: AppColors.dark400),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              IconButton(
+                icon: const Icon(Icons.delete_outline_rounded, color: AppColors.coral500),
+                onPressed: () => _removeLeaderboard(l),
+                visualDensity: VisualDensity.compact,
+              ),
+            ],
+          ),
+        ),
+      )).toList(),
+    );
+  }
+
+  String _getFormatConfigSummary(LeaderboardConfig config) {
+    return config.map(
+      orderOfMerit: (o) => 'OOM • ${o.rankingBasis.name.toUpperCase()} • Best ${o.bestN}',
+      bestOfSeries: (b) => 'Best of Series • Best ${b.bestN}',
+      eclectic: (e) => 'Eclectic • ${e.metric.name.toUpperCase()}',
+      markerCounter: (m) => 'Markers • ${m.targetTypes.length} Targets',
+    );
+  }
+
+  void _showTemplateSelector() async {
+    final result = await context.push<LeaderboardConfig>(
+      '/admin/leaderboards/create/picker',
+    );
+
+    if (result != null && mounted) {
+      setState(() {
+        _leaderboards.add(result);
+      });
+    }
+  }
+
+
+  void _removeLeaderboard(LeaderboardConfig config) {
+    BoxyArtDialog.show(
+      context: context,
+      title: 'Remove Leaderboard?',
+      message: 'This will remove "${config.name}" from the season and clear its calculated standings. This cannot be undone.',
+      confirmText: 'Remove',
+      isDangerous: true,
+      onConfirm: () {
+        setState(() => _leaderboards.removeWhere((l) => l.id == config.id));
+        Navigator.pop(context);
+      },
+    );
+  }
+
+  Future<void> _syncStandings() async {
+    if (widget.season == null) return;
+    
+    _showSnackBar('Syncing standings...', Icons.sync_rounded);
+    
+    try {
+      final invoker = ref.read(leaderboardInvokerServiceProvider);
+      await invoker.recalculateAll(widget.season!.id, overrideConfigs: _leaderboards);
+      if (mounted) {
+        _showSnackBar('Standings synchronized!', Icons.check_circle_rounded, color: AppColors.lime500);
+      }
+    } catch (e) {
+      if (mounted) {
+        _showSnackBar('Sync failed: $e', Icons.error_outline_rounded, color: AppColors.coral500);
+      }
+    }
+  }
+
+  void _showSnackBar(String message, IconData icon, {Color? color}) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            Icon(icon, color: Colors.white, size: 20),
+            const SizedBox(width: AppSpacing.md),
+            Text(message),
+          ],
+        ),
+        backgroundColor: color ?? AppColors.dark700,
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
 
   Future<void> _pickDate({required bool isStart}) async {
     final picked = await showDatePicker(
@@ -185,7 +375,7 @@ class _SeasonFormScreenState extends ConsumerState<SeasonFormScreen> {
       endDate: _endDate,
       status: _status,
       isCurrent: _isCurrent,
-      leaderboards: widget.season?.leaderboards ?? [],
+      leaderboards: _leaderboards,
     );
 
     if (widget.season == null) {

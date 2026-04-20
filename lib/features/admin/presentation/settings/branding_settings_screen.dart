@@ -381,6 +381,34 @@ class BrandingSettingsScreen extends ConsumerWidget {
                     Row(
                       children: [
                         Text(
+                          'Tab to Content',
+                          style: AppTypography.helper.copyWith(
+                            fontWeight: AppTypography.weightBold,
+                          ),
+                        ),
+                        Expanded(
+                          child: Slider(
+                            value: config.tabToContentSpacing,
+                            min: 0.0,
+                            max: 64.0,
+                            divisions: 16,
+                            label: config.tabToContentSpacing.toStringAsFixed(0),
+                            activeColor: Color(config.secondaryColor),
+                            onChanged: (v) =>
+                                controller.setTabToContentSpacing(v),
+                          ),
+                        ),
+                        Text(
+                          config.tabToContentSpacing.toStringAsFixed(0),
+                          style: AppTypography.helper.copyWith(
+                            fontWeight: AppTypography.weightBlack,
+                          ),
+                        ),
+                      ],
+                    ),
+                    Row(
+                      children: [
+                        Text(
                           'Label to Card',
                           style: AppTypography.helper.copyWith(
                             fontWeight: AppTypography.weightBold,

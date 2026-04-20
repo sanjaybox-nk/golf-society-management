@@ -49,7 +49,9 @@ mixin _$EventFormState {
   String? get selectedTemplateId;
   Competition? get eventCompetition;
   bool get isCustomized;
-  List<String> get oomExcludedRoundIds; // Secondary Competition
+  List<String> get oomExcludedRoundIds;
+  bool? get separateGuests;
+  bool get allowGuests; // Secondary Competition
   String? get secondaryTemplateId;
   Competition? get secondaryCompetition;
   bool get isSecondaryCustomized; // Costs
@@ -152,6 +154,10 @@ mixin _$EventFormState {
                 other.isCustomized == isCustomized) &&
             const DeepCollectionEquality()
                 .equals(other.oomExcludedRoundIds, oomExcludedRoundIds) &&
+            (identical(other.separateGuests, separateGuests) ||
+                other.separateGuests == separateGuests) &&
+            (identical(other.allowGuests, allowGuests) ||
+                other.allowGuests == allowGuests) &&
             (identical(other.secondaryTemplateId, secondaryTemplateId) ||
                 other.secondaryTemplateId == secondaryTemplateId) &&
             (identical(other.secondaryCompetition, secondaryCompetition) ||
@@ -176,10 +182,8 @@ mixin _$EventFormState {
                 other.hasDinner == hasDinner) &&
             (identical(other.breakfastCost, breakfastCost) ||
                 other.breakfastCost == breakfastCost) &&
-            (identical(other.lunchCost, lunchCost) ||
-                other.lunchCost == lunchCost) &&
-            (identical(other.dinnerCost, dinnerCost) ||
-                other.dinnerCost == dinnerCost) &&
+            (identical(other.lunchCost, lunchCost) || other.lunchCost == lunchCost) &&
+            (identical(other.dinnerCost, dinnerCost) || other.dinnerCost == dinnerCost) &&
             (identical(other.societyBreakfastCost, societyBreakfastCost) || other.societyBreakfastCost == societyBreakfastCost) &&
             (identical(other.societyLunchCost, societyLunchCost) || other.societyLunchCost == societyLunchCost) &&
             (identical(other.societyDinnerCost, societyDinnerCost) || other.societyDinnerCost == societyDinnerCost) &&
@@ -230,6 +234,8 @@ mixin _$EventFormState {
         eventCompetition,
         isCustomized,
         const DeepCollectionEquality().hash(oomExcludedRoundIds),
+        separateGuests,
+        allowGuests,
         secondaryTemplateId,
         secondaryCompetition,
         isSecondaryCustomized,
@@ -257,7 +263,7 @@ mixin _$EventFormState {
 
   @override
   String toString() {
-    return 'EventFormState(isLoading: $isLoading, isSaving: $isSaving, eventId: $eventId, initialEvent: $initialEvent, title: $title, description: $description, imageUrl: $imageUrl, eventType: $eventType, selectedDate: $selectedDate, selectedTime: $selectedTime, registrationTime: $registrationTime, deadlineDate: $deadlineDate, deadlineTime: $deadlineTime, selectedSeasonId: $selectedSeasonId, isMultiDay: $isMultiDay, endDate: $endDate, showRegistrationButton: $showRegistrationButton, isInvitational: $isInvitational, teeOffInterval: $teeOffInterval, selectedCourseId: $selectedCourseId, courseName: $courseName, courseDetails: $courseDetails, selectedTeeName: $selectedTeeName, selectedFemaleTeeName: $selectedFemaleTeeName, dressCode: $dressCode, availableBuggies: $availableBuggies, maxParticipants: $maxParticipants, facilities: $facilities, holes: $holes, rating: $rating, slope: $slope, par: $par, selectedTemplateId: $selectedTemplateId, eventCompetition: $eventCompetition, isCustomized: $isCustomized, oomExcludedRoundIds: $oomExcludedRoundIds, secondaryTemplateId: $secondaryTemplateId, secondaryCompetition: $secondaryCompetition, isSecondaryCustomized: $isSecondaryCustomized, memberCost: $memberCost, guestCost: $guestCost, societyGreenFee: $societyGreenFee, buggyCost: $buggyCost, eventCost: $eventCost, hasBreakfast: $hasBreakfast, hasLunch: $hasLunch, hasDinner: $hasDinner, breakfastCost: $breakfastCost, lunchCost: $lunchCost, dinnerCost: $dinnerCost, societyBreakfastCost: $societyBreakfastCost, societyLunchCost: $societyLunchCost, societyDinnerCost: $societyDinnerCost, dinnerLocation: $dinnerLocation, dinnerAddress: $dinnerAddress, showAwards: $showAwards, awards: $awards, notes: $notes, extraCosts: $extraCosts)';
+    return 'EventFormState(isLoading: $isLoading, isSaving: $isSaving, eventId: $eventId, initialEvent: $initialEvent, title: $title, description: $description, imageUrl: $imageUrl, eventType: $eventType, selectedDate: $selectedDate, selectedTime: $selectedTime, registrationTime: $registrationTime, deadlineDate: $deadlineDate, deadlineTime: $deadlineTime, selectedSeasonId: $selectedSeasonId, isMultiDay: $isMultiDay, endDate: $endDate, showRegistrationButton: $showRegistrationButton, isInvitational: $isInvitational, teeOffInterval: $teeOffInterval, selectedCourseId: $selectedCourseId, courseName: $courseName, courseDetails: $courseDetails, selectedTeeName: $selectedTeeName, selectedFemaleTeeName: $selectedFemaleTeeName, dressCode: $dressCode, availableBuggies: $availableBuggies, maxParticipants: $maxParticipants, facilities: $facilities, holes: $holes, rating: $rating, slope: $slope, par: $par, selectedTemplateId: $selectedTemplateId, eventCompetition: $eventCompetition, isCustomized: $isCustomized, oomExcludedRoundIds: $oomExcludedRoundIds, separateGuests: $separateGuests, allowGuests: $allowGuests, secondaryTemplateId: $secondaryTemplateId, secondaryCompetition: $secondaryCompetition, isSecondaryCustomized: $isSecondaryCustomized, memberCost: $memberCost, guestCost: $guestCost, societyGreenFee: $societyGreenFee, buggyCost: $buggyCost, eventCost: $eventCost, hasBreakfast: $hasBreakfast, hasLunch: $hasLunch, hasDinner: $hasDinner, breakfastCost: $breakfastCost, lunchCost: $lunchCost, dinnerCost: $dinnerCost, societyBreakfastCost: $societyBreakfastCost, societyLunchCost: $societyLunchCost, societyDinnerCost: $societyDinnerCost, dinnerLocation: $dinnerLocation, dinnerAddress: $dinnerAddress, showAwards: $showAwards, awards: $awards, notes: $notes, extraCosts: $extraCosts)';
   }
 }
 
@@ -304,6 +310,8 @@ abstract mixin class $EventFormStateCopyWith<$Res> {
       Competition? eventCompetition,
       bool isCustomized,
       List<String> oomExcludedRoundIds,
+      bool? separateGuests,
+      bool allowGuests,
       String? secondaryTemplateId,
       Competition? secondaryCompetition,
       bool isSecondaryCustomized,
@@ -382,6 +390,8 @@ class _$EventFormStateCopyWithImpl<$Res>
     Object? eventCompetition = freezed,
     Object? isCustomized = null,
     Object? oomExcludedRoundIds = null,
+    Object? separateGuests = freezed,
+    Object? allowGuests = null,
     Object? secondaryTemplateId = freezed,
     Object? secondaryCompetition = freezed,
     Object? isSecondaryCustomized = null,
@@ -551,6 +561,14 @@ class _$EventFormStateCopyWithImpl<$Res>
           ? _self.oomExcludedRoundIds
           : oomExcludedRoundIds // ignore: cast_nullable_to_non_nullable
               as List<String>,
+      separateGuests: freezed == separateGuests
+          ? _self.separateGuests
+          : separateGuests // ignore: cast_nullable_to_non_nullable
+              as bool?,
+      allowGuests: null == allowGuests
+          ? _self.allowGuests
+          : allowGuests // ignore: cast_nullable_to_non_nullable
+              as bool,
       secondaryTemplateId: freezed == secondaryTemplateId
           ? _self.secondaryTemplateId
           : secondaryTemplateId // ignore: cast_nullable_to_non_nullable
@@ -819,6 +837,8 @@ extension EventFormStatePatterns on EventFormState {
             Competition? eventCompetition,
             bool isCustomized,
             List<String> oomExcludedRoundIds,
+            bool? separateGuests,
+            bool allowGuests,
             String? secondaryTemplateId,
             Competition? secondaryCompetition,
             bool isSecondaryCustomized,
@@ -885,6 +905,8 @@ extension EventFormStatePatterns on EventFormState {
             _that.eventCompetition,
             _that.isCustomized,
             _that.oomExcludedRoundIds,
+            _that.separateGuests,
+            _that.allowGuests,
             _that.secondaryTemplateId,
             _that.secondaryCompetition,
             _that.isSecondaryCustomized,
@@ -965,6 +987,8 @@ extension EventFormStatePatterns on EventFormState {
             Competition? eventCompetition,
             bool isCustomized,
             List<String> oomExcludedRoundIds,
+            bool? separateGuests,
+            bool allowGuests,
             String? secondaryTemplateId,
             Competition? secondaryCompetition,
             bool isSecondaryCustomized,
@@ -1030,6 +1054,8 @@ extension EventFormStatePatterns on EventFormState {
             _that.eventCompetition,
             _that.isCustomized,
             _that.oomExcludedRoundIds,
+            _that.separateGuests,
+            _that.allowGuests,
             _that.secondaryTemplateId,
             _that.secondaryCompetition,
             _that.isSecondaryCustomized,
@@ -1109,6 +1135,8 @@ extension EventFormStatePatterns on EventFormState {
             Competition? eventCompetition,
             bool isCustomized,
             List<String> oomExcludedRoundIds,
+            bool? separateGuests,
+            bool allowGuests,
             String? secondaryTemplateId,
             Competition? secondaryCompetition,
             bool isSecondaryCustomized,
@@ -1174,6 +1202,8 @@ extension EventFormStatePatterns on EventFormState {
             _that.eventCompetition,
             _that.isCustomized,
             _that.oomExcludedRoundIds,
+            _that.separateGuests,
+            _that.allowGuests,
             _that.secondaryTemplateId,
             _that.secondaryCompetition,
             _that.isSecondaryCustomized,
@@ -1243,6 +1273,8 @@ class _EventFormState extends EventFormState {
       this.eventCompetition,
       this.isCustomized = false,
       final List<String> oomExcludedRoundIds = const [],
+      this.separateGuests,
+      this.allowGuests = true,
       this.secondaryTemplateId,
       this.secondaryCompetition,
       this.isSecondaryCustomized = false,
@@ -1387,6 +1419,11 @@ class _EventFormState extends EventFormState {
     return EqualUnmodifiableListView(_oomExcludedRoundIds);
   }
 
+  @override
+  final bool? separateGuests;
+  @override
+  @JsonKey()
+  final bool allowGuests;
 // Secondary Competition
   @override
   final String? secondaryTemplateId;
@@ -1545,6 +1582,10 @@ class _EventFormState extends EventFormState {
                 other.isCustomized == isCustomized) &&
             const DeepCollectionEquality()
                 .equals(other._oomExcludedRoundIds, _oomExcludedRoundIds) &&
+            (identical(other.separateGuests, separateGuests) ||
+                other.separateGuests == separateGuests) &&
+            (identical(other.allowGuests, allowGuests) ||
+                other.allowGuests == allowGuests) &&
             (identical(other.secondaryTemplateId, secondaryTemplateId) ||
                 other.secondaryTemplateId == secondaryTemplateId) &&
             (identical(other.secondaryCompetition, secondaryCompetition) ||
@@ -1569,10 +1610,8 @@ class _EventFormState extends EventFormState {
                 other.hasDinner == hasDinner) &&
             (identical(other.breakfastCost, breakfastCost) ||
                 other.breakfastCost == breakfastCost) &&
-            (identical(other.lunchCost, lunchCost) ||
-                other.lunchCost == lunchCost) &&
-            (identical(other.dinnerCost, dinnerCost) ||
-                other.dinnerCost == dinnerCost) &&
+            (identical(other.lunchCost, lunchCost) || other.lunchCost == lunchCost) &&
+            (identical(other.dinnerCost, dinnerCost) || other.dinnerCost == dinnerCost) &&
             (identical(other.societyBreakfastCost, societyBreakfastCost) || other.societyBreakfastCost == societyBreakfastCost) &&
             (identical(other.societyLunchCost, societyLunchCost) || other.societyLunchCost == societyLunchCost) &&
             (identical(other.societyDinnerCost, societyDinnerCost) || other.societyDinnerCost == societyDinnerCost) &&
@@ -1623,6 +1662,8 @@ class _EventFormState extends EventFormState {
         eventCompetition,
         isCustomized,
         const DeepCollectionEquality().hash(_oomExcludedRoundIds),
+        separateGuests,
+        allowGuests,
         secondaryTemplateId,
         secondaryCompetition,
         isSecondaryCustomized,
@@ -1650,7 +1691,7 @@ class _EventFormState extends EventFormState {
 
   @override
   String toString() {
-    return 'EventFormState(isLoading: $isLoading, isSaving: $isSaving, eventId: $eventId, initialEvent: $initialEvent, title: $title, description: $description, imageUrl: $imageUrl, eventType: $eventType, selectedDate: $selectedDate, selectedTime: $selectedTime, registrationTime: $registrationTime, deadlineDate: $deadlineDate, deadlineTime: $deadlineTime, selectedSeasonId: $selectedSeasonId, isMultiDay: $isMultiDay, endDate: $endDate, showRegistrationButton: $showRegistrationButton, isInvitational: $isInvitational, teeOffInterval: $teeOffInterval, selectedCourseId: $selectedCourseId, courseName: $courseName, courseDetails: $courseDetails, selectedTeeName: $selectedTeeName, selectedFemaleTeeName: $selectedFemaleTeeName, dressCode: $dressCode, availableBuggies: $availableBuggies, maxParticipants: $maxParticipants, facilities: $facilities, holes: $holes, rating: $rating, slope: $slope, par: $par, selectedTemplateId: $selectedTemplateId, eventCompetition: $eventCompetition, isCustomized: $isCustomized, oomExcludedRoundIds: $oomExcludedRoundIds, secondaryTemplateId: $secondaryTemplateId, secondaryCompetition: $secondaryCompetition, isSecondaryCustomized: $isSecondaryCustomized, memberCost: $memberCost, guestCost: $guestCost, societyGreenFee: $societyGreenFee, buggyCost: $buggyCost, eventCost: $eventCost, hasBreakfast: $hasBreakfast, hasLunch: $hasLunch, hasDinner: $hasDinner, breakfastCost: $breakfastCost, lunchCost: $lunchCost, dinnerCost: $dinnerCost, societyBreakfastCost: $societyBreakfastCost, societyLunchCost: $societyLunchCost, societyDinnerCost: $societyDinnerCost, dinnerLocation: $dinnerLocation, dinnerAddress: $dinnerAddress, showAwards: $showAwards, awards: $awards, notes: $notes, extraCosts: $extraCosts)';
+    return 'EventFormState(isLoading: $isLoading, isSaving: $isSaving, eventId: $eventId, initialEvent: $initialEvent, title: $title, description: $description, imageUrl: $imageUrl, eventType: $eventType, selectedDate: $selectedDate, selectedTime: $selectedTime, registrationTime: $registrationTime, deadlineDate: $deadlineDate, deadlineTime: $deadlineTime, selectedSeasonId: $selectedSeasonId, isMultiDay: $isMultiDay, endDate: $endDate, showRegistrationButton: $showRegistrationButton, isInvitational: $isInvitational, teeOffInterval: $teeOffInterval, selectedCourseId: $selectedCourseId, courseName: $courseName, courseDetails: $courseDetails, selectedTeeName: $selectedTeeName, selectedFemaleTeeName: $selectedFemaleTeeName, dressCode: $dressCode, availableBuggies: $availableBuggies, maxParticipants: $maxParticipants, facilities: $facilities, holes: $holes, rating: $rating, slope: $slope, par: $par, selectedTemplateId: $selectedTemplateId, eventCompetition: $eventCompetition, isCustomized: $isCustomized, oomExcludedRoundIds: $oomExcludedRoundIds, separateGuests: $separateGuests, allowGuests: $allowGuests, secondaryTemplateId: $secondaryTemplateId, secondaryCompetition: $secondaryCompetition, isSecondaryCustomized: $isSecondaryCustomized, memberCost: $memberCost, guestCost: $guestCost, societyGreenFee: $societyGreenFee, buggyCost: $buggyCost, eventCost: $eventCost, hasBreakfast: $hasBreakfast, hasLunch: $hasLunch, hasDinner: $hasDinner, breakfastCost: $breakfastCost, lunchCost: $lunchCost, dinnerCost: $dinnerCost, societyBreakfastCost: $societyBreakfastCost, societyLunchCost: $societyLunchCost, societyDinnerCost: $societyDinnerCost, dinnerLocation: $dinnerLocation, dinnerAddress: $dinnerAddress, showAwards: $showAwards, awards: $awards, notes: $notes, extraCosts: $extraCosts)';
   }
 }
 
@@ -1699,6 +1740,8 @@ abstract mixin class _$EventFormStateCopyWith<$Res>
       Competition? eventCompetition,
       bool isCustomized,
       List<String> oomExcludedRoundIds,
+      bool? separateGuests,
+      bool allowGuests,
       String? secondaryTemplateId,
       Competition? secondaryCompetition,
       bool isSecondaryCustomized,
@@ -1780,6 +1823,8 @@ class __$EventFormStateCopyWithImpl<$Res>
     Object? eventCompetition = freezed,
     Object? isCustomized = null,
     Object? oomExcludedRoundIds = null,
+    Object? separateGuests = freezed,
+    Object? allowGuests = null,
     Object? secondaryTemplateId = freezed,
     Object? secondaryCompetition = freezed,
     Object? isSecondaryCustomized = null,
@@ -1949,6 +1994,14 @@ class __$EventFormStateCopyWithImpl<$Res>
           ? _self._oomExcludedRoundIds
           : oomExcludedRoundIds // ignore: cast_nullable_to_non_nullable
               as List<String>,
+      separateGuests: freezed == separateGuests
+          ? _self.separateGuests
+          : separateGuests // ignore: cast_nullable_to_non_nullable
+              as bool?,
+      allowGuests: null == allowGuests
+          ? _self.allowGuests
+          : allowGuests // ignore: cast_nullable_to_non_nullable
+              as bool,
       secondaryTemplateId: freezed == secondaryTemplateId
           ? _self.secondaryTemplateId
           : secondaryTemplateId // ignore: cast_nullable_to_non_nullable

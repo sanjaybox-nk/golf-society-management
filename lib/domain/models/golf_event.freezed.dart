@@ -2119,7 +2119,9 @@ mixin _$GolfEvent {
   double? get eventCost;
   List<EventExtraCost> get extraCosts;
   double get charityPot;
-  String? get groupingStrategy;
+  String? get groupingStrategy; // [NEW] Per event grouping logic override
+  bool? get separateGuests; // [NEW] null=auto, true=separate, false=merge
+  bool get allowGuests;
 
   /// Create a copy of GolfEvent
   /// with the given fields replaced by the non-null parameter values.
@@ -2239,7 +2241,9 @@ mixin _$GolfEvent {
             (identical(other.eventCost, eventCost) || other.eventCost == eventCost) &&
             const DeepCollectionEquality().equals(other.extraCosts, extraCosts) &&
             (identical(other.charityPot, charityPot) || other.charityPot == charityPot) &&
-            (identical(other.groupingStrategy, groupingStrategy) || other.groupingStrategy == groupingStrategy));
+            (identical(other.groupingStrategy, groupingStrategy) || other.groupingStrategy == groupingStrategy) &&
+            (identical(other.separateGuests, separateGuests) || other.separateGuests == separateGuests) &&
+            (identical(other.allowGuests, allowGuests) || other.allowGuests == allowGuests));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -2307,12 +2311,14 @@ mixin _$GolfEvent {
         eventCost,
         const DeepCollectionEquality().hash(extraCosts),
         charityPot,
-        groupingStrategy
+        groupingStrategy,
+        separateGuests,
+        allowGuests
       ]);
 
   @override
   String toString() {
-    return 'GolfEvent(id: $id, title: $title, seasonId: $seasonId, date: $date, description: $description, imageUrl: $imageUrl, regTime: $regTime, teeOffTime: $teeOffTime, registrationDeadline: $registrationDeadline, registrations: $registrations, courseName: $courseName, courseDetails: $courseDetails, dressCode: $dressCode, availableBuggies: $availableBuggies, maxParticipants: $maxParticipants, facilities: $facilities, memberCost: $memberCost, guestCost: $guestCost, breakfastCost: $breakfastCost, lunchCost: $lunchCost, dinnerCost: $dinnerCost, buggyCost: $buggyCost, hasBreakfast: $hasBreakfast, hasLunch: $hasLunch, hasDinner: $hasDinner, dinnerLocation: $dinnerLocation, dinnerAddress: $dinnerAddress, societyGreenFee: $societyGreenFee, societyBreakfastCost: $societyBreakfastCost, societyLunchCost: $societyLunchCost, societyDinnerCost: $societyDinnerCost, notes: $notes, galleryUrls: $galleryUrls, showRegistrationButton: $showRegistrationButton, teeOffInterval: $teeOffInterval, isGroupingPublished: $isGroupingPublished, isMultiDay: $isMultiDay, endDate: $endDate, grouping: $grouping, results: $results, courseId: $courseId, courseConfig: $courseConfig, selectedTeeName: $selectedTeeName, selectedFemaleTeeName: $selectedFemaleTeeName, flashUpdates: $flashUpdates, feedItems: $feedItems, isScoringLocked: $isScoringLocked, isStatsReleased: $isStatsReleased, finalizedStats: $finalizedStats, secondaryTemplateId: $secondaryTemplateId, isSeasonEvent: $isSeasonEvent, isInvitational: $isInvitational, status: $status, expenses: $expenses, showAwards: $showAwards, awards: $awards, eventType: $eventType, manualCuts: $manualCuts, eventCost: $eventCost, extraCosts: $extraCosts, charityPot: $charityPot, groupingStrategy: $groupingStrategy)';
+    return 'GolfEvent(id: $id, title: $title, seasonId: $seasonId, date: $date, description: $description, imageUrl: $imageUrl, regTime: $regTime, teeOffTime: $teeOffTime, registrationDeadline: $registrationDeadline, registrations: $registrations, courseName: $courseName, courseDetails: $courseDetails, dressCode: $dressCode, availableBuggies: $availableBuggies, maxParticipants: $maxParticipants, facilities: $facilities, memberCost: $memberCost, guestCost: $guestCost, breakfastCost: $breakfastCost, lunchCost: $lunchCost, dinnerCost: $dinnerCost, buggyCost: $buggyCost, hasBreakfast: $hasBreakfast, hasLunch: $hasLunch, hasDinner: $hasDinner, dinnerLocation: $dinnerLocation, dinnerAddress: $dinnerAddress, societyGreenFee: $societyGreenFee, societyBreakfastCost: $societyBreakfastCost, societyLunchCost: $societyLunchCost, societyDinnerCost: $societyDinnerCost, notes: $notes, galleryUrls: $galleryUrls, showRegistrationButton: $showRegistrationButton, teeOffInterval: $teeOffInterval, isGroupingPublished: $isGroupingPublished, isMultiDay: $isMultiDay, endDate: $endDate, grouping: $grouping, results: $results, courseId: $courseId, courseConfig: $courseConfig, selectedTeeName: $selectedTeeName, selectedFemaleTeeName: $selectedFemaleTeeName, flashUpdates: $flashUpdates, feedItems: $feedItems, isScoringLocked: $isScoringLocked, isStatsReleased: $isStatsReleased, finalizedStats: $finalizedStats, secondaryTemplateId: $secondaryTemplateId, isSeasonEvent: $isSeasonEvent, isInvitational: $isInvitational, status: $status, expenses: $expenses, showAwards: $showAwards, awards: $awards, eventType: $eventType, manualCuts: $manualCuts, eventCost: $eventCost, extraCosts: $extraCosts, charityPot: $charityPot, groupingStrategy: $groupingStrategy, separateGuests: $separateGuests, allowGuests: $allowGuests)';
   }
 }
 
@@ -2383,7 +2389,9 @@ abstract mixin class $GolfEventCopyWith<$Res> {
       double? eventCost,
       List<EventExtraCost> extraCosts,
       double charityPot,
-      String? groupingStrategy});
+      String? groupingStrategy,
+      bool? separateGuests,
+      bool allowGuests});
 
   $CourseConfigCopyWith<$Res> get courseConfig;
 }
@@ -2462,6 +2470,8 @@ class _$GolfEventCopyWithImpl<$Res> implements $GolfEventCopyWith<$Res> {
     Object? extraCosts = null,
     Object? charityPot = null,
     Object? groupingStrategy = freezed,
+    Object? separateGuests = freezed,
+    Object? allowGuests = null,
   }) {
     return _then(_self.copyWith(
       id: null == id
@@ -2712,6 +2722,14 @@ class _$GolfEventCopyWithImpl<$Res> implements $GolfEventCopyWith<$Res> {
           ? _self.groupingStrategy
           : groupingStrategy // ignore: cast_nullable_to_non_nullable
               as String?,
+      separateGuests: freezed == separateGuests
+          ? _self.separateGuests
+          : separateGuests // ignore: cast_nullable_to_non_nullable
+              as bool?,
+      allowGuests: null == allowGuests
+          ? _self.allowGuests
+          : allowGuests // ignore: cast_nullable_to_non_nullable
+              as bool,
     ));
   }
 
@@ -2881,7 +2899,9 @@ extension GolfEventPatterns on GolfEvent {
             double? eventCost,
             List<EventExtraCost> extraCosts,
             double charityPot,
-            String? groupingStrategy)?
+            String? groupingStrategy,
+            bool? separateGuests,
+            bool allowGuests)?
         $default, {
     required TResult orElse(),
   }) {
@@ -2950,7 +2970,9 @@ extension GolfEventPatterns on GolfEvent {
             _that.eventCost,
             _that.extraCosts,
             _that.charityPot,
-            _that.groupingStrategy);
+            _that.groupingStrategy,
+            _that.separateGuests,
+            _that.allowGuests);
       case _:
         return orElse();
     }
@@ -3033,7 +3055,9 @@ extension GolfEventPatterns on GolfEvent {
             double? eventCost,
             List<EventExtraCost> extraCosts,
             double charityPot,
-            String? groupingStrategy)
+            String? groupingStrategy,
+            bool? separateGuests,
+            bool allowGuests)
         $default,
   ) {
     final _that = this;
@@ -3101,7 +3125,9 @@ extension GolfEventPatterns on GolfEvent {
             _that.eventCost,
             _that.extraCosts,
             _that.charityPot,
-            _that.groupingStrategy);
+            _that.groupingStrategy,
+            _that.separateGuests,
+            _that.allowGuests);
       case _:
         throw StateError('Unexpected subclass');
     }
@@ -3183,7 +3209,9 @@ extension GolfEventPatterns on GolfEvent {
             double? eventCost,
             List<EventExtraCost> extraCosts,
             double charityPot,
-            String? groupingStrategy)?
+            String? groupingStrategy,
+            bool? separateGuests,
+            bool allowGuests)?
         $default,
   ) {
     final _that = this;
@@ -3251,7 +3279,9 @@ extension GolfEventPatterns on GolfEvent {
             _that.eventCost,
             _that.extraCosts,
             _that.charityPot,
-            _that.groupingStrategy);
+            _that.groupingStrategy,
+            _that.separateGuests,
+            _that.allowGuests);
       case _:
         return null;
     }
@@ -3323,7 +3353,9 @@ class _GolfEvent extends GolfEvent {
       this.eventCost,
       final List<EventExtraCost> extraCosts = const [],
       this.charityPot = 0.0,
-      this.groupingStrategy})
+      this.groupingStrategy,
+      this.separateGuests,
+      this.allowGuests = true})
       : _registrations = registrations,
         _facilities = facilities,
         _notes = notes,
@@ -3591,6 +3623,13 @@ class _GolfEvent extends GolfEvent {
   final double charityPot;
   @override
   final String? groupingStrategy;
+// [NEW] Per event grouping logic override
+  @override
+  final bool? separateGuests;
+// [NEW] null=auto, true=separate, false=merge
+  @override
+  @JsonKey()
+  final bool allowGuests;
 
   /// Create a copy of GolfEvent
   /// with the given fields replaced by the non-null parameter values.
@@ -3715,7 +3754,9 @@ class _GolfEvent extends GolfEvent {
             (identical(other.eventCost, eventCost) || other.eventCost == eventCost) &&
             const DeepCollectionEquality().equals(other._extraCosts, _extraCosts) &&
             (identical(other.charityPot, charityPot) || other.charityPot == charityPot) &&
-            (identical(other.groupingStrategy, groupingStrategy) || other.groupingStrategy == groupingStrategy));
+            (identical(other.groupingStrategy, groupingStrategy) || other.groupingStrategy == groupingStrategy) &&
+            (identical(other.separateGuests, separateGuests) || other.separateGuests == separateGuests) &&
+            (identical(other.allowGuests, allowGuests) || other.allowGuests == allowGuests));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -3783,12 +3824,14 @@ class _GolfEvent extends GolfEvent {
         eventCost,
         const DeepCollectionEquality().hash(_extraCosts),
         charityPot,
-        groupingStrategy
+        groupingStrategy,
+        separateGuests,
+        allowGuests
       ]);
 
   @override
   String toString() {
-    return 'GolfEvent(id: $id, title: $title, seasonId: $seasonId, date: $date, description: $description, imageUrl: $imageUrl, regTime: $regTime, teeOffTime: $teeOffTime, registrationDeadline: $registrationDeadline, registrations: $registrations, courseName: $courseName, courseDetails: $courseDetails, dressCode: $dressCode, availableBuggies: $availableBuggies, maxParticipants: $maxParticipants, facilities: $facilities, memberCost: $memberCost, guestCost: $guestCost, breakfastCost: $breakfastCost, lunchCost: $lunchCost, dinnerCost: $dinnerCost, buggyCost: $buggyCost, hasBreakfast: $hasBreakfast, hasLunch: $hasLunch, hasDinner: $hasDinner, dinnerLocation: $dinnerLocation, dinnerAddress: $dinnerAddress, societyGreenFee: $societyGreenFee, societyBreakfastCost: $societyBreakfastCost, societyLunchCost: $societyLunchCost, societyDinnerCost: $societyDinnerCost, notes: $notes, galleryUrls: $galleryUrls, showRegistrationButton: $showRegistrationButton, teeOffInterval: $teeOffInterval, isGroupingPublished: $isGroupingPublished, isMultiDay: $isMultiDay, endDate: $endDate, grouping: $grouping, results: $results, courseId: $courseId, courseConfig: $courseConfig, selectedTeeName: $selectedTeeName, selectedFemaleTeeName: $selectedFemaleTeeName, flashUpdates: $flashUpdates, feedItems: $feedItems, isScoringLocked: $isScoringLocked, isStatsReleased: $isStatsReleased, finalizedStats: $finalizedStats, secondaryTemplateId: $secondaryTemplateId, isSeasonEvent: $isSeasonEvent, isInvitational: $isInvitational, status: $status, expenses: $expenses, showAwards: $showAwards, awards: $awards, eventType: $eventType, manualCuts: $manualCuts, eventCost: $eventCost, extraCosts: $extraCosts, charityPot: $charityPot, groupingStrategy: $groupingStrategy)';
+    return 'GolfEvent(id: $id, title: $title, seasonId: $seasonId, date: $date, description: $description, imageUrl: $imageUrl, regTime: $regTime, teeOffTime: $teeOffTime, registrationDeadline: $registrationDeadline, registrations: $registrations, courseName: $courseName, courseDetails: $courseDetails, dressCode: $dressCode, availableBuggies: $availableBuggies, maxParticipants: $maxParticipants, facilities: $facilities, memberCost: $memberCost, guestCost: $guestCost, breakfastCost: $breakfastCost, lunchCost: $lunchCost, dinnerCost: $dinnerCost, buggyCost: $buggyCost, hasBreakfast: $hasBreakfast, hasLunch: $hasLunch, hasDinner: $hasDinner, dinnerLocation: $dinnerLocation, dinnerAddress: $dinnerAddress, societyGreenFee: $societyGreenFee, societyBreakfastCost: $societyBreakfastCost, societyLunchCost: $societyLunchCost, societyDinnerCost: $societyDinnerCost, notes: $notes, galleryUrls: $galleryUrls, showRegistrationButton: $showRegistrationButton, teeOffInterval: $teeOffInterval, isGroupingPublished: $isGroupingPublished, isMultiDay: $isMultiDay, endDate: $endDate, grouping: $grouping, results: $results, courseId: $courseId, courseConfig: $courseConfig, selectedTeeName: $selectedTeeName, selectedFemaleTeeName: $selectedFemaleTeeName, flashUpdates: $flashUpdates, feedItems: $feedItems, isScoringLocked: $isScoringLocked, isStatsReleased: $isStatsReleased, finalizedStats: $finalizedStats, secondaryTemplateId: $secondaryTemplateId, isSeasonEvent: $isSeasonEvent, isInvitational: $isInvitational, status: $status, expenses: $expenses, showAwards: $showAwards, awards: $awards, eventType: $eventType, manualCuts: $manualCuts, eventCost: $eventCost, extraCosts: $extraCosts, charityPot: $charityPot, groupingStrategy: $groupingStrategy, separateGuests: $separateGuests, allowGuests: $allowGuests)';
   }
 }
 
@@ -3862,7 +3905,9 @@ abstract mixin class _$GolfEventCopyWith<$Res>
       double? eventCost,
       List<EventExtraCost> extraCosts,
       double charityPot,
-      String? groupingStrategy});
+      String? groupingStrategy,
+      bool? separateGuests,
+      bool allowGuests});
 
   @override
   $CourseConfigCopyWith<$Res> get courseConfig;
@@ -3942,6 +3987,8 @@ class __$GolfEventCopyWithImpl<$Res> implements _$GolfEventCopyWith<$Res> {
     Object? extraCosts = null,
     Object? charityPot = null,
     Object? groupingStrategy = freezed,
+    Object? separateGuests = freezed,
+    Object? allowGuests = null,
   }) {
     return _then(_GolfEvent(
       id: null == id
@@ -4192,6 +4239,14 @@ class __$GolfEventCopyWithImpl<$Res> implements _$GolfEventCopyWith<$Res> {
           ? _self.groupingStrategy
           : groupingStrategy // ignore: cast_nullable_to_non_nullable
               as String?,
+      separateGuests: freezed == separateGuests
+          ? _self.separateGuests
+          : separateGuests // ignore: cast_nullable_to_non_nullable
+              as bool?,
+      allowGuests: null == allowGuests
+          ? _self.allowGuests
+          : allowGuests // ignore: cast_nullable_to_non_nullable
+              as bool,
     ));
   }
 

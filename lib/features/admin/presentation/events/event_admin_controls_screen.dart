@@ -211,6 +211,16 @@ class _EventAdminControlsScreenState extends ConsumerState<EventAdminControlsScr
                         ),
                         const BoxyArtDivider(),
                         BoxyArtNavTile(
+                          title: 'Match Play Draw',
+                          subtitle: 'Generate and manage tournament brackets',
+                          icon: Icons.account_tree_outlined,
+                          onTap: () => context.pushNamed(
+                            'admin-event-matchplay-draw',
+                            pathParameters: {'id': event.id},
+                          ),
+                        ),
+                        const BoxyArtDivider(),
+                        BoxyArtNavTile(
                           title: 'Costs & Charges',
                           subtitle: 'Manage member/guest fees & meal options',
                           icon: Icons.payments_outlined,
@@ -327,11 +337,20 @@ class _EventAdminControlsScreenState extends ConsumerState<EventAdminControlsScr
   }
 
   Future<void> _closeEvent(GolfEvent event, AsyncValue<List<Scorecard>> scorecardsAsync) async {
+    final scorecards = scorecardsAsync.value ?? [];
+    final pending = scorecards.where((s) => s.status == ScorecardStatus.submitted).length;
+    final incomplete = scorecards.where((s) => s.scoringStatus == ScoringStatus.incomplete).length;
+    
+    String warning = 'This will lock all scorecards, finalize the results, and mark the event as completed.';
+    if (pending > 0 || incomplete > 0) {
+      warning = 'WARNING: There are still $pending pending reviews and $incomplete incomplete scorecards. \n\nClosing the event will lock these in their current state.';
+    }
+
     final confirmed = await showBoxyArtDialog<bool>(
       context: context,
       title: 'Close Event?',
-      message: 'This will lock all scorecards, finalize the results, and mark the event as completed.',
-      confirmText: 'Close',
+      message: warning,
+      confirmText: 'Close & Finalize',
       isDangerous: true,
       onCancel: () => Navigator.of(context, rootNavigator: true).pop(false),
       onConfirm: () async {

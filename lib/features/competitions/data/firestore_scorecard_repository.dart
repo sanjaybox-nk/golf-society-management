@@ -92,14 +92,18 @@ class FirestoreScorecardRepository implements ScorecardRepository {
   }
 
   @override
-  Future<void> deleteAllScorecards(String competitionId) async {
+  Future<void> approveAllScorecards(String competitionId) async {
     final snapshot = await _scorecardsRef
         .where('competitionId', isEqualTo: competitionId)
+        .where('status', isEqualTo: ScorecardStatus.submitted.name)
         .get();
         
     final batch = _firestore.batch();
     for (var doc in snapshot.docs) {
-      batch.delete(doc.reference);
+      batch.update(doc.reference, {
+        'status': ScorecardStatus.reviewed.name,
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
     }
     await batch.commit();
   }
@@ -110,5 +114,18 @@ class FirestoreScorecardRepository implements ScorecardRepository {
         .where('competitionId', isEqualTo: competitionId)
         .get();
     return snapshot.docs.map((doc) => doc.data()).toList();
+  }
+
+  @override
+  Future<void> deleteAllScorecards(String competitionId) async {
+    final snapshot = await _scorecardsRef
+        .where('competitionId', isEqualTo: competitionId)
+        .get();
+        
+    final batch = _firestore.batch();
+    for (var doc in snapshot.docs) {
+      batch.delete(doc.reference);
+    }
+    await batch.commit();
   }
 }

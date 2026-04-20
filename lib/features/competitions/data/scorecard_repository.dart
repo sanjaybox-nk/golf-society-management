@@ -9,6 +9,7 @@ abstract class ScorecardRepository {
   Stream<List<Scorecard>> watchScorecards(String competitionId);
   Stream<List<Scorecard>> watchMemberScorecards(String memberId);
   Future<Scorecard?> getScorecard(String id);
-  Future<void> deleteAllScorecards(String competitionId);
+  Future<void> approveAllScorecards(String competitionId);
   Future<List<Scorecard>> getScorecards(String competitionId);
+  Future<void> deleteAllScorecards(String competitionId);
 }

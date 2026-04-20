@@ -21,6 +21,7 @@ class _OrderOfMeritControlState extends State<OrderOfMeritControl>
 
   late OOMRankingBasis _metric;
   late ScoringType _scoringType;
+  late LeaderboardScope _scope;
   late Map<int, int> _positionPoints;
   bool _isSaving = false;
 
@@ -32,6 +33,7 @@ class _OrderOfMeritControlState extends State<OrderOfMeritControl>
     _appearancePointsController =
         TextEditingController(text: (config?.appearancePoints ?? 0).toString());
 
+    _scope = config?.scope ?? LeaderboardScope.seasonOnly;
     final source = config?.source ?? OOMSource.position;
     final basis = config?.rankingBasis ?? OOMRankingBasis.stableford;
 
@@ -73,12 +75,22 @@ class _OrderOfMeritControlState extends State<OrderOfMeritControl>
           const BoxyArtSectionTitle(title: 'LEADERBOARD DETAILS', isPeeking: true),
           BoxyArtCard(
             padding: const EdgeInsets.all(AppSpacing.xl),
-            child: BoxyArtInputField(
-              label: 'Name',
-              controller: _nameController,
-              hint: 'e.g. Order of Merit',
-              prefixIcon: Icon(Icons.emoji_events_rounded),
-              validator: (v) => (v == null || v.isEmpty) ? 'Required' : null,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                BoxyArtInputField(
+                  label: 'Name',
+                  controller: _nameController,
+                  hint: 'e.g. Order of Merit',
+                  prefixIcon: Icon(Icons.emoji_events_rounded),
+                  validator: (v) => (v == null || v.isEmpty) ? 'Required' : null,
+                ),
+                const SizedBox(height: AppSpacing.lg),
+                buildScopeSelector(
+                  value: _scope,
+                  onChanged: (v) => setState(() => _scope = v as LeaderboardScope),
+                ),
+              ],
             ),
           ),
 
@@ -240,6 +252,7 @@ class _OrderOfMeritControlState extends State<OrderOfMeritControl>
     final config = LeaderboardConfig.orderOfMerit(
       id: widget.existingConfig?.id ?? const Uuid().v4(),
       name: _nameController.text.trim(),
+      scope: _scope,
       source: source,
       rankingBasis: basis,
       appearancePoints: int.tryParse(_appearancePointsController.text) ?? 0,

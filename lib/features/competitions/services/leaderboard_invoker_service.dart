@@ -4,6 +4,7 @@ import 'package:golf_society/domain/models/competition.dart';
 import 'package:golf_society/features/events/logic/event_scoring_processor.dart';
 import 'package:golf_society/features/events/domain/models/processed_event_data.dart';
 import 'package:golf_society/features/events/presentation/state/marker_selection_provider.dart';
+import 'package:golf_society/domain/models/golf_event.dart';
 
 import '../../events/presentation/events_provider.dart';
 import '../../competitions/presentation/competitions_provider.dart'; // For scorecardRepositoryProvider
@@ -40,8 +41,9 @@ class LeaderboardInvokerService {
 
     // 2.5 Fetch All relevant Events for Grouping Context & Invitational Filtering
     final eventRepo = ref.read(eventsRepositoryProvider);
-    final List<Competition> seasonComps = [];
-    final Map<String, ProcessedEventData> processedEvents = {};
+    final List<Competition> allSeasonComps = [];
+    final Map<String, GolfEvent> seasonEvents = {};
+    final Map<String, ProcessedEventData> processedSeasonEvents = {};
 
     // 2.6 Fetch Members for name resolution and scoring processing
     final memberRepo = ref.read(membersRepositoryProvider);
@@ -52,28 +54,24 @@ class LeaderboardInvokerService {
 
     for (var comp in dateFilteredComps) {
       final event = await eventRepo.getEvent(comp.id);
-      
-      // SKIP if event is marked as Invitational / Non-Scoring
-      if (event?.isInvitational == true) continue;
+      if (event == null) continue;
 
-      seasonComps.add(comp);
+      allSeasonComps.add(comp);
+      seasonEvents[comp.id] = event;
       
-      if (event != null) {
-        final cards = await scorecardRepo.getScorecards(comp.id);
-        
-        // Use the CENTRAL SCORING ENGINE logic to process this event's results
-        // This ensures tie-breaks and points match the event-day results exactly.
-        final processedData = EventScoringProcessor.process(
-          eventId: comp.id, 
-          event: event, 
-          comp: comp, 
-          liveScorecards: cards, 
-          members: members, 
-          markerSelection: MarkerSelection(isSelfMarking: true), // In service context, use default marker selection (no overrides)
-        );
-        
-        processedEvents[comp.id] = processedData;
-      }
+      final cards = await scorecardRepo.getScorecards(comp.id);
+      
+      // Use the CENTRAL SCORING ENGINE logic to process this event's results
+      final processedData = EventScoringProcessor.process(
+        eventId: comp.id, 
+        event: event, 
+        comp: comp, 
+        liveScorecards: cards, 
+        members: members, 
+        markerSelection: MarkerSelection(isSelfMarking: true),
+      );
+      
+      processedSeasonEvents[comp.id] = processedData;
     }
 
     // 3. For each Leaderboard, calculate
@@ -88,13 +86,29 @@ class LeaderboardInvokerService {
       );
 
       if (calculator != null) {
-        // Calculate using the processed event data
+        // FILTER Competitions based on Scope
+        final filteredComps = allSeasonComps.where((comp) {
+          final event = seasonEvents[comp.id];
+          if (event == null) return false;
+          
+          final isInvitational = event.isInvitational;
+          
+          return config.scope == LeaderboardScope.global || 
+                 (config.scope == LeaderboardScope.seasonOnly && !isInvitational) ||
+                 (config.scope == LeaderboardScope.invitationalsOnly && isInvitational);
+        }).toList();
+
+        final filteredProcessedEvents = Map<String, ProcessedEventData>.fromEntries(
+          processedSeasonEvents.entries.where((e) => filteredComps.any((c) => c.id == e.key))
+        );
+
+        // Calculate using the filtered data
         final standings = await calculator!.calculate(
           config: config,
-          competitions: seasonComps,
-          scorecards: [], // No longer needed if we use processedEvents
-          groupings: {}, // No longer needed if we use processedEvents
-          processedEvents: processedEvents, // NEW: pass the authoritative results
+          competitions: filteredComps,
+          scorecards: [], 
+          groupings: {}, 
+          processedEvents: filteredProcessedEvents,
         );
 
         // Update standings with real names

@@ -1,4 +1,3 @@
-
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:collection/collection.dart';
 import '../../domain/match_definition.dart';
@@ -12,6 +11,14 @@ import 'package:golf_society/domain/models/member.dart';
 import 'package:golf_society/design_system/design_system.dart';
 import 'package:golf_society/domain/models/golf_event.dart';
 import 'package:golf_society/domain/models/scorecard.dart';
+import 'match_play_standings_view.dart';
+
+class BracketStageNotifier extends Notifier<String> {
+  @override
+  String build() => 'knockout';
+  set stage(String val) => state = val;
+}
+final _bracketStageProvider = NotifierProvider<BracketStageNotifier, String>(BracketStageNotifier.new);
 
 class MatchesBracketWidget extends ConsumerWidget {
   final String eventId;
@@ -26,77 +33,78 @@ class MatchesBracketWidget extends ConsumerWidget {
     return eventAsync.when(
       data: (event) {
         final matches = event.matches;
-        if (matches.isEmpty) {
+        final tournamentType = event.grouping['tournamentType'] as String? ?? 'knockout';
+        final isDivisionsMode = tournamentType == 'divisionsPlusKnockout';
+
+        if (matches.isEmpty && !isDivisionsMode) {
           return const Center(child: Text('No matches found for bracket view.'));
         }
-
-        // Group matches by round
-        final Map<MatchRoundType, List<MatchDefinition>> rounds = {};
-        for (var m in matches) {
-          rounds.putIfAbsent(m.round, () => []).add(m);
-        }
-
-        // Sort rounds chronologically (simplified for now)
-        final sortedRounds = rounds.keys.toList()
-          ..sort((a, b) => a.index.compareTo(b.index));
 
         return scorecardsAsync.when(
           data: (scorecards) {
             final isAdmin = ref.watch(currentUserProvider).role == MemberRole.admin || ref.watch(currentUserProvider).role == MemberRole.superAdmin;
-            final hasGroupMatches = event.matches.any((m) => m.round == MatchRoundType.group);
+            final currentStage = ref.watch(_bracketStageProvider);
+            
+            Widget body;
+            if (isDivisionsMode && currentStage == 'divisions') {
+               // Group matches by division (stored in MatchDefinition.groupId or similar)
+               final Map<String, List<MatchDefinition>> divisionMatches = {};
+               for (var m in matches.where((m) => m.round == MatchRoundType.group)) {
+                 final divId = m.groupId ?? 'A';
+                 divisionMatches.putIfAbsent(divId, () => []).add(m);
+               }
+               
+               body = ListView(
+                 padding: const EdgeInsets.symmetric(vertical: AppSpacing.xl),
+                 children: divisionMatches.keys.map((divId) => MatchPlayStandingsView(
+                   divisionName: divId,
+                   matches: divisionMatches[divId]!,
+                   scorecards: scorecards,
+                   event: event,
+                 )).toList(),
+               );
+            } else {
+              // Group matches by round for bracket
+              final Map<MatchRoundType, List<MatchDefinition>> rounds = {};
+              for (var m in matches.where((m) => m.round != MatchRoundType.group)) {
+                rounds.putIfAbsent(m.round, () => []).add(m);
+              }
+              final sortedRounds = rounds.keys.toList()..sort((a, b) => a.index.compareTo(b.index));
+
+              body = InteractiveViewer(
+                constrained: false,
+                boundaryMargin: const EdgeInsets.all(100),
+                minScale: 0.1,
+                maxScale: 2.0,
+                child: Padding(
+                  padding: const EdgeInsets.all(AppSpacing.x3l),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: sortedRounds.map((roundType) {
+                      final roundMatches = rounds[roundType]!;
+                      roundMatches.sort((a, b) => (a.bracketOrder ?? 0).compareTo(b.bracketOrder ?? 0));
+                      
+                      return _RoundColumn(
+                        roundName: _getRoundName(roundType),
+                        matches: roundMatches,
+                        scorecards: scorecards,
+                        event: event,
+                      );
+                    }).toList(),
+                  ),
+                ),
+              );
+            }
 
             return Stack(
               children: [
-                InteractiveViewer(
-                  constrained: false,
-                  boundaryMargin: const EdgeInsets.all(100),
-                  minScale: 0.1,
-                  maxScale: 2.0,
-                  child: Padding(
-                    padding: const EdgeInsets.all(AppSpacing.x3l),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: sortedRounds.map((roundType) {
-                        final roundMatches = rounds[roundType]!;
-                        roundMatches.sort((a, b) => (a.bracketOrder ?? 0).compareTo(b.bracketOrder ?? 0));
-                        
-                        return _RoundColumn(
-                          roundName: _getRoundName(roundType),
-                          matches: roundMatches,
-                          scorecards: scorecards,
-                          event: event,
-                        );
-                      }).toList(),
-                    ),
-                  ),
+                Column(
+                  children: [
+                    if (isDivisionsMode) _buildStageSelector(ref),
+                    Expanded(child: body),
+                  ],
                 ),
-                if (isAdmin)
-                  Positioned(
-                    top: AppSpacing.lg,
-                    right: AppSpacing.lg,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        FloatingActionButton.extended(
-                          heroTag: 'promote_winners',
-                          onPressed: () => _promoteWinners(ref, event, scorecards),
-                          label: const Text('Promote Winners'),
-                          icon: const Icon(Icons.arrow_forward),
-                          backgroundColor: AppColors.amber500,
-                        ),
-                        if (hasGroupMatches) ...[
-                          const SizedBox(height: AppSpacing.md),
-                          FloatingActionButton.extended(
-                            heroTag: 'qualify_groups',
-                            onPressed: () => _qualifyFromGroups(ref, event, scorecards),
-                            label: const Text('Qualify from Groups'),
-                            icon: const Icon(Icons.star),
-                            backgroundColor: AppColors.actionMidnight,
-                          ),
-                        ],
-                      ],
-                    ),
-                  ),
+                if (isAdmin) _buildAdminControls(ref, event, scorecards, matches),
               ],
             );
           },
@@ -118,6 +126,90 @@ class MatchesBracketWidget extends ConsumerWidget {
       case MatchRoundType.semiFinal: return 'Semi-Finals';
       case MatchRoundType.finalRound: return 'Final';
     }
+  }
+
+  Widget _buildStageSelector(WidgetRef ref) {
+    final current = ref.watch(_bracketStageProvider);
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          _StageTab(
+            label: 'DIVISIONS', 
+            active: current == 'divisions', 
+            onTap: () => ref.read(_bracketStageProvider.notifier).stage = 'divisions'
+          ),
+          const SizedBox(width: AppSpacing.lg),
+          _StageTab(
+            label: 'BRACKET', 
+            active: current == 'knockout', 
+            onTap: () => ref.read(_bracketStageProvider.notifier).stage = 'knockout'
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAdminControls(WidgetRef ref, GolfEvent event, List<Scorecard> scorecards, List<MatchDefinition> matches) {
+    final hasGroupMatches = matches.any((m) => m.round == MatchRoundType.group);
+    return Positioned(
+      top: AppSpacing.lg,
+      right: AppSpacing.lg,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          FloatingActionButton.extended(
+            heroTag: 'promote_winners',
+            onPressed: () => _promoteWinners(ref, event, scorecards),
+            label: const Text('Promote Winners'),
+            icon: const Icon(Icons.arrow_forward),
+            backgroundColor: AppColors.amber500,
+          ),
+          if (hasGroupMatches) ...[
+            const SizedBox(height: AppSpacing.md),
+            FloatingActionButton.extended(
+              heroTag: 'qualify_groups',
+              onPressed: () => _qualifyFromGroups(ref, event, scorecards),
+              label: const Text('Qualify from Groups'),
+              icon: const Icon(Icons.star),
+              backgroundColor: AppColors.actionMidnight,
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _StageTab extends StatelessWidget {
+  final String label;
+  final bool active;
+  final VoidCallback onTap;
+
+  const _StageTab({required this.label, required this.active, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.md),
+        decoration: BoxDecoration(
+          color: active ? AppColors.lime500 : AppColors.dark800,
+          borderRadius: BorderRadius.circular(AppShapes.rSm),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            color: active ? Colors.black : Colors.white,
+            fontWeight: FontWeight.bold,
+            fontSize: 10,
+            letterSpacing: 1.1,
+          ),
+        ),
+      ),
+    );
   }
 }
 
@@ -160,7 +252,10 @@ class _RoundColumn extends StatelessWidget {
               courseConfig: event.courseConfig,
               holesToPlay: event.courseConfig.holes.length,
             );
-            return _BracketMatchTile(match: m, result: result);
+            return Padding(
+              padding: const EdgeInsets.only(bottom: AppSpacing.x2l),
+              child: _BracketMatchTile(match: m, result: result),
+            );
           }),
         ],
       ),
@@ -177,18 +272,30 @@ class _BracketMatchTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.only(bottom: AppSpacing.x3l),
       decoration: BoxDecoration(
-        color: AppColors.dark900,
-        borderRadius: AppShapes.sm,
-        border: Border.all(color: AppColors.pureWhite.withValues(alpha: 0.12)),
+        color: AppColors.dark900.withValues(alpha: 0.95),
+        borderRadius: BorderRadius.circular(AppShapes.rMd),
+        border: Border.all(color: AppColors.pureWhite.withValues(alpha: 0.08)),
         boxShadow: Theme.of(context).extension<AppShadows>()?.softScale ?? [],
       ),
+      clipBehavior: Clip.antiAlias,
       child: Column(
         children: [
-          _buildPlayerRow(match.team1Name ?? (match.team1Ids.isEmpty ? 'BYE' : 'Side A'), result.winningTeamIndex == 0),
-          Divider(height: 1, color: AppColors.pureWhite.withValues(alpha: 0.12)),
-          _buildPlayerRow(match.team2Name ?? (match.team2Ids.isEmpty ? 'BYE' : 'Side B'), result.winningTeamIndex == 1),
+          _buildPlayerRow(
+            context: context,
+            name: match.team1Name ?? (match.team1Ids.isEmpty ? 'BYE' : 'Side A'), 
+            playerIds: match.team1Ids,
+            isWinner: result.winningTeamIndex == 0,
+            strokesMap: match.strokesReceived,
+          ),
+          Divider(height: 1, color: AppColors.pureWhite.withValues(alpha: 0.08)),
+          _buildPlayerRow(
+            context: context,
+            name: match.team2Name ?? (match.team2Ids.isEmpty ? 'BYE' : 'Side B'), 
+            playerIds: match.team2Ids,
+            isWinner: result.winningTeamIndex == 1,
+            strokesMap: match.strokesReceived,
+          ),
           Container(
             width: double.infinity,
             padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
@@ -212,37 +319,87 @@ class _BracketMatchTile extends StatelessWidget {
     );
   }
 
-  Widget _buildPlayerRow(String name, bool isWinner) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
+  Widget _buildPlayerRow({
+    required BuildContext context,
+    required String name, 
+    required List<String> playerIds,
+    required bool isWinner,
+    required Map<String, int> strokesMap,
+  }) {
+    // Get the highest stroke count for this team/player to show as summary badge
+    int maxStrokes = 0;
+    for (var id in playerIds) {
+      final s = strokesMap[id] ?? 0;
+      if (s > maxStrokes) maxStrokes = s;
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.lg),
+      color: isWinner ? AppColors.lime500.withValues(alpha: 0.03) : Colors.transparent,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Expanded(
-            child: Text(
-              name,
-              style: TextStyle(
-                color: isWinner ? AppColors.pureWhite : AppColors.pureWhite.withValues(alpha: 0.70),
-                fontWeight: isWinner ? AppTypography.weightBold : AppTypography.weightRegular,
-                fontSize: AppTypography.sizeLabel,
-              ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
+            child: Row(
+              children: [
+                Flexible(
+                  child: Text(
+                    name.toUpperCase(),
+                    style: TextStyle(
+                      color: isWinner ? AppColors.pureWhite : AppColors.textSecondary,
+                      fontWeight: isWinner ? AppTypography.weightBlack : AppTypography.weightBold,
+                      fontSize: 12,
+                      letterSpacing: 0.5,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                if (maxStrokes > 0) ...[
+                  const SizedBox(width: AppSpacing.sm),
+                  _StrokeBadge(count: maxStrokes),
+                ],
+              ],
             ),
           ),
           if (isWinner)
-            const Icon(Icons.check_circle, color: AppColors.lime500, size: AppShapes.iconXs),
+            const Icon(Icons.check_circle, color: AppColors.lime500, size: 16),
         ],
       ),
     );
   }
+}
 
+class _StrokeBadge extends StatelessWidget {
+  final int count;
+  const _StrokeBadge({required this.count});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+      decoration: BoxDecoration(
+        color: AppColors.pureWhite.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(AppShapes.rSm),
+        border: Border.all(color: AppColors.pureWhite.withValues(alpha: 0.1)),
+      ),
+      child: Text(
+        '+$count',
+        style: const TextStyle(
+          color: AppColors.lime500,
+          fontSize: 9,
+          fontWeight: FontWeight.bold,
+          letterSpacing: -0.5,
+        ),
+      ),
+    );
+  }
+}
   Color _getStatusColor(String status) {
     if (status == 'A/S') return AppColors.amber500;
     if (status.contains('UP') || status.contains('&')) return AppColors.teamA;
     return AppColors.textSecondary;
   }
-}
 
 void _promoteWinners(WidgetRef ref, GolfEvent event, List<Scorecard> scorecards) async {
   final updatedMatches = MatchProgressionLogic.promoteWinners(

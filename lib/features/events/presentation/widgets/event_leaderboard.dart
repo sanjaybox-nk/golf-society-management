@@ -4,8 +4,13 @@ import 'package:golf_society/design_system/design_system.dart';
 import 'package:golf_society/domain/models/competition.dart';
 import 'package:golf_society/domain/models/scorecard.dart';
 import 'package:golf_society/domain/models/member.dart';
+import 'package:golf_society/features/matchplay/domain/match_play_calculator.dart';
+import 'package:golf_society/features/matchplay/domain/match_definition.dart';
+import 'package:golf_society/features/matchplay/domain/golf_event_match_extensions.dart';
+import 'package:golf_society/domain/grouping/tee_group.dart';
 import '../../logic/event_scoring_controller.dart';
 import '../../../competitions/presentation/widgets/leaderboard_widget.dart';
+import 'package:collection/collection.dart';
 
 class EventLeaderboard extends ConsumerStatefulWidget {
   final GolfEvent event;
@@ -46,6 +51,10 @@ class _EventLeaderboardState extends ConsumerState<EventLeaderboard> {
 
     final memberMap = {for (final m in widget.membersList) m.id: m};
 
+    final isMatchPlay = currentFormat == CompetitionFormat.matchPlay || widget.event.matches.isNotEmpty;
+    final isFourball = widget.comp?.rules.subtype == CompetitionSubtype.fourball || 
+                       widget.event.matches.any((m) => m.type == MatchType.fourball);
+
     // 2. Map Processed Data to UI-friendly LeaderboardEntry
     final List<LeaderboardEntry> finalEntries = data.leaderboard.map((e) {
       final String? playerId = e.teamMemberIds.firstOrNull;
@@ -55,20 +64,21 @@ class _EventLeaderboardState extends ConsumerState<EventLeaderboard> {
       bool hasGuest = false;
 
       if (e.isGuest) {
-        // Find the registration that includes this guest
         final reg = widget.event.registrations.where((r) => r.guestName == e.playerName).firstOrNull;
         hostName = reg?.memberName;
       } else if (playerId != null) {
-        // Check if this member has brought a guest
         hasGuest = widget.event.registrations.any((r) => r.memberId == playerId && r.guestName != null);
       }
+
+      String? matchStatus = e.matchStatus;
+      int matchLead = e.matchScore ?? 0;
 
       return LeaderboardEntry(
         entryId: e.entryId,
         playerName: e.playerName,
-        score: e.score,
-        scoreLabel: e.scoreLabel,
-        handicap: (e.handicapIndex ?? 0.0).round(), // Legacy integer handicap mapping
+        score: isMatchPlay ? matchLead : e.score,
+        scoreLabel: isMatchPlay ? matchStatus : e.scoreLabel,
+        handicap: (e.handicapIndex ?? 0.0).round(),
         handicapIndex: e.handicapIndex ?? 0.0,
         playingHandicap: e.individualPlayingHandicaps.firstOrNull,
         holesPlayed: e.holesPlayed,
@@ -92,6 +102,11 @@ class _EventLeaderboardState extends ConsumerState<EventLeaderboard> {
       );
     }).toList();
 
+    // 2.5 Sort by Margin if Matchplay
+    if (isMatchPlay) {
+      finalEntries.sort((a, b) => b.score.compareTo(a.score));
+    }
+
     final bool hasAnyScores = finalEntries.any((e) => e.holesPlayed != null && e.holesPlayed! > 0);
     final bool isCompleted = widget.event.status == EventStatus.completed;
 
@@ -108,6 +123,26 @@ class _EventLeaderboardState extends ConsumerState<EventLeaderboard> {
     }
 
     // 3. Handle Guest/Member Separation
+    final bool shouldSeparate = widget.event.separateGuests ?? (!widget.event.isInvitational);
+    
+    if (!shouldSeparate) {
+       return Column(
+         crossAxisAlignment: CrossAxisAlignment.start,
+         children: [
+            if (widget.showTitles)
+               const BoxyArtSectionTitle(
+                 title: 'Live Standings',
+                 topPadding: 0,
+               ),
+            LeaderboardWidget(
+               entries: finalEntries,
+               format: currentFormat,
+               onPlayerTap: widget.onPlayerTap,
+            ),
+         ],
+       );
+    }
+
     final guestEntries = _recalculatePositions(finalEntries.where((e) => e.isGuest).toList());
     final memberEntries = _recalculatePositions(finalEntries.where((e) => !e.isGuest).toList());
     final bool hasGuests = guestEntries.isNotEmpty;
@@ -120,7 +155,7 @@ class _EventLeaderboardState extends ConsumerState<EventLeaderboard> {
             BoxyArtSectionTitle(
               title: hasGuests ? 'Society Members' : 'Live Standings',
               count: hasGuests ? memberEntries.length : null,
-              isPeeking: true,
+              topPadding: 0,
             ),
           ],
           LeaderboardWidget(

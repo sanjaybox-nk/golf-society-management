@@ -355,7 +355,13 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
                       isEditing: _isEditing,
                       isAdmin: isAdmin,
                       onCameraTap: _isEditing ? _pickImage : null,
-                      onFeeToggle: (v) => setState(() => _hasPaid = v),
+                      onFeeToggle: (v) => setState(() {
+                        _hasPaid = v;
+                        // Renewal Trigger: Auto-promote Expired/Grace members to Member status when fees are paid
+                        if (_hasPaid && (_status == MemberStatus.expired || _status == MemberStatus.gracePeriod)) {
+                          _status = MemberStatus.member;
+                        }
+                      }),
                       onStatusChanged: isAdmin ? (_) => _showStatusPicker() : null,
                       role: _role,
                       onRoleTap: canAssignRoles ? _showRolePicker : null,

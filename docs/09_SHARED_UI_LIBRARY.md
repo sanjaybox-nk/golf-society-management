@@ -149,8 +149,6 @@ The standard for status, format, and type classification.
 |---|---|
 | `BoxyArtPill.committee(label: 'ADMIN')` | Administrative identity tag |
 | `BoxyArtPill.status(label: ..., color: ...)` | Dot + text legend |
-| `BoxyArtPill.hc(index: 18.4)` | Handicap (1 decimal, no icon) |
-| `BoxyArtPill.phc(index: 15.2)` | Playing handicap |
 | `BoxyArtPill.guest()` | Guest indicator |
 | `BoxyArtPill.meal(type: ...)` | Meal preference |
 
@@ -170,6 +168,20 @@ Circular numbered position badge (used in leaderboards).
 Square icon badge with optional tint fill.
 - **Synchronized**: Size and inner icon scale are controlled via the `AppShapeTokens` extension.
 - **Usage**: Standardized for empty states (`BoxyArtEmptyCard`) and feature identity headers.
+
+### `BoxyArtIndicator` (Modern Handicap Standards)
+The authoritative component for handicap display. Replaces `BoxyArtPill.hc` and `.phc` patterns for a lighter, premium dashboard feel.
+
+| Factory | Color | Usage |
+|---|---|---|
+| `BoxyArtIndicator.hc(label: '8.8')` | Neutral (dark300) | Global Base Index (1 decimal) |
+| `BoxyArtIndicator.phc(label: '10')` | Amber (amber500) | Contextual Playing Handicap |
+
+```dart
+// Example usage in cards
+BoxyArtIndicator.hc(label: entry.handicap.toStringAsFixed(1)),
+BoxyArtIndicator.phc(context: context, label: '12*'), // Now uses Amber
+```
 
 ---
 
@@ -342,3 +354,23 @@ Located at: `lib/features/admin/presentation/leaderboards/controls/base_leaderbo
 > [!IMPORTANT]
 > Both mixin families use `theme.colorScheme.primary` for info card label colours — never hardcode `AppColors.lime500` for these elements. This ensures society-level branding (set in `SocietyConfig`) automatically propagates to all admin config screens.
 
+---
+
+## 16. Template Gallery Components (v4.3)
+To ensure a consistent "Admin Marketplace" feel, all selection galleries (Competitions, Season Leaderboards) must use the **Rich Rules Card** pattern.
+
+### `CompetitionRulesCard`
+Primary card for the Game Template Gallery.
+- **Location**: `lib/features/competitions/presentation/widgets/competition_shared_widgets.dart`
+- **Features**: Translates `CompetitionRules` into natural language descriptions and surfaces config pills (Format, Scoring, Handicap %).
+
+### `LeaderboardRulesCard`
+Standardized card for the Season Leaderboard Gallery.
+- **Location**: `lib/features/admin/presentation/leaderboards/widgets/leaderboard_shared_widgets.dart`
+- **Features**: Translates `LeaderboardConfig` into natural language descriptions via `LeaderboardRuleTranslator`. Surfaces critical season config (Basis, Best N, Tie Policy) via `LeaderboardBadgeRow`.
+
+### Design Implementation Policy
+1. **Badges**: Use `BoxyArtIconBadge` (44px square) with type-specific brand colors.
+2. **Dividers**: Include a `BoxyArtDivider(verticalPadding: 0)` between the header and the description.
+3. **Typography**: Use `AppTypography.labelStrong` for the template title and `AppTypography.body` for the long description (height 1.5).
+4. **Blank Formats**: "Start Blank" cards must use the same `BoxyArtCard` + `BoxyArtIconBadge` layout (omitting description/pills) to maintain visual rhythm.

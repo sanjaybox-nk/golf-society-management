@@ -143,7 +143,6 @@ class BoxyArtMemberRow extends StatelessWidget {
                         color: isDark ? AppColors.dark150 : AppColors.dark700,
                         fontWeight: AppTypography.weightBlack,
                         fontSize: AppTypography.sizeBody,
-                        letterSpacing: -0.4,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -274,14 +273,14 @@ class BoxyArtMemberRow extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   if (handicapIndex != null)
-                    BoxyArtPill.hc(
+                    BoxyArtIndicator.hc(
                       label: handicapIndex!.toStringAsFixed(1),
                       hasHorizontalMargin: false,
                     ),
                   if (handicapIndex != null && playingHandicap != null)
-                    const SizedBox(width: AppSpacing.xs),
+                    const SizedBox(width: AppSpacing.md),
                   if (playingHandicap != null)
-                    BoxyArtPill.phc(
+                    BoxyArtIndicator.phc(
                       context: context,
                       label: '$playingHandicap${hasSocietyCut ? '*' : ''}',
                       hasHorizontalMargin: false,
@@ -385,7 +384,6 @@ class BoxyArtMemberRow extends StatelessWidget {
                   style: AppTypography.displaySection.copyWith(
                     color: scoreColor ?? (isDark ? AppColors.pureWhite : AppColors.dark900),
                     height: 1.0,
-                    letterSpacing: -0.5,
                   ),
                 ),
               ),

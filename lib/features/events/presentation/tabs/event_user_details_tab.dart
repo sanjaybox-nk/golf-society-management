@@ -186,8 +186,8 @@ class _EventDetailsContentState extends ConsumerState<EventDetailsContent> {
           padding: const EdgeInsets.only(left: AppSpacing.xl, right: AppSpacing.xl, bottom: 100),
           sliver: SliverList(
             delegate: SliverChildListDelegate([
-              // Content Spacing (Standardized 16px cardToLabel)
-              SizedBox(height: spacing?.cardToLabel ?? AppSpacing.cardToLabel),
+              // Content Spacing (Standardized 16px tabToContent below tab)
+              SizedBox(height: spacing?.tabToContent ?? AppSpacing.tabToContent),
               
               if (_selectedTab == EventInfoSubTab.info) ...[
                 _buildDateTimeSection(context),

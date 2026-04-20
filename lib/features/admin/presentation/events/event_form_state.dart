@@ -56,6 +56,8 @@ abstract class EventFormState with _$EventFormState {
     Competition? eventCompetition,
     @Default(false) bool isCustomized,
     @Default([]) List<String> oomExcludedRoundIds,
+    bool? separateGuests,
+    @Default(true) bool allowGuests,
     
     // Secondary Competition
     String? secondaryTemplateId,

@@ -39,11 +39,11 @@ class AppTypography {
   static const FontWeight weightLight = FontWeight.w300;   // Light (Elegant Labels)
 
   // 0.75 Letterspacing Tokens
-  static const double lsHero = -1.0;
-  static const double lsTight = -0.5;
-  static const double lsStandard = 0.0;
-  static const double lsLabel = 0.1;
-  static const double lsMicro = 0.5;
+  static const double lsHero = -0.2;
+  static const double lsTight = 0.0;
+  static const double lsStandard = 0.2;
+  static const double lsLabel = 0.4;
+  static const double lsMicro = 0.8;
 
   // 1. Core Styles
   static const TextStyle display = TextStyle(
@@ -168,7 +168,7 @@ class AppTypography {
 
   static TextStyle get cardTitle => body.copyWith(
     fontWeight: weightBold,
-    letterSpacing: -0.4,
+    letterSpacing: 0.2,
     height: 1.1,
   );
 

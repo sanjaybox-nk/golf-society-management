@@ -15,6 +15,7 @@ import 'package:golf_society/features/events/domain/registration_logic.dart';
 import 'package:golf_society/domain/scoring/handicap_calculator.dart';
 import 'package:golf_society/domain/grouping/grouping_service.dart';
 import 'package:golf_society/domain/grouping/tee_group.dart';
+import 'package:golf_society/features/matchplay/domain/match_definition.dart';
 import 'data_constants.dart';
 import 'newsletter_templates.dart';
 
@@ -173,12 +174,28 @@ class EventSeeder {
 
     // Registration Matrix
     final List<EventRegistration> regs = [];
-    final targetRegCount = (isSocial ? 45 : 30) + random.nextInt(15);
+    int targetRegCount = (isSocial ? 45 : 30) + random.nextInt(15);
     
-    for (int i = 0; i < targetRegCount; i++) {
-        final memberIdx = (eventIndex * 5 + i) % members.length;
+    // For Match Play, ensure we have an even number of participants
+    if (format == CompetitionFormat.matchPlay) {
+      final bool isPairs = (subtype == CompetitionSubtype.fourball || subtype == CompetitionSubtype.foursomes);
+      if (isPairs) {
+         // Ensure multiples of 4 for team-based match play
+         targetRegCount = (targetRegCount / 4).ceil() * 4;
+      } else {
+         // Singles matchplay needs multiples of 2
+         if (targetRegCount % 2 != 0) targetRegCount++;
+      }
+    }
+
+    int processedIndex = 0;
+    while (regs.length < targetRegCount && processedIndex < members.length * 2) {
+        final memberIdx = (eventIndex * 5 + processedIndex) % members.length;
+        processedIndex++;
+        
         final m = members[memberIdx];
         if (m.id == 'demo_hero_sanjay') continue;
+        if (regs.any((r) => r.memberId == m.id)) continue;
         
         bool isWithdrawn = random.nextDouble() < 0.05;
         bool isConfirmed = !isWithdrawn && regs.length < (isSocial ? 60 : 40);
@@ -209,7 +226,7 @@ class EventSeeder {
 
         final isHistorical = status == EventStatus.completed || status == EventStatus.inPlay;
         final highPaidRate = isHistorical ? 0.95 : 0.40;
-        final hasFine = (isHistorical) && i % 4 == 0;
+        final hasFine = (isHistorical) && processedIndex % 4 == 0;
         final finePaid = hasFine && (random.nextDouble() < 0.85);
 
         regs.add(EventRegistration(
@@ -230,7 +247,7 @@ class EventSeeder {
           hasPaid: isConfirmed && random.nextDouble() < highPaidRate,
           isConfirmed: isConfirmed,
           handicap: m.handicap,
-          registeredAt: date.subtract(Duration(days: 30 - (i % 20))),
+          registeredAt: date.subtract(Duration(days: 30 - (processedIndex % 20))),
           statusOverride: isWithdrawn ? 'withdrawn' : (isConfirmed ? 'confirmed' : 'waitlist'),
           cost: totalCost,
           fineAmount: hasFine ? 2.0 : 0.0,
@@ -396,6 +413,11 @@ class EventSeeder {
         results: results, awards: awards,
         feedItems: _generateFeedItems(updatedEvent, results),
       ));
+
+      // [NEW] Generate Matches for Match Play events
+      if (format == CompetitionFormat.matchPlay) {
+        await generateTestMatches(updatedEvent.id, rules.mode);
+      }
     } else {
       await eventRepo.updateEvent(updatedEvent.copyWith(
         grouping: {'groups': [], 'isPublished': false}, 
@@ -544,7 +566,7 @@ class EventSeeder {
     return items;
   }
 
-  Future<void> generateTestMatches(String eventId) async {
+  Future<void> generateTestMatches(String eventId, CompetitionMode mode) async {
     final eventRepo = ref.read(eventsRepositoryProvider);
     final event = await eventRepo.getEvent(eventId);
     if (event == null) return;
@@ -554,22 +576,89 @@ class EventSeeder {
     final List<Map<String, dynamic>> matches = [];
     for (var g in groups) {
       final players = (g['players'] as List);
-      for (int i = 0; i < players.length - 1; i += 2) {
-        final p1 = players[i];
-        final p2 = players[i+1];
+      final gid = g['index'].toString();
+      
+      // Determine spacing based on competition mode
+      final bool isPairsMode = (mode == CompetitionMode.pairs);
+      final int step = isPairsMode ? 4 : 2;
+
+      for (int i = 0; i < players.length - (step - 1); i += step) {
+        final List<dynamic> t1 = isPairsMode ? [players[i], players[i+1]] : [players[i]];
+        final List<dynamic> t2 = isPairsMode ? [players[i+2], players[i+3]] : [players[i+1]];
+        
+        final List<String> t1Ids = t1.map((p) => (p['isGuest'] == true) ? '${p['registrationMemberId']}_guest' : p['registrationMemberId'] as String).toList();
+        final List<String> t2Ids = t2.map((p) => (p['isGuest'] == true) ? '${p['registrationMemberId']}_guest' : p['registrationMemberId'] as String).toList();
+
         matches.add({
           'id': 'match_${eventId}_${g['index']}_$i',
-          'type': 'singles',
-          'team1Ids': [p1['registrationMemberId'] as String? ?? ''],
-          'team2Ids': [p2['registrationMemberId'] as String? ?? ''],
-          'team1Name': p1['name'],
-          'team2Name': p2['name'],
-          'groupId': g['index'].toString(),
+          'type': isPairsMode ? MatchType.fourball.index : MatchType.singles.index,
+          'team1Ids': t1Ids,
+          'team2Ids': t2Ids,
+          'team1Name': t1.map((p) => p['name']).join(' / '),
+          'team2Name': t2.map((p) => p['name']).join(' / '),
+          'groupId': gid,
+          'round': MatchRoundType.group.index,
         });
       }
     }
     grouping['matches'] = matches;
-    await eventRepo.updateEvent(event.copyWith(grouping: grouping));
+
+    // --- NEW: Synchronize Match Results in the event.results list ---
+    final List<Map<String, dynamic>> updatedResults = List.from(event.results);
+    final random = Random();
+
+    for (var match in matches) {
+      final t1Ids = match['team1Ids'] as List<String>;
+      final t2Ids = match['team2Ids'] as List<String>;
+      
+      // Random result: 45% T1 Win, 45% T2 Win, 10% Halved
+      final outcomeRand = random.nextDouble();
+      final String status1;
+      final String status2;
+      final int matchScore; // Relative: + for T1, - for T2
+
+      if (outcomeRand < 0.1) {
+        status1 = 'HALVED';
+        status2 = 'HALVED';
+        matchScore = 0;
+      } else {
+        final team1Wins = outcomeRand < 0.55;
+        final winValue = random.nextInt(4) + 1;
+        final holesLeft = random.nextInt(3);
+        
+        if (holesLeft > 0) {
+          status1 = team1Wins ? 'WIN ${winValue} & ${holesLeft}' : 'LOSS ${winValue} & ${holesLeft}';
+          status2 = team1Wins ? 'LOSS ${winValue} & ${holesLeft}' : 'WIN ${winValue} & ${holesLeft}';
+          matchScore = team1Wins ? winValue : -winValue;
+        } else {
+          final upVal = random.nextInt(2) + 1;
+          status1 = team1Wins ? 'WIN ${upVal} UP' : 'LOSS ${upVal} UP';
+          status2 = team1Wins ? 'LOSS ${upVal} UP' : 'WIN ${upVal} UP';
+          matchScore = team1Wins ? upVal : -upVal;
+        }
+      }
+
+      // Apply to all participants in this match
+      for (var pid in t1Ids) {
+        final resIdx = updatedResults.indexWhere((r) => (r['memberId'] ?? r['playerId']) == pid);
+        if (resIdx != null && resIdx != -1) {
+          updatedResults[resIdx]['status'] = status1;
+          updatedResults[resIdx]['matchScore'] = matchScore;
+        }
+      }
+      for (var pid in t2Ids) {
+        final resIdx = updatedResults.indexWhere((r) => (r['memberId'] ?? r['playerId']) == pid);
+        if (resIdx != null && resIdx != -1) {
+          updatedResults[resIdx]['status'] = status2;
+          updatedResults[resIdx]['matchScore'] = -matchScore;
+        }
+      }
+    }
+
+    await eventRepo.updateEvent(event.copyWith(
+      grouping: grouping,
+      results: updatedResults,
+    ));
   }
 
   Future<void> generateGroupStageMatches(String eventId) async {
@@ -588,12 +677,12 @@ class EventSeeder {
           final p2 = players[j];
           matches.add({
             'id': 'grp_${gid}_${i}_${j}_$eventId',
-            'type': 'singles',
+            'type': MatchType.singles.index,
             'team1Ids': [p1['registrationMemberId'] as String? ?? ''],
             'team2Ids': [p2['registrationMemberId'] as String? ?? ''],
             'team1Name': p1['name'],
             'team2Name': p2['name'],
-            'round': 'group',
+            'round': MatchRoundType.group.index,
             'groupId': gid,
           });
         }

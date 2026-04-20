@@ -191,6 +191,7 @@ class _EventRow extends ConsumerWidget {
       statusPill = BoxyArtPill.status(
         label: 'Confirmed',
         color: AppColors.lime600,
+        hasHorizontalMargin: false,
       );
     } else if (event.isRegistrationOpen) {
       final isFull = event.maxParticipants != null && 
@@ -199,6 +200,7 @@ class _EventRow extends ConsumerWidget {
         label: isFull ? 'Register (Waitlist)' : 'Register Now',
         color: isFull ? AppColors.coral500 : primary,
         isAction: true,
+        hasHorizontalMargin: false,
       );
     } else {
       final isPast = DateTime.now().isAfter(event.date);
@@ -206,6 +208,7 @@ class _EventRow extends ConsumerWidget {
         statusPill = BoxyArtPill.status(
           label: 'Registration Closed',
           color: AppColors.dark400,
+          hasHorizontalMargin: false,
         );
       }
     }

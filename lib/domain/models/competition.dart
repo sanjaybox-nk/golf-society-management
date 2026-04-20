@@ -11,7 +11,17 @@ enum CompetitionStatus { draft, open, scoring, review, published, closed }
 
 enum CompetitionFormat { stroke, stableford, maxScore, matchPlay, scramble }
 
-enum CompetitionSubtype { none, texas, florida, grossStableford, fourball, foursomes, ryderCup, teamMatchPlay }
+enum CompetitionSubtype { 
+  none, 
+  texas, 
+  florida, 
+  grossStableford, 
+  fourball, 
+  foursomes, 
+  ryderCup, 
+  teamMatchPlay,
+  matchPlaySeason,
+}
 
 enum CompetitionMode { singles, pairs, teams }
 
@@ -24,6 +34,10 @@ enum AggregationMethod { singleBest, totalSum, stablefordSum }
 enum MaxScoreType { fixed, parPlusX, netDoubleBogey }
 
 enum TeamHandicapMethod { whs, average, sum }
+
+enum TournamentFormat { knockout, divisions }
+
+enum SeedingLogic { random, seeded, ranking }
 
 @freezed
 abstract class MaxScoreConfig with _$MaxScoreConfig {
@@ -61,8 +75,9 @@ abstract class CompetitionRules with _$CompetitionRules {
     @Default(4) int teamSize,
     @Default(false) bool useMixedTeeAdjustment, // [NEW] C.R. - Par adjustment
     @Default(TeamHandicapMethod.whs) TeamHandicapMethod teamHandicapMethod, // [NEW] Scramble method
-    bool? separateGuests, // [UPDATED] Single override: null = follow society, true = separate, false = hidden
     @Default([]) List<String> oomExcludedRoundIds, // [NEW] Rounds to skip in season standings
+    @Default(TournamentFormat.knockout) TournamentFormat tournamentFormat,
+    @Default(SeedingLogic.random) SeedingLogic seedingLogic,
   }) = _CompetitionRules;
 
   factory CompetitionRules.fromJson(Map<String, dynamic> json) =>
@@ -104,6 +119,7 @@ extension CompetitionRulesX on CompetitionRules {
         CompetitionSubtype.ryderCup    => 'Ryder Cup',
         CompetitionSubtype.teamMatchPlay => 'Team Match Play',
         CompetitionSubtype.grossStableford => 'Gross Stableford',
+        CompetitionSubtype.matchPlaySeason => 'Season Tournament',
         _                              => subtype.name,
       };
     }

@@ -59,10 +59,17 @@ This document tracks the remaining work required to take **Golf Society Manageme
     - [x] **Matchplay Engine**: Independent knockouts and event-layered head-to-head.
         - [x] **Secondary Overlays**: Run matchplay alongside Stableford/Medal.
         - [x] **Interactive Grouping**: Tap-to-Swap pairing logic on the tee sheet.
+        - [x] **Scoring Standardization (v4.x)**: Standardized Match Play results ("1 UP", "AS") as prime display in all event views (Leaderboard & Grouping Cards) irrespective of competition format.
+        - [x] **Season-Long Match Play (v6.x)** (Completed 2026-04-20):
+            - [x] **Draw Manager**: Professional administrative hub for generating event-bound knockout brackets and divisions.
+            - [x] **Partner Handshake**: Automated partner selection and reciprocity logic for team Match Play.
+            - [x] **Tournament Subtypes**: Formal support for `matchPlaySeason` competitions (Knockouts/League).
+            - [x] **Automated Seeding**: Integrated Random, Seeded (HC), and Merit (OOM) distribution logic.
     - [x] **Unified Scorecard View**: Consistent `ScorecardModal` across member/admin leaderboards.
     - [x] **Admin Scoring Controls**: Manual 'Force Active' and 'Score Lock' lifecycle management.
     - [x] **Manual Society Cuts**: Per-event handicap adjustments with automated group sync.
     - [x] **Stability Hardening**: Resolved null safety errors in scorecard state syncing.
+    - [x] **Administrative Guest Control (v4.x)**: Implemented "Enable Guest Entry" event-level toggle to conditionally restrict guest participation in invitational or exclusive events.
     - [ ] **Result Verification**: Admin approval workflow.
 - [ ] **Divisions & Groups**
     - [ ] **Categorization**: Support for both fixed (Strict), tagged (Flexible), and handicap-based (Dynamic) groupings.
@@ -168,6 +175,7 @@ Cuts follow a dual-accessibility pattern based on administrative context:
     - [x] **Admin Console Zero-Errors Initiative (Apr 2026)**: Full v4.0/4.1 standardisation across all admin hubs. Resolved all syntax corruption, undefined identifiers, deprecated API usages (`activeColor`, `value`), unused elements, and async-gap context violations. Project exits `flutter analyze` with **exit code 0**.
     - [x] **Administrative UI Const Hygiene (v6.2)**: Resolved project-wide compilation errors caused by non-const factory usage (`BoxyArtPill.committee`) in `actions` lists across 16+ administrative screens.
     - [x] **Scaling Verification**: Simulation of 60+ member seasons with realistic data distribution.
+    - [x] **Scoring Hardening (Apr 2026)**: Finalized administrative result verification workflow. Implemented Verification Hub in `EventAdminScoresScreen`, bulk scorecard approval, and strict scoring lock enforcement (`isScoringLocked`) in the UI. Overhauled Match Play UI containers with premium BoxyArt components.
 
 ## 5. Deployment
 - [ ] **CI/CD**

@@ -50,19 +50,19 @@ extension MemberStatusX on MemberStatus {
     switch (this) {
       case MemberStatus.member:
       case MemberStatus.active:
-        return AppColors.dark900;
+        return AppColors.lime500; // Standardized Success
       case MemberStatus.pending:
-        return StatusColors.warning;
+        return AppColors.teamA;   // Standardized Informative (Blue)
       case MemberStatus.suspended:
-        return StatusColors.negative;
+        return AppColors.coral500; // Standardized Critical
       case MemberStatus.archived:
       case MemberStatus.inactive:
       case MemberStatus.left:
-        return StatusColors.neutral;
+        return AppColors.dark300; // Standardized Neutral
       case MemberStatus.expired:
-        return StatusColors.negative;
+        return AppColors.amber500; // Standardized Strong Warning
       case MemberStatus.gracePeriod:
-        return StatusColors.warning;
+        return AppColors.amber400; // Standardized Warning
     }
   }
 }

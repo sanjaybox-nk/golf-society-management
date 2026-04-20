@@ -1,10 +1,12 @@
+import 'package:collection/collection.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:golf_society/design_system/design_system.dart';
+import '../../../competitions/presentation/widgets/leaderboard_widget.dart';
 import '../../../events/presentation/events_provider.dart';
 import 'package:golf_society/domain/models/golf_event.dart';
 import 'package:golf_society/domain/models/scorecard.dart';
-
+import '../../../competitions/data/scorecard_repository.dart';
 import '../../../competitions/presentation/competitions_provider.dart';
 import '../../../members/presentation/members_provider.dart';
 import '../../../events/presentation/widgets/event_leaderboard.dart';
@@ -55,6 +57,7 @@ class EventAdminScoresScreen extends ConsumerWidget {
                 tabs: const [
                   ModernFilterTab(label: 'Leaderboard', value: 0),
                   ModernFilterTab(label: 'Groups', value: 1),
+                  ModernFilterTab(label: 'Verification', value: 2),
                 ],
               ),
             ),
@@ -119,8 +122,117 @@ class EventAdminScoresScreen extends ConsumerWidget {
             ),
           ],
         );
+      case 2: // Verification
+        return _buildVerificationTab(context, ref, event, scorecardsAsync);
       default:
         return const SizedBox.shrink();
     }
+  }
+
+  Widget _buildVerificationTab(BuildContext context, WidgetRef ref, GolfEvent event, AsyncValue<List<Scorecard>> scorecardsAsync) {
+    return scorecardsAsync.when(
+      data: (scorecards) {
+        final totalGolfers = event.registrations.where((r) => r.attendingGolf).length;
+        final submitted = scorecards.where((s) => s.status == ScorecardStatus.submitted).toList();
+        final reviewed = scorecards.where((s) => s.status == ScorecardStatus.reviewed || s.status == ScorecardStatus.finalScore).toList();
+        final incomplete = scorecards.where((s) => 
+          s.scoringStatus == ScoringStatus.incomplete || 
+          (s.holeScores.contains(null) && s.scoringStatus == ScoringStatus.ok)
+        ).toList();
+        
+        final outliers = scorecards.where((s) => s.scoringStatus != ScoringStatus.ok).toList();
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const BoxyArtSectionTitle(title: 'Summary', isPeeking: true),
+            Row(
+              children: [
+                Expanded(child: _buildStatMiniCard('Pending', '${submitted.length}', AppColors.amber500)),
+                const SizedBox(width: AppSpacing.md),
+                Expanded(child: _buildStatMiniCard('Incomplete', '${incomplete.length}', AppColors.coral500)),
+                const SizedBox(width: AppSpacing.md),
+                Expanded(child: _buildStatMiniCard('Reviewed', '${reviewed.length} / $totalGolfers', AppColors.lime500)),
+              ],
+            ),
+            const SizedBox(height: AppSpacing.xl),
+            
+            if (submitted.isNotEmpty) ...[
+              BoxyArtButton(
+                title: 'Review All Submitted',
+                icon: Icons.done_all_rounded,
+                isPrimary: true,
+                fullWidth: true,
+                onTap: () async {
+                  final confirmed = await showBoxyArtDialog<bool>(
+                    context: context,
+                    title: 'Approve Scorecards?',
+                    message: 'This will mark all ${submitted.length} submitted scorecards as Reviewed.',
+                    confirmText: 'Approve',
+                  );
+                  if (confirmed == true) {
+                    await ref.read(scorecardRepositoryProvider).approveAllScorecards(event.id);
+                  }
+                },
+              ),
+              const SizedBox(height: AppSpacing.xl),
+            ],
+
+            if (incomplete.isNotEmpty || outliers.isNotEmpty) ...[
+              const BoxyArtSectionTitle(title: 'Issues to resolve', isPeeking: true),
+              ...[...incomplete, ...outliers].map((s) {
+                 final reg = event.registrations.firstWhereOrNull((r) => r.memberId == s.entryId);
+                 return Padding(
+                   padding: const EdgeInsets.only(bottom: AppSpacing.md),
+                   child: BoxyArtNavTile(
+                     title: reg?.memberName ?? 'Unknown Player',
+                     subtitle: s.scoringStatus == ScoringStatus.incomplete ? 'Incomplete Card' : s.scoringStatus.name.toUpperCase(),
+                     icon: Icons.warning_amber_rounded,
+                     iconColor: AppColors.coral500,
+                     onTap: () {
+                        // Open scorecard modal for editing
+                        final members = ref.read(allMembersProvider).value ?? [];
+                        final entry = LeaderboardEntry(
+                          entryId: s.entryId,
+                          playerName: reg?.memberName ?? 'Unknown',
+                          score: s.points ?? 0,
+                          position: 0,
+                          handicap: s.playingHandicap ?? (s.handicapIndex ?? 0).round(),
+                          handicapIndex: s.handicapIndex ?? 0,
+                          playingHandicap: s.playingHandicap,
+                          avatarUrl: members.firstWhereOrNull((m) => m.id == s.entryId)?.avatarUrl,
+                        );
+                        ScorecardModal.show(context, ref, entry: entry, scorecards: scorecards, event: event, comp: ref.watch(competitionDetailProvider(event.id)).value, membersList: members, isAdmin: true);
+                     },
+                   ),
+                 );
+              }),
+            ] else ...[
+               const BoxyArtEmptyCard(
+                 title: 'Verification Complete',
+                 message: 'No score discrepancies or incomplete cards found. The field is ready for finalization.',
+                 icon: Icons.verified_user_outlined,
+               ),
+            ],
+            const SizedBox(height: AppSpacing.hero),
+          ],
+        );
+      },
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (e, s) => Center(child: Text('Error: $e')),
+    );
+  }
+
+  Widget _buildStatMiniCard(String label, String value, Color color) {
+    return BoxyArtCard(
+      padding: const EdgeInsets.all(AppSpacing.md),
+      child: Column(
+        children: [
+          Text(label, style: AppTypography.micro.copyWith(color: AppColors.textSecondary, fontWeight: AppTypography.weightBold)),
+          const SizedBox(height: AppSpacing.xs),
+          Text(value, style: AppTypography.headline.copyWith(color: color)),
+        ],
+      ),
+    );
   }
 }

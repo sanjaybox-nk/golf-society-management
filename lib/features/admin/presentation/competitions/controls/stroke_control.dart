@@ -19,7 +19,6 @@ class _StrokePlayControlState extends BaseCompetitionControlState<StrokePlayCont
   bool _applyCapToIndex = true;
   int _teamBestXCount = 2;
   bool _useMixedTeeAdjustment = false;
-  bool? _separateGuests;
 
   @override
   CompetitionFormat get format => CompetitionFormat.stroke;
@@ -38,7 +37,6 @@ class _StrokePlayControlState extends BaseCompetitionControlState<StrokePlayCont
       _applyCapToIndex = widget.competition!.rules.applyCapToIndex;
       _teamBestXCount = widget.competition!.rules.teamBestXCount;
       _useMixedTeeAdjustment = widget.competition!.rules.useMixedTeeAdjustment;
-      _separateGuests = widget.competition!.rules.separateGuests;
     }
   }
 
@@ -144,12 +142,6 @@ class _StrokePlayControlState extends BaseCompetitionControlState<StrokePlayCont
             onChanged: (val) { if (val != null) setState(() => _teamBestXCount = val); },
           ),
         ),
-
-        // ── GUEST SETTINGS ────────────────────────────────────
-        buildGuestSettings(
-          separateGuests: _separateGuests,
-          onSeparateChanged: (val) => setState(() => _separateGuests = val),
-        ),
       ],
     );
   }
@@ -167,7 +159,6 @@ class _StrokePlayControlState extends BaseCompetitionControlState<StrokePlayCont
       applyCapToIndex: _applyCapToIndex,
       teamBestXCount: _teamBestXCount,
       useMixedTeeAdjustment: _useMixedTeeAdjustment,
-      separateGuests: _separateGuests,
     );
   }
 }

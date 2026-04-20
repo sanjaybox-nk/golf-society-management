@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:golf_society/design_system/design_system.dart';
 import 'package:golf_society/domain/models/member.dart';
 import 'members_provider.dart';
+import 'profile_provider.dart';
 import 'widgets/member_tile.dart';
 
 class MembersScreen extends ConsumerStatefulWidget {
@@ -99,8 +100,8 @@ class _MembersScreenState extends ConsumerState<MembersScreen> {
                   onChanged: (v) => ref.read(memberSearchQueryProvider.notifier).update(v),
                 ),
 
-                // Unified spacing below search box for all tabs/states (16px)
-                SizedBox(height: spacing?.cardToLabel ?? AppSpacing.standard),
+                // Align with Section Title peeking padding (8px + 8px = 16px total unified start gap)
+                SizedBox(height: spacing?.labelToCard ?? AppSpacing.atomic),
                 
                 // Members List
                 membersAsync.when(
@@ -126,6 +127,9 @@ class _MembersScreenState extends ConsumerState<MembersScreen> {
 
                     final sortedMembers = [...filtered]..sort((a, b) => a.lastName.compareTo(b.lastName));
                     
+                    final isAdmin = ref.watch(currentUserProvider).role == MemberRole.admin || 
+                                    ref.watch(currentUserProvider).role == MemberRole.superAdmin;
+
                     if (currentFilter.type == AdminMemberFilter.other) {
                       // Group by status
                       final grouped = <MemberStatus, List<Member>>{};
@@ -159,7 +163,8 @@ class _MembersScreenState extends ConsumerState<MembersScreen> {
                                   BoxyArtSectionTitle(
                                     title: status.displayName,
                                     count: groupMembers.length,
-                                    // Use isPeeking for the very first group to align with search box spacer
+                                    // Use isPeeking for the very first group to align with search box spacer (8px padding)
+                                    // Subsequent groups use cardToLabel (16px) above the title
                                     isPeeking: i == 0, 
                                   ),
                                   ...groupMembers.asMap().entries.map((entry) {
@@ -169,13 +174,14 @@ class _MembersScreenState extends ConsumerState<MembersScreen> {
                                     
                                     return Padding(
                                       padding: EdgeInsets.only(
-                                        bottom: isLastGroupMember ? AppSpacing.xl : (spacing?.cardToCard ?? AppSpacing.standard),
+                                        bottom: isLastGroupMember ? 0 : (spacing?.cardToCard ?? AppSpacing.standard),
                                       ),
                                       child: MemberTile(
                                         member: m,
                                         onTap: () => context.pushNamed('member-detail', pathParameters: {'id': m.id}),
                                         secondaryMetricLabel: 'Events',
                                         secondaryMetricValue: '$eventCount',
+                                        isAdminContext: isAdmin, // Pass admin state to handle status visibility
                                       ),
                                     );
                                   }),
@@ -199,6 +205,7 @@ class _MembersScreenState extends ConsumerState<MembersScreen> {
                             onTap: () => context.pushNamed('member-detail', pathParameters: {'id': m.id}),
                             secondaryMetricLabel: 'Events',
                             secondaryMetricValue: '$eventCount',
+                            isAdminContext: isAdmin, // Pass admin state to handle status visibility
                           ),
                         );
                       }).toList(),

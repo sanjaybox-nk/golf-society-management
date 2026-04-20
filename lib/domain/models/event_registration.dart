@@ -40,6 +40,8 @@ abstract class EventRegistration with _$EventRegistration {
     String? statusOverride, // 'confirmed', 'reserved', 'waitlist'
     String? buggyStatusOverride, // 'confirmed', 'reserved', 'waitlist'
     String? guestBuggyStatusOverride, // 'confirmed', 'reserved', 'waitlist'
+    String? partnerId,
+    String? partnerName,
     @Default([]) List<RegistrationHistoryItem>? history,
     @Default([]) List<EventFine> fines,
     @Default(0.0) double fineAmount,

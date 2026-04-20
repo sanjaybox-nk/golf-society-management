@@ -32,6 +32,7 @@ LeaderboardConfig _$LeaderboardConfigFromJson(Map<String, dynamic> json) {
 mixin _$LeaderboardConfig {
   String get id;
   String get name;
+  LeaderboardScope get scope;
 
   /// Create a copy of LeaderboardConfig
   /// with the given fields replaced by the non-null parameter values.
@@ -50,16 +51,17 @@ mixin _$LeaderboardConfig {
         (other.runtimeType == runtimeType &&
             other is LeaderboardConfig &&
             (identical(other.id, id) || other.id == id) &&
-            (identical(other.name, name) || other.name == name));
+            (identical(other.name, name) || other.name == name) &&
+            (identical(other.scope, scope) || other.scope == scope));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(runtimeType, id, name);
+  int get hashCode => Object.hash(runtimeType, id, name, scope);
 
   @override
   String toString() {
-    return 'LeaderboardConfig(id: $id, name: $name)';
+    return 'LeaderboardConfig(id: $id, name: $name, scope: $scope)';
   }
 }
 
@@ -69,7 +71,7 @@ abstract mixin class $LeaderboardConfigCopyWith<$Res> {
           LeaderboardConfig value, $Res Function(LeaderboardConfig) _then) =
       _$LeaderboardConfigCopyWithImpl;
   @useResult
-  $Res call({String id, String name});
+  $Res call({String id, String name, LeaderboardScope scope});
 }
 
 /// @nodoc
@@ -87,6 +89,7 @@ class _$LeaderboardConfigCopyWithImpl<$Res>
   $Res call({
     Object? id = null,
     Object? name = null,
+    Object? scope = null,
   }) {
     return _then(_self.copyWith(
       id: null == id
@@ -97,6 +100,10 @@ class _$LeaderboardConfigCopyWithImpl<$Res>
           ? _self.name
           : name // ignore: cast_nullable_to_non_nullable
               as String,
+      scope: null == scope
+          ? _self.scope
+          : scope // ignore: cast_nullable_to_non_nullable
+              as LeaderboardScope,
     ));
   }
 }
@@ -224,6 +231,7 @@ extension LeaderboardConfigPatterns on LeaderboardConfig {
     TResult Function(
             String id,
             String name,
+            LeaderboardScope scope,
             OOMSource source,
             OOMRankingBasis rankingBasis,
             Map<int, int> positionPointsMap,
@@ -233,6 +241,7 @@ extension LeaderboardConfigPatterns on LeaderboardConfig {
     TResult Function(
             String id,
             String name,
+            LeaderboardScope scope,
             int bestN,
             BestOfMetric metric,
             ScoringType scoringType,
@@ -240,12 +249,13 @@ extension LeaderboardConfigPatterns on LeaderboardConfig {
             Map<int, int> positionPointsMap,
             int appearancePoints)?
         bestOfSeries,
-    TResult Function(String id, String name, EclecticMetric metric,
-            int handicapPercentage)?
+    TResult Function(String id, String name, LeaderboardScope scope,
+            EclecticMetric metric, int handicapPercentage)?
         eclectic,
     TResult Function(
             String id,
             String name,
+            LeaderboardScope scope,
             Set<MarkerType> targetTypes,
             HoleFilter holeFilter,
             MarkerRankingMethod rankingMethod,
@@ -259,6 +269,7 @@ extension LeaderboardConfigPatterns on LeaderboardConfig {
         return orderOfMerit(
             _that.id,
             _that.name,
+            _that.scope,
             _that.source,
             _that.rankingBasis,
             _that.positionPointsMap,
@@ -268,6 +279,7 @@ extension LeaderboardConfigPatterns on LeaderboardConfig {
         return bestOfSeries(
             _that.id,
             _that.name,
+            _that.scope,
             _that.bestN,
             _that.metric,
             _that.scoringType,
@@ -275,11 +287,17 @@ extension LeaderboardConfigPatterns on LeaderboardConfig {
             _that.positionPointsMap,
             _that.appearancePoints);
       case EclecticConfig() when eclectic != null:
-        return eclectic(
-            _that.id, _that.name, _that.metric, _that.handicapPercentage);
+        return eclectic(_that.id, _that.name, _that.scope, _that.metric,
+            _that.handicapPercentage);
       case MarkerCounterConfig() when markerCounter != null:
-        return markerCounter(_that.id, _that.name, _that.targetTypes,
-            _that.holeFilter, _that.rankingMethod, _that.bestN);
+        return markerCounter(
+            _that.id,
+            _that.name,
+            _that.scope,
+            _that.targetTypes,
+            _that.holeFilter,
+            _that.rankingMethod,
+            _that.bestN);
       case _:
         return orElse();
     }
@@ -303,6 +321,7 @@ extension LeaderboardConfigPatterns on LeaderboardConfig {
     required TResult Function(
             String id,
             String name,
+            LeaderboardScope scope,
             OOMSource source,
             OOMRankingBasis rankingBasis,
             Map<int, int> positionPointsMap,
@@ -312,6 +331,7 @@ extension LeaderboardConfigPatterns on LeaderboardConfig {
     required TResult Function(
             String id,
             String name,
+            LeaderboardScope scope,
             int bestN,
             BestOfMetric metric,
             ScoringType scoringType,
@@ -319,12 +339,13 @@ extension LeaderboardConfigPatterns on LeaderboardConfig {
             Map<int, int> positionPointsMap,
             int appearancePoints)
         bestOfSeries,
-    required TResult Function(String id, String name, EclecticMetric metric,
-            int handicapPercentage)
+    required TResult Function(String id, String name, LeaderboardScope scope,
+            EclecticMetric metric, int handicapPercentage)
         eclectic,
     required TResult Function(
             String id,
             String name,
+            LeaderboardScope scope,
             Set<MarkerType> targetTypes,
             HoleFilter holeFilter,
             MarkerRankingMethod rankingMethod,
@@ -337,6 +358,7 @@ extension LeaderboardConfigPatterns on LeaderboardConfig {
         return orderOfMerit(
             _that.id,
             _that.name,
+            _that.scope,
             _that.source,
             _that.rankingBasis,
             _that.positionPointsMap,
@@ -346,6 +368,7 @@ extension LeaderboardConfigPatterns on LeaderboardConfig {
         return bestOfSeries(
             _that.id,
             _that.name,
+            _that.scope,
             _that.bestN,
             _that.metric,
             _that.scoringType,
@@ -353,11 +376,17 @@ extension LeaderboardConfigPatterns on LeaderboardConfig {
             _that.positionPointsMap,
             _that.appearancePoints);
       case EclecticConfig():
-        return eclectic(
-            _that.id, _that.name, _that.metric, _that.handicapPercentage);
+        return eclectic(_that.id, _that.name, _that.scope, _that.metric,
+            _that.handicapPercentage);
       case MarkerCounterConfig():
-        return markerCounter(_that.id, _that.name, _that.targetTypes,
-            _that.holeFilter, _that.rankingMethod, _that.bestN);
+        return markerCounter(
+            _that.id,
+            _that.name,
+            _that.scope,
+            _that.targetTypes,
+            _that.holeFilter,
+            _that.rankingMethod,
+            _that.bestN);
       case _:
         throw StateError('Unexpected subclass');
     }
@@ -380,6 +409,7 @@ extension LeaderboardConfigPatterns on LeaderboardConfig {
     TResult? Function(
             String id,
             String name,
+            LeaderboardScope scope,
             OOMSource source,
             OOMRankingBasis rankingBasis,
             Map<int, int> positionPointsMap,
@@ -389,6 +419,7 @@ extension LeaderboardConfigPatterns on LeaderboardConfig {
     TResult? Function(
             String id,
             String name,
+            LeaderboardScope scope,
             int bestN,
             BestOfMetric metric,
             ScoringType scoringType,
@@ -396,12 +427,13 @@ extension LeaderboardConfigPatterns on LeaderboardConfig {
             Map<int, int> positionPointsMap,
             int appearancePoints)?
         bestOfSeries,
-    TResult? Function(String id, String name, EclecticMetric metric,
-            int handicapPercentage)?
+    TResult? Function(String id, String name, LeaderboardScope scope,
+            EclecticMetric metric, int handicapPercentage)?
         eclectic,
     TResult? Function(
             String id,
             String name,
+            LeaderboardScope scope,
             Set<MarkerType> targetTypes,
             HoleFilter holeFilter,
             MarkerRankingMethod rankingMethod,
@@ -414,6 +446,7 @@ extension LeaderboardConfigPatterns on LeaderboardConfig {
         return orderOfMerit(
             _that.id,
             _that.name,
+            _that.scope,
             _that.source,
             _that.rankingBasis,
             _that.positionPointsMap,
@@ -423,6 +456,7 @@ extension LeaderboardConfigPatterns on LeaderboardConfig {
         return bestOfSeries(
             _that.id,
             _that.name,
+            _that.scope,
             _that.bestN,
             _that.metric,
             _that.scoringType,
@@ -430,11 +464,17 @@ extension LeaderboardConfigPatterns on LeaderboardConfig {
             _that.positionPointsMap,
             _that.appearancePoints);
       case EclecticConfig() when eclectic != null:
-        return eclectic(
-            _that.id, _that.name, _that.metric, _that.handicapPercentage);
+        return eclectic(_that.id, _that.name, _that.scope, _that.metric,
+            _that.handicapPercentage);
       case MarkerCounterConfig() when markerCounter != null:
-        return markerCounter(_that.id, _that.name, _that.targetTypes,
-            _that.holeFilter, _that.rankingMethod, _that.bestN);
+        return markerCounter(
+            _that.id,
+            _that.name,
+            _that.scope,
+            _that.targetTypes,
+            _that.holeFilter,
+            _that.rankingMethod,
+            _that.bestN);
       case _:
         return null;
     }
@@ -447,6 +487,7 @@ class OrderOfMeritConfig extends LeaderboardConfig {
   const OrderOfMeritConfig(
       {required this.id,
       required this.name,
+      this.scope = LeaderboardScope.seasonOnly,
       this.source = OOMSource.position,
       this.rankingBasis = OOMRankingBasis.stableford,
       final Map<int, int> positionPointsMap = const {},
@@ -463,6 +504,9 @@ class OrderOfMeritConfig extends LeaderboardConfig {
   final String id;
   @override
   final String name;
+  @override
+  @JsonKey()
+  final LeaderboardScope scope;
   @JsonKey()
   final OOMSource source;
   @JsonKey()
@@ -506,6 +550,7 @@ class OrderOfMeritConfig extends LeaderboardConfig {
             other is OrderOfMeritConfig &&
             (identical(other.id, id) || other.id == id) &&
             (identical(other.name, name) || other.name == name) &&
+            (identical(other.scope, scope) || other.scope == scope) &&
             (identical(other.source, source) || other.source == source) &&
             (identical(other.rankingBasis, rankingBasis) ||
                 other.rankingBasis == rankingBasis) &&
@@ -522,6 +567,7 @@ class OrderOfMeritConfig extends LeaderboardConfig {
       runtimeType,
       id,
       name,
+      scope,
       source,
       rankingBasis,
       const DeepCollectionEquality().hash(_positionPointsMap),
@@ -530,7 +576,7 @@ class OrderOfMeritConfig extends LeaderboardConfig {
 
   @override
   String toString() {
-    return 'LeaderboardConfig.orderOfMerit(id: $id, name: $name, source: $source, rankingBasis: $rankingBasis, positionPointsMap: $positionPointsMap, appearancePoints: $appearancePoints, bestN: $bestN)';
+    return 'LeaderboardConfig.orderOfMerit(id: $id, name: $name, scope: $scope, source: $source, rankingBasis: $rankingBasis, positionPointsMap: $positionPointsMap, appearancePoints: $appearancePoints, bestN: $bestN)';
   }
 }
 
@@ -545,6 +591,7 @@ abstract mixin class $OrderOfMeritConfigCopyWith<$Res>
   $Res call(
       {String id,
       String name,
+      LeaderboardScope scope,
       OOMSource source,
       OOMRankingBasis rankingBasis,
       Map<int, int> positionPointsMap,
@@ -567,6 +614,7 @@ class _$OrderOfMeritConfigCopyWithImpl<$Res>
   $Res call({
     Object? id = null,
     Object? name = null,
+    Object? scope = null,
     Object? source = null,
     Object? rankingBasis = null,
     Object? positionPointsMap = null,
@@ -582,6 +630,10 @@ class _$OrderOfMeritConfigCopyWithImpl<$Res>
           ? _self.name
           : name // ignore: cast_nullable_to_non_nullable
               as String,
+      scope: null == scope
+          ? _self.scope
+          : scope // ignore: cast_nullable_to_non_nullable
+              as LeaderboardScope,
       source: null == source
           ? _self.source
           : source // ignore: cast_nullable_to_non_nullable
@@ -612,6 +664,7 @@ class BestOfSeriesConfig extends LeaderboardConfig {
   const BestOfSeriesConfig(
       {required this.id,
       required this.name,
+      this.scope = LeaderboardScope.seasonOnly,
       this.bestN = 8,
       this.metric = BestOfMetric.stableford,
       this.scoringType = ScoringType.accumulative,
@@ -629,6 +682,9 @@ class BestOfSeriesConfig extends LeaderboardConfig {
   final String id;
   @override
   final String name;
+  @override
+  @JsonKey()
+  final LeaderboardScope scope;
   @JsonKey()
   final int bestN;
   @JsonKey()
@@ -674,6 +730,7 @@ class BestOfSeriesConfig extends LeaderboardConfig {
             other is BestOfSeriesConfig &&
             (identical(other.id, id) || other.id == id) &&
             (identical(other.name, name) || other.name == name) &&
+            (identical(other.scope, scope) || other.scope == scope) &&
             (identical(other.bestN, bestN) || other.bestN == bestN) &&
             (identical(other.metric, metric) || other.metric == metric) &&
             (identical(other.scoringType, scoringType) ||
@@ -692,6 +749,7 @@ class BestOfSeriesConfig extends LeaderboardConfig {
       runtimeType,
       id,
       name,
+      scope,
       bestN,
       metric,
       scoringType,
@@ -701,7 +759,7 @@ class BestOfSeriesConfig extends LeaderboardConfig {
 
   @override
   String toString() {
-    return 'LeaderboardConfig.bestOfSeries(id: $id, name: $name, bestN: $bestN, metric: $metric, scoringType: $scoringType, tiePolicy: $tiePolicy, positionPointsMap: $positionPointsMap, appearancePoints: $appearancePoints)';
+    return 'LeaderboardConfig.bestOfSeries(id: $id, name: $name, scope: $scope, bestN: $bestN, metric: $metric, scoringType: $scoringType, tiePolicy: $tiePolicy, positionPointsMap: $positionPointsMap, appearancePoints: $appearancePoints)';
   }
 }
 
@@ -716,6 +774,7 @@ abstract mixin class $BestOfSeriesConfigCopyWith<$Res>
   $Res call(
       {String id,
       String name,
+      LeaderboardScope scope,
       int bestN,
       BestOfMetric metric,
       ScoringType scoringType,
@@ -739,6 +798,7 @@ class _$BestOfSeriesConfigCopyWithImpl<$Res>
   $Res call({
     Object? id = null,
     Object? name = null,
+    Object? scope = null,
     Object? bestN = null,
     Object? metric = null,
     Object? scoringType = null,
@@ -755,6 +815,10 @@ class _$BestOfSeriesConfigCopyWithImpl<$Res>
           ? _self.name
           : name // ignore: cast_nullable_to_non_nullable
               as String,
+      scope: null == scope
+          ? _self.scope
+          : scope // ignore: cast_nullable_to_non_nullable
+              as LeaderboardScope,
       bestN: null == bestN
           ? _self.bestN
           : bestN // ignore: cast_nullable_to_non_nullable
@@ -789,6 +853,7 @@ class EclecticConfig extends LeaderboardConfig {
   const EclecticConfig(
       {required this.id,
       required this.name,
+      this.scope = LeaderboardScope.seasonOnly,
       this.metric = EclecticMetric.strokes,
       this.handicapPercentage = 0,
       final String? $type})
@@ -801,6 +866,9 @@ class EclecticConfig extends LeaderboardConfig {
   final String id;
   @override
   final String name;
+  @override
+  @JsonKey()
+  final LeaderboardScope scope;
   @JsonKey()
   final EclecticMetric metric;
   @JsonKey()
@@ -831,6 +899,7 @@ class EclecticConfig extends LeaderboardConfig {
             other is EclecticConfig &&
             (identical(other.id, id) || other.id == id) &&
             (identical(other.name, name) || other.name == name) &&
+            (identical(other.scope, scope) || other.scope == scope) &&
             (identical(other.metric, metric) || other.metric == metric) &&
             (identical(other.handicapPercentage, handicapPercentage) ||
                 other.handicapPercentage == handicapPercentage));
@@ -839,11 +908,11 @@ class EclecticConfig extends LeaderboardConfig {
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode =>
-      Object.hash(runtimeType, id, name, metric, handicapPercentage);
+      Object.hash(runtimeType, id, name, scope, metric, handicapPercentage);
 
   @override
   String toString() {
-    return 'LeaderboardConfig.eclectic(id: $id, name: $name, metric: $metric, handicapPercentage: $handicapPercentage)';
+    return 'LeaderboardConfig.eclectic(id: $id, name: $name, scope: $scope, metric: $metric, handicapPercentage: $handicapPercentage)';
   }
 }
 
@@ -856,7 +925,11 @@ abstract mixin class $EclecticConfigCopyWith<$Res>
   @override
   @useResult
   $Res call(
-      {String id, String name, EclecticMetric metric, int handicapPercentage});
+      {String id,
+      String name,
+      LeaderboardScope scope,
+      EclecticMetric metric,
+      int handicapPercentage});
 }
 
 /// @nodoc
@@ -874,6 +947,7 @@ class _$EclecticConfigCopyWithImpl<$Res>
   $Res call({
     Object? id = null,
     Object? name = null,
+    Object? scope = null,
     Object? metric = null,
     Object? handicapPercentage = null,
   }) {
@@ -886,6 +960,10 @@ class _$EclecticConfigCopyWithImpl<$Res>
           ? _self.name
           : name // ignore: cast_nullable_to_non_nullable
               as String,
+      scope: null == scope
+          ? _self.scope
+          : scope // ignore: cast_nullable_to_non_nullable
+              as LeaderboardScope,
       metric: null == metric
           ? _self.metric
           : metric // ignore: cast_nullable_to_non_nullable
@@ -904,6 +982,7 @@ class MarkerCounterConfig extends LeaderboardConfig {
   const MarkerCounterConfig(
       {required this.id,
       required this.name,
+      this.scope = LeaderboardScope.seasonOnly,
       required final Set<MarkerType> targetTypes,
       this.holeFilter = HoleFilter.all,
       this.rankingMethod = MarkerRankingMethod.count,
@@ -919,6 +998,9 @@ class MarkerCounterConfig extends LeaderboardConfig {
   final String id;
   @override
   final String name;
+  @override
+  @JsonKey()
+  final LeaderboardScope scope;
   final Set<MarkerType> _targetTypes;
   Set<MarkerType> get targetTypes {
     if (_targetTypes is EqualUnmodifiableSetView) return _targetTypes;
@@ -958,6 +1040,7 @@ class MarkerCounterConfig extends LeaderboardConfig {
             other is MarkerCounterConfig &&
             (identical(other.id, id) || other.id == id) &&
             (identical(other.name, name) || other.name == name) &&
+            (identical(other.scope, scope) || other.scope == scope) &&
             const DeepCollectionEquality()
                 .equals(other._targetTypes, _targetTypes) &&
             (identical(other.holeFilter, holeFilter) ||
@@ -973,6 +1056,7 @@ class MarkerCounterConfig extends LeaderboardConfig {
       runtimeType,
       id,
       name,
+      scope,
       const DeepCollectionEquality().hash(_targetTypes),
       holeFilter,
       rankingMethod,
@@ -980,7 +1064,7 @@ class MarkerCounterConfig extends LeaderboardConfig {
 
   @override
   String toString() {
-    return 'LeaderboardConfig.markerCounter(id: $id, name: $name, targetTypes: $targetTypes, holeFilter: $holeFilter, rankingMethod: $rankingMethod, bestN: $bestN)';
+    return 'LeaderboardConfig.markerCounter(id: $id, name: $name, scope: $scope, targetTypes: $targetTypes, holeFilter: $holeFilter, rankingMethod: $rankingMethod, bestN: $bestN)';
   }
 }
 
@@ -995,6 +1079,7 @@ abstract mixin class $MarkerCounterConfigCopyWith<$Res>
   $Res call(
       {String id,
       String name,
+      LeaderboardScope scope,
       Set<MarkerType> targetTypes,
       HoleFilter holeFilter,
       MarkerRankingMethod rankingMethod,
@@ -1016,6 +1101,7 @@ class _$MarkerCounterConfigCopyWithImpl<$Res>
   $Res call({
     Object? id = null,
     Object? name = null,
+    Object? scope = null,
     Object? targetTypes = null,
     Object? holeFilter = null,
     Object? rankingMethod = null,
@@ -1030,6 +1116,10 @@ class _$MarkerCounterConfigCopyWithImpl<$Res>
           ? _self.name
           : name // ignore: cast_nullable_to_non_nullable
               as String,
+      scope: null == scope
+          ? _self.scope
+          : scope // ignore: cast_nullable_to_non_nullable
+              as LeaderboardScope,
       targetTypes: null == targetTypes
           ? _self._targetTypes
           : targetTypes // ignore: cast_nullable_to_non_nullable

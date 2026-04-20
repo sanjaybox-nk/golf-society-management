@@ -63,7 +63,7 @@ class RegistrationStatsCard extends ConsumerWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         // Calculate grid with 4 columns
-        const int crossAxisCount = 4;
+        const int crossAxisCount = 3;
         final double totalGapWidth = AppSpacing.md * (crossAxisCount - 1);
         final double itemWidth = (constraints.maxWidth - totalGapWidth) / crossAxisCount;
 

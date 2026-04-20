@@ -186,6 +186,13 @@ class _OperationsSlivers extends ConsumerWidget {
                 ),
                 const BoxyArtDivider(),
                 BoxyArtNavTile(
+                  icon: Icons.account_tree_outlined,
+                  title: 'Season Match Play',
+                  subtitle: 'Generate draws, seedings & brackets',
+                  onTap: () => context.pushNamed('admin-matchplay-draw'),
+                ),
+                const BoxyArtDivider(),
+                BoxyArtNavTile(
                   icon: Icons.leaderboard_outlined,
                   title: 'Season Leaderboards',
                   subtitle: 'Track Order of Merit & stat cycles',

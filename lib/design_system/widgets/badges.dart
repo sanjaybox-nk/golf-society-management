@@ -203,6 +203,7 @@ class BoxyArtPill extends ConsumerWidget {
     required String label,
     IconData? icon,
     Color? color,
+    double? fontSize,
   }) {
     return BoxyArtPill(
       label: label,
@@ -210,6 +211,7 @@ class BoxyArtPill extends ConsumerWidget {
       icon: icon,
       isLegend: false,
       isFormat: true,
+      fontSize: fontSize,
     );
   }
 
@@ -218,12 +220,14 @@ class BoxyArtPill extends ConsumerWidget {
   factory BoxyArtPill.type({
     required String label,
     IconData? icon,
+    double? fontSize,
   }) {
     return BoxyArtPill(
       label: label,
       icon: icon,
       isLegend: true,
       isType: true,
+      fontSize: fontSize,
     );
   }
 
@@ -263,14 +267,15 @@ class BoxyArtPill extends ConsumerWidget {
     required String label,
     IconData? icon,
     bool hasHorizontalMargin = true,
+    double? fontSize,
   }) {
     return BoxyArtPill(
       label: 'HC: $label',
       color: AppColors.dark400, // Design 4.x: Stronger neutral for HC
       icon: icon,
       hasHorizontalMargin: hasHorizontalMargin,
-      fontSize: AppTypography.sizeMicro,
-      fontWeight: AppTypography.weightHeavy,
+      fontSize: fontSize ?? AppTypography.sizeMicro,
+      fontWeight: AppTypography.weightBold,
     );
   }
 
@@ -280,30 +285,32 @@ class BoxyArtPill extends ConsumerWidget {
     required String label,
     IconData? icon,
     bool hasHorizontalMargin = true,
+    double? fontSize,
   }) {
     return BoxyArtPill(
       label: 'PHC: $label',
       color: Theme.of(context).primaryColor,
       icon: icon,
       hasHorizontalMargin: hasHorizontalMargin,
-      fontSize: AppTypography.sizeMicro,
-      fontWeight: AppTypography.weightHeavy,
+      fontSize: fontSize ?? AppTypography.sizeMicro,
+      fontWeight: AppTypography.weightBold,
     );
   }
 
   /// Factory for Committee/Society Roles
   factory BoxyArtPill.committee({
     required String label,
+    double? fontSize,
   }) {
     return BoxyArtPill(
       label: label.toUpperCase(),
       color: AppColors.amber500,
       backgroundColor: AppColors.amber500.withValues(alpha: 0.1),
       borderColor: AppColors.amber500.withValues(alpha: 0.3),
-      textColor: AppColors.dark400,
-      fontSize: 10,
+      textColor: AppColors.dark900,
+      fontSize: fontSize ?? AppTypography.sizeMicro,
       fontWeight: AppTypography.weightBold,
-      letterSpacing: 0.5,
+      letterSpacing: AppTypography.lsLabel,
       hasHorizontalMargin: false,
     );
   }
@@ -446,13 +453,13 @@ class BoxyArtDateBadge extends ConsumerWidget {
     final Color effectiveLabelColor = Color(config.iconBadgeIconColor);
 
     return Container(
-      width: 52,
-      constraints: const BoxConstraints(minHeight: 52),
+      width: 60,
+      constraints: const BoxConstraints(minHeight: 60),
       decoration: BoxDecoration(
         color: effectiveBg,
         borderRadius: BorderRadius.circular(config.accentRadius),
       ),
-      padding: const EdgeInsets.symmetric(vertical: 4, horizontal: AppSpacing.xs),
+      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: AppSpacing.xs),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.center,
@@ -482,7 +489,6 @@ class BoxyArtDateBadge extends ConsumerWidget {
           Text(
             DateFormat('yyyy').format(date),
             style: AppTypography.micro.copyWith(
-              fontSize: AppTypography.sizeMicroSmall,
               color: AppColors.dark500,
               fontWeight: AppTypography.weightSemibold,
             ),
@@ -497,11 +503,13 @@ class BoxyArtDateBadge extends ConsumerWidget {
 class BoxyArtFeePill extends StatelessWidget {
   final bool isPaid;
   final VoidCallback? onToggle;
+  final bool hasHorizontalMargin;
 
   const BoxyArtFeePill({
     super.key,
     required this.isPaid,
     this.onToggle,
+    this.hasHorizontalMargin = true,
   });
 
   @override
@@ -511,6 +519,7 @@ class BoxyArtFeePill extends StatelessWidget {
       onToggle: onToggle,
       paidLabel: 'Fee Paid',
       dueLabel: 'Fee due',
+      hasHorizontalMargin: hasHorizontalMargin,
     );
   }
 }
@@ -521,6 +530,7 @@ class BoxyArtStatusPill extends StatelessWidget {
   final String dueLabel;
   final Color? color;
   final VoidCallback? onToggle;
+  final bool hasHorizontalMargin;
 
   const BoxyArtStatusPill({
     super.key,
@@ -529,58 +539,20 @@ class BoxyArtStatusPill extends StatelessWidget {
     this.dueLabel = 'Due',
     this.color,
     this.onToggle,
+    this.hasHorizontalMargin = true,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final statusColor = color ?? theme.primaryColor;
+    final dotColor = isPaid ? statusColor : (color ?? AppColors.amber500);
 
-    final Widget child = isPaid 
-        ? Padding(
-            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs, vertical: 2), // Reduced for overflow safety
-            child: Row(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Container(
-                width: 18,
-                height: 18,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: statusColor,
-                    width: 1.2,
-                  ),
-                ),
-                child: Icon(
-                  Icons.check,
-                  size: 12,
-                  color: statusColor,
-                ),
-              ),
-              const SizedBox(width: AppSpacing.sm),
-              Text(
-                paidLabel,
-                style: AppTypography.caption.copyWith(
-                  fontSize: AppTypography.sizeLabelStrong,
-                  color: statusColor,
-                  fontWeight: AppTypography.weightBold,
-                ),
-              ),
-            ],
-          ),
-        )
-      : BoxyArtPill(
-          label: dueLabel,
-          color: color ?? AppColors.amber500,
-          icon: isPaid ? null : Icons.info_outline_rounded,
-        );
-
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
+    return BoxyArtIndicator(
+      label: isPaid ? paidLabel : dueLabel,
+      dotColor: dotColor,
       onTap: onToggle,
-      child: child,
+      hasHorizontalMargin: hasHorizontalMargin,
     );
   }
 }
@@ -632,12 +604,11 @@ class BoxyArtSquareBadge extends StatelessWidget {
                   color: effectiveIconColor.withValues(alpha: config.iconOpacity),
                 ),
                 child: this.child,
-                ),
               ),
             ),
-          );
+          ),
+        );
       },
     );
-
   }
 }

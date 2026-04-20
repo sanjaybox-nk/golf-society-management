@@ -35,6 +35,10 @@ abstract class ProcessedGroupResult with _$ProcessedGroupResult {
     required String label,
     required int totalScore,
     required List<int> tieBreakMetrics,
+    int? sideAScore,
+    int? sideBScore,
+    String? sideALabel,
+    String? sideBLabel,
   }) = _ProcessedGroupResult;
 
   factory ProcessedGroupResult.fromJson(Map<String, dynamic> json) => _$ProcessedGroupResultFromJson(json);
@@ -64,6 +68,9 @@ abstract class ProcessedLeaderboardEntry with _$ProcessedLeaderboardEntry {
     @Default(ScoringStatus.ok) ScoringStatus scoringStatus,
     double? handicapIndex,
     String? tieBreakLabel,
+    String? matchStatus, // [NEW] e.g. "WIN 7 & 6", "2 UP", "AS"
+    int? matchScore, // [NEW] lead tracking
+    @Default(false) bool isMatch, // [NEW] flag for match play entries
   }) = _ProcessedLeaderboardEntry;
 
   factory ProcessedLeaderboardEntry.fromJson(Map<String, dynamic> json) =>

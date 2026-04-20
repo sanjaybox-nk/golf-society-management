@@ -44,6 +44,8 @@ mixin _$EventRegistration {
   String? get statusOverride; // 'confirmed', 'reserved', 'waitlist'
   String? get buggyStatusOverride; // 'confirmed', 'reserved', 'waitlist'
   String? get guestBuggyStatusOverride; // 'confirmed', 'reserved', 'waitlist'
+  String? get partnerId;
+  String? get partnerName;
   List<RegistrationHistoryItem>? get history;
   List<EventFine> get fines;
   double get fineAmount;
@@ -120,6 +122,10 @@ mixin _$EventRegistration {
             (identical(
                     other.guestBuggyStatusOverride, guestBuggyStatusOverride) ||
                 other.guestBuggyStatusOverride == guestBuggyStatusOverride) &&
+            (identical(other.partnerId, partnerId) ||
+                other.partnerId == partnerId) &&
+            (identical(other.partnerName, partnerName) ||
+                other.partnerName == partnerName) &&
             const DeepCollectionEquality().equals(other.history, history) &&
             const DeepCollectionEquality().equals(other.fines, fines) &&
             (identical(other.fineAmount, fineAmount) ||
@@ -160,6 +166,8 @@ mixin _$EventRegistration {
         statusOverride,
         buggyStatusOverride,
         guestBuggyStatusOverride,
+        partnerId,
+        partnerName,
         const DeepCollectionEquality().hash(history),
         const DeepCollectionEquality().hash(fines),
         fineAmount,
@@ -168,7 +176,7 @@ mixin _$EventRegistration {
 
   @override
   String toString() {
-    return 'EventRegistration(memberId: $memberId, memberName: $memberName, isGuest: $isGuest, attendingGolf: $attendingGolf, attendingBreakfast: $attendingBreakfast, attendingLunch: $attendingLunch, attendingDinner: $attendingDinner, hasPaid: $hasPaid, cost: $cost, creditApplied: $creditApplied, handicap: $handicap, playingHandicap: $playingHandicap, needsBuggy: $needsBuggy, dietaryRequirements: $dietaryRequirements, specialNeeds: $specialNeeds, guestName: $guestName, guestHandicap: $guestHandicap, guestAttendingBreakfast: $guestAttendingBreakfast, guestAttendingLunch: $guestAttendingLunch, guestAttendingDinner: $guestAttendingDinner, guestNeedsBuggy: $guestNeedsBuggy, isCaptain: $isCaptain, registeredAt: $registeredAt, isConfirmed: $isConfirmed, guestIsConfirmed: $guestIsConfirmed, statusOverride: $statusOverride, buggyStatusOverride: $buggyStatusOverride, guestBuggyStatusOverride: $guestBuggyStatusOverride, history: $history, fines: $fines, fineAmount: $fineAmount, finePaid: $finePaid)';
+    return 'EventRegistration(memberId: $memberId, memberName: $memberName, isGuest: $isGuest, attendingGolf: $attendingGolf, attendingBreakfast: $attendingBreakfast, attendingLunch: $attendingLunch, attendingDinner: $attendingDinner, hasPaid: $hasPaid, cost: $cost, creditApplied: $creditApplied, handicap: $handicap, playingHandicap: $playingHandicap, needsBuggy: $needsBuggy, dietaryRequirements: $dietaryRequirements, specialNeeds: $specialNeeds, guestName: $guestName, guestHandicap: $guestHandicap, guestAttendingBreakfast: $guestAttendingBreakfast, guestAttendingLunch: $guestAttendingLunch, guestAttendingDinner: $guestAttendingDinner, guestNeedsBuggy: $guestNeedsBuggy, isCaptain: $isCaptain, registeredAt: $registeredAt, isConfirmed: $isConfirmed, guestIsConfirmed: $guestIsConfirmed, statusOverride: $statusOverride, buggyStatusOverride: $buggyStatusOverride, guestBuggyStatusOverride: $guestBuggyStatusOverride, partnerId: $partnerId, partnerName: $partnerName, history: $history, fines: $fines, fineAmount: $fineAmount, finePaid: $finePaid)';
   }
 }
 
@@ -207,6 +215,8 @@ abstract mixin class $EventRegistrationCopyWith<$Res> {
       String? statusOverride,
       String? buggyStatusOverride,
       String? guestBuggyStatusOverride,
+      String? partnerId,
+      String? partnerName,
       List<RegistrationHistoryItem>? history,
       List<EventFine> fines,
       double fineAmount,
@@ -254,6 +264,8 @@ class _$EventRegistrationCopyWithImpl<$Res>
     Object? statusOverride = freezed,
     Object? buggyStatusOverride = freezed,
     Object? guestBuggyStatusOverride = freezed,
+    Object? partnerId = freezed,
+    Object? partnerName = freezed,
     Object? history = freezed,
     Object? fines = null,
     Object? fineAmount = null,
@@ -371,6 +383,14 @@ class _$EventRegistrationCopyWithImpl<$Res>
       guestBuggyStatusOverride: freezed == guestBuggyStatusOverride
           ? _self.guestBuggyStatusOverride
           : guestBuggyStatusOverride // ignore: cast_nullable_to_non_nullable
+              as String?,
+      partnerId: freezed == partnerId
+          ? _self.partnerId
+          : partnerId // ignore: cast_nullable_to_non_nullable
+              as String?,
+      partnerName: freezed == partnerName
+          ? _self.partnerName
+          : partnerName // ignore: cast_nullable_to_non_nullable
               as String?,
       history: freezed == history
           ? _self.history
@@ -514,6 +534,8 @@ extension EventRegistrationPatterns on EventRegistration {
             String? statusOverride,
             String? buggyStatusOverride,
             String? guestBuggyStatusOverride,
+            String? partnerId,
+            String? partnerName,
             List<RegistrationHistoryItem>? history,
             List<EventFine> fines,
             double fineAmount,
@@ -553,6 +575,8 @@ extension EventRegistrationPatterns on EventRegistration {
             _that.statusOverride,
             _that.buggyStatusOverride,
             _that.guestBuggyStatusOverride,
+            _that.partnerId,
+            _that.partnerName,
             _that.history,
             _that.fines,
             _that.fineAmount,
@@ -606,6 +630,8 @@ extension EventRegistrationPatterns on EventRegistration {
             String? statusOverride,
             String? buggyStatusOverride,
             String? guestBuggyStatusOverride,
+            String? partnerId,
+            String? partnerName,
             List<RegistrationHistoryItem>? history,
             List<EventFine> fines,
             double fineAmount,
@@ -644,6 +670,8 @@ extension EventRegistrationPatterns on EventRegistration {
             _that.statusOverride,
             _that.buggyStatusOverride,
             _that.guestBuggyStatusOverride,
+            _that.partnerId,
+            _that.partnerName,
             _that.history,
             _that.fines,
             _that.fineAmount,
@@ -696,6 +724,8 @@ extension EventRegistrationPatterns on EventRegistration {
             String? statusOverride,
             String? buggyStatusOverride,
             String? guestBuggyStatusOverride,
+            String? partnerId,
+            String? partnerName,
             List<RegistrationHistoryItem>? history,
             List<EventFine> fines,
             double fineAmount,
@@ -734,6 +764,8 @@ extension EventRegistrationPatterns on EventRegistration {
             _that.statusOverride,
             _that.buggyStatusOverride,
             _that.guestBuggyStatusOverride,
+            _that.partnerId,
+            _that.partnerName,
             _that.history,
             _that.fines,
             _that.fineAmount,
@@ -776,6 +808,8 @@ class _EventRegistration extends EventRegistration {
       this.statusOverride,
       this.buggyStatusOverride,
       this.guestBuggyStatusOverride,
+      this.partnerId,
+      this.partnerName,
       final List<RegistrationHistoryItem>? history = const [],
       final List<EventFine> fines = const [],
       this.fineAmount = 0.0,
@@ -865,8 +899,11 @@ class _EventRegistration extends EventRegistration {
   @override
   final String? guestBuggyStatusOverride;
 // 'confirmed', 'reserved', 'waitlist'
+  @override
+  final String? partnerId;
+  @override
+  final String? partnerName;
   final List<RegistrationHistoryItem>? _history;
-// 'confirmed', 'reserved', 'waitlist'
   @override
   @JsonKey()
   List<RegistrationHistoryItem>? get history {
@@ -968,6 +1005,10 @@ class _EventRegistration extends EventRegistration {
             (identical(
                     other.guestBuggyStatusOverride, guestBuggyStatusOverride) ||
                 other.guestBuggyStatusOverride == guestBuggyStatusOverride) &&
+            (identical(other.partnerId, partnerId) ||
+                other.partnerId == partnerId) &&
+            (identical(other.partnerName, partnerName) ||
+                other.partnerName == partnerName) &&
             const DeepCollectionEquality().equals(other._history, _history) &&
             const DeepCollectionEquality().equals(other._fines, _fines) &&
             (identical(other.fineAmount, fineAmount) ||
@@ -1008,6 +1049,8 @@ class _EventRegistration extends EventRegistration {
         statusOverride,
         buggyStatusOverride,
         guestBuggyStatusOverride,
+        partnerId,
+        partnerName,
         const DeepCollectionEquality().hash(_history),
         const DeepCollectionEquality().hash(_fines),
         fineAmount,
@@ -1016,7 +1059,7 @@ class _EventRegistration extends EventRegistration {
 
   @override
   String toString() {
-    return 'EventRegistration(memberId: $memberId, memberName: $memberName, isGuest: $isGuest, attendingGolf: $attendingGolf, attendingBreakfast: $attendingBreakfast, attendingLunch: $attendingLunch, attendingDinner: $attendingDinner, hasPaid: $hasPaid, cost: $cost, creditApplied: $creditApplied, handicap: $handicap, playingHandicap: $playingHandicap, needsBuggy: $needsBuggy, dietaryRequirements: $dietaryRequirements, specialNeeds: $specialNeeds, guestName: $guestName, guestHandicap: $guestHandicap, guestAttendingBreakfast: $guestAttendingBreakfast, guestAttendingLunch: $guestAttendingLunch, guestAttendingDinner: $guestAttendingDinner, guestNeedsBuggy: $guestNeedsBuggy, isCaptain: $isCaptain, registeredAt: $registeredAt, isConfirmed: $isConfirmed, guestIsConfirmed: $guestIsConfirmed, statusOverride: $statusOverride, buggyStatusOverride: $buggyStatusOverride, guestBuggyStatusOverride: $guestBuggyStatusOverride, history: $history, fines: $fines, fineAmount: $fineAmount, finePaid: $finePaid)';
+    return 'EventRegistration(memberId: $memberId, memberName: $memberName, isGuest: $isGuest, attendingGolf: $attendingGolf, attendingBreakfast: $attendingBreakfast, attendingLunch: $attendingLunch, attendingDinner: $attendingDinner, hasPaid: $hasPaid, cost: $cost, creditApplied: $creditApplied, handicap: $handicap, playingHandicap: $playingHandicap, needsBuggy: $needsBuggy, dietaryRequirements: $dietaryRequirements, specialNeeds: $specialNeeds, guestName: $guestName, guestHandicap: $guestHandicap, guestAttendingBreakfast: $guestAttendingBreakfast, guestAttendingLunch: $guestAttendingLunch, guestAttendingDinner: $guestAttendingDinner, guestNeedsBuggy: $guestNeedsBuggy, isCaptain: $isCaptain, registeredAt: $registeredAt, isConfirmed: $isConfirmed, guestIsConfirmed: $guestIsConfirmed, statusOverride: $statusOverride, buggyStatusOverride: $buggyStatusOverride, guestBuggyStatusOverride: $guestBuggyStatusOverride, partnerId: $partnerId, partnerName: $partnerName, history: $history, fines: $fines, fineAmount: $fineAmount, finePaid: $finePaid)';
   }
 }
 
@@ -1057,6 +1100,8 @@ abstract mixin class _$EventRegistrationCopyWith<$Res>
       String? statusOverride,
       String? buggyStatusOverride,
       String? guestBuggyStatusOverride,
+      String? partnerId,
+      String? partnerName,
       List<RegistrationHistoryItem>? history,
       List<EventFine> fines,
       double fineAmount,
@@ -1104,6 +1149,8 @@ class __$EventRegistrationCopyWithImpl<$Res>
     Object? statusOverride = freezed,
     Object? buggyStatusOverride = freezed,
     Object? guestBuggyStatusOverride = freezed,
+    Object? partnerId = freezed,
+    Object? partnerName = freezed,
     Object? history = freezed,
     Object? fines = null,
     Object? fineAmount = null,
@@ -1221,6 +1268,14 @@ class __$EventRegistrationCopyWithImpl<$Res>
       guestBuggyStatusOverride: freezed == guestBuggyStatusOverride
           ? _self.guestBuggyStatusOverride
           : guestBuggyStatusOverride // ignore: cast_nullable_to_non_nullable
+              as String?,
+      partnerId: freezed == partnerId
+          ? _self.partnerId
+          : partnerId // ignore: cast_nullable_to_non_nullable
+              as String?,
+      partnerName: freezed == partnerName
+          ? _self.partnerName
+          : partnerName // ignore: cast_nullable_to_non_nullable
               as String?,
       history: freezed == history
           ? _self._history

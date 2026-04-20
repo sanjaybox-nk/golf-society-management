@@ -112,21 +112,13 @@ class _SeasonCard extends ConsumerWidget {
         padding: const EdgeInsets.all(AppSpacing.lg),
         child: Row(
           children: [
-            // Circular Icon Container (56x56)
-            Container(
-              width: 56,
-              height: 56,
-              decoration: BoxDecoration(
-                color: bgColor,
-                shape: BoxShape.circle,
-              ),
-              child: Center(
-                child: Icon(
-                  isActive ? Icons.calendar_today_rounded : Icons.archive_outlined, 
-                  color: iconColor, 
-                  size: AppShapes.iconLg,
-                ),
-              ),
+            BoxyArtIconBadge(
+              icon: isActive ? Icons.calendar_today_rounded : Icons.archive_outlined,
+              color: iconColor,
+              isTinted: true,
+              size: 44,
+              iconSize: 22,
+              useCircle: false,
             ),
             const SizedBox(width: AppSpacing.lg),
             // Content
@@ -137,37 +129,23 @@ class _SeasonCard extends ConsumerWidget {
                 children: [
                   Text(
                     season.name.toUpperCase(),
-                    style: TextStyle(
-                      fontSize: AppTypography.sizeButton,
-                      fontWeight: AppTypography.weightExtraBold,
-                      letterSpacing: 0.5,
-                      color: isDark ? AppColors.pureWhite : AppColors.dark900,
+                    style: AppTypography.labelStrong.copyWith(
+                      letterSpacing: 1.0,
                     ),
                   ),
                   const SizedBox(height: 2),
                   Text(
                     '${DateFormat('MMM yyyy').format(season.startDate)} - ${DateFormat('MMM yyyy').format(season.endDate)}',
-                    style: TextStyle(
-                      fontSize: AppTypography.sizeLabelStrong,
+                    style: AppTypography.caption.copyWith(
                       color: isDark ? AppColors.dark300 : AppColors.dark400,
                     ),
                   ),
                   if (season.isCurrent) ...[
-                    const SizedBox(height: 6),
-                    Row(
-                      children: [
-                        const Icon(Icons.star_rounded, color: identityColor, size: AppShapes.iconXs),
-                        const SizedBox(width: AppSpacing.xs),
-                        Text(
-                          'CURRENT SEASON',
-                          style: TextStyle(
-                            color: identityColor,
-                            fontWeight: AppTypography.weightBlack,
-                            letterSpacing: 0.5,
-                            fontSize: AppTypography.sizeCaption,
-                          ),
-                        ),
-                      ],
+                    const SizedBox(height: AppSpacing.sm),
+                    BoxyArtPill.status(
+                      label: 'CURRENT SEASON',
+                      icon: Icons.star_rounded,
+                      color: AppColors.lime500,
                     ),
                   ],
                 ],
@@ -203,18 +181,16 @@ class _SeasonCard extends ConsumerWidget {
                 },
               ),
             if (isActive)
-              IconButton(
-                icon: Icon(
-                  Icons.archive_outlined, 
-                  size: AppShapes.iconMd, 
-                  color: isDark ? AppColors.dark400 : AppColors.dark200,
-                ),
+              BoxyArtGlassIconButton(
+                icon: Icons.archive_outlined,
+                iconSize: 20,
                 onPressed: () => _showCloseSeasonDialog(context, ref),
+                tooltip: 'Archive Season',
               ),
             Icon(
-              Icons.chevron_right_rounded, 
-              color: isDark ? AppColors.dark400 : AppColors.dark300, 
-              size: AppShapes.iconMd,
+              Icons.arrow_forward_ios_rounded, 
+              color: isDark ? AppColors.dark400 : AppColors.dark200, 
+              size: AppShapes.iconXs,
             ),
           ],
         ),

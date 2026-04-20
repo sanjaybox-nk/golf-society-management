@@ -45,6 +45,7 @@ mixin _$SocietyConfig {
       get cardToCardSpacing; // [NEW] Vertical rhythm: Card to Card (List Density)
   double get cardVerticalPadding; // [NEW] Global Card Internal Padding
   double get cardHorizontalPadding; // [NEW] Global Card Internal Padding
+  double get tabToContentSpacing; // [NEW] Vertical rhythm: Tab to Content
   int get iconBadgeFillColor; // [NEW] Icon Badge BG (15% Emerald)
   int get iconBadgeIconColor; // [NEW] Icon Badge Glyph (Emerald)
   double get iconBadgeOpacity; // [NEW] Icon Badge background opacity
@@ -164,6 +165,8 @@ mixin _$SocietyConfig {
                 other.cardVerticalPadding == cardVerticalPadding) &&
             (identical(other.cardHorizontalPadding, cardHorizontalPadding) ||
                 other.cardHorizontalPadding == cardHorizontalPadding) &&
+            (identical(other.tabToContentSpacing, tabToContentSpacing) ||
+                other.tabToContentSpacing == tabToContentSpacing) &&
             (identical(other.iconBadgeFillColor, iconBadgeFillColor) ||
                 other.iconBadgeFillColor == iconBadgeFillColor) &&
             (identical(other.iconBadgeIconColor, iconBadgeIconColor) ||
@@ -190,8 +193,7 @@ mixin _$SocietyConfig {
                 other.currencyCode == currencyCode) &&
             (identical(other.groupingStrategy, groupingStrategy) ||
                 other.groupingStrategy == groupingStrategy) &&
-            (identical(other.useWhsHandicaps, useWhsHandicaps) ||
-                other.useWhsHandicaps == useWhsHandicaps) &&
+            (identical(other.useWhsHandicaps, useWhsHandicaps) || other.useWhsHandicaps == useWhsHandicaps) &&
             (identical(other.distanceUnit, distanceUnit) || other.distanceUnit == distanceUnit) &&
             (identical(other.handicapSystem, handicapSystem) || other.handicapSystem == handicapSystem) &&
             (identical(other.selectedPaletteName, selectedPaletteName) || other.selectedPaletteName == selectedPaletteName) &&
@@ -249,6 +251,7 @@ mixin _$SocietyConfig {
         cardToCardSpacing,
         cardVerticalPadding,
         cardHorizontalPadding,
+        tabToContentSpacing,
         iconBadgeFillColor,
         iconBadgeIconColor,
         iconBadgeOpacity,
@@ -288,7 +291,7 @@ mixin _$SocietyConfig {
 
   @override
   String toString() {
-    return 'SocietyConfig(societyName: $societyName, logoUrl: $logoUrl, primaryColor: $primaryColor, secondaryColor: $secondaryColor, dangerousColor: $dangerousColor, backgroundColor: $backgroundColor, statusPublishedColor: $statusPublishedColor, statusConfirmedColor: $statusConfirmedColor, statusReservedColor: $statusReservedColor, statusWaitlistColor: $statusWaitlistColor, statusWithdrawnColor: $statusWithdrawnColor, statusDinnerColor: $statusDinnerColor, cardRadius: $cardRadius, inputRadius: $inputRadius, useShadows: $useShadows, shadowIntensity: $shadowIntensity, useBorders: $useBorders, borderWidth: $borderWidth, pillRadius: $pillRadius, buttonRadius: $buttonRadius, heroRadius: $heroRadius, accentRadius: $accentRadius, accentOpacity: $accentOpacity, shadowSpread: $shadowSpread, shadowOpacity: $shadowOpacity, labelToCardSpacing: $labelToCardSpacing, cardToLabelSpacing: $cardToLabelSpacing, cardToCardSpacing: $cardToCardSpacing, cardVerticalPadding: $cardVerticalPadding, cardHorizontalPadding: $cardHorizontalPadding, iconBadgeFillColor: $iconBadgeFillColor, iconBadgeIconColor: $iconBadgeIconColor, iconBadgeOpacity: $iconBadgeOpacity, iconOpacity: $iconOpacity, iconBadgeSize: $iconBadgeSize, iconBadgeIconSize: $iconBadgeIconSize, themeMode: $themeMode, customColors: $customColors, cardTintIntensity: $cardTintIntensity, useCardGradient: $useCardGradient, currencySymbol: $currencySymbol, currencyCode: $currencyCode, groupingStrategy: $groupingStrategy, useWhsHandicaps: $useWhsHandicaps, distanceUnit: $distanceUnit, handicapSystem: $handicapSystem, selectedPaletteName: $selectedPaletteName, separateGuestLeaderboard: $separateGuestLeaderboard, societyCutMode: $societyCutMode, societyCutRules: $societyCutRules, societyCutEventLimit: $societyCutEventLimit, societyCutCountPlayedOnly: $societyCutCountPlayedOnly, societyCutFilterSeason: $societyCutFilterSeason, societyCutFilterInvitational: $societyCutFilterInvitational, globalMarkupPercentage: $globalMarkupPercentage, guestMarkupExtra: $guestMarkupExtra, globalMembershipEndDate: $globalMembershipEndDate, renewalWindowDays: $renewalWindowDays, isRenewalActive: $isRenewalActive, renewalLaunchDate: $renewalLaunchDate, renewalDeadline: $renewalDeadline, renewalPaymentDeadline: $renewalPaymentDeadline, startingBalance: $startingBalance, ledgerEntries: $ledgerEntries, sponsors: $sponsors)';
+    return 'SocietyConfig(societyName: $societyName, logoUrl: $logoUrl, primaryColor: $primaryColor, secondaryColor: $secondaryColor, dangerousColor: $dangerousColor, backgroundColor: $backgroundColor, statusPublishedColor: $statusPublishedColor, statusConfirmedColor: $statusConfirmedColor, statusReservedColor: $statusReservedColor, statusWaitlistColor: $statusWaitlistColor, statusWithdrawnColor: $statusWithdrawnColor, statusDinnerColor: $statusDinnerColor, cardRadius: $cardRadius, inputRadius: $inputRadius, useShadows: $useShadows, shadowIntensity: $shadowIntensity, useBorders: $useBorders, borderWidth: $borderWidth, pillRadius: $pillRadius, buttonRadius: $buttonRadius, heroRadius: $heroRadius, accentRadius: $accentRadius, accentOpacity: $accentOpacity, shadowSpread: $shadowSpread, shadowOpacity: $shadowOpacity, labelToCardSpacing: $labelToCardSpacing, cardToLabelSpacing: $cardToLabelSpacing, cardToCardSpacing: $cardToCardSpacing, cardVerticalPadding: $cardVerticalPadding, cardHorizontalPadding: $cardHorizontalPadding, tabToContentSpacing: $tabToContentSpacing, iconBadgeFillColor: $iconBadgeFillColor, iconBadgeIconColor: $iconBadgeIconColor, iconBadgeOpacity: $iconBadgeOpacity, iconOpacity: $iconOpacity, iconBadgeSize: $iconBadgeSize, iconBadgeIconSize: $iconBadgeIconSize, themeMode: $themeMode, customColors: $customColors, cardTintIntensity: $cardTintIntensity, useCardGradient: $useCardGradient, currencySymbol: $currencySymbol, currencyCode: $currencyCode, groupingStrategy: $groupingStrategy, useWhsHandicaps: $useWhsHandicaps, distanceUnit: $distanceUnit, handicapSystem: $handicapSystem, selectedPaletteName: $selectedPaletteName, separateGuestLeaderboard: $separateGuestLeaderboard, societyCutMode: $societyCutMode, societyCutRules: $societyCutRules, societyCutEventLimit: $societyCutEventLimit, societyCutCountPlayedOnly: $societyCutCountPlayedOnly, societyCutFilterSeason: $societyCutFilterSeason, societyCutFilterInvitational: $societyCutFilterInvitational, globalMarkupPercentage: $globalMarkupPercentage, guestMarkupExtra: $guestMarkupExtra, globalMembershipEndDate: $globalMembershipEndDate, renewalWindowDays: $renewalWindowDays, isRenewalActive: $isRenewalActive, renewalLaunchDate: $renewalLaunchDate, renewalDeadline: $renewalDeadline, renewalPaymentDeadline: $renewalPaymentDeadline, startingBalance: $startingBalance, ledgerEntries: $ledgerEntries, sponsors: $sponsors)';
   }
 }
 
@@ -329,6 +332,7 @@ abstract mixin class $SocietyConfigCopyWith<$Res> {
       double cardToCardSpacing,
       double cardVerticalPadding,
       double cardHorizontalPadding,
+      double tabToContentSpacing,
       int iconBadgeFillColor,
       int iconBadgeIconColor,
       double iconBadgeOpacity,
@@ -409,6 +413,7 @@ class _$SocietyConfigCopyWithImpl<$Res>
     Object? cardToCardSpacing = null,
     Object? cardVerticalPadding = null,
     Object? cardHorizontalPadding = null,
+    Object? tabToContentSpacing = null,
     Object? iconBadgeFillColor = null,
     Object? iconBadgeIconColor = null,
     Object? iconBadgeOpacity = null,
@@ -565,6 +570,10 @@ class _$SocietyConfigCopyWithImpl<$Res>
       cardHorizontalPadding: null == cardHorizontalPadding
           ? _self.cardHorizontalPadding
           : cardHorizontalPadding // ignore: cast_nullable_to_non_nullable
+              as double,
+      tabToContentSpacing: null == tabToContentSpacing
+          ? _self.tabToContentSpacing
+          : tabToContentSpacing // ignore: cast_nullable_to_non_nullable
               as double,
       iconBadgeFillColor: null == iconBadgeFillColor
           ? _self.iconBadgeFillColor
@@ -834,6 +843,7 @@ extension SocietyConfigPatterns on SocietyConfig {
             double cardToCardSpacing,
             double cardVerticalPadding,
             double cardHorizontalPadding,
+            double tabToContentSpacing,
             int iconBadgeFillColor,
             int iconBadgeIconColor,
             double iconBadgeOpacity,
@@ -906,6 +916,7 @@ extension SocietyConfigPatterns on SocietyConfig {
             _that.cardToCardSpacing,
             _that.cardVerticalPadding,
             _that.cardHorizontalPadding,
+            _that.tabToContentSpacing,
             _that.iconBadgeFillColor,
             _that.iconBadgeIconColor,
             _that.iconBadgeOpacity,
@@ -992,6 +1003,7 @@ extension SocietyConfigPatterns on SocietyConfig {
             double cardToCardSpacing,
             double cardVerticalPadding,
             double cardHorizontalPadding,
+            double tabToContentSpacing,
             int iconBadgeFillColor,
             int iconBadgeIconColor,
             double iconBadgeOpacity,
@@ -1063,6 +1075,7 @@ extension SocietyConfigPatterns on SocietyConfig {
             _that.cardToCardSpacing,
             _that.cardVerticalPadding,
             _that.cardHorizontalPadding,
+            _that.tabToContentSpacing,
             _that.iconBadgeFillColor,
             _that.iconBadgeIconColor,
             _that.iconBadgeOpacity,
@@ -1148,6 +1161,7 @@ extension SocietyConfigPatterns on SocietyConfig {
             double cardToCardSpacing,
             double cardVerticalPadding,
             double cardHorizontalPadding,
+            double tabToContentSpacing,
             int iconBadgeFillColor,
             int iconBadgeIconColor,
             double iconBadgeOpacity,
@@ -1219,6 +1233,7 @@ extension SocietyConfigPatterns on SocietyConfig {
             _that.cardToCardSpacing,
             _that.cardVerticalPadding,
             _that.cardHorizontalPadding,
+            _that.tabToContentSpacing,
             _that.iconBadgeFillColor,
             _that.iconBadgeIconColor,
             _that.iconBadgeOpacity,
@@ -1294,6 +1309,7 @@ class _SocietyConfig implements SocietyConfig {
       this.cardToCardSpacing = 16.0,
       this.cardVerticalPadding = 16.0,
       this.cardHorizontalPadding = 16.0,
+      this.tabToContentSpacing = 16.0,
       this.iconBadgeFillColor = 0x264ADE80,
       this.iconBadgeIconColor = 0xFF4ADE80,
       this.iconBadgeOpacity = 1.0,
@@ -1457,6 +1473,10 @@ class _SocietyConfig implements SocietyConfig {
   @JsonKey()
   final double cardHorizontalPadding;
 // [NEW] Global Card Internal Padding
+  @override
+  @JsonKey()
+  final double tabToContentSpacing;
+// [NEW] Vertical rhythm: Tab to Content
   @override
   @JsonKey()
   final int iconBadgeFillColor;
@@ -1697,6 +1717,8 @@ class _SocietyConfig implements SocietyConfig {
                 other.cardVerticalPadding == cardVerticalPadding) &&
             (identical(other.cardHorizontalPadding, cardHorizontalPadding) ||
                 other.cardHorizontalPadding == cardHorizontalPadding) &&
+            (identical(other.tabToContentSpacing, tabToContentSpacing) ||
+                other.tabToContentSpacing == tabToContentSpacing) &&
             (identical(other.iconBadgeFillColor, iconBadgeFillColor) ||
                 other.iconBadgeFillColor == iconBadgeFillColor) &&
             (identical(other.iconBadgeIconColor, iconBadgeIconColor) ||
@@ -1723,8 +1745,7 @@ class _SocietyConfig implements SocietyConfig {
                 other.currencyCode == currencyCode) &&
             (identical(other.groupingStrategy, groupingStrategy) ||
                 other.groupingStrategy == groupingStrategy) &&
-            (identical(other.useWhsHandicaps, useWhsHandicaps) ||
-                other.useWhsHandicaps == useWhsHandicaps) &&
+            (identical(other.useWhsHandicaps, useWhsHandicaps) || other.useWhsHandicaps == useWhsHandicaps) &&
             (identical(other.distanceUnit, distanceUnit) || other.distanceUnit == distanceUnit) &&
             (identical(other.handicapSystem, handicapSystem) || other.handicapSystem == handicapSystem) &&
             (identical(other.selectedPaletteName, selectedPaletteName) || other.selectedPaletteName == selectedPaletteName) &&
@@ -1782,6 +1803,7 @@ class _SocietyConfig implements SocietyConfig {
         cardToCardSpacing,
         cardVerticalPadding,
         cardHorizontalPadding,
+        tabToContentSpacing,
         iconBadgeFillColor,
         iconBadgeIconColor,
         iconBadgeOpacity,
@@ -1821,7 +1843,7 @@ class _SocietyConfig implements SocietyConfig {
 
   @override
   String toString() {
-    return 'SocietyConfig(societyName: $societyName, logoUrl: $logoUrl, primaryColor: $primaryColor, secondaryColor: $secondaryColor, dangerousColor: $dangerousColor, backgroundColor: $backgroundColor, statusPublishedColor: $statusPublishedColor, statusConfirmedColor: $statusConfirmedColor, statusReservedColor: $statusReservedColor, statusWaitlistColor: $statusWaitlistColor, statusWithdrawnColor: $statusWithdrawnColor, statusDinnerColor: $statusDinnerColor, cardRadius: $cardRadius, inputRadius: $inputRadius, useShadows: $useShadows, shadowIntensity: $shadowIntensity, useBorders: $useBorders, borderWidth: $borderWidth, pillRadius: $pillRadius, buttonRadius: $buttonRadius, heroRadius: $heroRadius, accentRadius: $accentRadius, accentOpacity: $accentOpacity, shadowSpread: $shadowSpread, shadowOpacity: $shadowOpacity, labelToCardSpacing: $labelToCardSpacing, cardToLabelSpacing: $cardToLabelSpacing, cardToCardSpacing: $cardToCardSpacing, cardVerticalPadding: $cardVerticalPadding, cardHorizontalPadding: $cardHorizontalPadding, iconBadgeFillColor: $iconBadgeFillColor, iconBadgeIconColor: $iconBadgeIconColor, iconBadgeOpacity: $iconBadgeOpacity, iconOpacity: $iconOpacity, iconBadgeSize: $iconBadgeSize, iconBadgeIconSize: $iconBadgeIconSize, themeMode: $themeMode, customColors: $customColors, cardTintIntensity: $cardTintIntensity, useCardGradient: $useCardGradient, currencySymbol: $currencySymbol, currencyCode: $currencyCode, groupingStrategy: $groupingStrategy, useWhsHandicaps: $useWhsHandicaps, distanceUnit: $distanceUnit, handicapSystem: $handicapSystem, selectedPaletteName: $selectedPaletteName, separateGuestLeaderboard: $separateGuestLeaderboard, societyCutMode: $societyCutMode, societyCutRules: $societyCutRules, societyCutEventLimit: $societyCutEventLimit, societyCutCountPlayedOnly: $societyCutCountPlayedOnly, societyCutFilterSeason: $societyCutFilterSeason, societyCutFilterInvitational: $societyCutFilterInvitational, globalMarkupPercentage: $globalMarkupPercentage, guestMarkupExtra: $guestMarkupExtra, globalMembershipEndDate: $globalMembershipEndDate, renewalWindowDays: $renewalWindowDays, isRenewalActive: $isRenewalActive, renewalLaunchDate: $renewalLaunchDate, renewalDeadline: $renewalDeadline, renewalPaymentDeadline: $renewalPaymentDeadline, startingBalance: $startingBalance, ledgerEntries: $ledgerEntries, sponsors: $sponsors)';
+    return 'SocietyConfig(societyName: $societyName, logoUrl: $logoUrl, primaryColor: $primaryColor, secondaryColor: $secondaryColor, dangerousColor: $dangerousColor, backgroundColor: $backgroundColor, statusPublishedColor: $statusPublishedColor, statusConfirmedColor: $statusConfirmedColor, statusReservedColor: $statusReservedColor, statusWaitlistColor: $statusWaitlistColor, statusWithdrawnColor: $statusWithdrawnColor, statusDinnerColor: $statusDinnerColor, cardRadius: $cardRadius, inputRadius: $inputRadius, useShadows: $useShadows, shadowIntensity: $shadowIntensity, useBorders: $useBorders, borderWidth: $borderWidth, pillRadius: $pillRadius, buttonRadius: $buttonRadius, heroRadius: $heroRadius, accentRadius: $accentRadius, accentOpacity: $accentOpacity, shadowSpread: $shadowSpread, shadowOpacity: $shadowOpacity, labelToCardSpacing: $labelToCardSpacing, cardToLabelSpacing: $cardToLabelSpacing, cardToCardSpacing: $cardToCardSpacing, cardVerticalPadding: $cardVerticalPadding, cardHorizontalPadding: $cardHorizontalPadding, tabToContentSpacing: $tabToContentSpacing, iconBadgeFillColor: $iconBadgeFillColor, iconBadgeIconColor: $iconBadgeIconColor, iconBadgeOpacity: $iconBadgeOpacity, iconOpacity: $iconOpacity, iconBadgeSize: $iconBadgeSize, iconBadgeIconSize: $iconBadgeIconSize, themeMode: $themeMode, customColors: $customColors, cardTintIntensity: $cardTintIntensity, useCardGradient: $useCardGradient, currencySymbol: $currencySymbol, currencyCode: $currencyCode, groupingStrategy: $groupingStrategy, useWhsHandicaps: $useWhsHandicaps, distanceUnit: $distanceUnit, handicapSystem: $handicapSystem, selectedPaletteName: $selectedPaletteName, separateGuestLeaderboard: $separateGuestLeaderboard, societyCutMode: $societyCutMode, societyCutRules: $societyCutRules, societyCutEventLimit: $societyCutEventLimit, societyCutCountPlayedOnly: $societyCutCountPlayedOnly, societyCutFilterSeason: $societyCutFilterSeason, societyCutFilterInvitational: $societyCutFilterInvitational, globalMarkupPercentage: $globalMarkupPercentage, guestMarkupExtra: $guestMarkupExtra, globalMembershipEndDate: $globalMembershipEndDate, renewalWindowDays: $renewalWindowDays, isRenewalActive: $isRenewalActive, renewalLaunchDate: $renewalLaunchDate, renewalDeadline: $renewalDeadline, renewalPaymentDeadline: $renewalPaymentDeadline, startingBalance: $startingBalance, ledgerEntries: $ledgerEntries, sponsors: $sponsors)';
   }
 }
 
@@ -1864,6 +1886,7 @@ abstract mixin class _$SocietyConfigCopyWith<$Res>
       double cardToCardSpacing,
       double cardVerticalPadding,
       double cardHorizontalPadding,
+      double tabToContentSpacing,
       int iconBadgeFillColor,
       int iconBadgeIconColor,
       double iconBadgeOpacity,
@@ -1944,6 +1967,7 @@ class __$SocietyConfigCopyWithImpl<$Res>
     Object? cardToCardSpacing = null,
     Object? cardVerticalPadding = null,
     Object? cardHorizontalPadding = null,
+    Object? tabToContentSpacing = null,
     Object? iconBadgeFillColor = null,
     Object? iconBadgeIconColor = null,
     Object? iconBadgeOpacity = null,
@@ -2100,6 +2124,10 @@ class __$SocietyConfigCopyWithImpl<$Res>
       cardHorizontalPadding: null == cardHorizontalPadding
           ? _self.cardHorizontalPadding
           : cardHorizontalPadding // ignore: cast_nullable_to_non_nullable
+              as double,
+      tabToContentSpacing: null == tabToContentSpacing
+          ? _self.tabToContentSpacing
+          : tabToContentSpacing // ignore: cast_nullable_to_non_nullable
               as double,
       iconBadgeFillColor: null == iconBadgeFillColor
           ? _self.iconBadgeFillColor

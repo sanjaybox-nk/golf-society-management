@@ -254,9 +254,11 @@ class BoxyArtSectionTitle extends StatelessWidget {
   final String title;
   final bool isLevel2;
   final bool isPeeking;
+  final bool followsCard;
   final IconData? icon;
   final int? count;
   final Color? color;
+  final double? topPadding;
   final Widget? trailing; // Added for flexible headers like registration voucher switch
 
   const BoxyArtSectionTitle({
@@ -264,9 +266,11 @@ class BoxyArtSectionTitle extends StatelessWidget {
     required this.title,
     this.isLevel2 = false,
     this.isPeeking = false,
+    this.followsCard = false,
     this.icon,
     this.count,
     this.color,
+    this.topPadding,
     this.trailing,
   });
 
@@ -278,9 +282,11 @@ class BoxyArtSectionTitle extends StatelessWidget {
     final onSurface = theme.colorScheme.onSurface;
     final displayTitle = count != null ? '$title ($count)' : title;
 
-    final double topPadding = isPeeking 
-      ? (spacing?.labelToCard ?? AppSpacing.labelToCard) 
-      : (spacing?.cardToLabel ?? AppSpacing.sectionTitleTop);
+    final double topPadding = this.topPadding ?? (followsCard 
+      ? (spacing?.cardToLabel ?? AppSpacing.cardToLabel)
+      : (isPeeking 
+          ? (spacing?.labelToCard ?? AppSpacing.labelToCard) 
+          : (spacing?.tabToContent ?? AppSpacing.tabToContent)));
     final double bottomPadding = spacing?.labelToCard ?? AppSpacing.labelToCard;
 
     return Padding(

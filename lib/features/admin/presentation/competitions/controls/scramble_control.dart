@@ -20,7 +20,7 @@ class _ScrambleControlState extends BaseCompetitionControlState<ScrambleControl>
   int _minDrives = 4;
   TeamHandicapMethod _teamHandicapMethod = TeamHandicapMethod.whs;
   bool _trackShotAttributions = true;
-  bool? _separateGuests;
+  bool _useWHSAllowance = true;
 
   @override
   CompetitionFormat get format => CompetitionFormat.scramble;
@@ -42,7 +42,7 @@ class _ScrambleControlState extends BaseCompetitionControlState<ScrambleControl>
       _underlyingFormat = widget.competition!.rules.underlyingFormat;
       _teamCap = widget.competition!.rules.teamHandicapCap ?? 0;
       _trackShotAttributions = widget.competition!.rules.trackShotAttributions;
-      _separateGuests = widget.competition!.rules.separateGuests;
+      _useWHSAllowance = widget.competition!.rules.useWHSScrambleAllowance;
     }
   }
 
@@ -158,12 +158,6 @@ class _ScrambleControlState extends BaseCompetitionControlState<ScrambleControl>
             onChanged: (val) => setState(() => _trackShotAttributions = val),
           ),
         ),
-
-        // ── GUEST SETTINGS ────────────────────────────────────
-        buildGuestSettings(
-          separateGuests: _separateGuests,
-          onSeparateChanged: (val) => setState(() => _separateGuests = val),
-        ),
       ],
     );
   }
@@ -211,12 +205,11 @@ class _ScrambleControlState extends BaseCompetitionControlState<ScrambleControl>
       holeByHoleRequired: true,
       aggregation: AggregationMethod.totalSum, 
       minDrivesPerPlayer: _minDrives,
-      useWHSScrambleAllowance: _teamHandicapMethod == TeamHandicapMethod.whs,
+      useWHSScrambleAllowance: _useWHSAllowance,
       teamHandicapMethod: _teamHandicapMethod,
       underlyingFormat: _underlyingFormat,
       teamHandicapCap: _teamCap == 0 ? null : _teamCap,
       trackShotAttributions: _trackShotAttributions,
-      separateGuests: _separateGuests,
     );
   }
 }

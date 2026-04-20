@@ -63,6 +63,10 @@ _ProcessedGroupResult _$ProcessedGroupResultFromJson(
       tieBreakMetrics: (json['tieBreakMetrics'] as List<dynamic>)
           .map((e) => (e as num).toInt())
           .toList(),
+      sideAScore: (json['sideAScore'] as num?)?.toInt(),
+      sideBScore: (json['sideBScore'] as num?)?.toInt(),
+      sideALabel: json['sideALabel'] as String?,
+      sideBLabel: json['sideBLabel'] as String?,
     );
 
 Map<String, dynamic> _$ProcessedGroupResultToJson(
@@ -72,6 +76,10 @@ Map<String, dynamic> _$ProcessedGroupResultToJson(
       'label': instance.label,
       'totalScore': instance.totalScore,
       'tieBreakMetrics': instance.tieBreakMetrics,
+      'sideAScore': instance.sideAScore,
+      'sideBScore': instance.sideBScore,
+      'sideALabel': instance.sideALabel,
+      'sideBLabel': instance.sideBLabel,
     };
 
 _ProcessedLeaderboardEntry _$ProcessedLeaderboardEntryFromJson(
@@ -127,6 +135,9 @@ _ProcessedLeaderboardEntry _$ProcessedLeaderboardEntryFromJson(
               ScoringStatus.ok,
       handicapIndex: (json['handicapIndex'] as num?)?.toDouble(),
       tieBreakLabel: json['tieBreakLabel'] as String?,
+      matchStatus: json['matchStatus'] as String?,
+      matchScore: (json['matchScore'] as num?)?.toInt(),
+      isMatch: json['isMatch'] as bool? ?? false,
     );
 
 Map<String, dynamic> _$ProcessedLeaderboardEntryToJson(
@@ -153,6 +164,9 @@ Map<String, dynamic> _$ProcessedLeaderboardEntryToJson(
       'scoringStatus': _$ScoringStatusEnumMap[instance.scoringStatus]!,
       'handicapIndex': instance.handicapIndex,
       'tieBreakLabel': instance.tieBreakLabel,
+      'matchStatus': instance.matchStatus,
+      'matchScore': instance.matchScore,
+      'isMatch': instance.isMatch,
     };
 
 _ProcessedEventData _$ProcessedEventDataFromJson(Map<String, dynamic> json) =>

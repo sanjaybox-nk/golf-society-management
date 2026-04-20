@@ -5,6 +5,7 @@ import 'package:golf_society/design_system/design_system.dart';
 import 'package:golf_society/features/events/presentation/events_provider.dart';
 import 'package:golf_society/domain/models/golf_event.dart';
 import 'package:golf_society/domain/models/event_registration.dart';
+import 'package:golf_society/domain/models/competition.dart';
 import 'package:golf_society/domain/grouping/grouping_service.dart';
 import 'package:golf_society/features/members/presentation/members_provider.dart';
 import 'package:golf_society/features/competitions/presentation/competitions_provider.dart';
@@ -23,6 +24,8 @@ class _EventRegistrationScreenState extends ConsumerState<EventRegistrationScree
   final _formKey = GlobalKey<FormState>();
   bool _isSaving = false;
   bool _isInitialized = false;
+  String? _partnerId;
+  String? _partnerName;
 
   // Form fields
   bool _attendingGolf = true;
@@ -126,6 +129,8 @@ class _EventRegistrationScreenState extends ConsumerState<EventRegistrationScree
         statusOverride: existingReg?.statusOverride,
         buggyStatusOverride: existingReg?.buggyStatusOverride,
         guestBuggyStatusOverride: existingReg?.guestBuggyStatusOverride,
+        partnerId: _partnerId,
+        partnerName: _partnerName,
         history: [...(existingReg?.history ?? []), historyItem],
       );
 
@@ -330,9 +335,11 @@ class _EventRegistrationScreenState extends ConsumerState<EventRegistrationScree
               _guestNeedsBuggy = myReg.guestNeedsBuggy;
             }
             
-            _dietaryController.text = myReg.dietaryRequirements ?? '';
-            _specialNeedsController.text = myReg.specialNeeds ?? '';
-          }
+          _dietaryController.text = myReg.dietaryRequirements ?? '';
+          _specialNeedsController.text = myReg.specialNeeds ?? '';
+          _partnerId = myReg.partnerId;
+          _partnerName = myReg.partnerName;
+        }
 
           // Initialize available credit from member data
           final allMembers = ref.read(allMembersProvider).value ?? [];
@@ -405,70 +412,72 @@ class _EventRegistrationScreenState extends ConsumerState<EventRegistrationScree
                         ),
                       ),
   
-                      SizedBox(height: spacing?.cardToLabel ?? AppSpacing.cardToLabel),
-                      const BoxyArtSectionTitle(title: 'Guest Registration'),
-                      BoxyArtCard(
-                        // Removed hardcoded padding to use branding tokens
-                        child: Column(
-                          children: [
-                            BoxyArtSwitchTile(
-                              icon: Icons.person_add_rounded,
-                              label: 'Add a Guest',
-                              value: _registerGuest,
-                              onChanged: (val) => setState(() => _registerGuest = val),
-                            ),
-                            if (_registerGuest) ...[
-                              Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-                                child: BoxyArtInputField(
-                                  label: 'Guest Name',
-                                  controller: _guestNameController,
-                                  hint: 'Full name',
-                                  validator: (val) => _registerGuest && (val == null || val.isEmpty) ? 'Required' : null,
-                                ),
+                      if (event.allowGuests) ...[
+                        SizedBox(height: spacing?.cardToLabel ?? AppSpacing.cardToLabel),
+                        const BoxyArtSectionTitle(title: 'Guest Registration'),
+                        BoxyArtCard(
+                          // Removed hardcoded padding to use branding tokens
+                          child: Column(
+                            children: [
+                              BoxyArtSwitchTile(
+                                icon: Icons.person_add_rounded,
+                                label: 'Add a Guest',
+                                value: _registerGuest,
+                                onChanged: (val) => setState(() => _registerGuest = val),
                               ),
-                              const SizedBox(height: AppSpacing.cardToLabel),
-                              Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-                                child: BoxyArtInputField(
-                                  label: 'Guest Handicap',
-                                  controller: _guestHandicapController,
-                                  hint: 'e.g. 18',
+                              if (_registerGuest) ...[
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+                                  child: BoxyArtInputField(
+                                    label: 'Guest Name',
+                                    controller: _guestNameController,
+                                    hint: 'Full name',
+                                    validator: (val) => _registerGuest && (val == null || val.isEmpty) ? 'Required' : null,
+                                  ),
                                 ),
-                              ),
-                              const SizedBox(height: AppSpacing.md),
-                              if (event.eventType == EventType.golf)
-                                BoxyArtSwitchTile(
-                                  icon: Icons.electric_rickshaw_rounded,
-                                  label: 'Guest Buggy',
-                                  value: _guestNeedsBuggy,
-                                  onChanged: (val) => setState(() => _guestNeedsBuggy = val),
+                                const SizedBox(height: AppSpacing.cardToLabel),
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+                                  child: BoxyArtInputField(
+                                    label: 'Guest Handicap',
+                                    controller: _guestHandicapController,
+                                    hint: 'e.g. 18',
+                                  ),
                                 ),
-                              if (event.hasBreakfast == true && event.breakfastCost != null)
-                                BoxyArtSwitchTile(
-                                  icon: Icons.breakfast_dining_rounded,
-                                  label: 'Guest Breakfast',
-                                  value: _guestAttendingBreakfast,
-                                  onChanged: (val) => setState(() => _guestAttendingBreakfast = val),
-                                ),
-                              if (event.hasLunch == true && event.lunchCost != null)
-                                BoxyArtSwitchTile(
-                                  icon: Icons.lunch_dining_rounded,
-                                  label: 'Guest Lunch',
-                                  value: _guestAttendingLunch,
-                                  onChanged: (val) => setState(() => _guestAttendingLunch = val),
-                                ),
-                              if (event.hasDinner == true && event.dinnerCost != null)
-                                BoxyArtSwitchTile(
-                                  icon: Icons.restaurant_rounded,
-                                  label: 'Guest Dinner',
-                                  value: _guestAttendingDinner,
-                                  onChanged: (val) => setState(() => _guestAttendingDinner = val),
-                                ),
+                                const SizedBox(height: AppSpacing.md),
+                                if (event.eventType == EventType.golf)
+                                  BoxyArtSwitchTile(
+                                    icon: Icons.electric_rickshaw_rounded,
+                                    label: 'Guest Buggy',
+                                    value: _guestNeedsBuggy,
+                                    onChanged: (val) => setState(() => _guestNeedsBuggy = val),
+                                  ),
+                                if (event.hasBreakfast == true && event.breakfastCost != null)
+                                  BoxyArtSwitchTile(
+                                    icon: Icons.breakfast_dining_rounded,
+                                    label: 'Guest Breakfast',
+                                    value: _guestAttendingBreakfast,
+                                    onChanged: (val) => setState(() => _guestAttendingBreakfast = val),
+                                  ),
+                                if (event.hasLunch == true && event.lunchCost != null)
+                                  BoxyArtSwitchTile(
+                                    icon: Icons.lunch_dining_rounded,
+                                    label: 'Guest Lunch',
+                                    value: _guestAttendingLunch,
+                                    onChanged: (val) => setState(() => _guestAttendingLunch = val),
+                                  ),
+                                if (event.hasDinner == true && event.dinnerCost != null)
+                                  BoxyArtSwitchTile(
+                                    icon: Icons.restaurant_rounded,
+                                    label: 'Guest Dinner',
+                                    value: _guestAttendingDinner,
+                                    onChanged: (val) => setState(() => _guestAttendingDinner = val),
+                                  ),
+                              ],
                             ],
-                          ],
+                          ),
                         ),
-                      ),
+                      ],
   
                       SizedBox(height: spacing?.cardToLabel ?? AppSpacing.cardToLabel),
                       const BoxyArtSectionTitle(title: 'Notes & Requirements'),
@@ -494,6 +503,65 @@ class _EventRegistrationScreenState extends ConsumerState<EventRegistrationScree
                       ),
   
                       const SizedBox(height: AppSpacing.cardToLabel),
+  
+                      // ── PARTNER SELECTION (Season Match Play Pairs) ────────
+                      if (ref.watch(competitionDetailProvider(widget.eventId)).value?.rules.subtype == CompetitionSubtype.matchPlaySeason &&
+                          ref.watch(competitionDetailProvider(widget.eventId)).value?.rules.mode == CompetitionMode.pairs) ...[
+                        SizedBox(height: spacing?.cardToLabel ?? AppSpacing.cardToLabel),
+                        const BoxyArtSectionTitle(title: 'Choose Partner'),
+                        BoxyArtCard(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              ref.watch(allMembersProvider).when(
+                                data: (members) {
+                                  // Exclude self
+                                  final currentMemberId = 'current-user-id';
+                                  final availablePartners = members.where((m) => m.id != currentMemberId).toList();
+                                  
+                                  return BoxyArtDropdownField<String>(
+                                    label: 'Select Partner (Optional)',
+                                    value: _partnerId,
+                                    hint: 'Choose from members...',
+                                    items: [
+                                      const DropdownMenuItem(value: null, child: Text('No partner selected')),
+                                      ...availablePartners.map((m) => DropdownMenuItem(
+                                        value: m.id,
+                                        child: Text('${m.firstName} ${m.lastName}'),
+                                      )),
+                                    ],
+                                    onChanged: (val) {
+                                      setState(() {
+                                        _partnerId = val;
+                                        if (val != null) {
+                                          final p = availablePartners.firstWhere((m) => m.id == val);
+                                          _partnerName = '${p.firstName} ${p.lastName}';
+                                        } else {
+                                          _partnerName = null;
+                                        }
+                                      });
+                                    },
+                                  );
+                                },
+                                loading: () => const LinearProgressIndicator(),
+                                error: (_, __) => const Text('Could not load members'),
+                              ),
+                              const SizedBox(height: AppSpacing.md),
+                              Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+                                child: Text(
+                                  'If you don\'t choose a partner now, the Admin can assign one later.',
+                                  style: AppTypography.micro.copyWith(
+                                    color: isDark ? AppColors.dark300 : AppColors.dark400,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: AppSpacing.sm),
+                            ],
+                          ),
+                        ),
+                      ],
+  
                       BoxyArtSectionTitle(
                         title: 'Estimated Fees',
                         trailing: _availableCredit > 0 

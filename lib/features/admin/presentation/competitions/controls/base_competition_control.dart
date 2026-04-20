@@ -341,42 +341,5 @@ abstract class BaseCompetitionControlState<T extends BaseCompetitionControl> ext
       ],
     );
   }
-
-  /// Guest inclusion and separation toggles.
-  Widget buildGuestSettings({
-    required bool? separateGuests,
-    required ValueChanged<bool?> onSeparateChanged,
-  }) {
-    final theme = Theme.of(context);
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const BoxyArtSectionTitle(title: 'GUEST VISIBILITY'),
-        BoxyArtCard(
-          padding: const EdgeInsets.all(AppSpacing.xl),
-          child: BoxyArtDropdownField<bool?>(
-            label: 'Leaderboard Strategy',
-            value: separateGuests,
-            items: [
-              DropdownMenuItem(
-                value: null, 
-                child: const Text('Auto (follow society)'),
-              ),
-              DropdownMenuItem(
-                value: true, 
-                child: const Text('Separate section'),
-              ),
-              DropdownMenuItem(
-                value: false, 
-                child: const Text('Hidden (no guests)'),
-              ),
-            ],
-            onChanged: onSeparateChanged,
-          ),
-        ),
-      ],
-    );
-  }
 }
 

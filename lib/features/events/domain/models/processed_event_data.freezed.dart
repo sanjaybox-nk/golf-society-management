@@ -678,6 +678,10 @@ mixin _$ProcessedGroupResult {
   String get label;
   int get totalScore;
   List<int> get tieBreakMetrics;
+  int? get sideAScore;
+  int? get sideBScore;
+  String? get sideALabel;
+  String? get sideBLabel;
 
   /// Create a copy of ProcessedGroupResult
   /// with the given fields replaced by the non-null parameter values.
@@ -701,17 +705,33 @@ mixin _$ProcessedGroupResult {
             (identical(other.totalScore, totalScore) ||
                 other.totalScore == totalScore) &&
             const DeepCollectionEquality()
-                .equals(other.tieBreakMetrics, tieBreakMetrics));
+                .equals(other.tieBreakMetrics, tieBreakMetrics) &&
+            (identical(other.sideAScore, sideAScore) ||
+                other.sideAScore == sideAScore) &&
+            (identical(other.sideBScore, sideBScore) ||
+                other.sideBScore == sideBScore) &&
+            (identical(other.sideALabel, sideALabel) ||
+                other.sideALabel == sideALabel) &&
+            (identical(other.sideBLabel, sideBLabel) ||
+                other.sideBLabel == sideBLabel));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(runtimeType, groupIndex, label, totalScore,
-      const DeepCollectionEquality().hash(tieBreakMetrics));
+  int get hashCode => Object.hash(
+      runtimeType,
+      groupIndex,
+      label,
+      totalScore,
+      const DeepCollectionEquality().hash(tieBreakMetrics),
+      sideAScore,
+      sideBScore,
+      sideALabel,
+      sideBLabel);
 
   @override
   String toString() {
-    return 'ProcessedGroupResult(groupIndex: $groupIndex, label: $label, totalScore: $totalScore, tieBreakMetrics: $tieBreakMetrics)';
+    return 'ProcessedGroupResult(groupIndex: $groupIndex, label: $label, totalScore: $totalScore, tieBreakMetrics: $tieBreakMetrics, sideAScore: $sideAScore, sideBScore: $sideBScore, sideALabel: $sideALabel, sideBLabel: $sideBLabel)';
   }
 }
 
@@ -725,7 +745,11 @@ abstract mixin class $ProcessedGroupResultCopyWith<$Res> {
       {int groupIndex,
       String label,
       int totalScore,
-      List<int> tieBreakMetrics});
+      List<int> tieBreakMetrics,
+      int? sideAScore,
+      int? sideBScore,
+      String? sideALabel,
+      String? sideBLabel});
 }
 
 /// @nodoc
@@ -745,6 +769,10 @@ class _$ProcessedGroupResultCopyWithImpl<$Res>
     Object? label = null,
     Object? totalScore = null,
     Object? tieBreakMetrics = null,
+    Object? sideAScore = freezed,
+    Object? sideBScore = freezed,
+    Object? sideALabel = freezed,
+    Object? sideBLabel = freezed,
   }) {
     return _then(_self.copyWith(
       groupIndex: null == groupIndex
@@ -763,6 +791,22 @@ class _$ProcessedGroupResultCopyWithImpl<$Res>
           ? _self.tieBreakMetrics
           : tieBreakMetrics // ignore: cast_nullable_to_non_nullable
               as List<int>,
+      sideAScore: freezed == sideAScore
+          ? _self.sideAScore
+          : sideAScore // ignore: cast_nullable_to_non_nullable
+              as int?,
+      sideBScore: freezed == sideBScore
+          ? _self.sideBScore
+          : sideBScore // ignore: cast_nullable_to_non_nullable
+              as int?,
+      sideALabel: freezed == sideALabel
+          ? _self.sideALabel
+          : sideALabel // ignore: cast_nullable_to_non_nullable
+              as String?,
+      sideBLabel: freezed == sideBLabel
+          ? _self.sideBLabel
+          : sideBLabel // ignore: cast_nullable_to_non_nullable
+              as String?,
     ));
   }
 }
@@ -860,16 +904,30 @@ extension ProcessedGroupResultPatterns on ProcessedGroupResult {
 
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>(
-    TResult Function(int groupIndex, String label, int totalScore,
-            List<int> tieBreakMetrics)?
+    TResult Function(
+            int groupIndex,
+            String label,
+            int totalScore,
+            List<int> tieBreakMetrics,
+            int? sideAScore,
+            int? sideBScore,
+            String? sideALabel,
+            String? sideBLabel)?
         $default, {
     required TResult orElse(),
   }) {
     final _that = this;
     switch (_that) {
       case _ProcessedGroupResult() when $default != null:
-        return $default(_that.groupIndex, _that.label, _that.totalScore,
-            _that.tieBreakMetrics);
+        return $default(
+            _that.groupIndex,
+            _that.label,
+            _that.totalScore,
+            _that.tieBreakMetrics,
+            _that.sideAScore,
+            _that.sideBScore,
+            _that.sideALabel,
+            _that.sideBLabel);
       case _:
         return orElse();
     }
@@ -890,15 +948,29 @@ extension ProcessedGroupResultPatterns on ProcessedGroupResult {
 
   @optionalTypeArgs
   TResult when<TResult extends Object?>(
-    TResult Function(int groupIndex, String label, int totalScore,
-            List<int> tieBreakMetrics)
+    TResult Function(
+            int groupIndex,
+            String label,
+            int totalScore,
+            List<int> tieBreakMetrics,
+            int? sideAScore,
+            int? sideBScore,
+            String? sideALabel,
+            String? sideBLabel)
         $default,
   ) {
     final _that = this;
     switch (_that) {
       case _ProcessedGroupResult():
-        return $default(_that.groupIndex, _that.label, _that.totalScore,
-            _that.tieBreakMetrics);
+        return $default(
+            _that.groupIndex,
+            _that.label,
+            _that.totalScore,
+            _that.tieBreakMetrics,
+            _that.sideAScore,
+            _that.sideBScore,
+            _that.sideALabel,
+            _that.sideBLabel);
       case _:
         throw StateError('Unexpected subclass');
     }
@@ -918,15 +990,29 @@ extension ProcessedGroupResultPatterns on ProcessedGroupResult {
 
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>(
-    TResult? Function(int groupIndex, String label, int totalScore,
-            List<int> tieBreakMetrics)?
+    TResult? Function(
+            int groupIndex,
+            String label,
+            int totalScore,
+            List<int> tieBreakMetrics,
+            int? sideAScore,
+            int? sideBScore,
+            String? sideALabel,
+            String? sideBLabel)?
         $default,
   ) {
     final _that = this;
     switch (_that) {
       case _ProcessedGroupResult() when $default != null:
-        return $default(_that.groupIndex, _that.label, _that.totalScore,
-            _that.tieBreakMetrics);
+        return $default(
+            _that.groupIndex,
+            _that.label,
+            _that.totalScore,
+            _that.tieBreakMetrics,
+            _that.sideAScore,
+            _that.sideBScore,
+            _that.sideALabel,
+            _that.sideBLabel);
       case _:
         return null;
     }
@@ -940,7 +1026,11 @@ class _ProcessedGroupResult implements ProcessedGroupResult {
       {required this.groupIndex,
       required this.label,
       required this.totalScore,
-      required final List<int> tieBreakMetrics})
+      required final List<int> tieBreakMetrics,
+      this.sideAScore,
+      this.sideBScore,
+      this.sideALabel,
+      this.sideBLabel})
       : _tieBreakMetrics = tieBreakMetrics;
   factory _ProcessedGroupResult.fromJson(Map<String, dynamic> json) =>
       _$ProcessedGroupResultFromJson(json);
@@ -958,6 +1048,15 @@ class _ProcessedGroupResult implements ProcessedGroupResult {
     // ignore: implicit_dynamic_type
     return EqualUnmodifiableListView(_tieBreakMetrics);
   }
+
+  @override
+  final int? sideAScore;
+  @override
+  final int? sideBScore;
+  @override
+  final String? sideALabel;
+  @override
+  final String? sideBLabel;
 
   /// Create a copy of ProcessedGroupResult
   /// with the given fields replaced by the non-null parameter values.
@@ -986,17 +1085,33 @@ class _ProcessedGroupResult implements ProcessedGroupResult {
             (identical(other.totalScore, totalScore) ||
                 other.totalScore == totalScore) &&
             const DeepCollectionEquality()
-                .equals(other._tieBreakMetrics, _tieBreakMetrics));
+                .equals(other._tieBreakMetrics, _tieBreakMetrics) &&
+            (identical(other.sideAScore, sideAScore) ||
+                other.sideAScore == sideAScore) &&
+            (identical(other.sideBScore, sideBScore) ||
+                other.sideBScore == sideBScore) &&
+            (identical(other.sideALabel, sideALabel) ||
+                other.sideALabel == sideALabel) &&
+            (identical(other.sideBLabel, sideBLabel) ||
+                other.sideBLabel == sideBLabel));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(runtimeType, groupIndex, label, totalScore,
-      const DeepCollectionEquality().hash(_tieBreakMetrics));
+  int get hashCode => Object.hash(
+      runtimeType,
+      groupIndex,
+      label,
+      totalScore,
+      const DeepCollectionEquality().hash(_tieBreakMetrics),
+      sideAScore,
+      sideBScore,
+      sideALabel,
+      sideBLabel);
 
   @override
   String toString() {
-    return 'ProcessedGroupResult(groupIndex: $groupIndex, label: $label, totalScore: $totalScore, tieBreakMetrics: $tieBreakMetrics)';
+    return 'ProcessedGroupResult(groupIndex: $groupIndex, label: $label, totalScore: $totalScore, tieBreakMetrics: $tieBreakMetrics, sideAScore: $sideAScore, sideBScore: $sideBScore, sideALabel: $sideALabel, sideBLabel: $sideBLabel)';
   }
 }
 
@@ -1012,7 +1127,11 @@ abstract mixin class _$ProcessedGroupResultCopyWith<$Res>
       {int groupIndex,
       String label,
       int totalScore,
-      List<int> tieBreakMetrics});
+      List<int> tieBreakMetrics,
+      int? sideAScore,
+      int? sideBScore,
+      String? sideALabel,
+      String? sideBLabel});
 }
 
 /// @nodoc
@@ -1032,6 +1151,10 @@ class __$ProcessedGroupResultCopyWithImpl<$Res>
     Object? label = null,
     Object? totalScore = null,
     Object? tieBreakMetrics = null,
+    Object? sideAScore = freezed,
+    Object? sideBScore = freezed,
+    Object? sideALabel = freezed,
+    Object? sideBLabel = freezed,
   }) {
     return _then(_ProcessedGroupResult(
       groupIndex: null == groupIndex
@@ -1050,6 +1173,22 @@ class __$ProcessedGroupResultCopyWithImpl<$Res>
           ? _self._tieBreakMetrics
           : tieBreakMetrics // ignore: cast_nullable_to_non_nullable
               as List<int>,
+      sideAScore: freezed == sideAScore
+          ? _self.sideAScore
+          : sideAScore // ignore: cast_nullable_to_non_nullable
+              as int?,
+      sideBScore: freezed == sideBScore
+          ? _self.sideBScore
+          : sideBScore // ignore: cast_nullable_to_non_nullable
+              as int?,
+      sideALabel: freezed == sideALabel
+          ? _self.sideALabel
+          : sideALabel // ignore: cast_nullable_to_non_nullable
+              as String?,
+      sideBLabel: freezed == sideBLabel
+          ? _self.sideBLabel
+          : sideBLabel // ignore: cast_nullable_to_non_nullable
+              as String?,
     ));
   }
 }
@@ -1077,6 +1216,9 @@ mixin _$ProcessedLeaderboardEntry {
   ScoringStatus get scoringStatus;
   double? get handicapIndex;
   String? get tieBreakLabel;
+  String? get matchStatus; // [NEW] e.g. "WIN 7 & 6", "2 UP", "AS"
+  int? get matchScore; // [NEW] lead tracking
+  bool get isMatch;
 
   /// Create a copy of ProcessedLeaderboardEntry
   /// with the given fields replaced by the non-null parameter values.
@@ -1132,7 +1274,12 @@ mixin _$ProcessedLeaderboardEntry {
             (identical(other.handicapIndex, handicapIndex) ||
                 other.handicapIndex == handicapIndex) &&
             (identical(other.tieBreakLabel, tieBreakLabel) ||
-                other.tieBreakLabel == tieBreakLabel));
+                other.tieBreakLabel == tieBreakLabel) &&
+            (identical(other.matchStatus, matchStatus) ||
+                other.matchStatus == matchStatus) &&
+            (identical(other.matchScore, matchScore) ||
+                other.matchScore == matchScore) &&
+            (identical(other.isMatch, isMatch) || other.isMatch == isMatch));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -1159,12 +1306,15 @@ mixin _$ProcessedLeaderboardEntry {
         const DeepCollectionEquality().hash(tieBreakMetrics),
         scoringStatus,
         handicapIndex,
-        tieBreakLabel
+        tieBreakLabel,
+        matchStatus,
+        matchScore,
+        isMatch
       ]);
 
   @override
   String toString() {
-    return 'ProcessedLeaderboardEntry(entryId: $entryId, playerName: $playerName, score: $score, scoreLabel: $scoreLabel, holesPlayed: $holesPlayed, isGuest: $isGuest, teamMemberIds: $teamMemberIds, teamMemberNames: $teamMemberNames, individualPlayingHandicaps: $individualPlayingHandicaps, holeNetScores: $holeNetScores, individualHoleScores: $individualHoleScores, individualHoleNetScores: $individualHoleNetScores, individualHolePoints: $individualHolePoints, holeScores: $holeScores, holePoints: $holePoints, hasSocietyCut: $hasSocietyCut, position: $position, tieBreakMetrics: $tieBreakMetrics, scoringStatus: $scoringStatus, handicapIndex: $handicapIndex, tieBreakLabel: $tieBreakLabel)';
+    return 'ProcessedLeaderboardEntry(entryId: $entryId, playerName: $playerName, score: $score, scoreLabel: $scoreLabel, holesPlayed: $holesPlayed, isGuest: $isGuest, teamMemberIds: $teamMemberIds, teamMemberNames: $teamMemberNames, individualPlayingHandicaps: $individualPlayingHandicaps, holeNetScores: $holeNetScores, individualHoleScores: $individualHoleScores, individualHoleNetScores: $individualHoleNetScores, individualHolePoints: $individualHolePoints, holeScores: $holeScores, holePoints: $holePoints, hasSocietyCut: $hasSocietyCut, position: $position, tieBreakMetrics: $tieBreakMetrics, scoringStatus: $scoringStatus, handicapIndex: $handicapIndex, tieBreakLabel: $tieBreakLabel, matchStatus: $matchStatus, matchScore: $matchScore, isMatch: $isMatch)';
   }
 }
 
@@ -1195,7 +1345,10 @@ abstract mixin class $ProcessedLeaderboardEntryCopyWith<$Res> {
       List<int> tieBreakMetrics,
       ScoringStatus scoringStatus,
       double? handicapIndex,
-      String? tieBreakLabel});
+      String? tieBreakLabel,
+      String? matchStatus,
+      int? matchScore,
+      bool isMatch});
 }
 
 /// @nodoc
@@ -1232,6 +1385,9 @@ class _$ProcessedLeaderboardEntryCopyWithImpl<$Res>
     Object? scoringStatus = null,
     Object? handicapIndex = freezed,
     Object? tieBreakLabel = freezed,
+    Object? matchStatus = freezed,
+    Object? matchScore = freezed,
+    Object? isMatch = null,
   }) {
     return _then(_self.copyWith(
       entryId: null == entryId
@@ -1318,6 +1474,18 @@ class _$ProcessedLeaderboardEntryCopyWithImpl<$Res>
           ? _self.tieBreakLabel
           : tieBreakLabel // ignore: cast_nullable_to_non_nullable
               as String?,
+      matchStatus: freezed == matchStatus
+          ? _self.matchStatus
+          : matchStatus // ignore: cast_nullable_to_non_nullable
+              as String?,
+      matchScore: freezed == matchScore
+          ? _self.matchScore
+          : matchScore // ignore: cast_nullable_to_non_nullable
+              as int?,
+      isMatch: null == isMatch
+          ? _self.isMatch
+          : isMatch // ignore: cast_nullable_to_non_nullable
+              as bool,
     ));
   }
 }
@@ -1436,7 +1604,10 @@ extension ProcessedLeaderboardEntryPatterns on ProcessedLeaderboardEntry {
             List<int> tieBreakMetrics,
             ScoringStatus scoringStatus,
             double? handicapIndex,
-            String? tieBreakLabel)?
+            String? tieBreakLabel,
+            String? matchStatus,
+            int? matchScore,
+            bool isMatch)?
         $default, {
     required TResult orElse(),
   }) {
@@ -1464,7 +1635,10 @@ extension ProcessedLeaderboardEntryPatterns on ProcessedLeaderboardEntry {
             _that.tieBreakMetrics,
             _that.scoringStatus,
             _that.handicapIndex,
-            _that.tieBreakLabel);
+            _that.tieBreakLabel,
+            _that.matchStatus,
+            _that.matchScore,
+            _that.isMatch);
       case _:
         return orElse();
     }
@@ -1506,7 +1680,10 @@ extension ProcessedLeaderboardEntryPatterns on ProcessedLeaderboardEntry {
             List<int> tieBreakMetrics,
             ScoringStatus scoringStatus,
             double? handicapIndex,
-            String? tieBreakLabel)
+            String? tieBreakLabel,
+            String? matchStatus,
+            int? matchScore,
+            bool isMatch)
         $default,
   ) {
     final _that = this;
@@ -1533,7 +1710,10 @@ extension ProcessedLeaderboardEntryPatterns on ProcessedLeaderboardEntry {
             _that.tieBreakMetrics,
             _that.scoringStatus,
             _that.handicapIndex,
-            _that.tieBreakLabel);
+            _that.tieBreakLabel,
+            _that.matchStatus,
+            _that.matchScore,
+            _that.isMatch);
       case _:
         throw StateError('Unexpected subclass');
     }
@@ -1574,7 +1754,10 @@ extension ProcessedLeaderboardEntryPatterns on ProcessedLeaderboardEntry {
             List<int> tieBreakMetrics,
             ScoringStatus scoringStatus,
             double? handicapIndex,
-            String? tieBreakLabel)?
+            String? tieBreakLabel,
+            String? matchStatus,
+            int? matchScore,
+            bool isMatch)?
         $default,
   ) {
     final _that = this;
@@ -1601,7 +1784,10 @@ extension ProcessedLeaderboardEntryPatterns on ProcessedLeaderboardEntry {
             _that.tieBreakMetrics,
             _that.scoringStatus,
             _that.handicapIndex,
-            _that.tieBreakLabel);
+            _that.tieBreakLabel,
+            _that.matchStatus,
+            _that.matchScore,
+            _that.isMatch);
       case _:
         return null;
     }
@@ -1632,7 +1818,10 @@ class _ProcessedLeaderboardEntry implements ProcessedLeaderboardEntry {
       final List<int> tieBreakMetrics = const [],
       this.scoringStatus = ScoringStatus.ok,
       this.handicapIndex,
-      this.tieBreakLabel})
+      this.tieBreakLabel,
+      this.matchStatus,
+      this.matchScore,
+      this.isMatch = false})
       : _teamMemberIds = teamMemberIds,
         _teamMemberNames = teamMemberNames,
         _individualPlayingHandicaps = individualPlayingHandicaps,
@@ -1766,6 +1955,15 @@ class _ProcessedLeaderboardEntry implements ProcessedLeaderboardEntry {
   final double? handicapIndex;
   @override
   final String? tieBreakLabel;
+  @override
+  final String? matchStatus;
+// [NEW] e.g. "WIN 7 & 6", "2 UP", "AS"
+  @override
+  final int? matchScore;
+// [NEW] lead tracking
+  @override
+  @JsonKey()
+  final bool isMatch;
 
   /// Create a copy of ProcessedLeaderboardEntry
   /// with the given fields replaced by the non-null parameter values.
@@ -1828,7 +2026,12 @@ class _ProcessedLeaderboardEntry implements ProcessedLeaderboardEntry {
             (identical(other.handicapIndex, handicapIndex) ||
                 other.handicapIndex == handicapIndex) &&
             (identical(other.tieBreakLabel, tieBreakLabel) ||
-                other.tieBreakLabel == tieBreakLabel));
+                other.tieBreakLabel == tieBreakLabel) &&
+            (identical(other.matchStatus, matchStatus) ||
+                other.matchStatus == matchStatus) &&
+            (identical(other.matchScore, matchScore) ||
+                other.matchScore == matchScore) &&
+            (identical(other.isMatch, isMatch) || other.isMatch == isMatch));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -1855,12 +2058,15 @@ class _ProcessedLeaderboardEntry implements ProcessedLeaderboardEntry {
         const DeepCollectionEquality().hash(_tieBreakMetrics),
         scoringStatus,
         handicapIndex,
-        tieBreakLabel
+        tieBreakLabel,
+        matchStatus,
+        matchScore,
+        isMatch
       ]);
 
   @override
   String toString() {
-    return 'ProcessedLeaderboardEntry(entryId: $entryId, playerName: $playerName, score: $score, scoreLabel: $scoreLabel, holesPlayed: $holesPlayed, isGuest: $isGuest, teamMemberIds: $teamMemberIds, teamMemberNames: $teamMemberNames, individualPlayingHandicaps: $individualPlayingHandicaps, holeNetScores: $holeNetScores, individualHoleScores: $individualHoleScores, individualHoleNetScores: $individualHoleNetScores, individualHolePoints: $individualHolePoints, holeScores: $holeScores, holePoints: $holePoints, hasSocietyCut: $hasSocietyCut, position: $position, tieBreakMetrics: $tieBreakMetrics, scoringStatus: $scoringStatus, handicapIndex: $handicapIndex, tieBreakLabel: $tieBreakLabel)';
+    return 'ProcessedLeaderboardEntry(entryId: $entryId, playerName: $playerName, score: $score, scoreLabel: $scoreLabel, holesPlayed: $holesPlayed, isGuest: $isGuest, teamMemberIds: $teamMemberIds, teamMemberNames: $teamMemberNames, individualPlayingHandicaps: $individualPlayingHandicaps, holeNetScores: $holeNetScores, individualHoleScores: $individualHoleScores, individualHoleNetScores: $individualHoleNetScores, individualHolePoints: $individualHolePoints, holeScores: $holeScores, holePoints: $holePoints, hasSocietyCut: $hasSocietyCut, position: $position, tieBreakMetrics: $tieBreakMetrics, scoringStatus: $scoringStatus, handicapIndex: $handicapIndex, tieBreakLabel: $tieBreakLabel, matchStatus: $matchStatus, matchScore: $matchScore, isMatch: $isMatch)';
   }
 }
 
@@ -1893,7 +2099,10 @@ abstract mixin class _$ProcessedLeaderboardEntryCopyWith<$Res>
       List<int> tieBreakMetrics,
       ScoringStatus scoringStatus,
       double? handicapIndex,
-      String? tieBreakLabel});
+      String? tieBreakLabel,
+      String? matchStatus,
+      int? matchScore,
+      bool isMatch});
 }
 
 /// @nodoc
@@ -1930,6 +2139,9 @@ class __$ProcessedLeaderboardEntryCopyWithImpl<$Res>
     Object? scoringStatus = null,
     Object? handicapIndex = freezed,
     Object? tieBreakLabel = freezed,
+    Object? matchStatus = freezed,
+    Object? matchScore = freezed,
+    Object? isMatch = null,
   }) {
     return _then(_ProcessedLeaderboardEntry(
       entryId: null == entryId
@@ -2016,6 +2228,18 @@ class __$ProcessedLeaderboardEntryCopyWithImpl<$Res>
           ? _self.tieBreakLabel
           : tieBreakLabel // ignore: cast_nullable_to_non_nullable
               as String?,
+      matchStatus: freezed == matchStatus
+          ? _self.matchStatus
+          : matchStatus // ignore: cast_nullable_to_non_nullable
+              as String?,
+      matchScore: freezed == matchScore
+          ? _self.matchScore
+          : matchScore // ignore: cast_nullable_to_non_nullable
+              as int?,
+      isMatch: null == isMatch
+          ? _self.isMatch
+          : isMatch // ignore: cast_nullable_to_non_nullable
+              as bool,
     ));
   }
 }

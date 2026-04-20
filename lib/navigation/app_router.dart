@@ -37,6 +37,7 @@ import '../features/admin/presentation/roles/committee_role_members_screen.dart'
 import '../features/admin/presentation/surveys/admin_surveys_screen.dart';
 import '../features/admin/presentation/surveys/survey_editor_screen.dart';
 import '../features/admin/presentation/surveys/survey_results_screen.dart';
+import '../features/admin/presentation/matchplay/match_play_draw_manager_screen.dart';
 import '../features/admin/presentation/notifications/compose_notification_screen.dart';
 import '../features/events/presentation/event_registration_screen.dart';
 import 'global_app_shell.dart';
@@ -47,6 +48,7 @@ import '../features/events/presentation/tabs/event_user_details_tab.dart';
 import '../features/events/presentation/event_feed_detail_screen.dart';
 import '../features/events/presentation/tabs/event_user_placeholders.dart';
 import '../features/competitions/presentation/season_standings_screen.dart';
+import '../features/competitions/presentation/season_leaderboard_detail_screen.dart';
 import '../features/admin/presentation/events/event_admin_financials_screen.dart';
 import '../features/admin/presentation/events/event_admin_scores_screen.dart';
 import 'package:golf_society/features/admin/presentation/events/event_broadcast_screen.dart';
@@ -334,6 +336,18 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                       state: state,
                       child: const SeasonStandingsScreen(),
                     ),
+                    routes: [
+                      GoRoute(
+                        path: ':leaderboardId',
+                        pageBuilder: (context, state) => boxyPage(
+                          state: state,
+                          child: SeasonLeaderboardDetailScreen(
+                            leaderboardId: state.pathParameters['leaderboardId']!,
+                            seasonId: state.uri.queryParameters['seasonId'],
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -514,6 +528,12 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                         ),
                         routes: [
                           GoRoute(
+                            path: 'select-type',
+                            pageBuilder: (context, state) => boxyPage(state: state,
+                              child: const LeaderboardTypeSelectionScreen(isPicker: false),
+                            ),
+                          ),
+                          GoRoute(
                             path: 'gallery/:type',
                             pageBuilder: (context, state) => boxyPage(state: state,
                               child: LeaderboardTemplateGalleryScreen(
@@ -666,6 +686,14 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                       child: const AdminAudienceHubScreen(),
                     ),
                   ),
+                  GoRoute(
+                    path: 'matchplay/draw',
+                    name: 'admin-matchplay-draw',
+                    pageBuilder: (context, state) => boxyPage(
+                      state: state,
+                      child: const MatchPlayDrawManagerScreen(),
+                    ),
+                  ),
                 ],
               ),
             ],
@@ -760,6 +788,18 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                       child: EventFormScreen(
                         eventId: state.pathParameters['id'],
                         event: state.extra as GolfEvent?,
+                      ),
+                    ),
+                  ),
+                  GoRoute(
+                    path: 'manage/:id/matchplay/draw',
+                    name: 'admin-event-matchplay-draw',
+                    pageBuilder: (context, state) => hubPage(
+                      state: state,
+                      id: state.pathParameters['id']!,
+                      isAdmin: true,
+                      child: MatchPlayDrawManagerScreen(
+                        eventId: state.pathParameters['id'],
                       ),
                     ),
                   ),

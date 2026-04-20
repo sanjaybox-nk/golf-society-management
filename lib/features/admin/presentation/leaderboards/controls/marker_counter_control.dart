@@ -1,9 +1,10 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:golf_society/design_system/design_system.dart';
 import 'package:golf_society/domain/models/leaderboard_config.dart';
 import 'package:uuid/uuid.dart';
 import 'base_leaderboard_control.dart';
 
-class MarkerCounterControl extends StatefulWidget {
+class MarkerCounterControl extends ConsumerStatefulWidget {
   final LeaderboardConfig? existingConfig;
   final Function(LeaderboardConfig) onSave;
 
@@ -14,10 +15,10 @@ class MarkerCounterControl extends StatefulWidget {
   });
 
   @override
-  State<MarkerCounterControl> createState() => _MarkerCounterControlState();
+  ConsumerState<MarkerCounterControl> createState() => _MarkerCounterControlState();
 }
 
-class _MarkerCounterControlState extends State<MarkerCounterControl>
+class _MarkerCounterControlState extends ConsumerState<MarkerCounterControl>
     with BaseLeaderboardControlMixin {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _nameController;
@@ -25,6 +26,7 @@ class _MarkerCounterControlState extends State<MarkerCounterControl>
   late HoleFilter _holeFilter;
   late MarkerRankingMethod _rankingMethod;
   late TextEditingController _bestNController;
+  late LeaderboardScope _scope;
   bool _isSaving = false;
 
   @override
@@ -38,6 +40,7 @@ class _MarkerCounterControlState extends State<MarkerCounterControl>
     _rankingMethod = config?.rankingMethod ?? MarkerRankingMethod.count;
     _bestNController = TextEditingController(
         text: (config?.bestN ?? 0).toString());
+    _scope = config?.scope ?? LeaderboardScope.seasonOnly;
   }
 
   @override
@@ -60,12 +63,22 @@ class _MarkerCounterControlState extends State<MarkerCounterControl>
           const BoxyArtSectionTitle(title: 'LEADERBOARD DETAILS', isPeeking: true),
           BoxyArtCard(
             padding: const EdgeInsets.all(AppSpacing.xl),
-            child: BoxyArtInputField(
-              label: 'Name',
-              controller: _nameController,
-              hint: 'e.g. Birdie Tree',
-              prefixIcon: Icon(Icons.park_rounded),
-              validator: (v) => (v == null || v.isEmpty) ? 'Required' : null,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                BoxyArtInputField(
+                  label: 'Name',
+                  controller: _nameController,
+                  hint: 'e.g. Birdie Tree',
+                  prefixIcon: Icon(Icons.park_rounded),
+                  validator: (v) => (v == null || v.isEmpty) ? 'Required' : null,
+                ),
+                const SizedBox(height: AppSpacing.lg),
+                buildScopeSelector(
+                  value: _scope,
+                  onChanged: (v) => setState(() => _scope = v as LeaderboardScope),
+                ),
+              ],
             ),
           ),
 
@@ -90,8 +103,11 @@ class _MarkerCounterControlState extends State<MarkerCounterControl>
                   runSpacing: AppSpacing.sm,
                   children: MarkerType.values.map((type) {
                     final isSelected = _targetTypes.contains(type);
+                    final labelText = formatEnum(type.name);
+                    
+                    // Standardised selection using BoxyArtPill aesthetics
                     return ChoiceChip(
-                      label: Text(formatEnum(type.name)),
+                      label: Text(labelText),
                       selected: isSelected,
                       onSelected: (selected) {
                         setState(() {
@@ -102,31 +118,36 @@ class _MarkerCounterControlState extends State<MarkerCounterControl>
                           }
                         });
                       },
+                      // Design 4.x: Branded Identity selection
                       selectedColor: theme.colorScheme.primary,
-                      backgroundColor: isDarkMode
-                          ? AppColors.dark600
-                          : AppColors.lightHeader,
+                      backgroundColor: isDarkMode ? AppColors.dark600 : AppColors.lightHeader,
                       labelStyle: AppTypography.label.copyWith(
                         color: isSelected
                             ? AppColors.pureWhite
-                            : (isDarkMode
-                                ? AppColors.dark200
-                                : AppColors.dark400),
-                        fontSize: AppTypography.sizeCaption,
-                        fontWeight: isSelected
-                            ? AppTypography.weightBlack
-                            : AppTypography.weightBold,
+                            : (isDarkMode ? AppColors.dark200 : AppColors.dark500),
+                        fontWeight: isSelected ? AppTypography.weightBlack : AppTypography.weightBold,
+                        fontSize: AppTypography.sizeLabel,
                       ),
-                      side: BorderSide.none,
+                      side: isSelected
+                          ? BorderSide.none
+                          : BorderSide(
+                              color: isDarkMode ? AppColors.dark500 : AppColors.dark100,
+                              width: 1,
+                            ),
                       shape: RoundedRectangleBorder(
-                        borderRadius: AppShapes.md,
+                        borderRadius: BorderRadius.circular(ref.watch(themeControllerProvider).pillRadius),
                       ),
                       showCheckmark: false,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppSpacing.sm,
+                        vertical: 3, // Matches BoxyArtPill internal padding
+                      ),
+                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     );
                   }).toList(),
                 ),
 
-                const SizedBox(height: AppSpacing.xl),
+                const BoxyArtDivider(),
                 BoxyArtDropdownField<HoleFilter>(
                   label: 'Hole Filter',
                   value: _holeFilter,
@@ -138,8 +159,7 @@ class _MarkerCounterControlState extends State<MarkerCounterControl>
                       .toList(),
                   onChanged: (v) => setState(() => _holeFilter = v!),
                 ),
-
-                const SizedBox(height: AppSpacing.lg),
+                const BoxyArtDivider(),
                 BoxyArtDropdownField<MarkerRankingMethod>(
                   label: 'Ranking Basis',
                   value: _rankingMethod,
@@ -151,14 +171,13 @@ class _MarkerCounterControlState extends State<MarkerCounterControl>
                       .toList(),
                   onChanged: (v) => setState(() => _rankingMethod = v!),
                 ),
-
-                const SizedBox(height: AppSpacing.lg),
+                const BoxyArtDivider(),
                 BoxyArtInputField(
                   label: 'Best N Rounds',
                   controller: _bestNController,
                   keyboardType: TextInputType.number,
                   hint: '0 = All rounds counted',
-                  prefixIcon: Icon(Icons.filter_list_rounded),
+                  prefixIcon: const Icon(Icons.filter_list_rounded),
                 ),
                 buildInfoBubble(
                     'Only markers from the best N Stableford rounds will be counted.'),
@@ -212,6 +231,7 @@ class _MarkerCounterControlState extends State<MarkerCounterControl>
     final config = LeaderboardConfig.markerCounter(
       id: widget.existingConfig?.id ?? const Uuid().v4(),
       name: _nameController.text.trim(),
+      scope: _scope,
       targetTypes: _targetTypes,
       holeFilter: _holeFilter,
       rankingMethod: _rankingMethod,

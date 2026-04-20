@@ -26,6 +26,7 @@ class AppSpacing {
   static const double sectionGap = section;
   static const double labelToCard = atomic;    // Close proximity to content (8.0)
   static const double cardToLabel = standard;   // Breathing room after a card (16.0)
+  static const double tabToContent = standard;  // Spacing between Tabs and Content (16.0)
   static const double sectionTitleTop = standard; // Spacing above title (16.0)
   static const double pageBottom = 120.0;
 }
