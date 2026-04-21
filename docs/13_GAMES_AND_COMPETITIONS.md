@@ -163,8 +163,8 @@ Admins are presented with a simplified selector:
 4.  **Match Play**: Traditional match play.
 
 ### Library & Customization
--   **Pick from Gallery**: Select a template pre-approved by the society committee.
--   **Start Blank**: Create a one-off custom rule set for a special event.
+-   **Pick from Gallery**: Select a template pre-approved by the society committee. The gallery is context-aware and preserves the current `eventId` through the selection flow.
+-   **Start Blank**: Create a one-off custom rule set for a special event. The selection screen (`CompetitionTypeSelectionScreen`) automatically anchors the new competition to the triggering `eventId`.
 -   **Save as Template**: Any custom game can be saved back to the library for future use.
 
 ## 7. Event Customization Workflow

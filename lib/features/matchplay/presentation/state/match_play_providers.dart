@@ -1,5 +1,6 @@
 
 import 'package:golf_society/domain/models/course_config.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:collection/collection.dart';
 import '../../domain/match_definition.dart';
@@ -11,6 +12,8 @@ import '../../../../features/competitions/presentation/competitions_provider.dar
 import '../../../../features/members/presentation/members_provider.dart';
 import 'package:golf_society/domain/models/competition.dart';
 import 'package:golf_society/domain/scoring/scoring_calculator.dart';
+import '../../domain/match_play_tournament.dart';
+import '../../data/match_play_repository.dart';
 
 part 'match_play_providers.g.dart';
 
@@ -195,11 +198,13 @@ class CurrentMatchController extends _$CurrentMatchController {
           loading: () => null,
           error: (_, s) => null,
         );
-
       },
       loading: () => null,
       error: (_, s) => null,
     );
   }
-
 }
+
+final matchPlayTournamentProvider = FutureProvider.family<MatchPlayTournament?, String>((ref, eventId) {
+  return ref.watch(matchPlayRepositoryProvider).getTournament(eventId);
+});

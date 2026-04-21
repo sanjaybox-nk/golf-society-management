@@ -76,6 +76,9 @@ _CompetitionRules _$CompetitionRulesFromJson(Map<String, dynamic> json) =>
       seedingLogic:
           $enumDecodeNullable(_$SeedingLogicEnumMap, json['seedingLogic']) ??
               SeedingLogic.random,
+      progressionMode: $enumDecodeNullable(
+              _$MatchPlayProgressionEnumMap, json['progressionMode']) ??
+          MatchPlayProgression.bracketed,
     );
 
 Map<String, dynamic> _$CompetitionRulesToJson(_CompetitionRules instance) =>
@@ -107,6 +110,8 @@ Map<String, dynamic> _$CompetitionRulesToJson(_CompetitionRules instance) =>
       'oomExcludedRoundIds': instance.oomExcludedRoundIds,
       'tournamentFormat': _$TournamentFormatEnumMap[instance.tournamentFormat]!,
       'seedingLogic': _$SeedingLogicEnumMap[instance.seedingLogic]!,
+      'progressionMode':
+          _$MatchPlayProgressionEnumMap[instance.progressionMode]!,
     };
 
 const _$CompetitionFormatEnumMap = {
@@ -170,6 +175,11 @@ const _$SeedingLogicEnumMap = {
   SeedingLogic.random: 'random',
   SeedingLogic.seeded: 'seeded',
   SeedingLogic.ranking: 'ranking',
+};
+
+const _$MatchPlayProgressionEnumMap = {
+  MatchPlayProgression.bracketed: 'bracketed',
+  MatchPlayProgression.randomRedraw: 'randomRedraw',
 };
 
 _Competition _$CompetitionFromJson(Map<String, dynamic> json) => _Competition(

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:golf_society/design_system/design_system.dart';
 import 'package:golf_society/services/seeding_service.dart';
+import 'package:golf_society/services/seeding/match_play_seeder.dart';
 
 class AdminSettingsHubScreen extends ConsumerWidget {
   const AdminSettingsHubScreen({super.key});
@@ -114,6 +115,13 @@ class AdminSettingsHubScreen extends ConsumerWidget {
                       title: 'Initialize Demo Season',
                       subtitle: 'Wipe all and seed full 2025-26 data',
                       onTap: () => _showSeedConfirmation(context, ref),
+                    ),
+                    const BoxyArtDivider(),
+                    BoxyArtNavTile(
+                      icon: Icons.biotech_rounded,
+                      title: 'Match Play Test Lab',
+                      subtitle: 'Stage-by-stage tournament seeding',
+                      onTap: () => _showMatchPlayLabDialog(context, ref),
                     ),
                     const BoxyArtDivider(),
                     BoxyArtNavTile(
@@ -247,6 +255,52 @@ class AdminSettingsHubScreen extends ConsumerWidget {
         messenger.showSnackBar(SnackBar(content: Text('Error: $e')));
       }
     }
+  }
+
+  Future<void> _showMatchPlayLabDialog(BuildContext context, WidgetRef ref) async {
+    final stage = await showBoxyArtDialog<MatchPlayStage>(
+      context: context,
+      title: 'Match Play Test Lab',
+      message: 'Select which tournament stage you would like to seed for testing.',
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const SizedBox(height: AppSpacing.md),
+          BoxyArtButton(
+            title: 'STAGE 1: REGISTRATION',
+            onTap: () => Navigator.of(context, rootNavigator: true).pop(MatchPlayStage.registration),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          BoxyArtButton(
+            title: 'STAGE 2: DRAW PUBLISHED',
+            onTap: () => Navigator.of(context, rootNavigator: true).pop(MatchPlayStage.drawPublished),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          BoxyArtButton(
+            title: 'STAGE 3: MID-ROUND RESULTS',
+            onTap: () => Navigator.of(context, rootNavigator: true).pop(MatchPlayStage.midRoundResults),
+          ),
+        ],
+      ),
+      onCancel: () => Navigator.of(context, rootNavigator: true).pop(null),
+    );
+
+    if (stage != null && context.mounted) {
+      final messenger = ScaffoldMessenger.of(context);
+      messenger.showSnackBar(SnackBar(content: Text('Seeding Match Play Stage: ${stage.name}...')));
+      
+      try {
+        await ref.read(seedingServiceProvider).seedMatchPlayTestLab(stage);
+        messenger.showSnackBar(const SnackBar(content: Text('✅ Laboratory Seeding Successful')));
+      } catch (e) {
+        messenger.showSnackBar(SnackBar(content: Text('Error: $e')));
+      }
+    }
+  }
+
+  void _showSanjayTestSeedConfirmation(BuildContext context, WidgetRef ref) async {
+    await _showMatchPlayLabDialog(context, ref);
   }
 
   void _showSystemResetDialog(BuildContext context, WidgetRef ref) async {

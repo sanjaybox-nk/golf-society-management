@@ -153,229 +153,85 @@ class GroupingPlayerTile extends ConsumerWidget {
     final bool hasScore = isScoreMode && (scoreDisplay != null && scoreDisplay != '-');
     final String rawScore = hasScore ? scoreDisplay! : '';
 
-    return InkWell(
+    return BoxyArtMemberRow(
+      name: player.name,
+      secondaryName: (player.isGuest && member != null) ? 'Guest of ${member!.displayName}' : null,
+      initials: player.name,
+      avatarUrl: member?.avatarUrl,
+      handicapIndex: handicapIndex ?? player.handicapIndex,
+      playingHandicap: displayPhc,
+      isGuest: player.isGuest,
+      isCaptain: player.isCaptain,
+      hasMemberGuest: hasGuestInGroup,
+      isWinner: isWinner,
+      matchSide: matchSide,
+      varietyPillarColor: varietyColor,
+      hasSocietyCut: hasSocietyCut,
+      tieBreakLabel: tieBreakLabel,
+      thruLabel: thruLabel,
+      score: hasScore ? scoreDisplay : null,
+      isStableford: isStableford,
       onTap: onTap,
-      borderRadius: theme.extension<AppShapeTokens>()?.card ?? AppShapes.lg,
-      child: BoxyArtCard(
-        // showShadow removed to honor design control
-        padding: EdgeInsets.symmetric(vertical: vPadding, horizontal: hPadding),
-        child: IntrinsicHeight(
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-            // 1. Avatar Section (Compact 60x60)
-            Container(
-              width: 60,
-              constraints: BoxConstraints(minHeight: cardHeight),
-              child: isAdmin 
-                ? PopupMenuButton<String>(
-                    onSelected: (val) => onAction?.call(val, player, group),
-                    color: theme.brightness == Brightness.dark ? AppColors.dark700 : AppColors.pureWhite,
-                    surfaceTintColor: Colors.transparent,
-                    elevation: 8,
-                    offset: const Offset(0, 48),
-                    shape: RoundedRectangleBorder(borderRadius: AppShapes.lg),
-                    itemBuilder: (context) => [
-                      const PopupMenuItem(
-                        value: 'move',
-                        child: Row(
-                          children: [
-                            Icon(Icons.drive_file_move_outlined, size: AppShapes.iconSm),
-                            SizedBox(width: AppSpacing.md),
-                            Text('Move to Group...'),
-                          ],
-                        ),
-                      ),
-                      const PopupMenuItem(
-                        value: 'remove',
-                        child: Row(
-                          children: [
-                            Icon(Icons.person_remove_outlined, size: AppShapes.iconSm),
-                            SizedBox(width: AppSpacing.md),
-                            Text('Remove from Group'),
-                          ],
-                        ),
-                      ),
-                      const PopupMenuItem(
-                        value: 'captain',
-                        child: Row(
-                          children: [
-                            Icon(Icons.shield_outlined, size: AppShapes.iconSm),
-                            SizedBox(width: AppSpacing.md),
-                            Text('Toggle Captain'),
-                          ],
-                        ),
-                      ),
-                      const PopupMenuItem(
-                        value: 'withdraw',
-                        child: Row(
-                          children: [
-                            Icon(Icons.exit_to_app, size: AppShapes.iconSm, color: AppColors.coral500),
-                            SizedBox(width: AppSpacing.md),
-                            Text('Withdraw Member', style: TextStyle(color: AppColors.coral500)),
-                          ],
-                        ),
-                      ),
-                    ],
-                    child: _buildAvatarStack(context, isScoreMode, varietyColor, hasGuestInGroup),
-                  )
-                : _buildAvatarStack(context, isScoreMode, varietyColor, hasGuestInGroup),
-            ),
-
-          // 2. Vertical Divider (Scalable)
-          Container(
-            width: 1,
-            height: double.infinity,
-            margin: EdgeInsets.symmetric(horizontal: hPadding),
-            color: theme.colorScheme.onSurface.withValues(alpha: AppColors.opacitySubtle),
-          ),
-
-          // 3. Right Section: Content
-          Expanded(
-            child: Container(
-              constraints: BoxConstraints(minHeight: cardHeight),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.start, // Align with top of divider
-                children: [
-                  // Section 1: Name
-                  Text(
-                    toTitleCase(player.name),
-                    style: AppTypography.memberName.copyWith(
-                      color: theme.colorScheme.onSurface,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  
-                  if (player.isGuest && member != null)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 1, bottom: 3),
-                      child: Text(
-                        'Guest of ${member!.displayName}',
-                        style: AppTypography.label.copyWith(
-                          color: theme.colorScheme.onSurface.withValues(alpha: AppColors.opacityMedium),
-                          fontStyle: FontStyle.italic,
-                          fontSize: 10,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  
-                  const SizedBox(height: AppSpacing.xs), // Tight spacing under name
-
-                  // Section 2: Handicap Pills (No Icons)
-                  Wrap(
-                    spacing: AppSpacing.xs,
-                    runSpacing: 4,
-                    crossAxisAlignment: WrapCrossAlignment.center,
-                    children: [
-                      BoxyArtIndicator.hc(
-                        label: (handicapIndex ?? player.handicapIndex).toStringAsFixed(1),
-                        hasHorizontalMargin: false,
-                      ),
-                      const SizedBox(width: AppSpacing.md),
-                      BoxyArtIndicator.phc(
-                        context: context,
-                        label: '$displayPhc',
-                        hasHorizontalMargin: false,
-                      ),
-                      if (hasSocietyCut)
-                        BoxyArtPill(
-                          label: 'CUT',
-                          color: AppColors.coral500,
-                          hasHorizontalMargin: true,
-                          fontSize: 10,
-                          fontWeight: AppTypography.weightBold,
-                        ),
-                    ],
-                  ),
-
-                  const Spacer(),
-                  // Section 3: Performance Metrics (Bottom-Right)
-                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween, // Alignment changed to separate left and right
-                    crossAxisAlignment: CrossAxisAlignment.baseline,
-                    textBaseline: TextBaseline.alphabetic,
-                    children: [
-                      // Left Side: Thru & Tie-break info
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          if (thruLabel != null)
-                            Padding(
-                              padding: const EdgeInsets.only(bottom: 2),
-                              child: Text(
-                                thruLabel!,
-                                style: AppTypography.helper.copyWith(
-                                  color: theme.colorScheme.onSurface.withValues(alpha: AppColors.opacityMedium),
-                                  fontStyle: FontStyle.italic,
-                                  fontSize: 11,
-                                ),
-                              ),
-                            ),
-                          if (thruLabel != null && hasScore && tieBreakLabel != null)
-                            const SizedBox(width: AppSpacing.sm),
-                          if (hasScore && tieBreakLabel != null)
-                            Text(
-                              tieBreakLabel!,
-                              style: AppTypography.label.copyWith(
-                                fontSize: 10,
-                                fontWeight: AppTypography.weightBold,
-                                color: theme.colorScheme.onSurface.withValues(alpha: AppColors.opacityMedium),
-                                letterSpacing: 0.2,
-                              ),
-                            ),
-                        ],
-                      ),
-
-                      // Right Side: Score
-                      if (hasScore) ...[
-                        RichText(
-                          text: TextSpan(
-                            children: [
-                              TextSpan(
-                                text: rawScore,
-                                style: AppTypography.displayHeading.copyWith(
-                                  fontSize: (rawScore.length > 5) ? 18 : 24, // Optimized for verbose match results
-                                  fontWeight: AppTypography.weightBlack,
-                                  color: theme.colorScheme.primary,
-                                  height: 1,
-                                  letterSpacing: -0.5,
-                                ),
-                              ),
-                              if (isStableford && matchSide == null && rawScore.length <= 5 && !rawScore.contains('UP') && !rawScore.contains('DN') && !rawScore.contains('AS') && !rawScore.contains('&'))
-                                TextSpan(
-                                  text: ' pts',
-                                  style: AppTypography.label.copyWith(
-                                    fontSize: 12,
-                                    fontWeight: AppTypography.weightMedium,
-                                    color: theme.colorScheme.primary.withValues(alpha: AppColors.opacityMedium),
-                                  ),
-                                ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-                ],
+      isSelected: isSelected,
+      useCard: true,
+      showVerticalDivider: true,
+      showChevron: false,
+      accentColor: matchSide != null ? (matchSide == 'A' ? AppColors.teamA : AppColors.teamB) : null,
+      leading: isAdmin 
+        ? PopupMenuButton<String>(
+            onSelected: (val) => onAction?.call(val, player, group),
+            color: theme.brightness == Brightness.dark ? AppColors.dark700 : AppColors.pureWhite,
+            surfaceTintColor: Colors.transparent,
+            elevation: 8,
+            offset: const Offset(0, 48),
+            shape: RoundedRectangleBorder(borderRadius: AppShapes.lg),
+            itemBuilder: (context) => [
+              PopupMenuItem(
+                value: 'move',
+                child: Row(
+                  children: [
+                    Icon(Icons.drive_file_move_outlined, size: AppShapes.iconSm),
+                    const SizedBox(width: AppSpacing.md),
+                    const Text('Move to Group...'),
+                  ],
+                ),
               ),
-            ),
-          ),
-          
-          if (isSelected) 
-            Padding(
-              padding: const EdgeInsets.only(left: 8.0),
-              child: Icon(Icons.check_circle_rounded, color: theme.colorScheme.primary, size: 24),
-            ),
-          ],
-        ),
-      ),
-    ),
-  );
-}
+              PopupMenuItem(
+                value: 'remove',
+                child: Row(
+                  children: [
+                    Icon(Icons.person_remove_outlined, size: AppShapes.iconSm),
+                    const SizedBox(width: AppSpacing.md),
+                    const Text('Remove from Group'),
+                  ],
+                ),
+              ),
+              PopupMenuItem(
+                value: 'captain',
+                child: Row(
+                  children: [
+                    Icon(Icons.shield_outlined, size: AppShapes.iconSm),
+                    const SizedBox(width: AppSpacing.md),
+                    const Text('Toggle Captain'),
+                  ],
+                ),
+              ),
+              PopupMenuItem(
+                value: 'withdraw',
+                child: Row(
+                  children: [
+                    Icon(Icons.exit_to_app, size: AppShapes.iconSm, color: AppColors.coral500),
+                    const SizedBox(width: AppSpacing.md),
+                    const Text('Withdraw Member', style: TextStyle(color: AppColors.coral500)),
+                  ],
+                ),
+              ),
+            ],
+            child: _buildAvatarStack(context, isScoreMode, varietyColor, hasGuestInGroup),
+          )
+        : null, // BoxyArtMemberRow handles standard avatar if leading is null
+    );
+  }
 
   Widget _buildAvatarStack(BuildContext context, bool isScoreMode, Color? varietyColor, bool hasGuestInGroup) {
     
@@ -386,10 +242,10 @@ class GroupingPlayerTile extends ConsumerWidget {
         BoxyArtAvatar(
           url: member?.avatarUrl,
           initials: player.name,
-          radius: 30, // Reduced by 20% for compact mode
+          radius: 38, // Standardized 76px diameter for premium cards
           isCircle: true,
-          borderColor: varietyColor,
-          borderWidth: varietyColor != null ? 1.5 : null,
+          borderColor: Colors.transparent, // Removed thin distinguisher borders
+          borderWidth: 0,
         ),
         // Host Badge Overlay (Bottom Left)
         if (hasGuestInGroup)

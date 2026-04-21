@@ -17,6 +17,7 @@ class _MatchPlayControlState extends BaseCompetitionControlState<MatchPlayContro
   TieBreakMethod _tieBreak = TieBreakMethod.playoff;
   TournamentFormat _tournamentFormat = TournamentFormat.knockout;
   SeedingLogic _seedingLogic = SeedingLogic.random;
+  MatchPlayProgression _progression = MatchPlayProgression.bracketed;
   CompetitionMode _seasonMode = CompetitionMode.singles;
 
   @override
@@ -33,6 +34,7 @@ class _MatchPlayControlState extends BaseCompetitionControlState<MatchPlayContro
       _tieBreak = rules.tieBreak;
       _tournamentFormat = rules.tournamentFormat;
       _seedingLogic = rules.seedingLogic;
+      _progression = rules.progressionMode;
       _seasonMode = rules.mode;
     } else {
       _updateDefaultAllowance();
@@ -51,6 +53,7 @@ class _MatchPlayControlState extends BaseCompetitionControlState<MatchPlayContro
   Widget buildSpecificFields(BuildContext context) {
     var effectiveSubtype = _subtype;
     if (effectiveSubtype != CompetitionSubtype.none &&
+        effectiveSubtype != CompetitionSubtype.matchPlaySeason &&
         effectiveSubtype != CompetitionSubtype.fourball &&
         effectiveSubtype != CompetitionSubtype.foursomes &&
         effectiveSubtype != CompetitionSubtype.ryderCup &&
@@ -97,6 +100,59 @@ class _MatchPlayControlState extends BaseCompetitionControlState<MatchPlayContro
           ),
         ),
 
+        // ── TOURNAMENT SETTINGS (Season Only) ──────────────────
+        if (_subtype == CompetitionSubtype.matchPlaySeason) ...[
+          const BoxyArtSectionTitle(title: 'TOURNAMENT SETTINGS'),
+          BoxyArtCard(
+            padding: const EdgeInsets.all(AppSpacing.xl),
+            child: Column(
+              children: [
+                BoxyArtDropdownField<CompetitionMode>(
+                  label: 'Tournament Mode',
+                  value: _seasonMode,
+                  items: const [
+                    DropdownMenuItem(value: CompetitionMode.singles, child: Text('Singles (1 vs 1)')),
+                    DropdownMenuItem(value: CompetitionMode.pairs, child: Text('Pairs (2 vs 2)')),
+                  ],
+                  onChanged: (val) { if (val != null) setState(() => _seasonMode = val); },
+                ),
+                const BoxyArtDivider(),
+                BoxyArtDropdownField<TournamentFormat>(
+                  label: 'Competitive Structure',
+                  value: _tournamentFormat,
+                  items: const [
+                    DropdownMenuItem(value: TournamentFormat.knockout, child: Text('Knockout Bracket')),
+                    DropdownMenuItem(value: TournamentFormat.divisions, child: Text('Divisions (Round Robin)')),
+                  ],
+                  onChanged: (val) { if (val != null) setState(() => _tournamentFormat = val); },
+                ),
+                const BoxyArtDivider(),
+                BoxyArtDropdownField<SeedingLogic>(
+                  label: 'Seeding Logic',
+                  value: _seedingLogic,
+                  items: const [
+                    DropdownMenuItem(value: SeedingLogic.random, child: Text('Random Draw')),
+                    DropdownMenuItem(value: SeedingLogic.seeded, child: Text('Seeded (By Handicap)')),
+                    DropdownMenuItem(value: SeedingLogic.ranking, child: Text('Merit (By OOM Ranking)')),
+                  ],
+                  onChanged: (val) { if (val != null) setState(() => _seedingLogic = val); },
+                ),
+                const BoxyArtDivider(),
+                BoxyArtDropdownField<MatchPlayProgression>(
+                  label: 'Advancement Mode',
+                  value: _progression,
+                  items: const [
+                    DropdownMenuItem(value: MatchPlayProgression.bracketed, child: Text('Fixed Bracket (Full Path)')),
+                    DropdownMenuItem(value: MatchPlayProgression.randomRedraw, child: Text('Random Redraw (Each Round)')),
+                  ],
+                  onChanged: (val) { if (val != null) setState(() => _progression = val); },
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: AppSpacing.md),
+        ],
+
         // ── HANDICAP ──────────────────────────────────────────
         const BoxyArtSectionTitle(title: 'HANDICAP'),
         BoxyArtCard(
@@ -134,47 +190,6 @@ class _MatchPlayControlState extends BaseCompetitionControlState<MatchPlayContro
             ],
           ),
         ),
-        const BoxyArtDivider(),
-        if (_subtype == CompetitionSubtype.matchPlaySeason) ...[
-          const BoxyArtSectionTitle(title: 'TOURNAMENT SETTINGS'),
-          BoxyArtCard(
-            padding: const EdgeInsets.all(AppSpacing.xl),
-            child: Column(
-              children: [
-                BoxyArtDropdownField<CompetitionMode>(
-                  label: 'Tournament Mode',
-                  value: _seasonMode,
-                  items: const [
-                    DropdownMenuItem(value: CompetitionMode.singles, child: Text('Singles (1 vs 1)')),
-                    DropdownMenuItem(value: CompetitionMode.pairs, child: Text('Pairs (2 vs 2)')),
-                  ],
-                  onChanged: (val) { if (val != null) setState(() => _seasonMode = val); },
-                ),
-                const BoxyArtDivider(),
-                BoxyArtDropdownField<TournamentFormat>(
-                  label: 'Competitive Structure',
-                  value: _tournamentFormat,
-                  items: const [
-                    DropdownMenuItem(value: TournamentFormat.knockout, child: Text('Knockout Bracket')),
-                    DropdownMenuItem(value: TournamentFormat.divisions, child: Text('Divisions (Round Robin)')),
-                  ],
-                  onChanged: (val) { if (val != null) setState(() => _tournamentFormat = val); },
-                ),
-                const BoxyArtDivider(),
-                BoxyArtDropdownField<SeedingLogic>(
-                  label: 'Seeding Logic',
-                  value: _seedingLogic,
-                  items: const [
-                    DropdownMenuItem(value: SeedingLogic.random, child: Text('Random Draw')),
-                    DropdownMenuItem(value: SeedingLogic.seeded, child: Text('Seeded (By Handicap)')),
-                    DropdownMenuItem(value: SeedingLogic.ranking, child: Text('Merit (By OOM Ranking)')),
-                  ],
-                  onChanged: (val) { if (val != null) setState(() => _seedingLogic = val); },
-                ),
-              ],
-            ),
-          ),
-        ],
       ],
     );
   }
@@ -183,6 +198,8 @@ class _MatchPlayControlState extends BaseCompetitionControlState<MatchPlayContro
     switch (subtype) {
       case CompetitionSubtype.none:
         return 'One player vs one player. Win a hole, go 1-up. First to win more holes than remain wins the match.';
+      case CompetitionSubtype.matchPlaySeason:
+        return 'Tournament series played over a season. Supports knockout brackets or divisional round-robin play.';
       case CompetitionSubtype.ryderCup:
         return 'Team event: points are accumulated from individual singles, fourball, and foursomes matches.';
       case CompetitionSubtype.teamMatchPlay:
@@ -230,6 +247,7 @@ class _MatchPlayControlState extends BaseCompetitionControlState<MatchPlayContro
       holeByHoleRequired: true,
       tournamentFormat: _tournamentFormat,
       seedingLogic: _seedingLogic,
+      progressionMode: _progression,
     );
   }
 

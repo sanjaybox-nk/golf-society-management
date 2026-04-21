@@ -21,7 +21,7 @@ class EventAwardsSection extends ConsumerWidget {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const BoxyArtSectionTitle(title: 'Prizes & Awards'),
+            const BoxyArtSectionTitle(title: 'Prizes & Awards', followsCard: true),
             BoxyArtCard(
               child: Column(
                 children: [
@@ -48,6 +48,7 @@ class EventAwardsSection extends ConsumerWidget {
                       title: 'Add award',
                       onTap: () => ref.read(eventFormNotifierProvider.notifier).addAward(),
                       isGhost: true,
+                      icon: Icons.add_circle_outline_rounded,
                     ),
                   ],
                 ],

@@ -149,14 +149,18 @@ class EventRegistrationsAdminScreen extends ConsumerWidget {
             // METRICS CARD
             const BoxyArtSectionTitle(
               title: 'Registration Stats',
-              isPeeking: true,
+              isPeeking: false, // Uses tabToContent (16.0) for standard top gap
             ),
             RegistrationStatsCard(event: event, isCompact: true, showAdminMetrics: true),
 
 
           // MEMBERS - PLAYING
           if (playingMembers.isNotEmpty) ...[
-            BoxyArtSectionTitle(title: 'Playing (${playingMembers.length})', isPeeking: true),
+            BoxyArtSectionTitle(
+              title: 'Playing (${playingMembers.length})', 
+              isPeeking: true,
+              followsCard: true, // Uses cardToLabel (16.0) from metrics card
+            ),
             ...playingMembers.asMap().entries.map((entry) {
               final idx = entry.key;
               final vm = entry.value;
@@ -191,7 +195,7 @@ class EventRegistrationsAdminScreen extends ConsumerWidget {
 
           // MEMBERS - WAITLIST
           if (waitlistMembers.isNotEmpty) ...[
-            BoxyArtSectionTitle(title: 'Waitlist', count: waitlistMembers.length, isPeeking: true),
+            BoxyArtSectionTitle(title: 'Waitlist', count: waitlistMembers.length, isPeeking: true, followsCard: true),
             ...waitlistMembers.asMap().entries.map((entry) {
               final idx = entry.key;
               final vm = entry.value;
@@ -226,7 +230,7 @@ class EventRegistrationsAdminScreen extends ConsumerWidget {
 
           // MEMBERS - RESERVED
           if (reservedMembers.isNotEmpty) ...[
-            BoxyArtSectionTitle(title: 'Reserved', count: reservedMembers.length, isPeeking: true),
+            BoxyArtSectionTitle(title: 'Reserved', count: reservedMembers.length, isPeeking: true, followsCard: true),
             ...reservedMembers.asMap().entries.map((entry) {
               final idx = entry.key;
               final vm = entry.value;
@@ -261,7 +265,7 @@ class EventRegistrationsAdminScreen extends ConsumerWidget {
 
           // GUESTS - PLAYING
           if (playingGuests.isNotEmpty) ...[
-            BoxyArtSectionTitle(title: 'Playing Guests', count: playingGuests.length, isPeeking: true),
+            BoxyArtSectionTitle(title: 'Playing Guests', count: playingGuests.length, isPeeking: true, followsCard: true),
             ...playingGuests.asMap().entries.map((entry) {
               final idx = entry.key;
               final vm = entry.value;
@@ -296,7 +300,7 @@ class EventRegistrationsAdminScreen extends ConsumerWidget {
 
           // WAITLIST GUESTS
           if (waitlistGuests.isNotEmpty) ...[
-            BoxyArtSectionTitle(title: 'Waitlist Guests', count: waitlistGuests.length, isPeeking: true),
+            BoxyArtSectionTitle(title: 'Waitlist Guests', count: waitlistGuests.length, isPeeking: true, followsCard: true),
             ...waitlistGuests.asMap().entries.map((entry) {
               final idx = entry.key;
               final vm = entry.value;
@@ -331,7 +335,7 @@ class EventRegistrationsAdminScreen extends ConsumerWidget {
 
           // RESERVED GUESTS
           if (reservedGuests.isNotEmpty) ...[
-            BoxyArtSectionTitle(title: 'Reserved Guests', count: reservedGuests.length, isPeeking: true),
+            BoxyArtSectionTitle(title: 'Reserved Guests', count: reservedGuests.length, isPeeking: true, followsCard: true),
             ...reservedGuests.asMap().entries.map((entry) {
               final idx = entry.key;
               final vm = entry.value;
@@ -366,7 +370,7 @@ class EventRegistrationsAdminScreen extends ConsumerWidget {
 
           // DINNER ONLY
           if (dinnerModels.isNotEmpty) ...[
-            BoxyArtSectionTitle(title: 'Dinner Only', count: dinnerModels.length, isPeeking: true),
+            BoxyArtSectionTitle(title: 'Dinner Only', count: dinnerModels.length, isPeeking: true, followsCard: true),
             ...dinnerModels.asMap().entries.map((entry) {
               final idx = entry.key;
               final vm = entry.value;
@@ -400,7 +404,7 @@ class EventRegistrationsAdminScreen extends ConsumerWidget {
 
           // NOT PARTICIPATING
           if (withdrawnModels.isNotEmpty) ...[
-            BoxyArtSectionTitle(title: 'Not Participating', count: withdrawnModels.length, isPeeking: true),
+            BoxyArtSectionTitle(title: 'Not Participating', count: withdrawnModels.length, isPeeking: true, followsCard: true),
             ...withdrawnModels.asMap().entries.map((entry) {
               final idx = entry.key;
               final vm = entry.value;

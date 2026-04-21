@@ -18,7 +18,6 @@ class EventContentSection extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const BoxyArtSectionTitle(title: 'Facilities'),
-          const SizedBox(height: AppSpacing.labelToCard),
           BoxyArtCard(
             child: Column(
               children: [
@@ -38,19 +37,15 @@ class EventContentSection extends ConsumerWidget {
                 }),
                 const SizedBox(height: AppSpacing.sm),
                 BoxyArtButton(
-                  title: 'ADD FACILITY',
-                  onTap: () {
-                    final list = List<String>.from(state.facilities)..add('');
-                    ref.read(eventFormNotifierProvider.notifier).updateFacilities(list);
-                  },
+                  title: 'Add facility',
+                  onTap: () => ref.read(eventFormNotifierProvider.notifier).addFacility(),
                   isGhost: true,
+                  icon: Icons.add_circle_outline_rounded,
                 ),
               ],
             ),
           ),
-          const SizedBox(height: AppSpacing.cardToLabel),
-          const BoxyArtSectionTitle(title: 'Notes & Content'),
-          const SizedBox(height: AppTheme.sectionSpacing),
+          const BoxyArtSectionTitle(title: 'Notes & Content', followsCard: true),
           ...state.notes.asMap().entries.map((entry) {
              final index = entry.key;
              final note = entry.value;
@@ -73,14 +68,12 @@ class EventContentSection extends ConsumerWidget {
                ),
              );
           }),
-          const SizedBox(height: AppSpacing.x2l),
+          const SizedBox(height: AppSpacing.cardToLabel),
           BoxyArtButton(
-            title: 'ADD NOTE',
-            onTap: () {
-              final list = List<EventNote>.from(state.notes)..add(const EventNote(content: ''));
-              ref.read(eventFormNotifierProvider.notifier).updateNotes(list);
-            },
+            title: 'Add note',
+            onTap: () => ref.read(eventFormNotifierProvider.notifier).addNote(),
             isGhost: true,
+            icon: Icons.add_circle_outline_rounded,
           ),
         ],
       ),

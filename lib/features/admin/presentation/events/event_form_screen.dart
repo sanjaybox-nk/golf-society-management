@@ -82,9 +82,14 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
           SliverToBoxAdapter(
             child: Padding(
               padding: EdgeInsets.symmetric(horizontal: spacing?.cardHorizontalPadding ?? AppSpacing.lg),
-              child: state.eventType == EventType.golf 
-                ? _GolfFormBody(state: state)
-                : _SocialFormBody(state: state),
+              child: AnimatedSwitcher(
+                duration: AppAnimations.medium,
+                switchInCurve: Curves.easeOutCubic,
+                switchOutCurve: Curves.easeInCubic,
+                child: state.eventType == EventType.golf 
+                  ? _GolfFormBody(key: const ValueKey('golf'), state: state)
+                  : _SocialFormBody(key: const ValueKey('social'), state: state),
+              ),
             ),
           ),
         ],
@@ -112,7 +117,7 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
 class _GolfFormBody extends StatelessWidget {
   final EventFormState state;
 
-  const _GolfFormBody({required this.state});
+  const _GolfFormBody({super.key, required this.state});
 
   @override
   Widget build(BuildContext context) {
@@ -136,7 +141,7 @@ class _GolfFormBody extends StatelessWidget {
 class _SocialFormBody extends StatelessWidget {
   final EventFormState state;
 
-  const _SocialFormBody({required this.state});
+  const _SocialFormBody({super.key, required this.state});
 
   @override
   Widget build(BuildContext context) {

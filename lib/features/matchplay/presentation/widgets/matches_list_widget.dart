@@ -1,16 +1,18 @@
 import 'package:golf_society/design_system/design_system.dart';
-
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:collection/collection.dart';
 import '../../domain/match_definition.dart';
 import '../../domain/match_play_calculator.dart';
 import '../../domain/golf_event_match_extensions.dart';
 import '../../../events/presentation/events_provider.dart';
 import '../../../competitions/presentation/competitions_provider.dart';
+import '../../../members/presentation/members_provider.dart';
 
 class MatchesListWidget extends ConsumerWidget {
   final String eventId;
+  final Function(MatchDefinition)? onTap;
 
-  const MatchesListWidget({super.key, required this.eventId});
+  const MatchesListWidget({super.key, required this.eventId, this.onTap});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -44,7 +46,11 @@ class MatchesListWidget extends ConsumerWidget {
                   holesToPlay: event.courseConfig.holes.length,
                 );
 
-                return _MatchTile(match: match, result: result);
+                return _MatchTile(
+                  match: match, 
+                  result: result,
+                  onTap: onTap != null ? () => onTap!(match) : null,
+                );
               },
             );
           },
@@ -58,125 +64,125 @@ class MatchesListWidget extends ConsumerWidget {
   }
 }
 
-class _MatchTile extends StatelessWidget {
+class _MatchTile extends ConsumerWidget {
   final MatchDefinition match;
   final MatchResult result;
+  final VoidCallback? onTap;
 
-  const _MatchTile({required this.match, required this.result});
+  const _MatchTile({required this.match, required this.result, this.onTap});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
-    final primary = theme.colorScheme.primary;
+    final members = ref.watch(allMembersProvider).value ?? [];
     
-    return Padding(
+    final memberA = match.team1Ids.isNotEmpty ? members.firstWhereOrNull((m) => m.id == match.team1Ids.first) : null;
+    final memberB = match.team2Ids.isNotEmpty ? members.firstWhereOrNull((m) => m.id == match.team2Ids.first) : null;
+
+    final content = Padding(
       padding: const EdgeInsets.only(bottom: AppSpacing.md),
       child: BoxyArtCard(
-        padding: const EdgeInsets.all(AppSpacing.lg),
-        child: IntrinsicHeight(
-          child: Column(
-            children: [
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
+        padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
+        child: Column(
+          children: [
+            // Side A
+            BoxyArtMemberRow(
+              name: (match.team1Name ?? memberA?.displayName ?? 'Side A'), // Removed .toUpperCase()
+              initials: (match.team1Name?.isNotEmpty == true ? match.team1Name![0] : (memberA?.displayName != null && memberA!.displayName.isNotEmpty ? memberA.displayName[0] : 'A')).toUpperCase(),
+              avatarUrl: memberA?.avatarUrl,
+              handicapIndex: memberA?.handicap,
+              matchSide: 'A',
+              useCard: false,
+              showChevron: false,
+              showVerticalDivider: true,
+              accentColor: AppColors.lime600,
+              varietyPillarColor: AppColors.lime600,
+            ),
+            
+            // VS Divider
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+              child: Row(
                 children: [
-                  // Side A
-                  Expanded(
-                    child: Column(
-                      children: [
-                        BoxyArtAvatar(
-                          url: null, // Teams usually don't have personal avatars here
-                          initials: match.team1Name?.substring(0, 1) ?? 'A',
-                          radius: 24,
-                          borderColor: result.status.contains('UP') && !result.status.contains('Side B') ? AppColors.teamA : Colors.transparent,
-                        ),
-                        const SizedBox(height: AppSpacing.sm),
-                        Text(
-                          match.team1Name ?? 'Side A',
-                          style: AppTypography.captionStrong.copyWith(
-                            color: theme.colorScheme.onSurface,
-                          ),
-                          textAlign: TextAlign.center,
-                          maxLines: 2,
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  // VS Divider
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
-                    child: Column(
-                      children: [
-                        const Text(
-                          'VS',
-                          style: TextStyle(
-                            color: AppColors.textTertiary,
-                            fontSize: 10,
-                            fontWeight: AppTypography.weightExtraBold,
-                            letterSpacing: 1.2,
-                          ),
-                        ),
-                        const SizedBox(height: AppSpacing.xs),
-                        Container(
-                          width: 1,
-                          height: 40,
-                          color: theme.dividerColor.withValues(alpha: AppColors.opacitySubtle),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  // Side B
-                  Expanded(
-                    child: Column(
-                      children: [
-                        BoxyArtAvatar(
-                          url: null,
-                          initials: match.team2Name?.substring(0, 1) ?? 'B',
-                          radius: 24,
-                          borderColor: result.status.contains('UP') && result.status.contains('Side B') ? AppColors.teamB : Colors.transparent,
-                        ),
-                        const SizedBox(height: AppSpacing.sm),
-                        Text(
-                          match.team2Name ?? 'Side B',
-                          style: AppTypography.captionStrong.copyWith(
-                            color: theme.colorScheme.onSurface,
-                          ),
-                          textAlign: TextAlign.center,
-                          maxLines: 2,
-                        ),
-                      ],
-                    ),
-                  ),
+                   const Expanded(child: BoxyArtDivider(verticalPadding: 0)),
+                   Padding(
+                     padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+                     child: Text(
+                       'VS',
+                       style: AppTypography.micro.copyWith(
+                         color: AppColors.textTertiary,
+                         fontWeight: AppTypography.weightBlack,
+                         letterSpacing: 2.0,
+                       ),
+                     ),
+                   ),
+                   const Expanded(child: BoxyArtDivider(verticalPadding: 0)),
                 ],
               ),
-              const SizedBox(height: AppSpacing.lg),
-              
-              // Result Pill
-              BoxyArtPill.status(
-                label: result.status,
-                color: _getStatusColor(result.status, theme),
-                hasHorizontalMargin: false,
-              ),
-              
-              if (result.holesPlayed > 0) ...[
-                const SizedBox(height: AppSpacing.sm),
-                Text(
-                  result.holesPlayed == 18 ? 'Final Result' : 'Through ${result.holesPlayed} holes',
-                  style: AppTypography.micro.copyWith(
-                    color: AppColors.textSecondary,
-                    fontWeight: AppTypography.weightMedium,
-                  ),
+            ),
+            
+            // Side B
+            BoxyArtMemberRow(
+              name: (match.team2Name ?? memberB?.displayName ?? 'Side B'), // Removed .toUpperCase()
+              initials: (match.team2Name?.isNotEmpty == true ? match.team2Name![0] : (memberB?.displayName != null && memberB!.displayName.isNotEmpty ? memberB.displayName[0] : 'B')).toUpperCase(),
+              avatarUrl: memberB?.avatarUrl,
+              handicapIndex: memberB?.handicap,
+              matchSide: 'B',
+              useCard: false,
+              showChevron: false,
+              showVerticalDivider: true,
+              accentColor: AppColors.amber500,
+              varietyPillarColor: AppColors.amber500,
+            ),
+            
+            const SizedBox(height: AppSpacing.lg),
+            
+            // Result Pill
+            BoxyArtPill.status(
+              label: result.status,
+              color: _getStatusColor(result.status, theme, match),
+              hasHorizontalMargin: false,
+            ),
+            
+            if (match.manualResult != null) ...[
+              const SizedBox(height: AppSpacing.xs),
+              Text(
+                'MANUAL RESULT',
+                style: AppTypography.micro.copyWith(
+                  color: AppColors.amber500,
+                  fontWeight: AppTypography.weightBlack,
+                  letterSpacing: 1.0,
                 ),
-              ],
+              ),
             ],
-          ),
+            
+            if (result.holesPlayed > 0) ...[
+              const SizedBox(height: AppSpacing.sm),
+              Text(
+                result.holesPlayed == 18 ? 'Final Result' : 'Through ${result.holesPlayed} holes',
+                style: AppTypography.micro.copyWith(
+                  color: AppColors.textSecondary,
+                  fontWeight: AppTypography.weightMedium,
+                ),
+              ),
+            ],
+          ],
         ),
       ),
     );
+
+    if (onTap != null) {
+      return InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(AppShapes.rMd),
+        child: content,
+      );
+    }
+    return content;
   }
 
-  Color _getStatusColor(String status, ThemeData theme) {
+  Color _getStatusColor(String status, ThemeData theme, MatchDefinition match) {
+    if (match.manualResult != null) return AppColors.amber500;
     if (status == 'A/S') return AppColors.amber500;
     if (status.contains('UP') || status.contains('&')) {
        // In match play, we use Team A / Team B colors if we can detect the winner

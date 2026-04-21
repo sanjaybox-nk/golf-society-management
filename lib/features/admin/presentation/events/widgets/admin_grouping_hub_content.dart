@@ -16,6 +16,7 @@ import 'package:golf_society/features/matchplay/domain/golf_event_match_extensio
 import 'package:golf_society/features/events/domain/registration_logic.dart';
 import 'package:golf_society/features/events/domain/models/processed_event_data.dart';
 import 'package:golf_society/features/events/logic/event_scoring_controller.dart';
+import 'package:go_router/go_router.dart';
 import './admin_grouping_hub_card.dart';
 
 class AdminGroupingHubContent extends ConsumerStatefulWidget {
@@ -105,15 +106,31 @@ class _AdminGroupingHubContentState extends ConsumerState<AdminGroupingHubConten
         // Calculate Unassigned Players
         return SliverToBoxAdapter(
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+            padding: const EdgeInsets.only(
+              left: AppSpacing.xl,
+              right: AppSpacing.xl,
+              top: AppSpacing.tabToContent, // Standardized gap from tabs (16.0)
+            ),
             child: Column(
               children: [
-                AdminGroupingHubCard(
-                  event: event,
-                  onGenerate: () => _handleAutoGenerate(context, ref, event, handicapMap, events),
-                ),
+                if (!matchPlayMode)
+                  AdminGroupingHubCard(
+                    event: event,
+                    onGenerate: () => _handleAutoGenerate(context, ref, event, handicapMap, events),
+                  )
+                else if (event.matches.isEmpty)
+                  const Padding(
+                    padding: EdgeInsets.symmetric(vertical: AppSpacing.hero),
+                    child: BoxyArtEmptyCard(
+                      title: 'No Draw Generated',
+                      message: 'Generate the tournament bracket in the Control Tower to see pairings here.',
+                      icon: Icons.account_tree_outlined,
+                    ),
+                  ),
 
-                if (localGroups != null) ...[
+                // Only show the grouping list for Match Play if matches have been finalized/saved
+                // This prevents "Group 1" from appearing with members before the Draw is built
+                if (localGroups != null && (!matchPlayMode || event.matches.isNotEmpty)) ...[
                   const SizedBox(height: AppSpacing.standard),
                   _buildGroupingListLayout(
                     context, 

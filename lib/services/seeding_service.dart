@@ -11,8 +11,11 @@ import 'package:golf_society/domain/models/society_config.dart';
 import 'package:golf_society/domain/models/season.dart';
 import 'package:golf_society/domain/models/competition.dart';
 import 'package:golf_society/domain/models/course.dart';
+import 'package:golf_society/domain/models/event_registration.dart';
 import 'package:golf_society/domain/models/golf_event.dart';
 import 'package:golf_society/domain/models/leaderboard_config.dart';
+import 'package:golf_society/domain/models/course_config.dart';
+import 'package:collection/collection.dart';
 
 import 'package:golf_society/features/competitions/presentation/competitions_provider.dart';
 import 'package:golf_society/features/members/presentation/members_provider.dart';
@@ -24,6 +27,7 @@ import 'seeding/course_seeder.dart';
 import 'seeding/member_seeder.dart';
 import 'seeding/survey_seeder.dart';
 import 'seeding/event_seeder.dart';
+import 'seeding/match_play_seeder.dart';
 
 final seedingServiceProvider = Provider((ref) => SeedingService(ref));
 
@@ -209,6 +213,24 @@ class SeedingService {
       debugPrint('CRITICAL SEEDER FAILURE: $e');
       debugPrint(stack.toString());
     }
+  }
+
+  /// Specialized Seeder for Match Play Laboratory testing.
+  /// Allows seeding at different stages of the tournament lifecycle.
+  Future<void> seedMatchPlayTestLab(MatchPlayStage stage) async {
+    try {
+      await MatchPlaySeeder(ref, _random).seed(stage);
+    } catch (e, stack) {
+      debugPrint('MATCH PLAY LAB SEEDER FAILURE: $e');
+      debugPrint(stack.toString());
+      rethrow;
+    }
+  }
+
+  /// Legacy helper for the existing Sanjay Test Event button.
+  /// Refactored to use the new Lab Seeder at Stage 1.
+  Future<void> seedMatchPlayTestEvent() async {
+    await seedMatchPlayTestLab(MatchPlayStage.registration);
   }
 
   Future<void> clearActivityData() async {

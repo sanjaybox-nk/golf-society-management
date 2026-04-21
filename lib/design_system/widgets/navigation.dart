@@ -9,6 +9,7 @@ class ModernUnderlinedFilterBar<T> extends StatefulWidget {
   final ValueChanged<T> onTabSelected;
   final EdgeInsetsGeometry padding;
   final bool isExpanded;
+  final double? indicatorWidth;
 
   const ModernUnderlinedFilterBar({
     super.key,
@@ -17,6 +18,7 @@ class ModernUnderlinedFilterBar<T> extends StatefulWidget {
     required this.onTabSelected,
     this.padding = EdgeInsets.zero,
     this.isExpanded = false,
+    this.indicatorWidth,
   });
 
   @override
@@ -81,6 +83,7 @@ class _ModernUnderlinedFilterBarState<T> extends State<ModernUnderlinedFilterBar
           label: tab.label,
           icon: tab.icon,
           isSelected: isSelected,
+          indicatorWidth: widget.indicatorWidth,
           onTap: () {
             widget.onTabSelected(tab.value);
             // Scroll logic is handled by didUpdateWidget when the parent rebuilds and passes the new selectedValue
@@ -222,6 +225,7 @@ class ModernFilterTab<T> {
 class _UnderlinedTabItem extends StatelessWidget {
   final String label;
   final IconData? icon;
+  final double? indicatorWidth;
   final bool isSelected;
   final VoidCallback onTap;
 
@@ -229,6 +233,7 @@ class _UnderlinedTabItem extends StatelessWidget {
     super.key,
     required this.label,
     this.icon,
+    this.indicatorWidth,
     required this.isSelected,
     required this.onTap,
   });
@@ -285,7 +290,7 @@ class _UnderlinedTabItem extends StatelessWidget {
             // Indicator
             Positioned(
               bottom: 0,
-              width: 80,
+              width: indicatorWidth ?? 80, // Default to 80 if not specified
               height: 4,
               child: AnimatedOpacity(
                 duration: AppAnimations.fast,

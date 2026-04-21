@@ -9,19 +9,21 @@ class CompetitionTemplateGalleryScreen extends ConsumerWidget {
   final String typeStr;
   final bool isTemplate;
   final bool isPicker;
+  final String? eventId;
 
   const CompetitionTemplateGalleryScreen({
     super.key,
     required this.typeStr,
     this.isTemplate = false,
     this.isPicker = false,
+    this.eventId,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
-    final subtype = CompetitionSubtype.values.where((e) => e.name == typeStr).firstOrNull;
-    final format = CompetitionFormat.values.where((e) => e.name == typeStr).firstOrNull ?? CompetitionFormat.stableford;
+    final subtype = CompetitionSubtype.values.where((e) => e.name.toLowerCase() == typeStr.toLowerCase()).firstOrNull;
+    final format = CompetitionFormat.values.where((e) => e.name.toLowerCase() == typeStr.toLowerCase()).firstOrNull ?? CompetitionFormat.stableford;
     
     final rules = CompetitionRules(
       format: format,
@@ -98,18 +100,38 @@ class CompetitionTemplateGalleryScreen extends ConsumerWidget {
 
               templatesAsync.when(
                 data: (templates) {
-                  final filtered = templates.where((t) {
+                    final filtered = templates.where((t) {
                     final rules = t.rules;
+                    
+                    // 1. If we are in a subtype-specific gallery (e.g. Fourball), show ONLY that subtype.
                     if (subtype != null && subtype != CompetitionSubtype.none) {
                       return rules.subtype == subtype;
                     }
-                    if (format == CompetitionFormat.scramble) {
-                      return rules.format == format;
+
+                    // 2. For general format galleries (e.g. Match Play, Stableford, Scramble), 
+                    // show all subtypes EXCEPT those that have their own dedicated categories in the picker (Pairs).
+                    final isDedicatedSubtype = rules.subtype == CompetitionSubtype.fourball || 
+                                              rules.subtype == CompetitionSubtype.foursomes;
+
+                    // Match by format (e.g. matchPlay, stableford)
+                    if (rules.format == format) {
+                      return !isDedicatedSubtype;
                     }
-                    return rules.format == format && rules.subtype == CompetitionSubtype.none;
+
+                    return false;
                   }).toList();
 
-                  if (filtered.isEmpty) return const SizedBox.shrink();
+                    if (filtered.isEmpty) {
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(vertical: AppSpacing.xl),
+                        child: BoxyArtEmptyState(
+                          title: 'No Templates Found',
+                          message: 'No saved templates for ${CompetitionRules(format: format, subtype: subtype ?? CompetitionSubtype.none).gameName.toUpperCase()}',
+                          icon: Icons.search_off_rounded,
+                          isCompact: true,
+                        ),
+                      );
+                    }
 
                   return Column(
                     crossAxisAlignment: CrossAxisAlignment.start,

@@ -102,24 +102,25 @@ class BoxyArtMemberHeaderCard extends ConsumerWidget {
                       ),
                     ],
                     if (joinedDate != null) ...[
-                      const SizedBox(height: AppSpacing.md),
+                      const SizedBox(height: AppSpacing.sm),
                       Text(
-                        'SINCE',
+                        'SINCE ${joinedDate!.year}',
                         style: AppTypography.micro.copyWith(
-                          color: textColor.withValues(alpha: 0.5),
-                        ),
-                      ),
-                      Text(
-                        joinedDate!.year.toString(),
-                        style: AppTypography.caption.copyWith(
-                          color: textColor,
+                          color: textColor.withValues(alpha: 0.6),
+                          fontWeight: AppTypography.weightRegular,
                         ),
                       ),
                     ],
                   ],
                 ),
 
-                const SizedBox(width: AppSpacing.lg),
+                // Unified Vertical Divider
+                Container(
+                  width: 1,
+                  height: double.infinity,
+                  margin: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+                  color: theme.colorScheme.onSurface.withValues(alpha: AppColors.opacitySubtle),
+                ),
 
                 // 2. Middle Section: Name & Chips
                 Expanded(

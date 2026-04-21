@@ -77,281 +77,33 @@ class LeaderboardWidget extends StatelessWidget {
           }
         }
 
-        Color rankColor = isDark ? AppColors.dark500 : AppColors.lightBorder;
-        if (entry.position == 1) rankColor = AppColors.amber500;
-        if (entry.position == 2) rankColor = isDark ? AppColors.dark200 : AppColors.dark600;
-        if (entry.position == 3) rankColor = const Color(0xFFCD7F32);
-        
-        return LeaderboardCard(
-          entry: entry,
-          isStableford: isStableford,
-          rankColor: rankColor,
+        final bool hasScore = entry.scoringStatus == ScoringStatus.ok;
+        final String rawScore = hasScore ? (entry.scoreLabel ?? '${entry.score}') : entry.scoringStatus.name.toUpperCase();
+        final theme = Theme.of(context);
+
+        return BoxyArtMemberRow(
+          name: entry.playerName,
+          secondaryName: (entry.isGuest && entry.hostName != null) ? 'Guest of ${entry.hostName}' : null,
+          initials: entry.playerName,
+          avatarUrl: entry.avatarUrl,
+          handicapIndex: entry.handicapIndex,
+          playingHandicap: entry.playingHandicap,
+          score: rawScore,
+          scoreColor: hasScore ? theme.colorScheme.primary : AppColors.coral500,
           tieBreakLabel: differentiatorChain,
+          thruLabel: entry.thruLabel,
+          ranking: entry.position,
+          isGuest: entry.isGuest,
+          hasMemberGuest: entry.hasGuest,
+          isStableford: isStableford,
+          useCard: true,
+          showChevron: false,
+          isSelected: highlightEntryId != null && entry.entryId == highlightEntryId,
           onTap: () => onPlayerTap?.call(entry),
-          showBottomSpacing: idx < entries.length - 1,
-          isHighlighted: highlightEntryId != null && entry.entryId == highlightEntryId,
         );
       }).toList(),
     );
   }
-}
-
-class LeaderboardCard extends StatelessWidget {
-  final LeaderboardEntry entry;
-  final bool isStableford;
-  final Color rankColor;
-  final String? tieBreakLabel;
-  final VoidCallback? onTap;
-
-  final bool showBottomSpacing;
-  final bool isHighlighted;
-
-  const LeaderboardCard({
-    super.key,
-    required this.entry,
-    required this.isStableford,
-    required this.rankColor,
-    this.tieBreakLabel,
-    this.onTap,
-    this.showBottomSpacing = true,
-    this.isHighlighted = false,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final spacing = theme.extension<AppSpacingTokens>();
-    final double vPadding = (spacing?.cardVerticalPadding ?? AppSpacing.lg) * 0.8;
-    final double hPadding = (spacing?.cardHorizontalPadding ?? AppSpacing.lg) * 0.8;
-    final double cardHeight = vPadding * 4.5; // Increased to 4.5 to ensure alignment and resolve overflow
-
-    final bool hasScore = entry.scoringStatus == ScoringStatus.ok;
-    final String rawScore = hasScore ? (entry.scoreLabel ?? '${entry.score}') : entry.scoringStatus.name.toUpperCase();
-
-    return Padding(
-      padding: EdgeInsets.only(bottom: showBottomSpacing ? (spacing?.cardToCard ?? AppSpacing.lg) : 0),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: theme.extension<AppShapeTokens>()?.card ?? AppShapes.lg,
-        child: BoxyArtCard(
-          isHighlighted: isHighlighted,
-          padding: EdgeInsets.symmetric(vertical: vPadding, horizontal: hPadding),
-          child: IntrinsicHeight(
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                // 1. Avatar Section (Compact 60x60)
-                Container(
-                  width: 60,
-                  constraints: BoxConstraints(minHeight: cardHeight),
-                  child: Stack(
-                    alignment: Alignment.center,
-                    clipBehavior: Clip.none,
-                    children: [
-                      BoxyArtAvatar(
-                        url: entry.avatarUrl,
-                        initials: entry.playerName.isNotEmpty ? entry.playerName[0] : '?',
-                        radius: 30, // 20% reduction
-                        isCircle: true,
-                        borderColor: rankColor,
-                        borderWidth: 1.5,
-                      ),
-                      // Host Badge (Bottom Left)
-                      if (entry.hasGuest)
-                        Positioned(
-                          bottom: 0,
-                          left: 0,
-                          child: BoxyArtIconBadge(
-                            icon: Icons.person_add_rounded,
-                            color: Theme.of(context).colorScheme.primary,
-                            size: 24,
-                            iconSize: 14,
-                            useCircle: true,
-                          ),
-                        ),
-                      // Rank Badge (Top Left)
-                      Positioned(
-                        top: -2,
-                        left: -2,
-                        child: BoxyArtNumberBadge(
-                          number: entry.position,
-                          size: 24,
-                          isRanking: true,
-                        ),
-                      ),
-                      if (entry.isGuest)
-                        Positioned(
-                          bottom: 0,
-                          left: 0,
-                          child: Container(
-                            width: 24,
-                            height: 24,
-                            decoration: BoxDecoration(
-                              color: AppColors.amber500,
-                              shape: BoxShape.circle,
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withValues(alpha: 0.15),
-                                  blurRadius: 4,
-                                  offset: const Offset(0, 2),
-                                ),
-                              ],
-                            ),
-                            alignment: Alignment.center,
-                            child: const Text(
-                              'G',
-                              style: TextStyle(
-                                color: AppColors.dark900,
-                                fontSize: 12,
-                                fontWeight: AppTypography.weightExtraBold,
-                              ),
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
-
-                // 2. Vertical Divider
-                Container(
-                  width: 1,
-                  margin: EdgeInsets.symmetric(horizontal: hPadding),
-                  color: theme.colorScheme.onSurface.withValues(alpha: AppColors.opacitySubtle),
-                ),
-
-              Expanded(
-                child: Container(
-                  constraints: BoxConstraints(minHeight: cardHeight),
-                  child: Padding(
-                    padding: EdgeInsets.symmetric(vertical: vPadding / 4),
-                    child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min, // [FIX] Use min size to avoid overflow
-                    children: [
-                      Text(
-                        toTitleCase(entry.playerName),
-                        style: AppTypography.memberName.copyWith(
-                          color: theme.colorScheme.onSurface,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      
-                      if (entry.isGuest && entry.hostName != null)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 1, bottom: 3),
-                          child: Text(
-                            'Guest of ${entry.hostName}',
-                            style: AppTypography.label.copyWith(
-                              color: theme.colorScheme.onSurface.withValues(alpha: AppColors.opacityMedium),
-                              fontWeight: AppTypography.weightRegular,
-                              fontSize: 10,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-
-                      const SizedBox(height: AppSpacing.xs),
-                      Wrap(
-                        spacing: AppSpacing.xs,
-                        runSpacing: 4,
-                        crossAxisAlignment: WrapCrossAlignment.center,
-                        children: [
-                          BoxyArtPill.hc(label: entry.handicapIndex.toStringAsFixed(1), hasHorizontalMargin: false),
-                          if (entry.playingHandicap != null)
-                            BoxyArtPill.phc(
-                              context: context, 
-                              label: '${entry.playingHandicap}',
-                              hasHorizontalMargin: false,
-                            ),
-                          if (entry.hasSocietyCut)
-                            BoxyArtPill(
-                              label: 'CUT',
-                              color: AppColors.coral500,
-                              hasHorizontalMargin: true,
-                              fontSize: 10,
-                              fontWeight: AppTypography.weightBold,
-                            ),
-                        ],
-                      ),
-                      const SizedBox(height: AppSpacing.md),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        crossAxisAlignment: CrossAxisAlignment.baseline,
-                        textBaseline: TextBaseline.alphabetic,
-                        children: [
-                          // Left Side: Thru & Tie-break info
-                          Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              if (entry.thruLabel != null)
-                                Padding(
-                                  padding: const EdgeInsets.only(bottom: 2),
-                                  child: Text(
-                                    entry.thruLabel!,
-                                    style: AppTypography.helper.copyWith(
-                                      color: theme.colorScheme.onSurface.withValues(alpha: AppColors.opacityMedium),
-                                      fontStyle: FontStyle.italic,
-                                      fontSize: 11,
-                                    ),
-                                  ),
-                                ),
-                              if (entry.thruLabel != null && hasScore && tieBreakLabel != null)
-                                const SizedBox(width: AppSpacing.sm),
-                              if (hasScore && tieBreakLabel != null)
-                                Text(
-                                  tieBreakLabel!,
-                                  style: AppTypography.label.copyWith(
-                                    fontSize: 10,
-                                    fontWeight: AppTypography.weightBold,
-                                    color: theme.colorScheme.onSurface.withValues(alpha: AppColors.opacityMedium),
-                                    letterSpacing: 0.2,
-                                  ),
-                                ),
-                            ],
-                          ),
-
-                          // Right Side: Score
-                          RichText(
-                            text: TextSpan(
-                              children: [
-                                TextSpan(
-                                  text: rawScore,
-                                  style: AppTypography.displayHeading.copyWith(
-                                    fontSize: (rawScore.length > 5) ? 18 : 24, // Smaller font for "Won 3 & 2"
-                                    fontWeight: AppTypography.weightBlack,
-                                    color: hasScore ? theme.colorScheme.primary : AppColors.coral500,
-                                    height: 1,
-                                    letterSpacing: -0.5,
-                                  ),
-                                ),
-                                if (hasScore && isStableford && !rawScore.contains('UP') && !rawScore.contains('DN') && !rawScore.contains('AS') && !rawScore.contains('&'))
-                                  TextSpan(
-                                    text: ' pts',
-                                    style: AppTypography.label.copyWith(
-                                      fontSize: 12,
-                                      fontWeight: AppTypography.weightMedium,
-                                      color: theme.colorScheme.primary.withValues(alpha: AppColors.opacityMedium),
-                                    ),
-                                  ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-            ],
-          ),
-        ),
-      ),
-    ),
-  );
-}
 }
 
 class LeaderboardEntry {

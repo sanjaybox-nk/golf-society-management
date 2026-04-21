@@ -39,6 +39,8 @@ enum TournamentFormat { knockout, divisions }
 
 enum SeedingLogic { random, seeded, ranking }
 
+enum MatchPlayProgression { bracketed, randomRedraw }
+
 @freezed
 abstract class MaxScoreConfig with _$MaxScoreConfig {
   const factory MaxScoreConfig({
@@ -78,6 +80,7 @@ abstract class CompetitionRules with _$CompetitionRules {
     @Default([]) List<String> oomExcludedRoundIds, // [NEW] Rounds to skip in season standings
     @Default(TournamentFormat.knockout) TournamentFormat tournamentFormat,
     @Default(SeedingLogic.random) SeedingLogic seedingLogic,
+    @Default(MatchPlayProgression.bracketed) MatchPlayProgression progressionMode,
   }) = _CompetitionRules;
 
   factory CompetitionRules.fromJson(Map<String, dynamic> json) =>

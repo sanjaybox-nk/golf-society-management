@@ -58,7 +58,7 @@ class BoxyArtInputField extends ConsumerWidget {
             child: Text(
               toTitleCase(label),
               style: AppTypography.label.copyWith(
-                fontWeight: AppTypography.weightBold,
+                fontWeight: AppTypography.weightStrong, // Design 4.x Standard: Semibold labels
                 color: labelColor ?? theme.colorScheme.onSurface,
               ),
             ),
@@ -269,6 +269,7 @@ class BoxyArtDatePickerField extends ConsumerWidget {
   final Color? labelColor;
   final Color? textColor;
   final Color? iconColor;
+  final IconData icon;
 
   const BoxyArtDatePickerField({
     super.key,
@@ -279,6 +280,7 @@ class BoxyArtDatePickerField extends ConsumerWidget {
     this.labelColor,
     this.textColor,
     this.iconColor,
+    this.icon = Icons.calendar_today_rounded,
   });
 
   @override
@@ -331,7 +333,7 @@ class BoxyArtDatePickerField extends ConsumerWidget {
                   ),
                 ),
                 Icon(
-                  Icons.calendar_today_rounded,
+                  icon,
                   size: AppShapes.iconMd,
                   color: iconColor ?? (isDark ? AppColors.dark200 : AppColors.dark300),
                 ),

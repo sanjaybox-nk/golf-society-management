@@ -30,12 +30,15 @@ class EventCompetitionSection extends ConsumerWidget {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const BoxyArtSectionTitle(title: 'Competition Rules'),
+            const BoxyArtSectionTitle(title: 'Competition Rules', followsCard: true),
             if (!hasGame || displayComp == null)
               BoxyArtCard(
                 child: Column(
                   children: [
-                    const Text("No rules applied", style: TextStyle(color: AppColors.textSecondary, fontSize: AppTypography.sizeLabel, fontWeight: AppTypography.weightBold)),
+                    Text(
+                      "No rules applied", 
+                      style: AppTypography.labelStrong.copyWith(color: AppColors.textSecondary),
+                    ),
                     const SizedBox(height: AppSpacing.md),
                     Center(
                       child: BoxyArtButton(
@@ -68,29 +71,23 @@ class EventCompetitionSection extends ConsumerWidget {
                     onRemove: () => ref.read(eventFormNotifierProvider.notifier).updateTemplateId(null),
                     customizeLabel: state.isCustomized ? "Customized" : "Customize",
                   ),
-                  const SizedBox(height: AppSpacing.lg),
+                  const SizedBox(height: AppSpacing.cardToLabel),
                   BoxyArtCard(
                     padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
                     child: BoxyArtSwitchField(
                       label: 'Separate Guests in Standings',
+                      subtitle: 'By default, guests are merged in Invitationals and separated in Official games.',
                       value: state.separateGuests ?? (!state.isInvitational),
                       onChanged: (v) => ref.read(eventFormNotifierProvider.notifier).updateSeparateGuests(v),
                     ),
                   ),
-                  const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: 4),
-                    child: Text(
-                      'By default, guests are merged in Invitationals and separated in Official games.',
-                      style: TextStyle(color: AppColors.textSecondary, fontSize: 11),
-                    ),
-                  ),
                   if (state.isMultiDay && displayComp.rules.roundsCount > 1) ...[
-                    const SizedBox(height: AppSpacing.lg),
-                    const Text(
+                    const SizedBox(height: AppSpacing.cardToLabel),
+                    Text(
                       'Season Standings (OOM/Eclectic)',
-                      style: TextStyle(color: AppColors.textSecondary, fontSize: AppTypography.sizeCaptionStrong, fontWeight: AppTypography.weightBold),
+                      style: AppTypography.captionStrong.copyWith(color: AppColors.textSecondary),
                     ),
-                    const SizedBox(height: AppSpacing.sm),
+                    const SizedBox(height: AppSpacing.labelToCard),
                     BoxyArtCard(
                       child: Column(
                         children: List.generate(displayComp.rules.roundsCount, (index) {
@@ -103,7 +100,7 @@ class EventCompetitionSection extends ConsumerWidget {
                                 value: !isExcluded,
                                 onChanged: (v) => ref.read(eventFormNotifierProvider.notifier).toggleOomRound(roundId, v),
                               ),
-                              if (index < displayComp.rules.roundsCount - 1) const Divider(height: AppSpacing.x3l),
+                              if (index < displayComp.rules.roundsCount - 1) const BoxyArtDivider(),
                             ],
                           );
                         }),

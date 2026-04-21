@@ -358,6 +358,7 @@ mixin _$CompetitionRules {
       get oomExcludedRoundIds; // [NEW] Rounds to skip in season standings
   TournamentFormat get tournamentFormat;
   SeedingLogic get seedingLogic;
+  MatchPlayProgression get progressionMode;
 
   /// Create a copy of CompetitionRules
   /// with the given fields replaced by the non-null parameter values.
@@ -422,7 +423,9 @@ mixin _$CompetitionRules {
             (identical(other.tournamentFormat, tournamentFormat) ||
                 other.tournamentFormat == tournamentFormat) &&
             (identical(other.seedingLogic, seedingLogic) ||
-                other.seedingLogic == seedingLogic));
+                other.seedingLogic == seedingLogic) &&
+            (identical(other.progressionMode, progressionMode) ||
+                other.progressionMode == progressionMode));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -453,12 +456,13 @@ mixin _$CompetitionRules {
         teamHandicapMethod,
         const DeepCollectionEquality().hash(oomExcludedRoundIds),
         tournamentFormat,
-        seedingLogic
+        seedingLogic,
+        progressionMode
       ]);
 
   @override
   String toString() {
-    return 'CompetitionRules(format: $format, subtype: $subtype, mode: $mode, handicapMode: $handicapMode, handicapCap: $handicapCap, handicapAllowance: $handicapAllowance, teamHandicapCap: $teamHandicapCap, underlyingFormat: $underlyingFormat, useCourseAllowance: $useCourseAllowance, maxScoreConfig: $maxScoreConfig, roundsCount: $roundsCount, aggregation: $aggregation, tieBreak: $tieBreak, holeByHoleRequired: $holeByHoleRequired, minDrivesPerPlayer: $minDrivesPerPlayer, useWHSScrambleAllowance: $useWHSScrambleAllowance, trackShotAttributions: $trackShotAttributions, applyCapToIndex: $applyCapToIndex, teamBestXCount: $teamBestXCount, teamSize: $teamSize, useMixedTeeAdjustment: $useMixedTeeAdjustment, teamHandicapMethod: $teamHandicapMethod, oomExcludedRoundIds: $oomExcludedRoundIds, tournamentFormat: $tournamentFormat, seedingLogic: $seedingLogic)';
+    return 'CompetitionRules(format: $format, subtype: $subtype, mode: $mode, handicapMode: $handicapMode, handicapCap: $handicapCap, handicapAllowance: $handicapAllowance, teamHandicapCap: $teamHandicapCap, underlyingFormat: $underlyingFormat, useCourseAllowance: $useCourseAllowance, maxScoreConfig: $maxScoreConfig, roundsCount: $roundsCount, aggregation: $aggregation, tieBreak: $tieBreak, holeByHoleRequired: $holeByHoleRequired, minDrivesPerPlayer: $minDrivesPerPlayer, useWHSScrambleAllowance: $useWHSScrambleAllowance, trackShotAttributions: $trackShotAttributions, applyCapToIndex: $applyCapToIndex, teamBestXCount: $teamBestXCount, teamSize: $teamSize, useMixedTeeAdjustment: $useMixedTeeAdjustment, teamHandicapMethod: $teamHandicapMethod, oomExcludedRoundIds: $oomExcludedRoundIds, tournamentFormat: $tournamentFormat, seedingLogic: $seedingLogic, progressionMode: $progressionMode)';
   }
 }
 
@@ -493,7 +497,8 @@ abstract mixin class $CompetitionRulesCopyWith<$Res> {
       TeamHandicapMethod teamHandicapMethod,
       List<String> oomExcludedRoundIds,
       TournamentFormat tournamentFormat,
-      SeedingLogic seedingLogic});
+      SeedingLogic seedingLogic,
+      MatchPlayProgression progressionMode});
 
   $MaxScoreConfigCopyWith<$Res>? get maxScoreConfig;
 }
@@ -536,6 +541,7 @@ class _$CompetitionRulesCopyWithImpl<$Res>
     Object? oomExcludedRoundIds = null,
     Object? tournamentFormat = null,
     Object? seedingLogic = null,
+    Object? progressionMode = null,
   }) {
     return _then(_self.copyWith(
       format: null == format
@@ -638,6 +644,10 @@ class _$CompetitionRulesCopyWithImpl<$Res>
           ? _self.seedingLogic
           : seedingLogic // ignore: cast_nullable_to_non_nullable
               as SeedingLogic,
+      progressionMode: null == progressionMode
+          ? _self.progressionMode
+          : progressionMode // ignore: cast_nullable_to_non_nullable
+              as MatchPlayProgression,
     ));
   }
 
@@ -774,7 +784,8 @@ extension CompetitionRulesPatterns on CompetitionRules {
             TeamHandicapMethod teamHandicapMethod,
             List<String> oomExcludedRoundIds,
             TournamentFormat tournamentFormat,
-            SeedingLogic seedingLogic)?
+            SeedingLogic seedingLogic,
+            MatchPlayProgression progressionMode)?
         $default, {
     required TResult orElse(),
   }) {
@@ -806,7 +817,8 @@ extension CompetitionRulesPatterns on CompetitionRules {
             _that.teamHandicapMethod,
             _that.oomExcludedRoundIds,
             _that.tournamentFormat,
-            _that.seedingLogic);
+            _that.seedingLogic,
+            _that.progressionMode);
       case _:
         return orElse();
     }
@@ -852,7 +864,8 @@ extension CompetitionRulesPatterns on CompetitionRules {
             TeamHandicapMethod teamHandicapMethod,
             List<String> oomExcludedRoundIds,
             TournamentFormat tournamentFormat,
-            SeedingLogic seedingLogic)
+            SeedingLogic seedingLogic,
+            MatchPlayProgression progressionMode)
         $default,
   ) {
     final _that = this;
@@ -883,7 +896,8 @@ extension CompetitionRulesPatterns on CompetitionRules {
             _that.teamHandicapMethod,
             _that.oomExcludedRoundIds,
             _that.tournamentFormat,
-            _that.seedingLogic);
+            _that.seedingLogic,
+            _that.progressionMode);
       case _:
         throw StateError('Unexpected subclass');
     }
@@ -928,7 +942,8 @@ extension CompetitionRulesPatterns on CompetitionRules {
             TeamHandicapMethod teamHandicapMethod,
             List<String> oomExcludedRoundIds,
             TournamentFormat tournamentFormat,
-            SeedingLogic seedingLogic)?
+            SeedingLogic seedingLogic,
+            MatchPlayProgression progressionMode)?
         $default,
   ) {
     final _that = this;
@@ -959,7 +974,8 @@ extension CompetitionRulesPatterns on CompetitionRules {
             _that.teamHandicapMethod,
             _that.oomExcludedRoundIds,
             _that.tournamentFormat,
-            _that.seedingLogic);
+            _that.seedingLogic,
+            _that.progressionMode);
       case _:
         return null;
     }
@@ -994,7 +1010,8 @@ class _CompetitionRules implements CompetitionRules {
       this.teamHandicapMethod = TeamHandicapMethod.whs,
       final List<String> oomExcludedRoundIds = const [],
       this.tournamentFormat = TournamentFormat.knockout,
-      this.seedingLogic = SeedingLogic.random})
+      this.seedingLogic = SeedingLogic.random,
+      this.progressionMode = MatchPlayProgression.bracketed})
       : _oomExcludedRoundIds = oomExcludedRoundIds;
   factory _CompetitionRules.fromJson(Map<String, dynamic> json) =>
       _$CompetitionRulesFromJson(json);
@@ -1085,6 +1102,9 @@ class _CompetitionRules implements CompetitionRules {
   @override
   @JsonKey()
   final SeedingLogic seedingLogic;
+  @override
+  @JsonKey()
+  final MatchPlayProgression progressionMode;
 
   /// Create a copy of CompetitionRules
   /// with the given fields replaced by the non-null parameter values.
@@ -1153,7 +1173,9 @@ class _CompetitionRules implements CompetitionRules {
             (identical(other.tournamentFormat, tournamentFormat) ||
                 other.tournamentFormat == tournamentFormat) &&
             (identical(other.seedingLogic, seedingLogic) ||
-                other.seedingLogic == seedingLogic));
+                other.seedingLogic == seedingLogic) &&
+            (identical(other.progressionMode, progressionMode) ||
+                other.progressionMode == progressionMode));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -1184,12 +1206,13 @@ class _CompetitionRules implements CompetitionRules {
         teamHandicapMethod,
         const DeepCollectionEquality().hash(_oomExcludedRoundIds),
         tournamentFormat,
-        seedingLogic
+        seedingLogic,
+        progressionMode
       ]);
 
   @override
   String toString() {
-    return 'CompetitionRules(format: $format, subtype: $subtype, mode: $mode, handicapMode: $handicapMode, handicapCap: $handicapCap, handicapAllowance: $handicapAllowance, teamHandicapCap: $teamHandicapCap, underlyingFormat: $underlyingFormat, useCourseAllowance: $useCourseAllowance, maxScoreConfig: $maxScoreConfig, roundsCount: $roundsCount, aggregation: $aggregation, tieBreak: $tieBreak, holeByHoleRequired: $holeByHoleRequired, minDrivesPerPlayer: $minDrivesPerPlayer, useWHSScrambleAllowance: $useWHSScrambleAllowance, trackShotAttributions: $trackShotAttributions, applyCapToIndex: $applyCapToIndex, teamBestXCount: $teamBestXCount, teamSize: $teamSize, useMixedTeeAdjustment: $useMixedTeeAdjustment, teamHandicapMethod: $teamHandicapMethod, oomExcludedRoundIds: $oomExcludedRoundIds, tournamentFormat: $tournamentFormat, seedingLogic: $seedingLogic)';
+    return 'CompetitionRules(format: $format, subtype: $subtype, mode: $mode, handicapMode: $handicapMode, handicapCap: $handicapCap, handicapAllowance: $handicapAllowance, teamHandicapCap: $teamHandicapCap, underlyingFormat: $underlyingFormat, useCourseAllowance: $useCourseAllowance, maxScoreConfig: $maxScoreConfig, roundsCount: $roundsCount, aggregation: $aggregation, tieBreak: $tieBreak, holeByHoleRequired: $holeByHoleRequired, minDrivesPerPlayer: $minDrivesPerPlayer, useWHSScrambleAllowance: $useWHSScrambleAllowance, trackShotAttributions: $trackShotAttributions, applyCapToIndex: $applyCapToIndex, teamBestXCount: $teamBestXCount, teamSize: $teamSize, useMixedTeeAdjustment: $useMixedTeeAdjustment, teamHandicapMethod: $teamHandicapMethod, oomExcludedRoundIds: $oomExcludedRoundIds, tournamentFormat: $tournamentFormat, seedingLogic: $seedingLogic, progressionMode: $progressionMode)';
   }
 }
 
@@ -1226,7 +1249,8 @@ abstract mixin class _$CompetitionRulesCopyWith<$Res>
       TeamHandicapMethod teamHandicapMethod,
       List<String> oomExcludedRoundIds,
       TournamentFormat tournamentFormat,
-      SeedingLogic seedingLogic});
+      SeedingLogic seedingLogic,
+      MatchPlayProgression progressionMode});
 
   @override
   $MaxScoreConfigCopyWith<$Res>? get maxScoreConfig;
@@ -1270,6 +1294,7 @@ class __$CompetitionRulesCopyWithImpl<$Res>
     Object? oomExcludedRoundIds = null,
     Object? tournamentFormat = null,
     Object? seedingLogic = null,
+    Object? progressionMode = null,
   }) {
     return _then(_CompetitionRules(
       format: null == format
@@ -1372,6 +1397,10 @@ class __$CompetitionRulesCopyWithImpl<$Res>
           ? _self.seedingLogic
           : seedingLogic // ignore: cast_nullable_to_non_nullable
               as SeedingLogic,
+      progressionMode: null == progressionMode
+          ? _self.progressionMode
+          : progressionMode // ignore: cast_nullable_to_non_nullable
+              as MatchPlayProgression,
     ));
   }
 

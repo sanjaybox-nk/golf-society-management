@@ -21,7 +21,7 @@ class EventCourseSection extends ConsumerWidget {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const BoxyArtSectionTitle(title: 'Course Selection'),
+            const BoxyArtSectionTitle(title: 'Course Selection', followsCard: true),
             BoxyArtCard(
               child: Column(
                 children: [
@@ -58,27 +58,27 @@ class EventCourseSection extends ConsumerWidget {
                       );
                     },
                   ),
-                  const SizedBox(height: AppSpacing.lg),
+                  const SizedBox(height: AppSpacing.cardToLabel),
                   BoxyArtFormField(
                     label: 'Course Address',
                     initialValue: state.courseDetails,
                     maxLines: 2,
                     onChanged: (v) => ref.read(eventFormNotifierProvider.notifier).updateCourseDetailsManual(v),
                   ),
-                  const SizedBox(height: AppSpacing.lg),
+                  const SizedBox(height: AppSpacing.cardToLabel),
                   // Tee Selection (Simplified for now - can be expanded)
                   BoxyArtFormField(
                     label: 'Starting Tee (Manual)',
                     initialValue: state.selectedTeeName,
                     onChanged: (v) => ref.read(eventFormNotifierProvider.notifier).updateSelectedTeeName(v),
                   ),
-                  const SizedBox(height: AppSpacing.lg),
+                  const SizedBox(height: AppSpacing.cardToLabel),
                   BoxyArtFormField(
                     label: 'Dress Code',
                     initialValue: state.dressCode,
                     onChanged: (v) => ref.read(eventFormNotifierProvider.notifier).updateDressCode(v),
                   ),
-                  const SizedBox(height: AppSpacing.lg),
+                  const SizedBox(height: AppSpacing.cardToLabel),
                   Row(
                     children: [
                       Expanded(
@@ -93,7 +93,7 @@ class EventCourseSection extends ConsumerWidget {
                       const Expanded(child: SizedBox.shrink()),
                     ],
                   ),
-                  const SizedBox(height: AppSpacing.lg),
+                  const SizedBox(height: AppSpacing.cardToLabel),
                   BoxyArtFormField(
                     label: 'Available Spaces',
                     initialValue: state.maxParticipants?.toString() ?? '',

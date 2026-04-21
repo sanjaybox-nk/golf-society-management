@@ -447,11 +447,10 @@ class EventPodiumCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    if (!isManagement) {
-      final status = event.displayStatus;
-      if ((status != EventStatus.completed && status != EventStatus.inPlay) || event.results.isEmpty) {
-        return const SizedBox.shrink();
-      }
+    // [Design 4.x Gate] Only show recap/results logic when the event is fully completed
+    final status = event.displayStatus;
+    if (status != EventStatus.completed) {
+      return const SizedBox.shrink();
     }
 
     final topResults = event.results.take(3).toList();

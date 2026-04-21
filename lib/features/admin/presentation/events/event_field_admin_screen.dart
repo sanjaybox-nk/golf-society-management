@@ -1,7 +1,10 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:golf_society/design_system/design_system.dart';
 import 'package:go_router/go_router.dart';
 import 'package:collection/collection.dart';
+import 'package:golf_society/domain/models/competition.dart';
+import 'package:golf_society/features/competitions/presentation/competitions_provider.dart';
 import '../../../events/presentation/events_provider.dart';
 import '../../../members/presentation/members_provider.dart';
 import './event_registrations_admin_screen.dart';
@@ -45,7 +48,10 @@ class EventFieldAdminScreen extends ConsumerWidget {
           );
         }
 
+        final competitionAsync = ref.watch(competitionDetailProvider(eventId));
         final selectedTab = ref.watch(eventFieldTabProvider);
+
+        final isMatchPlay = competitionAsync.value?.rules.format == CompetitionFormat.matchPlay;
 
         return HeadlessScaffold(
           title: event.title,
@@ -62,13 +68,13 @@ class EventFieldAdminScreen extends ConsumerWidget {
                 selectedValue: selectedTab,
                 isExpanded: true,
                 onTabSelected: (val) => ref.read(eventFieldTabProvider.notifier).set(val),
-                tabs: const [
-                  ModernFilterTab(label: 'Entries', value: 0),
-                  ModernFilterTab(label: 'Tee Time', value: 1),
+                tabs: [
+                  const ModernFilterTab(label: 'Entries', value: 0),
+                  ModernFilterTab(label: isMatchPlay ? 'The Draw' : 'Tee Time', value: 1),
                 ],
               ),
             ),
-            const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.standard)),
+            // Removed manual SizedBox height: AppSpacing.standard (16.0) to avoid stacking with tabToContent
             if (selectedTab == 0)
               allMembersAsync.when(
                 data: (members) => EventRegistrationsAdminScreen.buildSliver(context, ref, event, members),

@@ -89,8 +89,9 @@ Hierarchical shell architecture:
 - **`EventAdminShell`**: Context-aware 5-tab hub for event administrators.
 - **`EventUserShell`**: Context-aware 5-tab hub for event members.
 - **Branch Navigators**: Administrative sub-hubs (Renewal Hub, Debt Ledger, Grouping Hub) use branch navigators to maintain `GlobalAppShell` visibility. Pushing to the root navigator for these screens is a known anti-pattern to avoid.
-- **Stable Keys**: Nested shells use stable `ValueKey` assignments via `boxyPage` to prevent widget destruction during tab switches.
-- **`boxyPage` Helper**: All routes use this helper for the unified **Fade + Subtle Slide Up** transition (400ms).
+- **Administrative Modal Stabilization**: (v7.1) All global administrative modals (e.g. Edit Menus, Audience Managers) must use `BoxyArtBottomSheet.show(useRootNavigator: true)` or `showModalBottomSheet(useRootNavigator: true)`. This ensures they correctly overlay the `GlobalAppShell` and prevents clipping by the persistent bottom navigation bar.
+- **Stable Keys**: Nested shells use stable `ValueKey` assignments via `hubPage` to prevent widget destruction during tab switches.
+- **`boxyPage` & `hubPage` Helpers**: All routes use these helpers for unified transitions. `hubPage` specifically manages the persistent `EventAdminShell`/`EventUserShell` wrappers with stable keys.
 
 ## Data Models
 

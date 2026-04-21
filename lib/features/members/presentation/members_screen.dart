@@ -52,7 +52,11 @@ class _MembersScreenState extends ConsumerState<MembersScreen> {
       final members = membersAsync.value!;
       activeCount = members.where((m) => m.status == MemberStatus.member || m.status == MemberStatus.active).length;
       committeeCount = members.where((m) => m.societyRole != null && m.societyRole!.isNotEmpty).length;
-      otherCount = members.where((m) => m.status != MemberStatus.member && m.status != MemberStatus.active).length;
+      otherCount = members.where((m) => 
+        m.status != MemberStatus.member && 
+        m.status != MemberStatus.active && 
+        m.status != MemberStatus.expired // Exclude from 'Other' count
+      ).length;
     }
 
     return GestureDetector(
@@ -117,7 +121,7 @@ class _MembersScreenState extends ConsumerState<MembersScreen> {
                       } else if (currentFilter.type == AdminMemberFilter.committee) {
                         return m.societyRole != null && m.societyRole!.isNotEmpty;
                       } else {
-                        return m.status != MemberStatus.member && m.status != MemberStatus.active;
+                        return m.status != MemberStatus.member && m.status != MemberStatus.active && m.status != MemberStatus.expired;
                       }
                     }).toList();
 

@@ -40,6 +40,11 @@ class MatchPlayCalculator {
     required CourseConfig courseConfig,
     required int holesToPlay, // Usually 18
   }) {
+    // Handle Manual Overrides
+    if (match.manualResult != null) {
+      return match.manualResult!;
+    }
+
     int currentScore = 0; // + for T1, - for T2
     List<int> holeResults = [];
     int holesCompleted = 0;

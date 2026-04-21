@@ -65,6 +65,9 @@ This document tracks the remaining work required to take **Golf Society Manageme
             - [x] **Partner Handshake**: Automated partner selection and reciprocity logic for team Match Play.
             - [x] **Tournament Subtypes**: Formal support for `matchPlaySeason` competitions (Knockouts/League).
             - [x] **Automated Seeding**: Integrated Random, Seeded (HC), and Merit (OOM) distribution logic.
+            - [x] **Persistence Reliability**: Full state restoration for administrative drafts, ensuring matchups and deadlines are preserved across reloads.
+            - [x] **Automated Reminders**: Push notification logic for uncompleted matches 5 days before deadline.
+            - [x] **Manual Control**: Committee "Pulse" trigger for on-demand reminders and visual Opponent Swapping in the Draw Manager.
     - [x] **Unified Scorecard View**: Consistent `ScorecardModal` across member/admin leaderboards.
     - [x] **Admin Scoring Controls**: Manual 'Force Active' and 'Score Lock' lifecycle management.
     - [x] **Manual Society Cuts**: Per-event handicap adjustments with automated group sync.
@@ -138,6 +141,11 @@ This document tracks the remaining work required to take **Golf Society Manageme
     - [x] **Duplicate Elimination**: Deleted legacy `ModernMemberCard` and feature-specific pills.
     - [x] **Library Standardized**: Cleaned up `metrics.dart` and standardized `BoxyArtPill` as single source of truth.
     - [x] **SDK & Theme Restoration (Apr 2026)**: Successful modernization to Flutter 3.41 / Dart 3.11 and synchronization of Design 4.x badge tokens across all hubs.
+- [x] **Administrative Shell Stabilization (v7.1)** (Completed 2026-04-21):
+    - [x] Corrected `StatefulShellBranch` nesting and bracket alignment in `app_router.dart`.
+    - [x] Standardized `useRootNavigator: true` for administrative modals to resolve shell-based clipping.
+    - [x] Implemented context-aware `eventId` passing for Competition Gallery and Selection flows.
+    - [x] Audited and synchronized global administrative edit menus to minimize navigation friction.
 - [x] **Society Cuts Restructure (Apr 2026)**: Moved global configuration to Admin Dashboard and implemented conditional manual workbench in Event Controls.
 
 ## 3. Architecture & Patterns

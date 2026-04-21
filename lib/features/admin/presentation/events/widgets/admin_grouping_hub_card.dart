@@ -86,15 +86,48 @@ class AdminGroupingHubCard extends ConsumerWidget {
   void _showStrategyPicker(BuildContext context, WidgetRef ref, String current) {
     showBoxyArtDialog(
       context: context,
-      title: 'Select strategy',
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          _StrategyOption(label: 'Random', value: 'random', current: current, onSelect: (v) => ref.read(groupingStrategyProvider.notifier).set(v)),
-          _StrategyOption(label: 'Balanced', value: 'balanced', current: current, onSelect: (v) => ref.read(groupingStrategyProvider.notifier).set(v)),
-          _StrategyOption(label: 'Progressive', value: 'progressive', current: current, onSelect: (v) => ref.read(groupingStrategyProvider.notifier).set(v)),
-          _StrategyOption(label: 'Similar Ability', value: 'similar', current: current, onSelect: (v) => ref.read(groupingStrategyProvider.notifier).set(v)),
-        ],
+      title: 'Grouping Strategy',
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _StrategyOption(
+              label: 'Random', 
+              description: 'Socially varied pairings with no influence from ability.',
+              icon: Icons.shuffle_rounded,
+              value: 'random', 
+              current: current, 
+              onSelect: (v) => ref.read(groupingStrategyProvider.notifier).set(v),
+            ),
+            const SizedBox(height: AppSpacing.md),
+            _StrategyOption(
+              label: 'Balanced', 
+              description: 'Aims to normalize total handicap across all groups.',
+              icon: Icons.balance_rounded,
+              value: 'balanced', 
+              current: current, 
+              onSelect: (v) => ref.read(groupingStrategyProvider.notifier).set(v),
+            ),
+            const SizedBox(height: AppSpacing.md),
+            _StrategyOption(
+              label: 'Progressive', 
+              description: 'Ordered by handicap - lower handicaps at the front.',
+              icon: Icons.trending_up_rounded,
+              value: 'progressive', 
+              current: current, 
+              onSelect: (v) => ref.read(groupingStrategyProvider.notifier).set(v),
+            ),
+            const SizedBox(height: AppSpacing.md),
+            _StrategyOption(
+              label: 'Similar Ability', 
+              description: 'Groups players with similar handicaps together.',
+              icon: Icons.people_outline_rounded,
+              value: 'similar', 
+              current: current, 
+              onSelect: (v) => ref.read(groupingStrategyProvider.notifier).set(v),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -150,24 +183,98 @@ class _HubRow extends StatelessWidget {
 }
 
 
-class _StrategyOption extends StatelessWidget {
+class _StrategyOption extends ConsumerWidget {
   final String label;
+  final String description;
+  final IconData icon;
   final String value;
   final String current;
   final ValueChanged<String> onSelect;
 
-  const _StrategyOption({required this.label, required this.value, required this.current, required this.onSelect});
+  const _StrategyOption({
+    required this.label, 
+    required this.description,
+    required this.icon,
+    required this.value, 
+    required this.current, 
+    required this.onSelect,
+  });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final config = ref.watch(themeControllerProvider);
     final isSelected = value == current;
-    return ListTile(
-      title: Text(label),
-      trailing: isSelected ? Icon(Icons.check_circle_rounded, color: Theme.of(context).colorScheme.primary) : null,
+    
+    final primaryColor = Color(config.primaryColor);
+    final bgColor = isDark ? Color(config.backgroundColor) : AppColors.dark50;
+    final cardRadius = config.cardRadius;
+    
+    return InkWell(
       onTap: () {
         onSelect(value);
         Navigator.pop(context);
       },
+      borderRadius: BorderRadius.circular(cardRadius),
+      child: Container(
+        padding: const EdgeInsets.all(AppSpacing.md),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(cardRadius),
+          border: Border.all(
+            color: isSelected 
+                ? primaryColor.withValues(alpha: 0.5) 
+                : (isDark ? AppColors.dark500 : AppColors.dark200).withValues(alpha: 0.2),
+            width: isSelected ? AppShapes.borderLight : AppShapes.borderThin,
+          ),
+          color: isSelected 
+              ? primaryColor.withValues(alpha: 0.08) 
+              : bgColor.withValues(alpha: 0.5),
+        ),
+        child: Row(
+          children: [
+            BoxyArtIconBadge(
+              icon: icon,
+              color: isSelected ? primaryColor : Colors.transparent,
+              iconColor: isSelected ? primaryColor : null,
+              size: 42,
+              iconSize: 20,
+              fillOpacity: isSelected ? 0.12 : null,
+            ),
+            const SizedBox(width: AppSpacing.md),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    label, 
+                    style: AppTypography.body.copyWith(
+                      fontWeight: AppTypography.weightStrong,
+                      color: isSelected ? primaryColor : theme.colorScheme.onSurface,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    description, 
+                    style: AppTypography.caption.copyWith(
+                      color: isDark ? AppColors.dark200 : AppColors.dark400,
+                      height: 1.2,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+            if (isSelected)
+              Icon(
+                Icons.check_circle_rounded, 
+                color: primaryColor, 
+                size: AppShapes.iconSm,
+              ),
+          ],
+        ),
+      ),
     );
   }
 }

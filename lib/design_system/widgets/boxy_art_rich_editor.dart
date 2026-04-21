@@ -140,6 +140,15 @@ class BoxyArtRichEditor extends ConsumerWidget {
             config: QuillEditorConfig(
               placeholder: placeholder,
               customStyles: DefaultStyles(
+                paragraph: DefaultTextBlockStyle(
+                  AppTypography.body.copyWith(
+                    color: isDark ? AppColors.dark60 : AppColors.dark900,
+                  ),
+                  const HorizontalSpacing(0, 0),
+                  const VerticalSpacing(0, 0),
+                  const VerticalSpacing(0, 0),
+                  null,
+                ),
                 placeHolder: DefaultTextBlockStyle(
                   AppTypography.body.copyWith(
                     color: isDark ? AppColors.dark400 : AppColors.dark300,

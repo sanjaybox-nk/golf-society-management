@@ -28,6 +28,7 @@ import 'package:golf_society/services/persistence_service.dart';
 import '../../../matchplay/presentation/widgets/matches_list_widget.dart';
 import '../../../matchplay/presentation/widgets/matches_bracket_widget.dart';
 import '../../../matchplay/presentation/widgets/match_group_standings_widget.dart';
+import '../../../matchplay/presentation/widgets/match_play_bracket_hub.dart';
 import '../../../matchplay/domain/golf_event_match_extensions.dart';
 import '../../../matchplay/domain/match_definition.dart';
 import '../../logic/event_scoring_controller.dart';
@@ -713,21 +714,9 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
           scoringData: scoringData,
         );
       }
-      case 4: { // Matches
-        return scorecardsAsync.when(
-          data: (scorecards) => Column(
-            children: [
-              if (event.matches.any((m) => m.round == MatchRoundType.group))
-                MatchGroupStandingsWidget(event: event, scorecards: scorecards),
-              MatchesListWidget(eventId: widget.eventId),
-            ],
-          ),
-          loading: () => const Center(child: CircularProgressIndicator()),
-          error: (e, s) => Center(child: Text('Error: $e')),
-        );
-      }
-      case 5: { // Bracket
-        return MatchesBracketWidget(eventId: widget.eventId);
+      case 4: // Tournament Hub
+      case 5: { 
+        return MatchPlayBracketHub(eventId: widget.eventId);
       }
       default: {
          // Default to My Score (0) if the shared index doesn't apply to this hub

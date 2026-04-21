@@ -129,7 +129,7 @@ class _BoxyArtRichNoteEditorState extends ConsumerState<BoxyArtRichNoteEditor> {
           ),
           
           if (_imageUrl != null) ...[
-            SizedBox(height: spacing?.cardToCard ?? AppSpacing.standard),
+            SizedBox(height: spacing?.cardToLabel ?? AppSpacing.cardToLabel),
             Stack(
               children: [
                 ClipRRect(
@@ -154,7 +154,7 @@ class _BoxyArtRichNoteEditorState extends ConsumerState<BoxyArtRichNoteEditor> {
             ),
           ],
           
-          SizedBox(height: spacing?.cardToCard ?? AppSpacing.standard),
+          SizedBox(height: spacing?.cardToLabel ?? AppSpacing.cardToLabel),
           Text(
             'NOTE CONTENT',
             style: AppTypography.labelStrong.copyWith(

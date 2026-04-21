@@ -17,7 +17,7 @@ class EventBasicInfoSection extends ConsumerWidget {
       data: (state) => Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const BoxyArtSectionTitle(title: 'Basic info'),
+          const BoxyArtSectionTitle(title: 'Basic info', followsCard: true),
           BoxyArtCard(
             child: BoxyArtFormColumn(
               children: [
@@ -70,7 +70,10 @@ class EventBasicInfoSection extends ConsumerWidget {
                             children: [
                               Icon(Icons.add_a_photo_rounded, size: AppShapes.iconXl, color: Theme.of(context).primaryColor.withValues(alpha: AppColors.opacityHalf)),
                               const SizedBox(height: AppSpacing.sm),
-                              const Text('Add event photo', style: TextStyle(fontSize: AppTypography.sizeLabelStrong, fontWeight: AppTypography.weightBold)),
+                              Text(
+                                'Add event photo', 
+                                style: AppTypography.labelStrong.copyWith(color: Theme.of(context).primaryColor),
+                              ),
                             ],
                           ),
                   ),

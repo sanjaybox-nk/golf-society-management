@@ -72,8 +72,8 @@ class _BoxyArtRichFormFieldState extends State<BoxyArtRichFormField> {
           style: AppTypography.label.copyWith(
             color: Theme.of(context).brightness == Brightness.dark ? AppColors.dark60 : AppColors.dark900,
             fontSize: AppTypography.sizeLabel,
-            fontWeight: AppTypography.weightBold,
-            letterSpacing: 1.2,
+            fontWeight: AppTypography.weightStrong,
+            letterSpacing: AppTypography.lsLabel,
           ),
         ),
         SizedBox(height: Theme.of(context).extension<AppSpacingTokens>()?.labelToCard ?? AppSpacing.labelToCard),

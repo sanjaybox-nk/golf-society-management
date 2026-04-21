@@ -33,10 +33,17 @@ class RegistrationStatsCard extends ConsumerWidget {
         : '${stats.reserveGolfers}';
 
     if (isCompact) {
-      return _buildGridVersion(
-        context, 
-        _getCompactStats(event, stats, playingValue, reserveValue),
-        isDark,
+      final spacing = Theme.of(context).extension<AppSpacingTokens>();
+      final double vPadding = spacing?.cardVerticalPadding ?? AppSpacing.lg;
+      final double hPadding = spacing?.cardHorizontalPadding ?? AppSpacing.xl;
+
+      return BoxyArtCard(
+        padding: EdgeInsets.symmetric(vertical: vPadding, horizontal: hPadding),
+        child: _buildGridVersion(
+          context, 
+          _getCompactStats(event, stats, playingValue, reserveValue),
+          isDark,
+        ),
       );
     }
 

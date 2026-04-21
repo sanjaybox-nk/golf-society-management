@@ -1,12 +1,14 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:golf_society/domain/models/member.dart';
 import 'package:golf_society/design_system/design_system.dart';
-import 'package:golf_society/utils/string_utils.dart';
-import '../profile_provider.dart';
 import '../members_provider.dart';
+import '../profile_provider.dart';
 
+/// The primary tile for member listings in the roster.
+/// Refactored to use the unified [BoxyArtMemberRow] engine for Design 4.x.
 class MemberTile extends ConsumerWidget {
   final Member member;
   final VoidCallback? onTap;
@@ -41,169 +43,102 @@ class MemberTile extends ConsumerWidget {
     final isAdmin = currentUser.role == MemberRole.admin || currentUser.role == MemberRole.superAdmin;
     final canSeeFees = isAdmin && showFeeStatus;
     
-    // Design 4.1: Collapsible Action Column
-    // Reclaim 80px space for the middle column if no actions are present
-    final hasActionContent = (isAdmin && isAdminContext) || 
-                             (member.societyRole?.isNotEmpty == true) || 
-                             canSeeFees;
-
-    return BoxyArtCard(
+    return BoxyArtMemberRow(
+      name: member.displayName,
+      initials: (member.firstName.isNotEmpty ? member.firstName[0] : '') + (member.lastName.isNotEmpty ? member.lastName[0] : ''),
+      avatarUrl: member.avatarUrl,
+      handicapIndex: member.handicap,
+      // Design 4.x: Society roles (Captain, etc.) now integrated into secondary metadata
+      secondaryName: member.societyRole?.isNotEmpty == true ? member.societyRole : null,
       onTap: onTap ?? () => context.pushNamed(
         isAdminContext ? 'admin-member-detail' : 'member-detail', 
         pathParameters: {'id': member.id},
       ),
-      onLongPress: onLongPress,
-      padding: const EdgeInsets.all(AppSpacing.large),
-      child: IntrinsicHeight(
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.stretch, // Enable vertical anchoring
+      isSelected: false,
+      useCard: true,
+      showChevron: true,
+      showVerticalDivider: true,
+      
+      // Leading Slot: Preserving roster-specific metrics (Since / Events)
+      leading: SizedBox(
+        width: 64,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
-              // 1. Left Section: Identity (Avatar Hub)
-              SizedBox(
-                width: 68,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  children: [
-
-                  BoxyArtAvatar(
-                    url: member.avatarUrl,
-                    initials: '${member.firstName.isNotEmpty ? member.firstName[0] : ''}${member.lastName.isNotEmpty ? member.lastName[0] : ''}',
-                    radius: 32,
-                    isCircle: true,
-                  ),
-                  if (member.joinedDate != null) ...[
-                    const SizedBox(height: AppSpacing.sm),
-                    FittedBox(
-                      child: Text(
-                        'Since ${member.joinedDate!.year}',
-                        style: AppTypography.caption.copyWith(
-                          color: Theme.of(context).brightness == Brightness.dark ? AppColors.dark200 : AppColors.dark800,
-                        ),
-                      ),
-                    ),
-                  ],
-                  // Relocated Row 4 (Secondary Metric) to Left Column for balance
-                  const SizedBox(height: 6),
-                  FittedBox(
-                    child: Text.rich(
-                      TextSpan(
-                        children: [
-                          TextSpan(
-                            text: '${secondaryMetricLabel ?? 'Events'} ',
-                            style: AppTypography.micro.copyWith(
-                              color: theme.brightness == Brightness.dark ? AppColors.dark200 : AppColors.dark800,
-                            ),
-                          ),
-                          TextSpan(
-                            text: secondaryMetricValue ?? '0',
-                            style: AppTypography.micro.copyWith(
-                              color: theme.colorScheme.onSurface,
-                            ),
-                          ),
-                        ],
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                ],
-              ),
+            BoxyArtAvatar(
+              url: member.avatarUrl,
+              initials: (member.firstName.isNotEmpty ? member.firstName[0] : '') + (member.lastName.isNotEmpty ? member.lastName[0] : ''),
+              radius: 32,
+              isCircle: true,
+              borderColor: Colors.transparent, // Cleaner, borderless standard
+              borderWidth: 0,
             ),
-
-            const SizedBox(width: 16), // Whitespace divider
-
-            // 2. Middle Section: Information (Flexible)
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  // Row 1: Name (Aligned to top of avatar)
-                  const SizedBox(height: 4),
-                  Text(
-                    member.displayName,
-                    style: AppTypography.memberName.copyWith(
-                      color: theme.colorScheme.onSurface,
-                      height: 1.1,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+            if (member.joinedDate != null) ...[
+              const SizedBox(height: 4),
+              FittedBox(
+                child: Text(
+                  'Since ${member.joinedDate!.year}',
+                  style: AppTypography.caption.copyWith(
+                    color: theme.brightness == Brightness.dark ? AppColors.dark200 : AppColors.dark800,
+                    fontSize: 9, 
                   ),
-
-                  const SizedBox(height: 4),
-
-                  // Row 2: Role Pill (Now the primary sub-identity item)
-                  if (member.societyRole?.isNotEmpty == true)
-                    BoxyArtIndicator(
-                      label: member.societyRole!,
-                      dotColor: AppColors.amber500,
-                      hasHorizontalMargin: false,
-                    ),
-
-                  if (member.societyRole?.isNotEmpty == true)
-                    const SizedBox(height: 4),
-
-                  BoxyArtIndicator(
-                    label: 'HC: ${member.handicap.toStringAsFixed(1)}',
-                    dotColor: AppColors.dark400,
-                    hasHorizontalMargin: false,
-                  ),
-                ],
-              ),
-            ),
-
-            // 3. Right Section: Status & Actions (Flexible stack)
-            if (hasActionContent || (member.status != MemberStatus.active && member.status != MemberStatus.member)) ...[
-              const SizedBox(width: AppSpacing.md),
-              Column(
-                mainAxisAlignment: MainAxisAlignment.end,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Row 3a: Fee Pill
-                  if (canSeeFees) ...[
-                    BoxyArtFeePill(
-                      isPaid: member.hasPaid,
-                      hasHorizontalMargin: false,
-                      onToggle: onFeeToggle ?? () {
-                        final repo = ref.read(membersRepositoryProvider);
-                        final nextPaidState = !member.hasPaid;
-                        
-                        // Renewal Trigger: Auto-promote Expired/Grace members to Member status when fees are marked as paid
-                        final newStatus = nextPaidState && (member.status == MemberStatus.expired || member.status == MemberStatus.gracePeriod)
-                            ? MemberStatus.member 
-                            : member.status;
-
-                        repo.updateMember(member.copyWith(
-                          hasPaid: nextPaidState,
-                          status: newStatus,
-                        ));
-                      },
-                    ),
-                    const SizedBox(height: AppSpacing.xs),
-                  ],
-
-                  // Row 3b: Status Tag (Bottom Right placement)
-                  if (member.status != MemberStatus.active && member.status != MemberStatus.member)
-                    // Self-Healing UI: Suppress Expiry/Grace tags if the fee has already been paid
-                    if (!((member.status == MemberStatus.expired || member.status == MemberStatus.gracePeriod) && member.hasPaid))
-                      if (member.status != MemberStatus.expired || isAdminContext)
-                        BoxyArtIndicator(
-                          label: member.status.displayName,
-                          dotColor: member.status.color,
-                          hasHorizontalMargin: false,
-                        ),
-                  
-                  // Trailing Widget
-                  if (trailing != null) ...[
-                    const SizedBox(height: AppSpacing.sm),
-                    trailing!,
-                  ],
-                ],
+                ),
               ),
             ],
+            const SizedBox(height: 4), // Increased from 2
+            FittedBox(
+              child: Text(
+                '${secondaryMetricLabel ?? 'Events'} ${secondaryMetricValue ?? '0'}',
+                style: AppTypography.micro.copyWith(
+                  color: theme.brightness == Brightness.dark ? AppColors.dark200 : AppColors.dark800, // Darker contrast
+                  fontSize: 10, // One size bigger
+                  fontWeight: AppTypography.weightRegular,
+                ),
+              ),
+            ),
           ],
         ),
       ),
-      );
-    }
+      
+      // Trailing Slot: Admin Actions & Statuses
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (canSeeFees)
+            BoxyArtFeePill(
+              isPaid: member.hasPaid,
+              hasHorizontalMargin: false,
+              onToggle: onFeeToggle ?? () {
+                final repo = ref.read(membersRepositoryProvider);
+                final nextPaidState = !member.hasPaid;
+                
+                // Renewal Trigger: Auto-promote Expired/Grace members to Member status when fees are marked as paid
+                final newStatus = nextPaidState && (member.status == MemberStatus.expired || member.status == MemberStatus.gracePeriod)
+                    ? MemberStatus.member 
+                    : member.status;
+
+                repo.updateMember(member.copyWith(
+                  hasPaid: nextPaidState,
+                  status: newStatus,
+                ));
+              },
+            ),
+          if (isAdminContext && member.status != MemberStatus.active && member.status != MemberStatus.member)
+            if (member.status != MemberStatus.expired || isAdminContext)
+              Padding(
+                padding: const EdgeInsets.only(left: 8),
+                child: BoxyArtIndicator(
+                  label: member.status.displayName,
+                  dotColor: member.status.color,
+                  hasHorizontalMargin: false,
+                ),
+              ),
+          if (trailing != null) ...[
+            const SizedBox(width: 8),
+            trailing!,
+          ],
+        ],
+      ),
+    );
+  }
 }

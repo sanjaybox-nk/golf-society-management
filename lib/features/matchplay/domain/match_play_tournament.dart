@@ -65,6 +65,7 @@ class MatchPlayTournament {
   final List<MatchDefinition> matches;
   final Map<MatchRoundType, DateTime> roundCutoffs;
   final bool isPublished;
+  final String? notes;
   final DateTime createdAt;
 
   const MatchPlayTournament({
@@ -78,6 +79,7 @@ class MatchPlayTournament {
     this.matches = const [],
     this.roundCutoffs = const {},
     this.isPublished = false,
+    this.notes,
     required this.createdAt,
   });
 
@@ -92,6 +94,7 @@ class MatchPlayTournament {
     List<MatchDefinition>? matches,
     Map<MatchRoundType, DateTime>? roundCutoffs,
     bool? isPublished,
+    String? notes,
     DateTime? createdAt,
   }) {
     return MatchPlayTournament(
@@ -105,6 +108,7 @@ class MatchPlayTournament {
       matches: matches ?? this.matches,
       roundCutoffs: roundCutoffs ?? this.roundCutoffs,
       isPublished: isPublished ?? this.isPublished,
+      notes: notes ?? this.notes,
       createdAt: createdAt ?? this.createdAt,
     );
   }
@@ -120,6 +124,7 @@ class MatchPlayTournament {
     'matches': matches.map((m) => m.toJson()).toList(),
     'roundCutoffs': roundCutoffs.map((k, v) => MapEntry(k.name, v.toIso8601String())),
     'isPublished': isPublished,
+    'notes': notes,
     'createdAt': createdAt.toIso8601String(),
   };
 
@@ -142,6 +147,7 @@ class MatchPlayTournament {
         DateTime.parse(v as String),
       )),
       isPublished: json['isPublished'] as bool? ?? false,
+      notes: json['notes'] as String?,
       createdAt: DateTime.parse(json['createdAt'] as String),
     );
   }

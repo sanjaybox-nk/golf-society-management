@@ -7,6 +7,7 @@ import '../../domain/golf_event_match_extensions.dart';
 import '../../../events/presentation/events_provider.dart';
 import '../../../competitions/presentation/competitions_provider.dart';
 import '../../../members/presentation/profile_provider.dart';
+import '../../../members/presentation/members_provider.dart';
 import 'package:golf_society/domain/models/member.dart';
 import 'package:golf_society/design_system/design_system.dart';
 import 'package:golf_society/domain/models/golf_event.dart';
@@ -263,14 +264,14 @@ class _RoundColumn extends StatelessWidget {
   }
 }
 
-class _BracketMatchTile extends StatelessWidget {
+class _BracketMatchTile extends ConsumerWidget {
   final MatchDefinition match;
   final MatchResult result;
 
   const _BracketMatchTile({required this.match, required this.result});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Container(
       decoration: BoxDecoration(
         color: AppColors.dark900.withValues(alpha: 0.95),
@@ -283,18 +284,22 @@ class _BracketMatchTile extends StatelessWidget {
         children: [
           _buildPlayerRow(
             context: context,
+            ref: ref,
             name: match.team1Name ?? (match.team1Ids.isEmpty ? 'BYE' : 'Side A'), 
             playerIds: match.team1Ids,
             isWinner: result.winningTeamIndex == 0,
             strokesMap: match.strokesReceived,
+            matchSide: 'A',
           ),
           Divider(height: 1, color: AppColors.pureWhite.withValues(alpha: 0.08)),
           _buildPlayerRow(
             context: context,
+            ref: ref,
             name: match.team2Name ?? (match.team2Ids.isEmpty ? 'BYE' : 'Side B'), 
             playerIds: match.team2Ids,
             isWinner: result.winningTeamIndex == 1,
             strokesMap: match.strokesReceived,
+            matchSide: 'B',
           ),
           Container(
             width: double.infinity,
@@ -321,11 +326,17 @@ class _BracketMatchTile extends StatelessWidget {
 
   Widget _buildPlayerRow({
     required BuildContext context,
+    required WidgetRef ref,
     required String name, 
     required List<String> playerIds,
     required bool isWinner,
     required Map<String, int> strokesMap,
+    required String matchSide,
   }) {
+    final members = ref.watch(allMembersProvider).value ?? [];
+    final firstPlayerId = playerIds.isNotEmpty ? playerIds.first : null;
+    final member = firstPlayerId != null ? members.firstWhereOrNull((m) => m.id == firstPlayerId) : null;
+
     // Get the highest stroke count for this team/player to show as summary badge
     int maxStrokes = 0;
     for (var id in playerIds) {
@@ -333,39 +344,27 @@ class _BracketMatchTile extends StatelessWidget {
       if (s > maxStrokes) maxStrokes = s;
     }
 
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.lg),
-      color: isWinner ? AppColors.lime500.withValues(alpha: 0.03) : Colors.transparent,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Expanded(
-            child: Row(
-              children: [
-                Flexible(
-                  child: Text(
-                    name.toUpperCase(),
-                    style: TextStyle(
-                      color: isWinner ? AppColors.pureWhite : AppColors.textSecondary,
-                      fontWeight: isWinner ? AppTypography.weightBlack : AppTypography.weightBold,
-                      fontSize: 12,
-                      letterSpacing: 0.5,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                if (maxStrokes > 0) ...[
-                  const SizedBox(width: AppSpacing.sm),
-                  _StrokeBadge(count: maxStrokes),
-                ],
-              ],
-            ),
-          ),
-          if (isWinner)
-            const Icon(Icons.check_circle, color: AppColors.lime500, size: 16),
-        ],
-      ),
+    String? secondary;
+    if (playerIds.length > 1) {
+       final p2Id = playerIds[1];
+       final p2 = members.firstWhereOrNull((m) => m.id == p2Id);
+       secondary = p2?.displayName ?? 'Partner';
+    }
+
+    return BoxyArtMemberRow(
+      name: name,
+      secondaryName: secondary,
+      initials: (name.isNotEmpty ? name[0] : '?').toUpperCase(),
+      avatarUrl: member?.avatarUrl,
+      handicapIndex: member?.handicap,
+      playingHandicap: maxStrokes > 0 ? maxStrokes : null,
+      isWinner: isWinner,
+      matchSide: matchSide,
+      useCard: false,
+      showChevron: false,
+      showVerticalDivider: true,
+      accentColor: isWinner ? AppColors.lime500 : (matchSide == 'A' ? AppColors.teamA : (matchSide == 'B' ? AppColors.teamB : null)),
+      varietyPillarColor: isWinner ? AppColors.lime500 : (matchSide == 'A' ? AppColors.teamA : (matchSide == 'B' ? AppColors.teamB : null)),
     );
   }
 }

@@ -40,22 +40,22 @@ class CompetitionBuilderScreen extends ConsumerWidget {
         return templatesAsync.when(
           data: (templates) {
             final template = templates.where((t) => t.id == competitionId).firstOrNull;
-            if (template == null) return const Scaffold(body: Center(child: Text("Template not found")));
+            if (template == null) return const HeadlessScaffold(title: 'Not Found', showBack: true, slivers: [SliverFillRemaining(child: Center(child: Text("Template not found")))]);
             return _buildScaffold(context, template.rules.format, template: template);
           },
-          loading: () => const Scaffold(body: Center(child: CircularProgressIndicator())),
-          error: (e, s) => Scaffold(body: Center(child: Text("Error: $e"))),
+          loading: () => const HeadlessScaffold(title: 'Loading...', slivers: [SliverFillRemaining(child: Center(child: CircularProgressIndicator()))]),
+          error: (e, s) => HeadlessScaffold(title: 'Error', showBack: true, slivers: [SliverFillRemaining(child: Center(child: Text("Error: $e")))]),
         );
       } else {
         // Fetch event-specific competition
         final compAsync = ref.watch(competitionDetailProvider(competitionId!));
         return compAsync.when(
           data: (comp) {
-            if (comp == null) return const Scaffold(body: Center(child: Text("Competition not found")));
+            if (comp == null) return const HeadlessScaffold(title: 'Not Found', showBack: true, slivers: [SliverFillRemaining(child: Center(child: Text("Competition not found")))]);
             return _buildScaffold(context, comp.rules.format, competition: comp);
           },
-          loading: () => const Scaffold(body: Center(child: CircularProgressIndicator())),
-          error: (e, s) => Scaffold(body: Center(child: Text("Error: $e"))),
+          loading: () => const HeadlessScaffold(title: 'Loading...', slivers: [SliverFillRemaining(child: Center(child: CircularProgressIndicator()))]),
+          error: (e, s) => HeadlessScaffold(title: 'Error', showBack: true, slivers: [SliverFillRemaining(child: Center(child: Text("Error: $e")))]),
         );
       }
     }
@@ -70,7 +70,7 @@ class CompetitionBuilderScreen extends ConsumerWidget {
       return _buildScaffold(context, CompetitionFormat.matchPlay); 
     }
 
-    return const Scaffold(body: Center(child: Text("Error: No data provided for competition builder.")));
+    return const HeadlessScaffold(title: 'Error', showBack: true, slivers: [SliverFillRemaining(child: Center(child: Text("Error: No data provided for competition builder.")))]);
   }
 
   Widget _buildScaffold(BuildContext context, CompetitionFormat activeFormat, {Competition? competition, Competition? template}) {

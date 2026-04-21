@@ -11,11 +11,41 @@ import 'package:golf_society/domain/models/leaderboard_config.dart';
 import '../../events/presentation/events_provider.dart';
 
 // Next Match derived from Upcoming Events
+import 'package:collection/collection.dart';
+import '../../matchplay/domain/match_definition.dart';
+import '../../matchplay/domain/golf_event_match_extensions.dart';
+
+// Next Match derived from Upcoming Events
 final homeNextMatchProvider = Provider<AsyncValue<GolfEvent?>>((ref) {
   final upcomingAsync = ref.watch(upcomingEventsProvider);
   return upcomingAsync.whenData((events) {
     if (events.isEmpty) return null;
     return events.first; // First element is the nearest upcoming event
+  });
+});
+
+/// Watches for any published Match Play matchups for the current user
+final userLiveMatchesProvider = Provider<AsyncValue<List<(GolfEvent, MatchDefinition)>>>((ref) {
+  final eventsAsync = ref.watch(eventsProvider);
+  final currentUser = ref.watch(effectiveUserProvider);
+
+  return eventsAsync.whenData((events) {
+    final matches = <(GolfEvent, MatchDefinition)>[];
+    
+    for (final event in events) {
+      // Only check published Match Play events
+      if (event.grouping['isPublished'] != true) continue;
+      
+      final userMatch = event.matches.firstWhereOrNull(
+        (m) => (m.playerAId == currentUser.id || m.playerBId == currentUser.id) &&
+               !m.isBye
+      );
+
+      if (userMatch != null) {
+        matches.add((event, userMatch));
+      }
+    }
+    return matches;
   });
 });
 

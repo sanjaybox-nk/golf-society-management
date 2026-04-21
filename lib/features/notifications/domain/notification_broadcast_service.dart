@@ -4,6 +4,7 @@ import 'package:golf_society/domain/models/member.dart';
 import 'package:golf_society/domain/models/golf_event.dart';
 import 'package:golf_society/design_system/design_system.dart';
 import 'package:intl/intl.dart';
+import '../../matchplay/domain/match_play_tournament.dart';
 
 class NotificationBroadcastService {
   final Ref ref;
@@ -103,6 +104,28 @@ class NotificationBroadcastService {
         'isRead': false,
         'actionUrl': '/members/${member.id}',
     });
+  }
+
+  /// Notifies all entrants of a Match Play tournament that the draw is published.
+  Future<void> notifyMatchPlayPublished({
+    required MatchPlayTournament tournament,
+  }) async {
+    final playerIds = <String>{};
+    for (final entrant in tournament.entrants) {
+      playerIds.addAll(entrant.playerIds);
+    }
+
+    for (final playerId in playerIds) {
+      await _firestore.collection('notifications').add({
+        'recipientId': playerId,
+        'title': 'Match Play Draw Live!',
+        'message': 'The draw for ${tournament.name} is now live! Check your opening match and deadline in the Match Play Hub.',
+        'timestamp': FieldValue.serverTimestamp(),
+        'category': 'match_play',
+        'isRead': false,
+        'actionUrl': '/matchplay',
+      });
+    }
   }
 }
 

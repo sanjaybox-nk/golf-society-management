@@ -35,16 +35,18 @@ When a "Pairs" Match Play event is published, the registration flow undergoes a 
 
 The **Match Play Draw Manager** (Design 4.x) is the administrative hub for bracket generation.
 
-### Seeding Logic
-- **Random**: Arbitrary placement in the bracket.
-- **Seeded**: Positions assigned based on current WHS Handicap Index.
-- **Merit (Ranking)**: Positions assigned based on the current Order of Merit (OOM) standings.
+- **Random**: Standard placement in the bracket, ensuring a fair and unbiased tournament start.
 
 ### The Draw Manager Workflow
-Launched directly from an event, the manager:
-1. **Syncs Registrations**: Automatically pulls confirmed entrants and pairings.
-2. **Validates Counts**: Ensures the entrant count fits a standard bracket (8, 16, 32) or handles "Byes".
-3. **Generates Matrix**: Builds the complete `MatchDefinition` list for the tournament lifecycle.
+Launched directly from an event, the manager (Design 4.x):
+1. **Dual-Sync Registration**: Automatically pulls confirmed entrants and pairings. If an admin manually adds a member to the draw, the system automatically registers that member for the underlying GolfEvent.
+2. **Draft Persistence**: Draft draws, round deadlines, and administrative notes are faithfully persisted and restored through the `matchPlayTournamentProvider`.
+3. **High-Fidelity Aesthetics**: Uses a divider-free "Command Center" layout with Title Case typographic standards and state-aware primary action controls.
+4. **Validates Counts**: Ensures the entrant count fits a standard bracket (8, 16, 32) or handles "Byes".
+5. **Generates Matrix**: Builds the complete `MatchDefinition` list for the tournament lifecycle.
+6. **Manual Swapping**: Committee members can manually swap opponents between matches in the **Draft** phase by tapping two players. Selection state is visually confirmed via primary-color borders and haptic feedback.
+7. **Administrative Overrides (Live)**: Once published, committee members can manage uncompleted matches through the **MANAGE** toolkit. Tapping a live match provides options for **Walkovers**, **Withdrawals**, and **Manual Score Entry** (e.g., 3&2). Manual results are indicated with an amber status identifier and take precedence over automatic scorecard calculations.
+8. **Shell Persistence**: The Draw Manager is integrated into the event administration hub using `hubPage` routing. This ensures that the event context and shell state (tabs, header) remain stable and persistent when navigating between the draw and other event tools.
 
 ## 5. Result States & Derivement
 
@@ -54,7 +56,16 @@ Matches track status using a standardized format derived centrally:
 - **`Dormie`**: Leading player is ahead by the same number of holes remaining.
 - **`3 & 2`**: Match ended on the 16th hole with one player 3 up.
 
-## 6. Implementation Status (Updated April 2026)
+## 6. Automated Reminders
+
+The Matchplay module features a robust **Automated Reminder System** designed to keep tournament progression on schedule.
+
+- **Cadence**: Reminders are triggered exactly **5 days** before a round cutoff.
+- **Logic**: The system audits all published tournaments, excluding completed matches and byes.
+- **Participants**: Notifications are dispatched simultaneously to both players (or teams) involved in an uncompleted match.
+- **Administrative Control**: While typically automated via Cloud Functions, committee members can manually trigger a reminder sync directly from the **Match Play Draw Manager** (Alarm icon). This performs an on-demand scan of the bracket for overdue or soon-due matches.
+
+## 7. Implementation Status (Updated April 2026)
 
 - [x] Data Models (`MatchPlayTournament`, `MatchDefinition`)
 - [x] Handicap & Automated Strokes Logic
@@ -63,4 +74,9 @@ Matches track status using a standardized format derived centrally:
 - [x] Match Play Draw Manager (Event-Bound)
 - [x] Partner Handshake Registration Logic
 - [x] Season Tournament Subtype (`matchPlaySeason`)
-- [x] Seeding Logic (Random, Seeded, Merit)
+- [x] Streamlined Fair Draw Logic (Random only)
+- [x] Automated 5-Day Pre-Deadline Reminders
+- [x] Manual Opponent Swapping UI (Draft Phase)
+- [x] Manual Pre-Deadline Reminder Pulse Trigger
+- [x] Administrative Result Overrides (Walkovers/Manual Scores)
+- [x] Withdrawal & Walkover Persistence Logic

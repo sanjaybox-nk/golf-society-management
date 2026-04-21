@@ -1,6 +1,5 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
-import 'package:golf_society/design_system/design_system.dart';
 
 class EventAdminShell extends ConsumerWidget {
   final String id;
@@ -14,30 +13,21 @@ class EventAdminShell extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final state = GoRouterState.of(context);
-    final segments = state.uri.pathSegments;
-
-    // Hard-coded mapping for the 5-tab Admin Spec
-    int currentIndex = 0;
-    if (segments.contains('details')) {
-      currentIndex = 0;
-    } else if (segments.contains('gallery')) {
-      currentIndex = 1;
-    } else if (segments.contains('scores')) {
-      currentIndex = 2;
-    } else if (segments.contains('stats')) {
-      currentIndex = 3;
-    } else if (segments.contains('controls')) {
-      currentIndex = 4;
-    }
-
-
-    final String prefix = '/admin/events/manage/$id';
-
-    return Scaffold(
-      primary: true,
-      extendBody: false,
-      body: child,
+    // NOTE: Do NOT use Scaffold here. GlobalAppShell already provides the root
+    // Scaffold. A nested Scaffold creates a FocusScope/_FocusMarker
+    // (InheritedNotifier<FocusNode>) during its first mount. When this happens
+    // inside go_router's StatefulNavigationShell LayoutBuilder, the FocusNode
+    // notification propagates to dependents OUTSIDE the LayoutBuilder's
+    // buildScope, which calls markNeedsBuild() during layout → assertion crash.
+    // A plain Material avoids all Focus system initialization at the shell level.
+    // We add a dedicated FocusScope to isolate focus shifts within the hub content,
+    // preventing focus notifications from triggering parent layout passes during builds.
+    return Material(
+      color: Theme.of(context).scaffoldBackgroundColor,
+      child: FocusScope(
+        debugLabel: 'EventAdminShell:$id',
+        child: child,
+      ),
     );
   }
 }

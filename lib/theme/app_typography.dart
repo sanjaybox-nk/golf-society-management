@@ -65,7 +65,7 @@ class AppTypography {
   static const TextStyle memberName = TextStyle(
     fontFamily: 'Plus Jakarta Sans',
     fontSize: sizeBody,
-    fontWeight: weightStrong,
+    fontWeight: weightBold, // w700
     letterSpacing: lsTight,
     height: 1.4,
   );

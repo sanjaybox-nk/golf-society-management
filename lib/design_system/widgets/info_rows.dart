@@ -4,6 +4,7 @@ import 'package:golf_society/design_system/design_system.dart';
 /// A structured row for displaying info within a BoxyArtCard.
 class ModernInfoRow extends ConsumerWidget {
   final String label;
+  final String? subtitle;
   final String value;
   final IconData? icon;
   final Color? iconColor;
@@ -17,6 +18,7 @@ class ModernInfoRow extends ConsumerWidget {
   const ModernInfoRow({
     super.key,
     required this.label,
+    this.subtitle,
     required this.value,
     this.icon,
     this.iconColor,
@@ -60,6 +62,15 @@ class ModernInfoRow extends ConsumerWidget {
                   letterSpacing: 1.2,
                 ),
               ),
+              if (subtitle != null) ...[
+                const SizedBox(height: 1),
+                Text(
+                  subtitle!,
+                  style: AppTypography.micro.copyWith(
+                    color: textSecondary?.withValues(alpha: AppColors.opacityHigh),
+                  ),
+                ),
+              ],
               const SizedBox(height: 2),
               Text(
                 value,

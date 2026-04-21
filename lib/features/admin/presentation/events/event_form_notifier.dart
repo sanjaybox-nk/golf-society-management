@@ -274,7 +274,20 @@ class EventFormNotifier extends AsyncNotifier<EventFormState> {
 
   // Content Logic
   void updateFacilities(List<String> v) => state = AsyncData(state.value!.copyWith(facilities: v));
+
+  void addFacility() {
+    final current = state.value?.facilities ?? [];
+    state = AsyncData(state.value!.copyWith(facilities: [...current, '']));
+  }
+
   void updateNotes(List<EventNote> v) => state = AsyncData(state.value!.copyWith(notes: v));
+
+  void addNote() {
+    final current = state.value?.notes ?? [];
+    state = AsyncData(state.value!.copyWith(
+      notes: [...current, const EventNote(content: '')],
+    ));
+  }
 
   // Save Orchestration
   Future<bool> save() async {

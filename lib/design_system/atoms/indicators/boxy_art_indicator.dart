@@ -81,7 +81,7 @@ class BoxyArtIndicator extends StatelessWidget {
               style: AppTypography.label.copyWith(
                 fontSize: fontSize ?? 13.0,
                 color: textColor ?? AppColors.dark800,
-                fontWeight: AppTypography.weightBold,
+                fontWeight: AppTypography.weightStrong, // w600
                 letterSpacing: AppTypography.lsLabel,
                 height: 1.0,
               ),

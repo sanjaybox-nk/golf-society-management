@@ -35,15 +35,17 @@ class BoxyArtMemberRow extends StatelessWidget {
   // Custom Trailing
   final Widget? trailing; // [NEW] Optional custom trailing widget (e.g. for Admin toggles)
   
-  // Variety border for grouping
-  final Color? varietyBorderColor;
+  // Variety Pillar for grouping behavior signaling
+  final Color? varietyPillarColor;
   
   final VoidCallback? onTap;
   final bool isSelected;
   final int? ranking; // [NEW] For ranking overlay on avatar
-  final bool useCard; // [NEW] Whether to wrap in a card or show as a flat row (for GroupingCard integration)
+  final bool useCard; // [NEW] Whether to wrap in a card or show as a flat row
   final bool showChevron; // [NEW] Control visibility of interaction chevron
-  final Color? accentColor; // [NEW] Master accent color for the left border (Phase 46)
+  final bool showVerticalDivider; // [NEW] Shows vertical line between avatar and content
+  final Color? accentColor; // [NEW] Master accent color for the left border
+  final bool isStableford; // [NEW] Whether to show 'pts' suffix for scores
 
   const BoxyArtMemberRow({
     super.key,
@@ -66,14 +68,16 @@ class BoxyArtMemberRow extends StatelessWidget {
     this.isWinner = false,
     this.matchSide,
     this.trailing,
-    this.varietyBorderColor,
+    this.varietyPillarColor,
     this.hasSocietyCut = false,
     this.onTap,
     this.isSelected = false,
     this.ranking,
     this.useCard = true,
     this.showChevron = true,
+    this.showVerticalDivider = true,
     this.accentColor,
+    this.isStableford = true,
   });
 
   final bool hasSocietyCut;
@@ -116,9 +120,64 @@ class BoxyArtMemberRow extends StatelessWidget {
                     isFilled: true,
                   ),
                 ),
+              
+              // Captain Overlay
+              if (isCaptain && !isGuest)
+                const Positioned(
+                  bottom: -4,
+                  right: -4,
+                  child: BoxyArtIconBadge(
+                    icon: Icons.shield_rounded,
+                    color: AppColors.amber500,
+                    size: 22,
+                    iconSize: 12,
+                    useCircle: true,
+                  ),
+                ),
+                
+              // Guest Overlay
+              if (isGuest)
+                Positioned(
+                  bottom: -4,
+                  left: -4,
+                  child: Container(
+                    width: 20,
+                    height: 20,
+                    decoration: BoxDecoration(
+                      color: AppColors.amber500,
+                      shape: BoxShape.circle,
+                      border: Border.all(color: AppColors.pureWhite, width: 1.5),
+                    ),
+                    alignment: Alignment.center,
+                    child: const Text('G', style: TextStyle(fontSize: 10, fontWeight: AppTypography.weightHeavy, color: AppColors.dark900)),
+                  ),
+                ),
+
+              // Host Overlay (Has Guest in group)
+              if (hasMemberGuest)
+                Positioned(
+                  bottom: -4,
+                  left: -4,
+                  child: BoxyArtIconBadge(
+                    icon: Icons.person_add_rounded,
+                    color: theme.colorScheme.primary,
+                    size: 22,
+                    iconSize: 12,
+                    useCircle: true,
+                  ),
+                ),
             ],
           ),
-          const SizedBox(width: AppSpacing.md),
+
+          if (showVerticalDivider) 
+            Container(
+              width: 1,
+              height: double.infinity,
+              margin: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+              color: varietyPillarColor ?? theme.colorScheme.onSurface.withValues(alpha: AppColors.opacitySubtle),
+            )
+          else
+            const SizedBox(width: AppSpacing.md),
 
           // 2. Content
           Expanded(
@@ -134,22 +193,22 @@ class BoxyArtMemberRow extends StatelessWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
+                const SizedBox(height: AppSpacing.xs),
+                _buildMetadata(context),
                 if (secondaryName != null)
                   Padding(
-                    padding: const EdgeInsets.only(top: 1),
+                    padding: const EdgeInsets.only(top: 4),
                     child: Text(
                       toTitleCase(secondaryName!),
-                      style: AppTypography.body.copyWith(
-                        color: isDark ? AppColors.dark150 : AppColors.dark700,
-                        fontWeight: AppTypography.weightBlack,
-                        fontSize: AppTypography.sizeBody,
+                      style: AppTypography.micro.copyWith(
+                        color: isDark ? AppColors.pureWhite : AppColors.dark900,
+                        fontWeight: FontWeight.w500, // w500
+                        letterSpacing: 0.1,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
-                const SizedBox(height: AppSpacing.xs),
-                _buildMetadata(context),
               ],
             ),
           ),
@@ -181,7 +240,12 @@ class BoxyArtMemberRow extends StatelessWidget {
                 ),
                 Expanded(
                   child: Padding(
-                    padding: EdgeInsets.symmetric(horizontal: horizontalPadding, vertical: verticalPadding),
+                    padding: EdgeInsets.only(
+                      left: AppSpacing.sm, // 8px (combined with 4px bar = 12px start gap)
+                      right: horizontalPadding,
+                      top: verticalPadding,
+                      bottom: verticalPadding,
+                    ),
                     child: content,
                   ),
                 ),
@@ -214,18 +278,14 @@ class BoxyArtMemberRow extends StatelessWidget {
 
   Widget _buildAvatar(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final size = 36.0;
+    final double size = 48.0; // Increased to 48px for premium impact
 
     return Container(
       width: size + 8,
       height: size + 8,
       alignment: Alignment.center,
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         shape: BoxShape.circle,
-        border: Border.all(
-          color: varietyBorderColor ?? Colors.transparent,
-          width: AppShapes.borderSemi,
-        ),
       ),
       child: CircleAvatar(
         radius: size / 2,
@@ -319,41 +379,6 @@ class BoxyArtMemberRow extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        // Traits
-        if (isGuest)
-          _buildTraitBadge(
-            context: context,
-            child: Text(
-              'G',
-              style: AppTypography.micro.copyWith(
-                color: primaryColor,
-                fontWeight: AppTypography.weightBlack,
-                fontSize: 12,
-              ),
-            ),
-          ),
-        if (isWinner)
-          _buildTraitBadge(
-            context: context,
-            child: Icon(Icons.emoji_events_rounded, size: 14, color: primaryColor),
-          ),
-        if (needsBuggy)
-          _buildTraitBadge(
-            context: context,
-            child: Icon(Icons.electric_rickshaw, size: 14, color: primaryColor),
-          ),
-        if (isCaptain && !isGuest)
-          _buildTraitBadge(
-            context: context,
-            backgroundColor: AppColors.amber500.withValues(alpha: 0.15),
-            child: const Icon(Icons.shield, size: 14, color: AppColors.amber500),
-          ),
-        if (hasMemberGuest)
-          _buildTraitBadge(
-            context: context,
-            child: Icon(Icons.person_add, size: 14, color: primaryColor),
-          ),
-          
         if (trailing != null) ...[
           const SizedBox(width: 4),
           trailing!,
@@ -376,17 +401,37 @@ class BoxyArtMemberRow extends StatelessWidget {
                     ),
                   ),
                 ),
-              Container(
-                constraints: const BoxConstraints(minWidth: 40),
-                alignment: Alignment.centerRight,
-                child: Text(
-                  score!,
-                  style: AppTypography.displaySection.copyWith(
-                    color: scoreColor ?? (isDark ? AppColors.pureWhite : AppColors.dark900),
-                    height: 1.0,
+                Container(
+                  constraints: const BoxConstraints(minWidth: 40),
+                  alignment: Alignment.centerRight,
+                  child: RichText(
+                    text: TextSpan(
+                      style: AppTypography.displaySection.copyWith(
+                        color: scoreColor ?? (isDark ? AppColors.pureWhite : AppColors.dark900),
+                        height: 1.0,
+                      ),
+                      children: [
+                        TextSpan(
+                          text: score!,
+                          style: AppTypography.displaySection.copyWith(
+                            color: scoreColor ?? (isDark ? AppColors.pureWhite : AppColors.dark900),
+                            fontSize: (score!.length > 5) ? 18 : 24,
+                            height: 1.0,
+                          ),
+                        ),
+                        if (isStableford && score!.length <= 3 && !score!.contains('&'))
+                          TextSpan(
+                            text: ' pts',
+                            style: AppTypography.label.copyWith(
+                              fontSize: 12,
+                              fontWeight: AppTypography.weightMedium,
+                              color: (scoreColor ?? (isDark ? AppColors.pureWhite : AppColors.dark900)).withValues(alpha: AppColors.opacityMedium),
+                            ),
+                          ),
+                      ],
+                    ),
                   ),
                 ),
-              ),
             ],
           ),
         ],

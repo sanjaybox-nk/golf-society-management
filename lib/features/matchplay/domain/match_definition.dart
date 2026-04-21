@@ -22,6 +22,7 @@ class MatchDefinition {
   // Override Labels (optional)
   final String? team1Name; // e.g., "Team Europe" or "Names calculated"
   final String? team2Name;
+  final MatchResult? manualResult; // Administrative override
 
   const MatchDefinition({
     required this.id,
@@ -39,7 +40,14 @@ class MatchDefinition {
     this.bracketOrder,
     this.team1Name,
     this.team2Name,
+    this.manualResult,
   });
+
+  // Convenience getters for single matches
+  String? get playerAId => team1Ids.isNotEmpty ? team1Ids.first : null;
+  String? get playerBId => team2Ids.isNotEmpty ? team2Ids.first : null;
+  String get playerAName => team1Name ?? 'Player A';
+  String get playerBName => team2Name ?? 'Player B';
 
   MatchDefinition copyWith({
     String? id,
@@ -57,6 +65,7 @@ class MatchDefinition {
     int? bracketOrder,
     String? team1Name,
     String? team2Name,
+    MatchResult? manualResult,
   }) {
     return MatchDefinition(
       id: id ?? this.id,
@@ -74,6 +83,7 @@ class MatchDefinition {
       bracketOrder: bracketOrder ?? this.bracketOrder,
       team1Name: team1Name ?? this.team1Name,
       team2Name: team2Name ?? this.team2Name,
+      manualResult: manualResult ?? this.manualResult,
     );
   }
 
@@ -93,6 +103,7 @@ class MatchDefinition {
     'bracketOrder': bracketOrder,
     'team1Name': team1Name,
     'team2Name': team2Name,
+    'manualResult': manualResult?.toJson(),
   };
 
   factory MatchDefinition.fromJson(Map<String, dynamic> json) {
@@ -142,6 +153,7 @@ class MatchDefinition {
       bracketOrder: json['bracketOrder'] is int ? json['bracketOrder'] as int : (int.tryParse(json['bracketOrder']?.toString() ?? '')),
       team1Name: json['team1Name'] as String?,
       team2Name: json['team2Name'] as String?,
+      manualResult: json['manualResult'] != null ? MatchResult.fromJson(json['manualResult'] as Map<String, dynamic>) : null,
     );
   }
 }

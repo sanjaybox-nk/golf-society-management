@@ -6,12 +6,14 @@ class CompetitionTypeSelectionScreen extends StatelessWidget {
   final bool isTemplate;
   final bool isPicker;
   final String? formatFilter;
+  final String? eventId;
 
   const CompetitionTypeSelectionScreen({
     super.key, 
     this.isTemplate = false,
     this.isPicker = false,
     this.formatFilter,
+    this.eventId,
   });
 
   @override

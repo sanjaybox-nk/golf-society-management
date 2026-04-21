@@ -60,8 +60,8 @@ class EventUserDetailsTab extends ConsumerWidget {
         );
       },
       loading: () => useScaffold 
-          ? const Scaffold(body: Center(child: CircularProgressIndicator()))
-          : const Center(child: CircularProgressIndicator()),
+          ? Scaffold(body: Center(child: CircularProgressIndicator()))
+          : Center(child: CircularProgressIndicator()),
       error: (err, stack) => useScaffold
           ? Scaffold(body: Center(child: Text('Error: $err')))
           : Center(child: Text('Error: $err')),
@@ -110,14 +110,10 @@ class _EventDetailsContentState extends ConsumerState<EventDetailsContent> {
     
     final event = widget.event;
 
-    return Scaffold(
-      extendBody: true,
-      extendBodyBehindAppBar: true,
-      primary: false,
-      bottomNavigationBar: widget.bottomNavigationBar,
-      body: HeadlessScaffold(
+    return HeadlessScaffold(
         title: event.title,
         subtitle: 'Event Info Hub',
+        titleSuffix: widget.isAdminMode ? BoxyArtPill.committee(label: 'ADMIN') : null,
         showAdminShortcut: false, // Explicitly removed as requested
   
         leading: widget.isPreview ? Center(
@@ -164,7 +160,7 @@ class _EventDetailsContentState extends ConsumerState<EventDetailsContent> {
                   pathParameters: {'id': event.id},
                   extra: event,
                 ),
-                tooltip: 'Edit Event Settings',
+                tooltip: 'Edit Event Basics',
               ),
             ],
           ],
@@ -202,10 +198,14 @@ class _EventDetailsContentState extends ConsumerState<EventDetailsContent> {
                      event.status == EventStatus.inPlay || 
                      event.status == EventStatus.completed) && 
                     event.eventType == EventType.golf) ...[
-                   CompetitionRulesCard(
+                    CompetitionRulesCard(
                     eventId: event.id,
                     title: 'Competition Rules',
                     competition: widget.competition,
+                    onCustomize: widget.isAdminMode ? () => context.pushNamed(
+                      'admin-event-game-setup',
+                      pathParameters: {'id': event.id},
+                    ) : null,
                   ),
                 ],
 
@@ -222,9 +222,8 @@ class _EventDetailsContentState extends ConsumerState<EventDetailsContent> {
           ),
         ),
       ],
-    ),
-  );
-}
+    );
+  }
 
 
   Widget _buildNotificationsSection(BuildContext context, WidgetRef ref) {

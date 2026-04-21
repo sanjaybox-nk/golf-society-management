@@ -90,60 +90,42 @@ CustomTransitionPage boxyPage({
   required GoRouterState state,
   required Widget child,
   LocalKey? key,
+  String? hubId, // Optional: if provided, wraps in appropriate Event Shell
 }) {
-  // We use the matchedLocation as the primary key source to ensure that the same logical route
-  // always maintains its State and RenderObject during branch switching and non-destructive transitions.
-  final pageKey = key ?? ValueKey('boxyPage-${state.matchedLocation}');
-  debugPrint('DEBUG_ROUTER: Building page for ${state.matchedLocation} with key: $pageKey');
+  // Deterministic Admin Context detection for Hub shells
+  final bool isAdmin = state.matchedLocation.contains('/admin');
+
+  // [Hardened Deterministic Key Strategy] 
+  // We anchor every screen to its strictly resolved location path. 
+  // For Hub-based pages, we anchor to the HUB root to keep the shell persistent.
+  final stableKey = key ?? ValueKey(hubId != null 
+      ? 'hub:$hubId:${isAdmin ? 'admin' : 'user'}' 
+      : 'page:${state.matchedLocation}');
+  
+  debugPrint('DEBUG_ROUTER [HARDENED]: Identity anchored -> $stableKey');
 
   return CustomTransitionPage(
-    key: pageKey,
-    child: child,
+    key: stableKey,
+    child: hubId != null 
+      ? (isAdmin 
+          ? EventAdminShell(id: hubId, child: child) 
+          : EventUserShell(id: hubId, child: child))
+      : child,
     transitionDuration: AppAnimations.medium,
     transitionsBuilder: (context, animation, secondaryAnimation, child) {
-      final fade = CurvedAnimation(
-        parent: animation,
-        curve: AppAnimations.entranceCurve,
-      );
+      if (hubId != null) {
+        // Hubs use standard fade for smooth tab-like transitions
+        return FadeTransition(opacity: CurvedAnimation(parent: animation, curve: AppAnimations.entranceCurve), child: child);
+      }
+
+      // Standard pages use the signature Design 4.x slide-fade entrance
+      final fade = CurvedAnimation(parent: animation, curve: AppAnimations.entranceCurve);
       final slide = Tween<Offset>(
         begin: const Offset(0, 0.05),
         end: Offset.zero,
-      ).animate(CurvedAnimation(
-        parent: animation,
-        curve: AppAnimations.entranceCurve,
-      ));
+      ).animate(CurvedAnimation(parent: animation, curve: AppAnimations.entranceCurve));
 
-      return FadeTransition(
-        opacity: fade,
-        child: SlideTransition(
-          position: slide,
-          child: child,
-        ),
-      );
-    },
-  );
-}
-
-CustomTransitionPage hubPage({
-  required GoRouterState state,
-  required Widget child,
-  required String id,
-  bool isAdmin = false,
-}) {
-  // Stable Hub Key: Forces the shell to stay alive across tab switches.
-  final hubKey = ValueKey('hub-${isAdmin ? 'admin' : 'user'}-$id');
-  
-  return CustomTransitionPage(
-    key: hubKey,
-    child: isAdmin 
-      ? EventAdminShell(id: id, child: child) 
-      : EventUserShell(id: id, child: child),
-    transitionDuration: AppAnimations.medium,
-    transitionsBuilder: (context, animation, secondaryAnimation, child) {
-      return FadeTransition(
-        opacity: CurvedAnimation(parent: animation, curve: AppAnimations.entranceCurve),
-        child: child,
-      );
+      return FadeTransition(opacity: fade, child: SlideTransition(position: slide, child: child));
     },
   );
 }
@@ -226,9 +208,9 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                   GoRoute(
                     path: ':id/details',
                     name: 'user-event-details',
-                    pageBuilder: (context, state) => hubPage(
+                    pageBuilder: (context, state) => boxyPage(
                       state: state,
-                      id: state.pathParameters['id']!,
+                      hubId: state.pathParameters['id']!,
                       child: EventUserDetailsTab(eventId: state.pathParameters['id']!),
                     ),
                   ),
@@ -242,36 +224,36 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                   GoRoute(
                     path: ':id/field',
                     name: 'user-event-field',
-                    pageBuilder: (context, state) => hubPage(
+                    pageBuilder: (context, state) => boxyPage(
                       state: state,
-                      id: state.pathParameters['id']!,
+                      hubId: state.pathParameters['id']!,
                       child: EventGroupingUserTab(eventId: state.pathParameters['id']!),
                     ),
                   ),
                   GoRoute(
                     path: ':id/live',
                     name: 'user-event-live',
-                    pageBuilder: (context, state) => hubPage(
+                    pageBuilder: (context, state) => boxyPage(
                       state: state,
-                      id: state.pathParameters['id']!,
+                      hubId: state.pathParameters['id']!,
                       child: EventScoresUserTab(eventId: state.pathParameters['id']!),
                     ),
                   ),
                   GoRoute(
                     path: ':id/scores',
                     name: 'user-event-scores',
-                    pageBuilder: (context, state) => hubPage(
+                    pageBuilder: (context, state) => boxyPage(
                       state: state,
-                      id: state.pathParameters['id']!,
+                      hubId: state.pathParameters['id']!,
                       child: TournamentScoresUserTab(eventId: state.pathParameters['id']!),
                     ),
                   ),
                   GoRoute(
                     path: ':id/stats',
                     name: 'user-event-stats',
-                    pageBuilder: (context, state) => hubPage(
+                    pageBuilder: (context, state) => boxyPage(
                       state: state,
-                      id: state.pathParameters['id']!,
+                      hubId: state.pathParameters['id']!,
                       child: EventStatsUserTab(eventId: state.pathParameters['id']!),
                     ),
                   ),
@@ -503,6 +485,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                             path: 'create/:type',
                             pageBuilder: (context, state) => boxyPage(state: state,
                               child: CompetitionBuilderScreen(
+                                isTemplate: true,
                                 format: CompetitionFormat.values.firstWhereOrNull(
                                   (f) => f.name == state.pathParameters['type'],
                                 ),
@@ -625,6 +608,61 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                       ),
                     ],
                    ),
+                  // --- NEW NESTED COMPETITION ROUTES ---
+                  GoRoute(
+                    path: 'manage/:id/game-setup',
+                    name: 'admin-event-game-setup',
+                    pageBuilder: (context, state) => boxyPage(
+                      state: state,
+                      hubId: state.pathParameters['id']!,
+                      child: CompetitionTypeSelectionScreen(
+                        isPicker: true, 
+                        eventId: state.pathParameters['id'],
+                      ),
+                    ),
+                    routes: [
+                      GoRoute(
+                        path: 'gallery/:type',
+                        name: 'admin-event-game-gallery',
+                        pageBuilder: (context, state) => boxyPage(
+                          state: state,
+                          hubId: state.pathParameters['id']!,
+                          child: CompetitionTemplateGalleryScreen(
+                            typeStr: state.pathParameters['type']!,
+                            isPicker: true,
+                            eventId: state.pathParameters['id']!,
+                          ),
+                        ),
+                      ),
+                      GoRoute(
+                        path: 'create/:type',
+                        name: 'admin-event-game-create',
+                        pageBuilder: (context, state) => boxyPage(
+                          state: state,
+                          hubId: state.pathParameters['id']!,
+                          child: CompetitionBuilderScreen(
+                            competitionId: state.pathParameters['id'],
+                            competition: state.extra as Competition?,
+                            format: CompetitionFormat.values.firstWhereOrNull(
+                              (f) => f.name == state.pathParameters['type'],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  GoRoute(
+                    path: 'manage/:id/game-builder',
+                    name: 'admin-event-game-builder',
+                    pageBuilder: (context, state) => boxyPage(
+                      state: state,
+                      hubId: state.pathParameters['id']!,
+                      child: CompetitionBuilderScreen(
+                        competitionId: state.pathParameters['id'],
+                        competition: state.extra as Competition?,
+                      ),
+                    ),
+                  ),
                   GoRoute(
                     path: 'leaderboards/create/:type',
                     pageBuilder: (context, state) => boxyPage(state: state,
@@ -719,61 +757,15 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                     ),
                   ),
                   GoRoute(
-                    path: 'competitions',
-                    redirect: (context, state) => '/admin/events',
-                    routes: [
-                      GoRoute(
-                        path: 'new',
-                        pageBuilder: (context, state) => boxyPage(
-                      state: state,
-                      child: const CompetitionTypeSelectionScreen(isPicker: true),
-                    ),
-                    routes: [
-                      GoRoute(
-                        path: 'gallery/:type',
-                        pageBuilder: (context, state) => boxyPage(
-                          state: state,
-                          child: CompetitionTemplateGalleryScreen(
-                            typeStr: state.pathParameters['type']!,
-                            isPicker: true,
-                          ),
-                        ),
-                      ),
-                          GoRoute(
-                            path: 'create/:type',
-                            pageBuilder: (context, state) => boxyPage(
-                              state: state,
-                              child: CompetitionBuilderScreen(
-                                format: CompetitionFormat.values.firstWhereOrNull(
-                                  (f) => f.name == state.pathParameters['type'],
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      GoRoute(
-                        path: 'edit/:id',
-                        pageBuilder: (context, state) => boxyPage(
-                          state: state,
-                          child: CompetitionBuilderScreen(
-                            competitionId: state.pathParameters['id'],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  GoRoute(
                     path: 'manage/:id',
                     redirect: (context, state) => '/admin/events/manage/${state.pathParameters['id']}/details',
                   ),
                   GoRoute(
                     path: 'manage/:id/details',
                     name: 'admin-event-details',
-                    pageBuilder: (context, state) => hubPage(
+                    pageBuilder: (context, state) => boxyPage(
                       state: state,
-                      id: state.pathParameters['id']!,
-                      isAdmin: true,
+                      hubId: state.pathParameters['id']!,
                       child: EventUserDetailsTab(
                         eventId: state.pathParameters['id']!,
                         isAdminMode: true,
@@ -794,10 +786,9 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                   GoRoute(
                     path: 'manage/:id/matchplay/draw',
                     name: 'admin-event-matchplay-draw',
-                    pageBuilder: (context, state) => hubPage(
+                    pageBuilder: (context, state) => boxyPage(
                       state: state,
-                      id: state.pathParameters['id']!,
-                      isAdmin: true,
+                      hubId: state.pathParameters['id']!,
                       child: MatchPlayDrawManagerScreen(
                         eventId: state.pathParameters['id'],
                       ),
@@ -806,40 +797,36 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                   GoRoute(
                     path: 'manage/:id/gallery',
                     name: 'admin-event-gallery',
-                    pageBuilder: (context, state) => hubPage(
+                    pageBuilder: (context, state) => boxyPage(
                       state: state,
-                      id: state.pathParameters['id']!,
-                      isAdmin: true,
+                      hubId: state.pathParameters['id']!,
                       child: EventFieldAdminScreen(eventId: state.pathParameters['id']!),
                     ),
                   ),
                   GoRoute(
                     path: 'manage/:id/scores',
                     name: 'admin-event-scores',
-                    pageBuilder: (context, state) => hubPage(
+                    pageBuilder: (context, state) => boxyPage(
                       state: state,
-                      id: state.pathParameters['id']!,
-                      isAdmin: true,
+                      hubId: state.pathParameters['id']!,
                       child: EventAdminScoresScreen(eventId: state.pathParameters['id']!),
                     ),
                   ),
                   GoRoute(
                     path: 'manage/:id/stats',
                     name: 'admin-event-reporting',
-                    pageBuilder: (context, state) => hubPage(
+                    pageBuilder: (context, state) => boxyPage(
                       state: state,
-                      id: state.pathParameters['id']!,
-                      isAdmin: true,
+                      hubId: state.pathParameters['id']!,
                       child: EventAdminReportsScreen(eventId: state.pathParameters['id']!),
                     ),
                   ),
                   GoRoute(
                     path: 'manage/:id/controls',
                     name: 'admin-event-manage-tower',
-                    pageBuilder: (context, state) => hubPage(
+                    pageBuilder: (context, state) => boxyPage(
                       state: state,
-                      id: state.pathParameters['id']!,
-                      isAdmin: true,
+                      hubId: state.pathParameters['id']!,
                       child: EventAdminControlsScreen(eventId: state.pathParameters['id']!),
                     ),
                   ),
