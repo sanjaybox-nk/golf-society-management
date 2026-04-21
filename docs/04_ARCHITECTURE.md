@@ -108,7 +108,7 @@ All models are immutable, generated with `freezed` and `JsonSerializable`:
   | `Survey` / `SurveyQuestion` | Multi-question survey with Quill Delta JSON prompts |
   | `FinancialEntry` | Treasury ledger items (sponsorship, donation, expense) |
   | `LeaderboardEntry` | Pre-calculated scoring vehicle — SSOT for all display |
-  | `SocietyConfig` | Branding tokens, sponsors, theming, spacing overrides |
+  | `SocietyConfig` | Comprehensive Branding SSOT (Tokens, radii, spacing, mechanicals) |
 
 ## Code Quality & Hardening
 

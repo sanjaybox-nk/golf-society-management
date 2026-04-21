@@ -297,8 +297,8 @@ class _MatchupCard extends ConsumerWidget {
         child: Column(
           children: [
             _buildPlayerRow(p1?.displayName ?? 'BYE', match.team1Ids, result.winningTeamIndex == 0, theme),
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 4),
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 4),
               child: Text('vs', style: AppTypography.micro, textAlign: TextAlign.center),
             ),
             _buildPlayerRow(p2?.displayName ?? 'BYE', match.team2Ids, result.winningTeamIndex == 1, theme),

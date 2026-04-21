@@ -117,7 +117,7 @@ class EventPricingSection extends ConsumerWidget {
             followsCard: true,
           ),
           BoxyArtCard(
-            child: Column(
+            child: BoxyArtFormColumn(
               children: [
                 if (state.eventType == EventType.golf) ...[
                   _buildMealToggle(ref, 'Breakfast', state.hasBreakfast, state.societyBreakfastCost, state.breakfastCost, currency, 
@@ -139,13 +139,11 @@ class EventPricingSection extends ConsumerWidget {
                   ),
                 ],
                 if (state.hasDinner || state.eventType == EventType.social) ...[
-                  if (state.eventType == EventType.golf) const SizedBox(height: AppSpacing.lg),
                   BoxyArtFormField(
                     label: state.eventType == EventType.social ? 'Event Location' : 'Dinner Location',
                     initialValue: state.dinnerLocation,
                     onChanged: (v) => ref.read(eventFormNotifierProvider.notifier).updateDinnerLocation(v),
                   ),
-                  const SizedBox(height: AppSpacing.lg),
                   BoxyArtFormField(
                     label: state.eventType == EventType.social ? 'Event Address' : 'Dinner Address (Optional)',
                     initialValue: state.dinnerAddress,
@@ -173,18 +171,16 @@ class EventPricingSection extends ConsumerWidget {
     Function(String) onSocietyCostChanged,
     Function(String) onMemberCostChanged,
   ) {
-    return Column(
+    return BoxyArtFormColumn(
       children: [
         BoxyArtSwitchField(label: 'Offer $label', value: value, onChanged: onToggle),
         if (value) ...[
-          const SizedBox(height: AppSpacing.lg),
           BoxyArtFormField(
             label: 'Society $label Cost ($currency)',
             initialValue: societyCost?.toString() ?? '',
             keyboardType: TextInputType.number,
             onChanged: onSocietyCostChanged,
           ),
-          const SizedBox(height: AppSpacing.lg),
           BoxyArtFormField(
             label: 'Member Charge ($currency)',
             initialValue: memberCost?.toString() ?? '',

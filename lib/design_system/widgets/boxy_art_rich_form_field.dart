@@ -68,12 +68,11 @@ class _BoxyArtRichFormFieldState extends State<BoxyArtRichFormField> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          toTitleCase(widget.label),
-          style: AppTypography.label.copyWith(
-            color: Theme.of(context).brightness == Brightness.dark ? AppColors.dark60 : AppColors.dark900,
-            fontSize: AppTypography.sizeLabel,
-            fontWeight: AppTypography.weightStrong,
-            letterSpacing: AppTypography.lsLabel,
+          widget.label.toUpperCase(),
+          style: AppTypography.micro.copyWith(
+            color: Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha: AppColors.opacityHigh),
+            fontWeight: AppTypography.weightBold,
+            letterSpacing: 1.2,
           ),
         ),
         SizedBox(height: Theme.of(context).extension<AppSpacingTokens>()?.labelToCard ?? AppSpacing.labelToCard),

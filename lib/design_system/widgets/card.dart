@@ -116,7 +116,7 @@ class BoxyArtCard extends ConsumerWidget {
 }
 
 /// A standard card for settings items.
-class BoxyArtSettingsCard extends StatelessWidget {
+class BoxyArtSettingsCard extends ConsumerWidget {
   final String title;
   final List<Widget> children;
 
@@ -127,27 +127,31 @@ class BoxyArtSettingsCard extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final config = ref.watch(themeControllerProvider);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
           padding: const EdgeInsets.only(left: AppSpacing.md, bottom: AppSpacing.md),
           child: Text(
-            toTitleCase(title),
-            style: AppTypography.label.copyWith(
+            title.toUpperCase(),
+            style: AppTypography.micro.copyWith(
               color: Theme.of(context).primaryColor,
+              fontWeight: AppTypography.weightBold,
+              letterSpacing: 1.2,
             ),
           ),
         ),
         Container(
           decoration: BoxDecoration(
             color: Theme.of(context).cardColor,
-            borderRadius: BorderRadius.circular(Theme.of(context).extension<AppShapeTokens>()?.cardRadius ?? AppShapes.rLg),
+            borderRadius: BorderRadius.circular(config.cardRadius),
             boxShadow: Theme.of(context).extension<AppShadows>()?.inputSoft ?? [],
           ),
           child: ClipRRect(
-            borderRadius: BorderRadius.circular(Theme.of(context).extension<AppShapeTokens>()?.cardRadius ?? AppShapes.rLg),
+            borderRadius: BorderRadius.circular(config.cardRadius),
             child: Column(
               children: children,
             ),
@@ -159,7 +163,7 @@ class BoxyArtSettingsCard extends StatelessWidget {
 }
 
 /// A card for displaying notes or announcements.
-class ModernNoteCard extends StatelessWidget {
+class ModernNoteCard extends ConsumerWidget {
   final String? title;
   final String content;
   final String? imageUrl;
@@ -174,7 +178,8 @@ class ModernNoteCard extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final config = ref.watch(themeControllerProvider);
     return BoxyArtCard(
       margin: margin ?? const EdgeInsets.only(bottom: AppSpacing.md),
       child: Column(
@@ -182,8 +187,12 @@ class ModernNoteCard extends StatelessWidget {
         children: [
           if (title != null && title!.isNotEmpty) ...[
             Text(
-              toTitleCase(title!),
-              style: AppTypography.label,
+              title!.toUpperCase(),
+              style: AppTypography.micro.copyWith(
+                fontWeight: AppTypography.weightBold,
+                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: AppColors.opacityHigh),
+                letterSpacing: 1.2,
+              ),
             ),
             const SizedBox(height: AppSpacing.sm),
           ],
@@ -194,7 +203,7 @@ class ModernNoteCard extends StatelessWidget {
           if (imageUrl != null && imageUrl!.isNotEmpty) ...[
             const SizedBox(height: AppSpacing.md),
             ClipRRect(
-              borderRadius: AppShapes.md,
+              borderRadius: BorderRadius.circular(config.cardRadius * 0.5),
               child: Image.network(
                 imageUrl!, 
                 width: double.infinity, 

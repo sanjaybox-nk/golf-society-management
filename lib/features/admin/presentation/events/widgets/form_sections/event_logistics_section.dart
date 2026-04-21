@@ -20,8 +20,7 @@ class EventLogisticsSection extends ConsumerWidget {
         children: [
           const BoxyArtSectionTitle(title: 'DateTime & Registration', followsCard: true),
           BoxyArtCard(
-            padding: const EdgeInsets.all(AppSpacing.x2l),
-            child: Column(
+            child: BoxyArtFormColumn(
               children: [
                 // Date Selection
                 BoxyArtDatePickerField(
@@ -39,7 +38,6 @@ class EventLogisticsSection extends ConsumerWidget {
                     }
                   },
                 ),
-                const SizedBox(height: AppSpacing.cardToLabel),
                 
                 // Multi-Day Settings
                 if (state.eventType == EventType.golf) ...[
@@ -49,7 +47,6 @@ class EventLogisticsSection extends ConsumerWidget {
                     onChanged: (v) => ref.read(eventFormNotifierProvider.notifier).updateMultiDay(v),
                   ),
                   if (state.isMultiDay) ...[
-                    const SizedBox(height: AppSpacing.cardToLabel),
                     BoxyArtDatePickerField(
                       label: 'End date',
                       value: state.endDate != null ? DateFormat.yMMMd().format(state.endDate!) : 'Select End Date',
@@ -69,7 +66,6 @@ class EventLogisticsSection extends ConsumerWidget {
                 ],
 
                 // Registration Settings
-                const SizedBox(height: AppSpacing.cardToLabel),
                 BoxyArtDatePickerField(
                   label: state.eventType == EventType.social ? 'Event time' : 'Registration time',
                   value: state.registrationTime.format(context),
@@ -83,7 +79,6 @@ class EventLogisticsSection extends ConsumerWidget {
                     }
                   },
                 ),
-                const SizedBox(height: AppSpacing.cardToLabel),
                 BoxyArtDatePickerField(
                   label: 'Registration deadline',
                   value: (state.deadlineDate == null || state.deadlineTime == null) 
@@ -111,8 +106,6 @@ class EventLogisticsSection extends ConsumerWidget {
 
                 // Golf-specific Logistics (Standardized Fields)
                 if (state.eventType == EventType.golf) ...[
-                  const SizedBox(height: AppSpacing.cardToLabel),
-                  
                   // Standard Field: First Tee Off
                   BoxyArtDatePickerField(
                     label: 'First Tee Off',
@@ -130,22 +123,12 @@ class EventLogisticsSection extends ConsumerWidget {
                     },
                   ),
                   
-                  const SizedBox(height: AppSpacing.cardToLabel),
-                  
                   // Standard Field: Tee Interval
                   BoxyArtFormField(
                     label: 'Tee Interval',
                     initialValue: state.teeOffInterval.toString(),
                     keyboardType: TextInputType.number,
-                    suffixIcon: Padding(
-                      padding: const EdgeInsets.only(right: AppSpacing.lg, top: 14), 
-                      child: Text(
-                        'mins', 
-                        style: AppTypography.helper.copyWith(
-                          color: theme.brightness == Brightness.dark ? AppColors.dark300 : AppColors.dark400,
-                        ),
-                      ),
-                    ),
+                    suffixText: 'mins',
                     onChanged: (v) {
                       final val = int.tryParse(v);
                       if (val != null) {
@@ -154,14 +137,12 @@ class EventLogisticsSection extends ConsumerWidget {
                     },
                   ),
 
-                  const SizedBox(height: AppSpacing.cardToLabel),
                   BoxyArtSwitchField(
                     label: 'Invitational / Non-Scoring',
                     subtitle: "Exclude this event's scores from leaderboards.",
                     value: state.isInvitational,
                     onChanged: (v) => ref.read(eventFormNotifierProvider.notifier).updateIsInvitational(v),
                   ),
-                  const SizedBox(height: AppSpacing.cardToLabel),
                   BoxyArtSwitchField(
                     label: 'Enable Guest Entry',
                     subtitle: "Allow members to register guests.",

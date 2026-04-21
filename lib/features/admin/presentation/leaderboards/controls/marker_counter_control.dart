@@ -56,15 +56,12 @@ class _MarkerCounterControlState extends ConsumerState<MarkerCounterControl>
 
     return Form(
       key: _formKey,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: BoxyArtFormColumn(
         children: [
           // ── IDENTITY ─────────────────────────────────────────
           const BoxyArtSectionTitle(title: 'LEADERBOARD DETAILS', isPeeking: true),
           BoxyArtCard(
-            padding: const EdgeInsets.all(AppSpacing.xl),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            child: BoxyArtFormColumn(
               children: [
                 BoxyArtInputField(
                   label: 'Name',
@@ -73,7 +70,6 @@ class _MarkerCounterControlState extends ConsumerState<MarkerCounterControl>
                   prefixIcon: Icon(Icons.park_rounded),
                   validator: (v) => (v == null || v.isEmpty) ? 'Required' : null,
                 ),
-                const SizedBox(height: AppSpacing.lg),
                 buildScopeSelector(
                   value: _scope,
                   onChanged: (v) => setState(() => _scope = v as LeaderboardScope),
@@ -85,66 +81,66 @@ class _MarkerCounterControlState extends ConsumerState<MarkerCounterControl>
           // ── TRACKING RULES ────────────────────────────────────
           const BoxyArtSectionTitle(title: 'TRACKING RULES'),
           BoxyArtCard(
-            padding: const EdgeInsets.all(AppSpacing.xl),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            child: BoxyArtFormColumn(
               children: [
                 // Target marker chips
-                Text(
-                  'TARGET MARKERS',
-                  style: AppTypography.labelStrong.copyWith(
-                    color: theme.colorScheme.onSurface,
-                    letterSpacing: 1.0,
-                  ),
-                ),
-                const SizedBox(height: AppSpacing.md),
-                Wrap(
-                  spacing: AppSpacing.sm,
-                  runSpacing: AppSpacing.sm,
-                  children: MarkerType.values.map((type) {
-                    final isSelected = _targetTypes.contains(type);
-                    final labelText = formatEnum(type.name);
-                    
-                    // Standardised selection using BoxyArtPill aesthetics
-                    return ChoiceChip(
-                      label: Text(labelText),
-                      selected: isSelected,
-                      onSelected: (selected) {
-                        setState(() {
-                          if (selected) {
-                            _targetTypes.add(type);
-                          } else if (_targetTypes.length > 1) {
-                            _targetTypes.remove(type);
-                          }
-                        });
-                      },
-                      // Design 4.x: Branded Identity selection
-                      selectedColor: theme.colorScheme.primary,
-                      backgroundColor: isDarkMode ? AppColors.dark600 : AppColors.lightHeader,
-                      labelStyle: AppTypography.label.copyWith(
-                        color: isSelected
-                            ? AppColors.pureWhite
-                            : (isDarkMode ? AppColors.dark200 : AppColors.dark500),
-                        fontWeight: isSelected ? AppTypography.weightBlack : AppTypography.weightBold,
-                        fontSize: AppTypography.sizeLabel,
+                BoxyArtFormColumn(
+                  spacing: AppSpacing.md,
+                  children: [
+                    Text(
+                      'TARGET MARKERS',
+                      style: AppTypography.labelStrong.copyWith(
+                        color: theme.colorScheme.onSurface,
+                        letterSpacing: 1.0,
                       ),
-                      side: isSelected
-                          ? BorderSide.none
-                          : BorderSide(
-                              color: isDarkMode ? AppColors.dark500 : AppColors.dark100,
-                              width: 1,
-                            ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(ref.watch(themeControllerProvider).pillRadius),
-                      ),
-                      showCheckmark: false,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: AppSpacing.sm,
-                        vertical: 3, // Matches BoxyArtPill internal padding
-                      ),
-                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    );
-                  }).toList(),
+                    ),
+                    Wrap(
+                      spacing: AppSpacing.sm,
+                      runSpacing: AppSpacing.sm,
+                      children: MarkerType.values.map((type) {
+                        final isSelected = _targetTypes.contains(type);
+                        final labelText = formatEnum(type.name);
+                        
+                        return ChoiceChip(
+                          label: Text(labelText),
+                          selected: isSelected,
+                          onSelected: (selected) {
+                            setState(() {
+                              if (selected) {
+                                _targetTypes.add(type);
+                              } else if (_targetTypes.length > 1) {
+                                _targetTypes.remove(type);
+                              }
+                            });
+                          },
+                          selectedColor: theme.colorScheme.primary,
+                          backgroundColor: isDarkMode ? AppColors.dark600 : AppColors.lightHeader,
+                          labelStyle: AppTypography.label.copyWith(
+                            color: isSelected
+                                ? AppColors.pureWhite
+                                : (isDarkMode ? AppColors.dark200 : AppColors.dark500),
+                            fontWeight: isSelected ? AppTypography.weightBlack : AppTypography.weightBold,
+                            fontSize: AppTypography.sizeLabel,
+                          ),
+                          side: isSelected
+                              ? BorderSide.none
+                              : BorderSide(
+                                  color: isDarkMode ? AppColors.dark500 : AppColors.dark100,
+                                  width: 1,
+                                ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(ref.watch(themeControllerProvider).pillRadius),
+                          ),
+                          showCheckmark: false,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: AppSpacing.sm,
+                            vertical: 3,
+                          ),
+                          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        );
+                      }).toList(),
+                    ),
+                  ],
                 ),
 
                 const BoxyArtDivider(),
@@ -172,22 +168,26 @@ class _MarkerCounterControlState extends ConsumerState<MarkerCounterControl>
                   onChanged: (v) => setState(() => _rankingMethod = v!),
                 ),
                 const BoxyArtDivider(),
-                BoxyArtInputField(
-                  label: 'Best N Rounds',
-                  controller: _bestNController,
-                  keyboardType: TextInputType.number,
-                  hint: '0 = All rounds counted',
-                  prefixIcon: const Icon(Icons.filter_list_rounded),
+                BoxyArtFormColumn(
+                  spacing: AppSpacing.sm,
+                  children: [
+                    BoxyArtInputField(
+                      label: 'Best N Rounds',
+                      controller: _bestNController,
+                      keyboardType: TextInputType.number,
+                      hint: '0 = All rounds counted',
+                      prefixIcon: const Icon(Icons.filter_list_rounded),
+                    ),
+                    buildInfoBubble(
+                        'Only markers from the best N Stableford rounds will be counted.'),
+                  ],
                 ),
-                buildInfoBubble(
-                    'Only markers from the best N Stableford rounds will be counted.'),
 
                 buildInfoCard(_ruleRows()),
               ],
             ),
           ),
 
-          const SizedBox(height: AppSpacing.x4l),
           BoxyArtButton(
             title: widget.existingConfig == null ? 'Create leaderboard' : 'Save changes',
             onTap: _isSaving ? null : _save,
@@ -196,7 +196,6 @@ class _MarkerCounterControlState extends ConsumerState<MarkerCounterControl>
             backgroundColor: Theme.of(context).primaryColor,
             textColor: AppColors.pureWhite,
           ),
-          const SizedBox(height: AppSpacing.x4l),
         ],
       ),
     );

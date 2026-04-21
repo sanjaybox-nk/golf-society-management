@@ -556,7 +556,7 @@ class ScorecardModal {
         Padding(
           padding: const EdgeInsets.only(left: AppSpacing.xs, bottom: AppSpacing.sm),
           child: Text(
-            isScramble ? "Drive Attributions" : (matchPlayResults != null ? "Match Play Result" : "Group Score"),
+            (isScramble ? "DRIVE ATTRIBUTIONS" : (matchPlayResults != null ? "MATCH PLAY RESULT" : "GROUP SCORE")),
             style: AppTypography.micro.copyWith(
               fontWeight: AppTypography.weightBold,
               color: Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha: AppColors.opacityHigh),

@@ -375,7 +375,7 @@ class _AdminSponsorshipHubScreenState extends ConsumerState<AdminSponsorshipHubS
                                 keyboardType: const TextInputType.numberWithOptions(decimal: true),
                               ),
                             ),
-                            const SizedBox(width: AppSpacing.md),
+                            const SizedBox(width: AppSpacing.lg),
                             Expanded(
                               child: BoxyArtDropdownField<String>(
                                 label: 'Scope',
@@ -463,8 +463,7 @@ class _AdminSponsorshipHubScreenState extends ConsumerState<AdminSponsorshipHubS
                   // DONATIONS VIEW (Relocated from Treasury)
                   const BoxyArtSectionTitle(title: 'Donation details', isPeeking: true),
                   BoxyArtCard(
-                    padding: const EdgeInsets.all(AppSpacing.md),
-                    child: Column(
+                    child: BoxyArtFormColumn(
                       children: [
                         Row(
                           children: [
@@ -478,13 +477,11 @@ class _AdminSponsorshipHubScreenState extends ConsumerState<AdminSponsorshipHubS
                             ),
                           ],
                         ),
-                        SizedBox(height: spacing?.labelToCard ?? AppSpacing.md),
                         BoxyArtInputField(
                           label: 'Supporter Name',
                           controller: _nameController,
                           hint: 'e.g. Local Golf Club, Personal Donation, etc.',
                         ),
-                        SizedBox(height: spacing?.labelToCard ?? AppSpacing.md),
                         BoxyArtInputField(
                           label: 'Reference / Notes',
                           controller: _activityNameController,
@@ -594,29 +591,30 @@ class _AdminSponsorshipHubScreenState extends ConsumerState<AdminSponsorshipHubS
   }
 
   Widget _buildUploadLabeledField({required String label, required TextEditingController controller, required VoidCallback onUpload}) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    final theme = Theme.of(context);
+    final spacing = theme.extension<AppSpacingTokens>();
+
+    return BoxyArtFormColumn(
+      spacing: spacing?.labelToCard ?? AppSpacing.xs,
       children: [
         if (label.isNotEmpty)
-          Padding(
-            padding: const EdgeInsets.only(left: AppSpacing.xs, bottom: AppSpacing.labelToCard),
-            child: Text(
-              label,
-              style: AppTypography.label.copyWith(
-                color: Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha: AppColors.opacityHigh),
-              ),
+          Text(
+            label.toUpperCase(),
+            style: AppTypography.micro.copyWith(
+              color: theme.textTheme.bodySmall?.color?.withValues(alpha: AppColors.opacityHigh),
+              letterSpacing: AppTypography.lsLabel,
             ),
           ),
         Container(
           padding: EdgeInsets.symmetric(
             horizontal: AppSpacing.lg, 
-            vertical: Theme.of(context).extension<AppSpacingTokens>()?.labelToCard ?? 16,
+            vertical: spacing?.labelToCard ?? 16,
           ),
           decoration: BoxDecoration(
-            color: Theme.of(context).brightness == Brightness.dark ? AppColors.dark600 : AppColors.pureWhite,
-            borderRadius: BorderRadius.circular(Theme.of(context).extension<AppShapeTokens>()?.inputRadius ?? 12),
+            color: theme.brightness == Brightness.dark ? AppColors.dark600 : AppColors.pureWhite,
+            borderRadius: BorderRadius.circular(theme.extension<AppShapeTokens>()?.inputRadius ?? 12),
             border: Border.all(
-              color: Theme.of(context).brightness == Brightness.dark ? AppColors.dark500 : AppColors.lightBorder,
+              color: theme.brightness == Brightness.dark ? AppColors.dark500 : AppColors.lightBorder,
               width: AppShapes.borderThin,
             ),
           ),

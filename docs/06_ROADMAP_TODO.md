@@ -56,18 +56,13 @@ This document tracks the remaining work required to take **Golf Society Manageme
     - [x] **Best N Selection**: Automatically count only the top $N$ rounds for season standings.
     - [x] **Dynamic Member Standings**: Live season rank and performance statistics on member profiles.
     - [x] **Team Attribution**: Individual credit for team/pairs events.
-    - [x] **Matchplay Engine**: Independent knockouts and event-layered head-to-head.
-        - [x] **Secondary Overlays**: Run matchplay alongside Stableford/Medal.
-        - [x] **Interactive Grouping**: Tap-to-Swap pairing logic on the tee sheet.
-        - [x] **Scoring Standardization (v4.x)**: Standardized Match Play results ("1 UP", "AS") as prime display in all event views (Leaderboard & Grouping Cards) irrespective of competition format.
-        - [x] **Season-Long Match Play (v6.x)** (Completed 2026-04-20):
-            - [x] **Draw Manager**: Professional administrative hub for generating event-bound knockout brackets and divisions.
-            - [x] **Partner Handshake**: Automated partner selection and reciprocity logic for team Match Play.
-            - [x] **Tournament Subtypes**: Formal support for `matchPlaySeason` competitions (Knockouts/League).
-            - [x] **Automated Seeding**: Integrated Random, Seeded (HC), and Merit (OOM) distribution logic.
-            - [x] **Persistence Reliability**: Full state restoration for administrative drafts, ensuring matchups and deadlines are preserved across reloads.
-            - [x] **Automated Reminders**: Push notification logic for uncompleted matches 5 days before deadline.
-            - [x] **Manual Control**: Committee "Pulse" trigger for on-demand reminders and visual Opponent Swapping in the Draw Manager.
+    - **Matchplay Engine**: Independent knockouts and event-layered head-to-head.
+- [x] **Phase 9 Branding Console & Design Token Studio** (Completed 2026-04-21):
+    - [x] **Semantic Token System**: Full control over Foundation, Surface, Typography, and Mechanical (Borders/Dividers) properties.
+    - [x] **Scoring Aesthetics**: Integrated palette for golf scoring (Eagle to Triple+) and team identity management.
+    - [x] **Live Review Hub**: Real-time visualization of branding changes with dark-mode sensitivity.
+    - [x] **Architecture Stabilization**: Decoupled technical design tokens (Studio) from daily operational branding (Hub).
+    - [x] **Standardized Form Feedback**: Restored `suffixText` (unit indicators) to administrative input fields.
     - [x] **Unified Scorecard View**: Consistent `ScorecardModal` across member/admin leaderboards.
     - [x] **Admin Scoring Controls**: Manual 'Force Active' and 'Score Lock' lifecycle management.
     - [x] **Manual Society Cuts**: Per-event handicap adjustments with automated group sync.

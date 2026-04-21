@@ -53,9 +53,11 @@ class MemberCutsCard extends StatelessWidget {
                     ),
                   ),
                   Text(
-                    'Active Performance Adjustments',
+                    'ACTIVE PERFORMANCE ADJUSTMENTS',
                     style: AppTypography.micro.copyWith(
                       color: isDark ? AppColors.dark400 : AppColors.dark300,
+                      fontWeight: AppTypography.weightBold,
+                      letterSpacing: 1.2,
                     ),
                   ),
                 ],

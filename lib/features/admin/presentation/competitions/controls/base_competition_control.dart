@@ -58,12 +58,10 @@ abstract class BaseCompetitionControlState<T extends BaseCompetitionControl> ext
   Widget build(BuildContext context) {
     return Form(
       key: formKey,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: BoxyArtFormColumn(
         children: [
           // ── IDENTITY ──────────────────────────────────────────
           BoxyArtCard(
-            padding: const EdgeInsets.all(AppSpacing.xl),
             child: ModernTextField(
               label: widget.isTemplate ? 'Template Name' : 'Game Name (Custom)',
               initialValue: name,
@@ -79,8 +77,6 @@ abstract class BaseCompetitionControlState<T extends BaseCompetitionControl> ext
           // ── SPECIFIC FIELDS (IMPLEMENTATIONS) ─────────────────
           buildSpecificFields(context),
 
-          const SizedBox(height: AppSpacing.x4l),
-          
           BoxyArtButton(
             title: widget.isTemplate
               ? (widget.competition == null ? 'Create template' : 'Save template')
@@ -91,8 +87,6 @@ abstract class BaseCompetitionControlState<T extends BaseCompetitionControl> ext
             backgroundColor: Theme.of(context).primaryColor,
             textColor: AppColors.pureWhite,
           ),
-          
-          const SizedBox(height: AppSpacing.x4l),
         ],
       ),
     );
@@ -184,16 +178,18 @@ abstract class BaseCompetitionControlState<T extends BaseCompetitionControl> ext
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final pct = (allowance * 100).round();
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    return BoxyArtFormColumn(
+      spacing: AppSpacing.sm,
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              toTitleCase(label),
-              style: AppTypography.label.copyWith(
-                color: isDark ? AppColors.dark150 : AppColors.dark600,
+              label.toUpperCase(),
+              style: AppTypography.micro.copyWith(
+                fontWeight: AppTypography.weightBold,
+                color: isDark ? AppColors.dark200 : AppColors.dark400,
+                letterSpacing: 1.2,
               ),
             ),
             BoxyArtPill.format(
@@ -202,7 +198,6 @@ abstract class BaseCompetitionControlState<T extends BaseCompetitionControl> ext
             ),
           ],
         ),
-        const SizedBox(height: AppSpacing.sm),
         AbsorbPointer(
           absorbing: disabled,
           child: Opacity(
@@ -246,16 +241,18 @@ abstract class BaseCompetitionControlState<T extends BaseCompetitionControl> ext
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    return BoxyArtFormColumn(
+      spacing: AppSpacing.sm,
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              toTitleCase(label),
-              style: AppTypography.label.copyWith(
-                color: isDark ? AppColors.dark150 : AppColors.dark600,
+              label.toUpperCase(),
+              style: AppTypography.micro.copyWith(
+                fontWeight: AppTypography.weightBold,
+                color: isDark ? AppColors.dark200 : AppColors.dark400,
+                letterSpacing: 1.2,
               ),
             ),
             BoxyArtPill.format(
@@ -264,7 +261,6 @@ abstract class BaseCompetitionControlState<T extends BaseCompetitionControl> ext
             ),
           ],
         ),
-        const SizedBox(height: AppSpacing.sm),
         BoxyArtSlider(
           value: value,
           min: min,
@@ -302,12 +298,9 @@ abstract class BaseCompetitionControlState<T extends BaseCompetitionControl> ext
         color: Theme.of(context).colorScheme.primary.withValues(alpha: AppColors.opacityLow),
         borderRadius: AppShapes.md,
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: rows.expand((r) => [
-          buildInfoRow(r.$1, r.$2),
-          if (r != rows.last) const SizedBox(height: AppSpacing.sm),
-        ]).toList(),
+      child: BoxyArtFormColumn(
+        spacing: AppSpacing.sm,
+        children: rows.map((r) => buildInfoRow(r.$1, r.$2)).toList(),
       ),
     );
   }
@@ -321,10 +314,11 @@ abstract class BaseCompetitionControlState<T extends BaseCompetitionControl> ext
         SizedBox(
           width: 100,
           child: Text(
-            '$label:',
-            style: AppTypography.label.copyWith(
+            label.toUpperCase(),
+            style: AppTypography.micro.copyWith(
               fontWeight: AppTypography.weightBold,
               color: theme.colorScheme.primary,
+              letterSpacing: 1.2,
             ),
           ),
         ),

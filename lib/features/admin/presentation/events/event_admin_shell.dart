@@ -13,21 +13,19 @@ class EventAdminShell extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // NOTE: Do NOT use Scaffold here. GlobalAppShell already provides the root
-    // Scaffold. A nested Scaffold creates a FocusScope/_FocusMarker
-    // (InheritedNotifier<FocusNode>) during its first mount. When this happens
-    // inside go_router's StatefulNavigationShell LayoutBuilder, the FocusNode
-    // notification propagates to dependents OUTSIDE the LayoutBuilder's
-    // buildScope, which calls markNeedsBuild() during layout → assertion crash.
-    // A plain Material avoids all Focus system initialization at the shell level.
-    // We add a dedicated FocusScope to isolate focus shifts within the hub content,
-    // preventing focus notifications from triggering parent layout passes during builds.
+    // NOTE: Do NOT use Scaffold or FocusScope here. GlobalAppShell already provides 
+    // the root Scaffold and manages the focus environment.
+    // 
+    // Nested Scaffolds or explicit FocusScopes inside go_router's 
+    // StatefulNavigationShell LayoutBuilder can trigger focus notifications 
+    // to parent listeners (like GlobalAppShell's Scaffold) during a layout pass,
+    // causing an illegal markNeedsBuild() call → assertion crash.
+    // 
+    // A plain Material maintains the zero-baseline coordinate system and 
+    // correct background color for hub content without affecting the focus tree.
     return Material(
       color: Theme.of(context).scaffoldBackgroundColor,
-      child: FocusScope(
-        debugLabel: 'EventAdminShell:$id',
-        child: child,
-      ),
+      child: child,
     );
   }
 }

@@ -41,6 +41,11 @@ The foundational container for all UI blocks.
 - **Clipping**: Internal `ClipRRect` forces all children to respect the dynamic curve.
 - **Key Parameters**: `onTap`, `padding`, `backgroundColor`, `gradient`, `border`, `showShadow`.
 
+### `ModernNoteCard`
+A premium card for displaying broadcasted notes, announcements, or event updates.
+- **ConsumerWidget**: Dynamically inherits `config.cardRadius` (with internal 0.5x scaling for media) to ensure visual coordination with the society's branding.
+- **Features**: Supports optional titles (ALL-CAPS), rich content, and network image integration with high-fidelity error placeholders.
+
 ### `BoxyArtSquareBadge`
 Fixed-size identity icon container with optional tint.
 ```dart
@@ -55,7 +60,8 @@ BoxyArtSquareBadge(size: 48, isTinted: true, child: Icon(Icons.quiz_rounded))
 Unified design-first input field.
 - **Dynamic Radius**: `config.inputRadius` (default: 12px).
 - **Typography**: `AppTypography.body` for text; `AppTypography.label` (13px bold) for labels.
-- **Label Case**: Universal Title Case (v4.1 Policy). Enforced via the `toTitleCase()` utility to match the **Member Details** forms.
+- **Label Case**: **ALL-CAPS Metadata Standard**. Field labels are automatically converted to uppercase with 1.2 letter spacing and bold weight to distinguish context from user-entered content.
+- **Suffix Indicator**: Supports `suffixText` for administrative unit markers (e.g., "mins", "yards"). Suffixes are automatically converted to uppercase for visual consistency.
 
 ### `BoxyArtRichEditor`
 Premium WYSIWYG editor powered by `flutter_quill`.
@@ -90,7 +96,10 @@ Standard "Save / Cancel" row for form footers.
 ### `BoxyArtButton`
 Multipurpose action button.
 - **Dynamic Radius**: shares `inputRadius` token.
-- **Variants**: `isPrimary`, `isSecondary`, `isGhost`, `isSmall`, `fullWidth`, `isLoading`.
+- **Variants**: `isPrimary`, `isSecondary`, `isTertiary`, `isGhost`, `isSmall`, `fullWidth`, `isLoading`.
+- **Primary Variant**: Uses the `actionColor` (Vivid Emerald/Primary) token.
+- **Tertiary Variant**: Uses the `tertiaryColor` (Foundation - Slate) token for solid backgrounds—ideal for secondary solid actions that shouldn't compete with the main Action/Primary colors.
+- **Implementation Note**: All variants now use direct `ButtonStyle` properties (Size, EdgeInsets) for Material 3 stability.
 - **Typography**: `AppTypography.label` + `weightHeavy`.
 
 ### `BoxyArtGlassIconButton`
@@ -110,7 +119,8 @@ const BoxyArtSectionTitle(title: 'Section Name', isPeeking: true)  // First in s
 BoxyArtSectionTitle(title: 'Count', trailing: someWidget) // With right-aligned action
 ```
 
-- **Typography**: 13px (`label`) + 800 weight + Title Case.
+- **Typography**: 10px (`micro`) or 13px (`label`) + **Bold weight** + **ALL-CAPS**.
+- **Transformation**: The `BoxyArtSectionTitle` automatically handles `.toUpperCase()` and enforces the 1.2 letter-spacing rhythm.
 - **`isPeeking: true`**: Mandatory for the first title in any `HeadlessScaffold` sliver list or tab view to remove redundant top margin.
 - **Secondary Sections**: Subsequent sections (e.g., 'Past Events') must use `isPeeking: false` to maintain vertical breathing room.
 
@@ -166,6 +176,7 @@ Circular numbered position badge (used in leaderboards).
 
 ### `BoxyArtIconBadge`
 Square icon badge with optional tint fill.
+- **Variants**: Supports `isPrimary` (Lime), `isSecondary` (Green), and `isTertiary` (Slate/Foundation).
 - **Synchronized**: Size and inner icon scale are controlled via the `AppShapeTokens` extension.
 - **Usage**: Standardized for empty states (`BoxyArtEmptyCard`) and feature identity headers.
 
@@ -324,7 +335,8 @@ Standardized high-density input for numerical settings.
 - **Selection Indicator**: Displays a **1.5px primary underline** when focused.
 
 ### Layout Guidelines
-1. **Title Case Always**: All labels and descriptions must use Title Case.
+1. **All-Caps Labels**: All structural metadata and field labels must be ALL-CAPS with 1.2 letter spacing.
+2. **Title Case Content**: Descriptions, help text, and user data remain in Title Case or Sentence Case.
 2. **Branded Toggles**: Use `BoxyArtSwitchField` over standard `SwitchListTile`.
 3. **Dividers**: Use `BoxyArtDivider` from the layout library to separate logical rows within a single card.
 

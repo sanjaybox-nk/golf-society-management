@@ -66,7 +66,7 @@ class GroupingModals {
                 ),
               ),
               const SizedBox(height: AppSpacing.x2l),
-              const Text('Grouping Strategy', style: AppTypography.displayPage),
+              Text('Grouping Strategy', style: AppTypography.displayPage),
               const SizedBox(height: AppSpacing.xs),
               Text(
                 'Choose how players should be assigned to groups for this event.',
@@ -154,11 +154,11 @@ class _StrategyOption extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                 Text(
-                  toTitleCase(label),
-                  style: AppTypography.button.copyWith(
-                    fontSize: AppTypography.sizeButton,
+                  label.toUpperCase(),
+                  style: AppTypography.micro.copyWith(
                     fontWeight: AppTypography.weightExtraBold,
-                    color: isSelected ? Theme.of(context).colorScheme.primary : AppColors.dark900,
+                    color: isSelected ? Theme.of(context).colorScheme.primary : AppColors.dark600,
+                    letterSpacing: 1.2,
                   ),
                 ),
                 const SizedBox(height: 2),

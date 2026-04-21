@@ -110,12 +110,12 @@ Six states, clean contrast on dark surfaces. Every stroke means something.
 v3.7 introduces the **True Minimal Legend** system, replacing background-filled "pills" with a cleaner Dot + Text format.
 
 **Format Legend** — what type of competition
-- Visual: Lime indicator dot + Title Case text.
-- Examples: Stableford, Strokeplay, Foursomes, Betterball, Matchplay
+- Visual: Lime indicator dot + **ALL-CAPS** bold text.
+- Examples: STABLEFORD, STROKEPLAY, FOURSOMES, BETTERBALL, MATCHPLAY
 
 **Type Legend** — character of the event
-- Visual: Dark indicator dot + Title Case text.
-- Examples: Invitational, Multi-day, Members Only
+- Visual: Dark indicator dot + **ALL-CAPS** bold text.
+- Examples: INVITATIONAL, MULTI-DAY, MEMBERS ONLY
 
 **Status Legend** — lifecycle state
 - Published: Lime dot
@@ -143,12 +143,12 @@ The industry standard for clarity. Used for all interface text, labels, body cop
 
 | Role | Size | Weight | Notes |
 |------|------|--------|-------|
-| heading | 16–20pt | 900 | **No All-Caps** |
+| heading | 16–20pt | 900 | Title Case or All-Caps based on context |
 | body | 14pt | 400 | line-height 1.65 |
-| label | 11pt | 800 | 0.08em tracking, **Title Case** |
-| caption | 10–11pt | 600 | — |
+| label | 11pt | 800 | 1.2 letter spacing, **ALL-CAPS** (Metadata) |
+| caption | 10–11pt | 600 | Metadata defaults to All-Caps |
 
-**The "No All-Caps" Mandate**: As of v3.7, all caps are strictly prohibited throughout the interface. Headers, buttons, and status labels must use clean, legible **Title Case**.
+**The Administrative Metadata Rhythm**: As of v4.5, all structural metadata, field labels, and status markers must use **ALL-CAPS** with **1.2 letter spacing**. This establishes a professional, high-performance administrative context that is clearly differentiated from user-entered content (which remains in Title Case).
 
 **Numeric rule:** All score data and statistics use tabular nums — columns align without a separate monospace face.
 

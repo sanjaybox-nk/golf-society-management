@@ -202,10 +202,6 @@ class _EventDetailsContentState extends ConsumerState<EventDetailsContent> {
                     eventId: event.id,
                     title: 'Competition Rules',
                     competition: widget.competition,
-                    onCustomize: widget.isAdminMode ? () => context.pushNamed(
-                      'admin-event-game-setup',
-                      pathParameters: {'id': event.id},
-                    ) : null,
                   ),
                 ],
 
@@ -1091,8 +1087,11 @@ class _EventDetailsContentState extends ConsumerState<EventDetailsContent> {
                                 )
                               else
                                 Text(
-                                  toTitleCase(award.type),
-                                  style: AppTypography.body,
+                                  award.type.toUpperCase(),
+                                  style: AppTypography.micro.copyWith(
+                                    fontWeight: AppTypography.weightBold,
+                                    letterSpacing: 1.2,
+                                  ),
                                 ),
                             ],
                           ),

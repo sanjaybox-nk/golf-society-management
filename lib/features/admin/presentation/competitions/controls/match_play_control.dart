@@ -66,14 +66,12 @@ class _MatchPlayControlState extends BaseCompetitionControlState<MatchPlayContro
       });
     }
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    return BoxyArtFormColumn(
       children: [
         // ── MATCH FORMAT ──────────────────────────────────────
         const BoxyArtSectionTitle(title: 'MATCH FORMAT'),
         BoxyArtCard(
-          padding: const EdgeInsets.all(AppSpacing.xl),
-          child: Column(
+          child: BoxyArtFormColumn(
             children: [
               BoxyArtDropdownField<CompetitionSubtype>(
                 label: 'Format',
@@ -100,12 +98,10 @@ class _MatchPlayControlState extends BaseCompetitionControlState<MatchPlayContro
           ),
         ),
 
-        // ── TOURNAMENT SETTINGS (Season Only) ──────────────────
         if (_subtype == CompetitionSubtype.matchPlaySeason) ...[
           const BoxyArtSectionTitle(title: 'TOURNAMENT SETTINGS'),
           BoxyArtCard(
-            padding: const EdgeInsets.all(AppSpacing.xl),
-            child: Column(
+            child: BoxyArtFormColumn(
               children: [
                 BoxyArtDropdownField<CompetitionMode>(
                   label: 'Tournament Mode',
@@ -150,14 +146,12 @@ class _MatchPlayControlState extends BaseCompetitionControlState<MatchPlayContro
               ],
             ),
           ),
-          const SizedBox(height: AppSpacing.md),
         ],
 
         // ── HANDICAP ──────────────────────────────────────────
         const BoxyArtSectionTitle(title: 'HANDICAP'),
         BoxyArtCard(
-          padding: const EdgeInsets.all(AppSpacing.xl),
-          child: Column(
+          child: BoxyArtFormColumn(
             children: [
               buildAllowanceSlider(
                 _allowance,
@@ -174,8 +168,7 @@ class _MatchPlayControlState extends BaseCompetitionControlState<MatchPlayContro
         // ── TIE BREAK ─────────────────────────────────────────
         const BoxyArtSectionTitle(title: 'TIE BREAK'),
         BoxyArtCard(
-          padding: const EdgeInsets.all(AppSpacing.xl),
-          child: Column(
+          child: BoxyArtFormColumn(
             children: [
               BoxyArtDropdownField<TieBreakMethod>(
                 label: 'Tie Break Method',

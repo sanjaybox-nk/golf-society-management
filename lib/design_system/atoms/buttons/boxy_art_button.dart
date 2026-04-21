@@ -7,6 +7,7 @@ class BoxyArtButton extends ConsumerWidget {
   final VoidCallback? onTap;
   final bool isPrimary;
   final bool isSecondary;
+  final bool isTertiary;
   final bool isGhost;
   final IconData? icon;
   final bool isLoading;
@@ -22,6 +23,7 @@ class BoxyArtButton extends ConsumerWidget {
     this.onTap,
     this.isPrimary = true,
     this.isSecondary = false,
+    this.isTertiary = false,
     this.isGhost = false,
     this.isSmall = false,
     this.icon,
@@ -48,8 +50,8 @@ class BoxyArtButton extends ConsumerWidget {
         foregroundColor: theme.colorScheme.onError,
         elevation: 0,
         textStyle: isSmall ? AppTypography.micro.copyWith(fontWeight: AppTypography.weightHeavy) : AppTypography.label.copyWith(fontWeight: AppTypography.weightHeavy),
-        padding: isSmall ? const EdgeInsets.symmetric(horizontal: 12, vertical: 6) : const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
-        minimumSize: isSmall ? const Size(0, 32) : const Size(0, 42),
+        padding: EdgeInsets.symmetric(horizontal: config.buttonHorizontalPadding, vertical: isSmall ? 6 : 10),
+        minimumSize: Size(0, isSmall ? config.buttonSmallHeight : config.buttonHeight),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(isSmall ? config.accentRadius : config.buttonRadius)),
       );
     } else if (isGhost) {
@@ -62,8 +64,8 @@ class BoxyArtButton extends ConsumerWidget {
               )
             : BorderSide.none,
         textStyle: isSmall ? AppTypography.micro : AppTypography.label,
-        padding: isSmall ? const EdgeInsets.symmetric(horizontal: 12, vertical: 6) : const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
-        minimumSize: isSmall ? const Size(0, 32) : const Size(0, 42),
+        padding: EdgeInsets.symmetric(horizontal: config.buttonHorizontalPadding, vertical: isSmall ? 6 : 10),
+        minimumSize: Size(0, isSmall ? config.buttonSmallHeight : config.buttonHeight),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(isSmall ? config.accentRadius : config.buttonRadius)),
       );
     } else if (isSecondary) {
@@ -76,9 +78,32 @@ class BoxyArtButton extends ConsumerWidget {
               )
             : BorderSide.none,
         textStyle: isSmall ? AppTypography.micro : AppTypography.label,
-        padding: isSmall ? const EdgeInsets.symmetric(horizontal: 12, vertical: 6) : const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
-        minimumSize: isSmall ? const Size(0, 32) : const Size(0, 42),
+        padding: EdgeInsets.symmetric(horizontal: config.buttonHorizontalPadding, vertical: isSmall ? 6 : 10),
+        minimumSize: Size(0, isSmall ? config.buttonSmallHeight : config.buttonHeight),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(isSmall ? config.accentRadius : config.buttonRadius)),
+      );
+    } else if (isTertiary) {
+      // Solid Branding Foundation (Slate)
+      final actionColor = theme.colorScheme.tertiary;
+      final foregroundColor = theme.colorScheme.onTertiary;
+      
+      style = ElevatedButton.styleFrom(
+        backgroundColor: actionColor,
+        foregroundColor: foregroundColor,
+        textStyle: AppTypography.label.copyWith(fontWeight: AppTypography.weightHeavy),
+        padding: EdgeInsets.symmetric(horizontal: config.buttonHorizontalPadding, vertical: isSmall ? 6 : 10),
+        minimumSize: Size(0, isSmall ? config.buttonSmallHeight : config.buttonHeight),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(isSmall ? config.accentRadius : config.buttonRadius),
+          side: config.useBorders 
+              ? BorderSide(
+                  color: isDark ? AppColors.dark400 : AppColors.lightBorder,
+                  width: config.borderWidth,
+                )
+              : BorderSide.none,
+        ),
+        elevation: config.useShadows ? (isSmall ? 1 : 2) : 0,
+        shadowColor: isDark ? Colors.black : Colors.black.withValues(alpha: 0.1),
       );
     } else {
       // Solid Action - map to theme primary color (Lime)
@@ -89,8 +114,8 @@ class BoxyArtButton extends ConsumerWidget {
         backgroundColor: actionColor,
         foregroundColor: foregroundColor,
         textStyle: AppTypography.label.copyWith(fontWeight: AppTypography.weightHeavy),
-        padding: isSmall ? const EdgeInsets.symmetric(horizontal: 12, vertical: 6) : const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
-        minimumSize: isSmall ? const Size(0, 32) : const Size(0, 42),
+        padding: EdgeInsets.symmetric(horizontal: config.buttonHorizontalPadding, vertical: isSmall ? 6 : 10),
+        minimumSize: Size(0, isSmall ? config.buttonSmallHeight : config.buttonHeight),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(isSmall ? config.accentRadius : config.buttonRadius),
           side: config.useBorders 

@@ -361,13 +361,12 @@ class _EventRegistrationScreenState extends ConsumerState<EventRegistrationScree
               sliver: SliverToBoxAdapter(
                 child: Form(
                   key: _formKey,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                child: BoxyArtFormColumn(
+                    spacing: spacing?.cardToLabel ?? AppSpacing.cardToLabel,
                     children: [
                       const BoxyArtSectionTitle(title: 'Your Attendance'),
                       BoxyArtCard(
-                        // Removed hardcoded padding to use branding tokens
-                        child: Column(
+                        child: BoxyArtFormColumn(
                           children: [
                             if (event.eventType == EventType.golf) ...[
                               BoxyArtSwitchTile(
@@ -412,155 +411,160 @@ class _EventRegistrationScreenState extends ConsumerState<EventRegistrationScree
                         ),
                       ),
   
-                      if (event.allowGuests) ...[
-                        SizedBox(height: spacing?.cardToLabel ?? AppSpacing.cardToLabel),
-                        const BoxyArtSectionTitle(title: 'Guest Registration'),
-                        BoxyArtCard(
-                          // Removed hardcoded padding to use branding tokens
-                          child: Column(
-                            children: [
-                              BoxyArtSwitchTile(
-                                icon: Icons.person_add_rounded,
-                                label: 'Add a Guest',
-                                value: _registerGuest,
-                                onChanged: (val) => setState(() => _registerGuest = val),
-                              ),
-                              if (_registerGuest) ...[
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-                                  child: BoxyArtInputField(
-                                    label: 'Guest Name',
-                                    controller: _guestNameController,
-                                    hint: 'Full name',
-                                    validator: (val) => _registerGuest && (val == null || val.isEmpty) ? 'Required' : null,
-                                  ),
-                                ),
-                                const SizedBox(height: AppSpacing.cardToLabel),
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-                                  child: BoxyArtInputField(
-                                    label: 'Guest Handicap',
-                                    controller: _guestHandicapController,
-                                    hint: 'e.g. 18',
-                                  ),
-                                ),
-                                const SizedBox(height: AppSpacing.md),
-                                if (event.eventType == EventType.golf)
-                                  BoxyArtSwitchTile(
-                                    icon: Icons.electric_rickshaw_rounded,
-                                    label: 'Guest Buggy',
-                                    value: _guestNeedsBuggy,
-                                    onChanged: (val) => setState(() => _guestNeedsBuggy = val),
-                                  ),
-                                if (event.hasBreakfast == true && event.breakfastCost != null)
-                                  BoxyArtSwitchTile(
-                                    icon: Icons.breakfast_dining_rounded,
-                                    label: 'Guest Breakfast',
-                                    value: _guestAttendingBreakfast,
-                                    onChanged: (val) => setState(() => _guestAttendingBreakfast = val),
-                                  ),
-                                if (event.hasLunch == true && event.lunchCost != null)
-                                  BoxyArtSwitchTile(
-                                    icon: Icons.lunch_dining_rounded,
-                                    label: 'Guest Lunch',
-                                    value: _guestAttendingLunch,
-                                    onChanged: (val) => setState(() => _guestAttendingLunch = val),
-                                  ),
-                                if (event.hasDinner == true && event.dinnerCost != null)
-                                  BoxyArtSwitchTile(
-                                    icon: Icons.restaurant_rounded,
-                                    label: 'Guest Dinner',
-                                    value: _guestAttendingDinner,
-                                    onChanged: (val) => setState(() => _guestAttendingDinner = val),
-                                  ),
-                              ],
-                            ],
-                          ),
-                        ),
-                      ],
-  
-                      SizedBox(height: spacing?.cardToLabel ?? AppSpacing.cardToLabel),
-                      const BoxyArtSectionTitle(title: 'Notes & Requirements'),
-                      BoxyArtCard(
-                        // Removed hardcoded padding to use branding tokens
-                        child: Column(
+                      if (event.allowGuests)
+                        BoxyArtFormColumn(
+                          spacing: spacing?.cardToLabel ?? AppSpacing.cardToLabel,
                           children: [
-                            BoxyArtInputField(
-                              label: 'Dietary Requirements',
-                              controller: _dietaryController,
-                              hint: 'Allergies, preferences...',
-                              maxLines: 2,
-                            ),
-                            const SizedBox(height: AppSpacing.cardToLabel),
-                            BoxyArtInputField(
-                              label: 'Other Requests',
-                              controller: _specialNeedsController,
-                              hint: 'Transportation, pairing requests...',
-                              maxLines: 2,
+                            const BoxyArtSectionTitle(title: 'Guest Registration'),
+                            BoxyArtCard(
+                              child: BoxyArtFormColumn(
+                                children: [
+                                  BoxyArtSwitchTile(
+                                    icon: Icons.person_add_rounded,
+                                    label: 'Add a Guest',
+                                    value: _registerGuest,
+                                    onChanged: (val) => setState(() => _registerGuest = val),
+                                  ),
+                                  if (_registerGuest) ...[
+                                    BoxyArtFormColumn(
+                                      children: [
+                                        Padding(
+                                          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+                                          child: BoxyArtInputField(
+                                            label: 'Guest Name',
+                                            controller: _guestNameController,
+                                            hint: 'Full name',
+                                            validator: (val) => _registerGuest && (val == null || val.isEmpty) ? 'Required' : null,
+                                          ),
+                                        ),
+                                        Padding(
+                                          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+                                          child: BoxyArtInputField(
+                                            label: 'Guest Handicap',
+                                            controller: _guestHandicapController,
+                                            hint: 'e.g. 18',
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    if (event.eventType == EventType.golf)
+                                      BoxyArtSwitchTile(
+                                        icon: Icons.electric_rickshaw_rounded,
+                                        label: 'Guest Buggy',
+                                        value: _guestNeedsBuggy,
+                                        onChanged: (val) => setState(() => _guestNeedsBuggy = val),
+                                      ),
+                                    if (event.hasBreakfast == true && event.breakfastCost != null)
+                                      BoxyArtSwitchTile(
+                                        icon: Icons.breakfast_dining_rounded,
+                                        label: 'Guest Breakfast',
+                                        value: _guestAttendingBreakfast,
+                                        onChanged: (val) => setState(() => _guestAttendingBreakfast = val),
+                                      ),
+                                    if (event.hasLunch == true && event.lunchCost != null)
+                                      BoxyArtSwitchTile(
+                                        icon: Icons.lunch_dining_rounded,
+                                        label: 'Guest Lunch',
+                                        value: _guestAttendingLunch,
+                                        onChanged: (val) => setState(() => _guestAttendingLunch = val),
+                                      ),
+                                    if (event.hasDinner == true && event.dinnerCost != null)
+                                      BoxyArtSwitchTile(
+                                        icon: Icons.restaurant_rounded,
+                                        label: 'Guest Dinner',
+                                        value: _guestAttendingDinner,
+                                        onChanged: (val) => setState(() => _guestAttendingDinner = val),
+                                      ),
+                                  ],
+                                ],
+                              ),
                             ),
                           ],
                         ),
-                      ),
   
-                      const SizedBox(height: AppSpacing.cardToLabel),
+                      BoxyArtFormColumn(
+                        spacing: spacing?.cardToLabel ?? AppSpacing.cardToLabel,
+                        children: [
+                          const BoxyArtSectionTitle(title: 'Notes & Requirements'),
+                          BoxyArtCard(
+                            child: BoxyArtFormColumn(
+                              children: [
+                                BoxyArtInputField(
+                                  label: 'Dietary Requirements',
+                                  controller: _dietaryController,
+                                  hint: 'Allergies, preferences...',
+                                  maxLines: 2,
+                                ),
+                                BoxyArtInputField(
+                                  label: 'Other Requests',
+                                  controller: _specialNeedsController,
+                                  hint: 'Transportation, pairing requests...',
+                                  maxLines: 2,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
   
                       // ── PARTNER SELECTION (Season Match Play Pairs) ────────
                       if (ref.watch(competitionDetailProvider(widget.eventId)).value?.rules.subtype == CompetitionSubtype.matchPlaySeason &&
-                          ref.watch(competitionDetailProvider(widget.eventId)).value?.rules.mode == CompetitionMode.pairs) ...[
-                        SizedBox(height: spacing?.cardToLabel ?? AppSpacing.cardToLabel),
-                        const BoxyArtSectionTitle(title: 'Choose Partner'),
-                        BoxyArtCard(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              ref.watch(allMembersProvider).when(
-                                data: (members) {
-                                  // Exclude self
-                                  final currentMemberId = 'current-user-id';
-                                  final availablePartners = members.where((m) => m.id != currentMemberId).toList();
-                                  
-                                  return BoxyArtDropdownField<String>(
-                                    label: 'Select Partner (Optional)',
-                                    value: _partnerId,
-                                    hint: 'Choose from members...',
-                                    items: [
-                                      const DropdownMenuItem(value: null, child: Text('No partner selected')),
-                                      ...availablePartners.map((m) => DropdownMenuItem(
-                                        value: m.id,
-                                        child: Text('${m.firstName} ${m.lastName}'),
-                                      )),
-                                    ],
-                                    onChanged: (val) {
-                                      setState(() {
-                                        _partnerId = val;
-                                        if (val != null) {
-                                          final p = availablePartners.firstWhere((m) => m.id == val);
-                                          _partnerName = '${p.firstName} ${p.lastName}';
-                                        } else {
-                                          _partnerName = null;
-                                        }
-                                      });
+                          ref.watch(competitionDetailProvider(widget.eventId)).value?.rules.mode == CompetitionMode.pairs)
+                        BoxyArtFormColumn(
+                          spacing: spacing?.cardToLabel ?? AppSpacing.cardToLabel,
+                          children: [
+                            const BoxyArtSectionTitle(title: 'Choose Partner'),
+                            BoxyArtCard(
+                              child: BoxyArtFormColumn(
+                                spacing: spacing?.labelToCard ?? AppSpacing.sm,
+                                children: [
+                                  ref.watch(allMembersProvider).when(
+                                    data: (members) {
+                                      // Exclude self
+                                      final currentMemberId = 'current-user-id';
+                                      final availablePartners = members.where((m) => m.id != currentMemberId).toList();
+                                      
+                                      return BoxyArtDropdownField<String>(
+                                        label: 'Select Partner (Optional)',
+                                        value: _partnerId,
+                                        hint: 'Choose from members...',
+                                        items: [
+                                          const DropdownMenuItem(value: null, child: Text('No partner selected')),
+                                          ...availablePartners.map((m) => DropdownMenuItem(
+                                            value: m.id,
+                                            child: Text('${m.firstName} ${m.lastName}'),
+                                          )),
+                                        ],
+                                        onChanged: (val) {
+                                          setState(() {
+                                            _partnerId = val;
+                                            if (val != null) {
+                                              final p = availablePartners.firstWhere((m) => m.id == val);
+                                              _partnerName = '${p.firstName} ${p.lastName}';
+                                            } else {
+                                              _partnerName = null;
+                                            }
+                                          });
+                                        },
+                                      );
                                     },
-                                  );
-                                },
-                                loading: () => const LinearProgressIndicator(),
-                                error: (_, __) => const Text('Could not load members'),
-                              ),
-                              const SizedBox(height: AppSpacing.md),
-                              Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-                                child: Text(
-                                  'If you don\'t choose a partner now, the Admin can assign one later.',
-                                  style: AppTypography.micro.copyWith(
-                                    color: isDark ? AppColors.dark300 : AppColors.dark400,
+                                    loading: () => const LinearProgressIndicator(),
+                                    error: (_, __) => const Text('Could not load members'),
                                   ),
-                                ),
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+                                    child: Text(
+                                      'If you don\'t choose a partner now, the Admin can assign one later.',
+                                      style: AppTypography.micro.copyWith(
+                                        color: isDark ? AppColors.dark300 : AppColors.dark400,
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
-                              const SizedBox(height: AppSpacing.sm),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
-                      ],
   
                       BoxyArtSectionTitle(
                         title: 'Estimated Fees',
@@ -584,11 +588,10 @@ class _EventRegistrationScreenState extends ConsumerState<EventRegistrationScree
                             : null,
                       ),
                       BoxyArtCard(
-                        child: Column(
+                        child: BoxyArtFormColumn(
                           children: [
                             _buildPriceBreakdownRow(context, event),
-                            if (_useVoucher) ...[
-                               const SizedBox(height: AppSpacing.xs),
+                            if (_useVoucher)
                                Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
@@ -605,7 +608,6 @@ class _EventRegistrationScreenState extends ConsumerState<EventRegistrationScree
                                   ),
                                 ],
                               ),
-                            ],
                             const Divider(height: AppSpacing.x3l),
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -633,7 +635,7 @@ class _EventRegistrationScreenState extends ConsumerState<EventRegistrationScree
                         ),
                       ),
                       
-                      const SizedBox(height: AppSpacing.x4l),
+                      const SizedBox(height: AppSpacing.x2l),
                       if (_isSaving)
                         const Center(child: CircularProgressIndicator())
                       else

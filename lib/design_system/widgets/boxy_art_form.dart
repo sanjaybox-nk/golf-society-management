@@ -18,7 +18,8 @@ class BoxyArtFormColumn extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final double gap = spacing ?? AppSpacing.lg;
+    final themeSpacing = Theme.of(context).extension<AppSpacingTokens>();
+    final double gap = spacing ?? themeSpacing?.fieldToField ?? AppSpacing.lg;
     final List<Widget> spacedChildren = [];
     
     for (var i = 0; i < children.length; i++) {

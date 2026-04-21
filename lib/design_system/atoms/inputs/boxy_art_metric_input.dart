@@ -77,18 +77,20 @@ class _BoxyArtMetricInputState extends ConsumerState<BoxyArtMetricInput> {
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                widget.label,
-                style: AppTypography.label.copyWith(
+                widget.label.toUpperCase(),
+                style: AppTypography.micro.copyWith(
                   fontWeight: AppTypography.weightBold,
-                  color: theme.colorScheme.onSurface,
+                  color: theme.textTheme.bodySmall?.color?.withValues(alpha: AppColors.opacityHigh),
+                  letterSpacing: 1.2,
                 ),
               ),
               if (widget.subtitle != null) ...[
-                const SizedBox(height: 2),
+                const SizedBox(height: 4),
                 Text(
                   widget.subtitle!,
                   style: AppTypography.caption.copyWith(
-                    color: isDark ? AppColors.dark400 : AppColors.dark300,
+                    color: isDark ? AppColors.dark300 : AppColors.dark400,
+                    fontWeight: AppTypography.weightMedium,
                   ),
                 ),
               ],

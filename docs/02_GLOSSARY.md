@@ -36,7 +36,9 @@ The custom visual language of the app. Characterized by:
 -   **Soft Shadows**: Custom shadows (`softScale`) that create a floating effect on cards.
 -   **Rounded Shapes**: Cards use `BorderRadius.circular(18)` (`AppShapes.rXl`), inputs and buttons use `AppShapes.pill`.
 -   **True Minimal Legends**: Minimalist dot + text indicators that eliminate background "pills" for a cleaner, high-density look.
--   **True Minimal (v4.1)**: Absolute prohibition of all-caps. All UI labels and headers use clean Title Case.
+- **True Minimal (v4.5)**: Adherence to Title Case for all content; structural metadata and UI field labels use **ALL-CAPS** with 1.2 letter spacing for maximum distinction.
+-   **Design Token Studio**: The expert administrative interface for fine-tuning the society's visual identity. It controls over 30 semantic tokens including semantic colors, radii, and mechanical detailing.
+-   **Scoring Aesthetics**: A specialized branding palette that defines the colors for specific golf scores (Eagle, Birdie, etc.) and team identities (Team A/B).
 -   **Accessibility**: Automatic text color calculation ensures readability on any background.
 -   **Admin Identity**: The mandatory `ADMIN` pill suffix on all administrative scaffolds.
 

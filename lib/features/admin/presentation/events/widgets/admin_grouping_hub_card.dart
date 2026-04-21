@@ -28,13 +28,11 @@ class AdminGroupingHubCard extends ConsumerWidget {
 
     final bool hasGroups = localGroups != null && localGroups.isNotEmpty;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    return BoxyArtFormColumn(
       children: [
-
         BoxyArtCard(
           padding: EdgeInsets.zero,
-          child: Column(
+          child: BoxyArtFormColumn(
             children: [
               _HubRow(
                 icon: Icons.auto_awesome_outlined,
@@ -88,8 +86,7 @@ class AdminGroupingHubCard extends ConsumerWidget {
       context: context,
       title: 'Grouping Strategy',
       content: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
+        child: BoxyArtFormColumn(
           children: [
             _StrategyOption(
               label: 'Random', 
@@ -99,7 +96,6 @@ class AdminGroupingHubCard extends ConsumerWidget {
               current: current, 
               onSelect: (v) => ref.read(groupingStrategyProvider.notifier).set(v),
             ),
-            const SizedBox(height: AppSpacing.md),
             _StrategyOption(
               label: 'Balanced', 
               description: 'Aims to normalize total handicap across all groups.',
@@ -108,7 +104,6 @@ class AdminGroupingHubCard extends ConsumerWidget {
               current: current, 
               onSelect: (v) => ref.read(groupingStrategyProvider.notifier).set(v),
             ),
-            const SizedBox(height: AppSpacing.md),
             _StrategyOption(
               label: 'Progressive', 
               description: 'Ordered by handicap - lower handicaps at the front.',
@@ -117,7 +112,6 @@ class AdminGroupingHubCard extends ConsumerWidget {
               current: current, 
               onSelect: (v) => ref.read(groupingStrategyProvider.notifier).set(v),
             ),
-            const SizedBox(height: AppSpacing.md),
             _StrategyOption(
               label: 'Similar Ability', 
               description: 'Groups players with similar handicaps together.',
@@ -169,7 +163,14 @@ class _HubRow extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(title, style: const TextStyle(fontWeight: AppTypography.weightBold, fontSize: AppTypography.sizeBody)),
+                  Text(
+                    title.toUpperCase(),
+                    style: AppTypography.micro.copyWith(
+                      fontWeight: AppTypography.weightBold,
+                      letterSpacing: 1.2,
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
+                  ),
                   Text(subtitle, style: TextStyle(color: AppColors.dark600, fontSize: AppTypography.sizeLabel)),
                 ],
               ),

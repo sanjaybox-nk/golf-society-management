@@ -220,40 +220,13 @@ class _EventManualCutsScreenState extends ConsumerState<EventManualCutsScreen> {
                           handicapIndex: member?.handicap,
                           isGuest: reg.isGuest,
                             trailing: SizedBox(
-                            width: 96,
-                            height: 48,
-                            child: TextField(
+                            width: 110,
+                            child: BoxyArtInputField(
+                              label: '',
                               controller: controller,
                               keyboardType: const TextInputType.numberWithOptions(decimal: true, signed: true),
-                              textAlign: TextAlign.center,
-                              style: AppTypography.displayLargeBody.copyWith(
-                                color: isDark ? AppColors.pureWhite : AppColors.dark900,
-                              ),
-                              decoration: InputDecoration(
-                                filled: true,
-                                fillColor: isDark ? AppColors.dark600 : AppColors.lightHeader,
-                                isDense: true,
-                                suffixText: 'pt',
-                                suffixStyle: AppTypography.caption.copyWith(
-                                  fontWeight: AppTypography.weightExtraBold, 
-                                  color: AppColors.dark400,
-                                ),
-                                contentPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: 12),
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(AppShapes.rLg),
-                                  borderSide: BorderSide(
-                                    color: isDark ? AppColors.dark500 : AppColors.lightBorder,
-                                    width: 1,
-                                  ),
-                                ),
-                                enabledBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(AppShapes.rLg),
-                                  borderSide: BorderSide(
-                                    color: isDark ? AppColors.dark500 : AppColors.lightBorder,
-                                    width: 1,
-                                  ),
-                                ),
-                              ),
+                              suffixText: 'pt',
+                              textColor: isDark ? AppColors.pureWhite : AppColors.dark900,
                               onChanged: (val) {
                                 final d = double.tryParse(val);
                                 if (d != null) {

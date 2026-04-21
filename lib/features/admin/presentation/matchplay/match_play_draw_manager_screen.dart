@@ -283,7 +283,7 @@ class _MatchPlayDrawManagerScreenState extends ConsumerState<MatchPlayDrawManage
                 followsCard: index > 0,
                 trailing: index == 0
                     ? BoxyArtIndicator(
-                        label: toTitleCase(getRoundLabel(m.round)),
+                        label: getRoundLabel(m.round).toUpperCase(),
                         dotColor: AppColors.dark400,
                       )
                     : null,

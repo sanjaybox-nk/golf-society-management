@@ -64,14 +64,12 @@ class _PairsControlState extends BaseCompetitionControlState<PairsControl> {
         ? TieBreakMethod.playoff
         : _tieBreak;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    return BoxyArtFormColumn(
       children: [
         // ── FORMAT ────────────────────────────────────────────
         BoxyArtSectionTitle(title: title),
         BoxyArtCard(
-          padding: const EdgeInsets.all(AppSpacing.xl),
-          child: Column(
+          child: BoxyArtFormColumn(
             children: [
               BoxyArtDropdownField<CompetitionFormat>(
                 label: 'Scoring Format',
@@ -101,8 +99,7 @@ class _PairsControlState extends BaseCompetitionControlState<PairsControl> {
         // ── HANDICAP ──────────────────────────────────────────
         const BoxyArtSectionTitle(title: 'HANDICAP'),
         BoxyArtCard(
-          padding: const EdgeInsets.all(AppSpacing.xl),
-          child: Column(
+          child: BoxyArtFormColumn(
             children: [
               buildAllowanceSlider(
                 _allowance,
@@ -123,8 +120,7 @@ class _PairsControlState extends BaseCompetitionControlState<PairsControl> {
           // ── TIE BREAK & ROUNDS ──────────────────────────────
           const BoxyArtSectionTitle(title: 'TIE BREAK & ROUNDS'),
           BoxyArtCard(
-            padding: const EdgeInsets.all(AppSpacing.xl),
-            child: Column(
+            child: BoxyArtFormColumn(
               children: [
                 BoxyArtDropdownField<TieBreakMethod>(
                   label: 'Tie Break Method',

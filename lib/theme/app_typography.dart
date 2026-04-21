@@ -46,80 +46,80 @@ class AppTypography {
   static const double lsMicro = 0.8;
 
   // 1. Core Styles
-  static const TextStyle display = TextStyle(
-    fontFamily: 'Plus Jakarta Sans',
+  static TextStyle get display => TextStyle(
+    fontFamily: uiFont,
     fontSize: sizeDisplay,
     fontWeight: weightHeavy,
     letterSpacing: lsHero,
     height: 1.0,
   );
 
-  static const TextStyle headline = TextStyle(
-    fontFamily: 'Plus Jakarta Sans',
+  static TextStyle get headline => TextStyle(
+    fontFamily: uiFont,
     fontSize: sizeHeadline,
     fontWeight: weightHeavy,
     letterSpacing: lsTight,
     height: 1.1,
   );
 
-  static const TextStyle memberName = TextStyle(
-    fontFamily: 'Plus Jakarta Sans',
+  static TextStyle get memberName => TextStyle(
+    fontFamily: uiFont,
     fontSize: sizeBody,
     fontWeight: weightBold, // w700
     letterSpacing: lsTight,
     height: 1.4,
   );
 
-  static const TextStyle body = TextStyle(
-    fontFamily: 'Plus Jakarta Sans',
+  static TextStyle get body => TextStyle(
+    fontFamily: uiFont,
     fontSize: sizeBody,
     fontWeight: weightMedium,
     letterSpacing: lsStandard,
     height: 1.5,
   );
 
-  static const TextStyle label = TextStyle(
-    fontFamily: 'Plus Jakarta Sans',
+  static TextStyle get label => TextStyle(
+    fontFamily: uiFont,
     fontSize: sizeLabel,
     fontWeight: weightBold,
     letterSpacing: lsLabel,
     height: 1.2,
   );
 
-  static const TextStyle micro = TextStyle(
-    fontFamily: 'Plus Jakarta Sans',
+  static TextStyle get micro => TextStyle(
+    fontFamily: uiFont,
     fontSize: sizeMicro,
     fontWeight: weightBold,
     letterSpacing: lsMicro,
     height: 1.0,
   );
 
-  static const TextStyle bodySmall = TextStyle(
-    fontFamily: 'Plus Jakarta Sans',
+  static TextStyle get bodySmall => TextStyle(
+    fontFamily: uiFont,
     fontSize: sizeLabel,
     fontWeight: weightMedium,
     letterSpacing: lsStandard,
     height: 1.4,
   );
 
-  static const TextStyle caption = TextStyle(
-    fontFamily: 'Plus Jakarta Sans',
+  static TextStyle get caption => TextStyle(
+    fontFamily: uiFont,
     fontSize: sizeMicro,
     fontWeight: weightMedium,
     letterSpacing: lsStandard,
     height: 1.0,
   );
 
-  static const TextStyle metricValue = TextStyle(
-    fontFamily: 'Plus Jakarta Sans',
+  static TextStyle get metricValue => TextStyle(
+    fontFamily: uiFont,
     fontSize: sizeMetric,
     fontWeight: weightHeavy,
     letterSpacing: lsTight,
     height: 1.1,
   );
 
-  static const TextStyle metricLabel = TextStyle(
-    fontFamily: 'Plus Jakarta Sans',
+  static TextStyle get metricLabel => TextStyle(
+    fontFamily: uiFont,
     fontSize: sizeMicro,
     fontWeight: weightBold,
     letterSpacing: lsMicro,
@@ -127,33 +127,33 @@ class AppTypography {
   );
 
   // Specialized styles (Button)
-  static const TextStyle button = TextStyle(
-    fontFamily: 'Plus Jakarta Sans',
+  static TextStyle get button => TextStyle(
+    fontFamily: uiFont,
     fontSize: sizeLabel,
     fontWeight: weightHeavy,
     letterSpacing: lsLabel,
     height: 1.0,
   );
 
-  // Legacy & Migration Layer (Aliases to new standard)
-  static const TextStyle displayHero = display;
-  static const TextStyle displayTitle = display;
-  static const TextStyle displayPage = display;
-  static const TextStyle displayHeading = headline;
-  static const TextStyle displayLocker = headline;
-  static const TextStyle displaySubPage = headline;
-  static const TextStyle displaySection = headline;
-  static const TextStyle displayLargeBody = body;
-  static const TextStyle displaySmall = label;
-  static const TextStyle labelStrong = label;
-  static const TextStyle captionStrong = label;
-  static const TextStyle help = caption;
-  static const TextStyle helper = caption;
-  static const TextStyle microSmall = micro;
-  static const TextStyle nano = micro;
-  static const TextStyle displayUI = headline;
-  static const TextStyle ribbonHeader = label;
-  static const TextStyle subtext = label;
+  // Migration Styles (Getters to handle non-const base styles)
+  static TextStyle get displayHero => display;
+  static TextStyle get displayTitle => display;
+  static TextStyle get displayPage => display;
+  static TextStyle get displayHeading => headline;
+  static TextStyle get displayLocker => headline;
+  static TextStyle get displaySubPage => headline;
+  static TextStyle get displaySection => headline;
+  static TextStyle get displayLargeBody => body;
+  static TextStyle get displaySmall => label;
+  static TextStyle get labelStrong => label;
+  static TextStyle get captionStrong => label;
+  static TextStyle get help => caption;
+  static TextStyle get helper => caption;
+  static TextStyle get microSmall => micro;
+  static TextStyle get nano => micro;
+  static TextStyle get displayUI => headline;
+  static TextStyle get ribbonHeader => label;
+  static TextStyle get subtext => label;
 
   // Migration Weights (Internal helpers)
   static const FontWeight weightBlack = weightHeavy;
@@ -161,7 +161,7 @@ class AppTypography {
   static const FontWeight weightSemibold = weightStrong;
   static const FontWeight weightMedium = FontWeight.w500;
 
-  static String get uiFont => 'Plus Jakarta Sans';
+  static String uiFont = 'Plus Jakarta Sans';
   static TextStyle get displayMedium => display;
   
   static TextTheme createTextTheme() => textTheme;
@@ -173,7 +173,7 @@ class AppTypography {
   );
 
   static TextTheme get textTheme {
-    return const TextTheme(
+    return TextTheme(
       displayLarge: display,
       displayMedium: display,
       displaySmall: headline,

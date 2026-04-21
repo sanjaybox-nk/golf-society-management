@@ -93,7 +93,7 @@ class MemberHomeScreen extends ConsumerWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           const Text(
-                            'Viewing as Member',
+                            'VIEWING AS MEMBER',
                             style: TextStyle(
                               fontSize: 10,
                               fontWeight: AppTypography.weightExtraBold,
@@ -499,12 +499,12 @@ class MemberHomeScreen extends ConsumerWidget {
                                 bottom: AppSpacing.md,
                               ),
                               child: Text(
-                                '${toTitleCase(tier.name)} Partners',
+                                '${tier.name.toUpperCase()} PARTNERS',
                                 style: AppTypography.micro.copyWith(
                                   color: AppColors.dark300,
                                   fontWeight: AppTypography.weightHeavy,
-                                  letterSpacing: 0.5,
-                                  fontSize: 12,
+                                  letterSpacing: 1.2,
+                                  fontSize: 10,
                                 ),
                               ),
                             ),

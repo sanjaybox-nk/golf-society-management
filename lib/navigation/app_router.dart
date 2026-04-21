@@ -608,61 +608,6 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                       ),
                     ],
                    ),
-                  // --- NEW NESTED COMPETITION ROUTES ---
-                  GoRoute(
-                    path: 'manage/:id/game-setup',
-                    name: 'admin-event-game-setup',
-                    pageBuilder: (context, state) => boxyPage(
-                      state: state,
-                      hubId: state.pathParameters['id']!,
-                      child: CompetitionTypeSelectionScreen(
-                        isPicker: true, 
-                        eventId: state.pathParameters['id'],
-                      ),
-                    ),
-                    routes: [
-                      GoRoute(
-                        path: 'gallery/:type',
-                        name: 'admin-event-game-gallery',
-                        pageBuilder: (context, state) => boxyPage(
-                          state: state,
-                          hubId: state.pathParameters['id']!,
-                          child: CompetitionTemplateGalleryScreen(
-                            typeStr: state.pathParameters['type']!,
-                            isPicker: true,
-                            eventId: state.pathParameters['id']!,
-                          ),
-                        ),
-                      ),
-                      GoRoute(
-                        path: 'create/:type',
-                        name: 'admin-event-game-create',
-                        pageBuilder: (context, state) => boxyPage(
-                          state: state,
-                          hubId: state.pathParameters['id']!,
-                          child: CompetitionBuilderScreen(
-                            competitionId: state.pathParameters['id'],
-                            competition: state.extra as Competition?,
-                            format: CompetitionFormat.values.firstWhereOrNull(
-                              (f) => f.name == state.pathParameters['type'],
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  GoRoute(
-                    path: 'manage/:id/game-builder',
-                    name: 'admin-event-game-builder',
-                    pageBuilder: (context, state) => boxyPage(
-                      state: state,
-                      hubId: state.pathParameters['id']!,
-                      child: CompetitionBuilderScreen(
-                        competitionId: state.pathParameters['id'],
-                        competition: state.extra as Competition?,
-                      ),
-                    ),
-                  ),
                   GoRoute(
                     path: 'leaderboards/create/:type',
                     pageBuilder: (context, state) => boxyPage(state: state,
@@ -917,6 +862,57 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                     pageBuilder: (context, state) => boxyPage(
                       state: state,
                       child: EventFinesWorkbenchScreen(eventId: state.pathParameters['id']!),
+                    ),
+                  ),
+                  // --- NESTED COMPETITION ROUTES ---
+                  GoRoute(
+                    path: 'manage/:id/game-setup',
+                    name: 'admin-event-game-setup',
+                    pageBuilder: (context, state) => boxyPage(
+                      state: state,
+                      child: CompetitionTypeSelectionScreen(
+                        isPicker: true, 
+                        eventId: state.pathParameters['id'],
+                      ),
+                    ),
+                    routes: [
+                      GoRoute(
+                        path: 'gallery/:type',
+                        name: 'admin-event-game-gallery',
+                        pageBuilder: (context, state) => boxyPage(
+                          state: state,
+                          child: CompetitionTemplateGalleryScreen(
+                            typeStr: state.pathParameters['type']!,
+                            isPicker: true,
+                            eventId: state.pathParameters['id']!,
+                          ),
+                        ),
+                      ),
+                      GoRoute(
+                        path: 'create/:type',
+                        name: 'admin-event-game-create',
+                        pageBuilder: (context, state) => boxyPage(
+                          state: state,
+                          child: CompetitionBuilderScreen(
+                            competitionId: state.pathParameters['id'],
+                            competition: state.extra as Competition?,
+                            format: CompetitionFormat.values.firstWhereOrNull(
+                              (f) => f.name == state.pathParameters['type'],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  GoRoute(
+                    path: 'manage/:id/game-builder',
+                    name: 'admin-event-game-builder',
+                    pageBuilder: (context, state) => boxyPage(
+                      state: state,
+                      child: CompetitionBuilderScreen(
+                        competitionId: state.pathParameters['id'],
+                        competition: state.extra as Competition?,
+                      ),
                     ),
                   ),
                 ],

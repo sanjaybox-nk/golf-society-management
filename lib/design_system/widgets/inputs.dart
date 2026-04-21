@@ -20,6 +20,7 @@ class BoxyArtInputField extends ConsumerWidget {
   final Color? textColor;
   final String? subtitle;
   final bool isSeamless;
+  final String? suffixText;
 
   const BoxyArtInputField({
     super.key,
@@ -39,6 +40,7 @@ class BoxyArtInputField extends ConsumerWidget {
     this.textColor,
     this.subtitle,
     this.isSeamless = false,
+    this.suffixText,
   });
 
   @override
@@ -56,10 +58,11 @@ class BoxyArtInputField extends ConsumerWidget {
           Padding(
             padding: const EdgeInsets.only(left: AppSpacing.xs, bottom: AppSpacing.labelToCard),
             child: Text(
-              toTitleCase(label),
-              style: AppTypography.label.copyWith(
-                fontWeight: AppTypography.weightStrong, // Design 4.x Standard: Semibold labels
-                color: labelColor ?? theme.colorScheme.onSurface,
+              label.toUpperCase(),
+              style: AppTypography.micro.copyWith(
+                fontWeight: AppTypography.weightBold,
+                color: labelColor ?? theme.textTheme.bodySmall?.color?.withValues(alpha: AppColors.opacityHigh),
+                letterSpacing: 1.2,
               ),
             ),
           ),
@@ -96,26 +99,38 @@ class BoxyArtInputField extends ConsumerWidget {
             filled: !isSeamless,
             fillColor: isDark ? AppColors.dark600 : AppColors.pureWhite,
             prefixIcon: prefixIcon,
-            suffixIcon: suffixIcon,
+            suffixIcon: suffixIcon ?? (suffixText != null 
+              ? Padding(
+                  padding: const EdgeInsets.only(right: AppSpacing.lg, top: 14), 
+                  child: Text(
+                    suffixText!.toUpperCase(), 
+                    style: AppTypography.micro.copyWith(
+                      fontWeight: AppTypography.weightBold,
+                      color: isDark ? AppColors.dark400 : AppColors.dark300,
+                      letterSpacing: 1.0,
+                    ),
+                  ),
+                )
+              : null),
             border: isSeamless ? InputBorder.none : OutlineInputBorder(
               borderRadius: BorderRadius.circular(radius),
               borderSide: BorderSide(
                 color: isDark ? AppColors.dark500 : AppColors.lightBorder,
-                width: AppShapes.borderThin,
+                width: config.borderWidth,
               ),
             ),
             enabledBorder: isSeamless ? InputBorder.none : OutlineInputBorder(
               borderRadius: BorderRadius.circular(radius),
               borderSide: BorderSide(
                 color: isDark ? AppColors.dark500 : AppColors.lightBorder,
-                width: AppShapes.borderThin,
+                width: config.borderWidth,
               ),
             ),
             focusedBorder: isSeamless ? InputBorder.none : OutlineInputBorder(
               borderRadius: BorderRadius.circular(radius),
               borderSide: BorderSide(
                 color: theme.primaryColor,
-                width: AppShapes.borderLight,
+                width: config.borderWidth * 1.5,
               ),
             ),
             contentPadding: EdgeInsets.symmetric(
@@ -147,6 +162,7 @@ class BoxyArtFormField extends StatefulWidget {
   final Color? labelColor;
   final Color? textColor;
   final String? subtitle;
+  final String? suffixText;
   final bool isSeamless;
 
   const BoxyArtFormField({
@@ -167,6 +183,7 @@ class BoxyArtFormField extends StatefulWidget {
     this.labelColor,
     this.textColor,
     this.subtitle,
+    this.suffixText,
     this.isSeamless = false,
   });
 
@@ -217,6 +234,7 @@ class _BoxyArtFormFieldState extends State<BoxyArtFormField> {
       labelColor: widget.labelColor,
       textColor: widget.textColor,
       subtitle: widget.subtitle,
+      suffixText: widget.suffixText,
       isSeamless: widget.isSeamless,
     );
   }
@@ -297,10 +315,11 @@ class BoxyArtDatePickerField extends ConsumerWidget {
         Padding(
           padding: const EdgeInsets.only(left: AppSpacing.xs, bottom: AppSpacing.labelToCard),
           child: Text(
-            toTitleCase(label),
-            style: AppTypography.label.copyWith(
+            label.toUpperCase(),
+            style: AppTypography.micro.copyWith(
               fontWeight: AppTypography.weightBold,
               color: labelColor ?? theme.textTheme.bodySmall?.color?.withValues(alpha: AppColors.opacityHigh),
+              letterSpacing: 1.2,
             ),
           ),
         ),
@@ -317,7 +336,7 @@ class BoxyArtDatePickerField extends ConsumerWidget {
               borderRadius: BorderRadius.circular(radius),
               border: Border.all(
                 color: isDark ? AppColors.dark500 : AppColors.lightBorder, 
-                width: AppShapes.borderThin,
+                width: config.borderWidth,
               ),
             ),
             child: Row(
@@ -377,10 +396,11 @@ class BoxyArtSwitchField extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                toTitleCase(label),
-                style: AppTypography.label.copyWith(
-                  color: labelColor ?? theme.colorScheme.onSurface,
+                label.toUpperCase(),
+                style: AppTypography.micro.copyWith(
+                  color: labelColor ?? theme.textTheme.bodySmall?.color?.withValues(alpha: AppColors.opacityHigh),
                   fontWeight: AppTypography.weightBold,
+                  letterSpacing: 1.2,
                 ),
               ),
               if (subtitle != null) ...[
@@ -416,7 +436,7 @@ class BoxyArtSwitchField extends StatelessWidget {
 }
 
 /// A standardized branded slider for configuration controls.
-class BoxyArtSlider extends StatelessWidget {
+class BoxyArtSlider extends ConsumerWidget {
   final double value;
   final double min;
   final double max;
@@ -439,9 +459,10 @@ class BoxyArtSlider extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final config = ref.watch(themeControllerProvider);
     
     // Design 4.x: Preference for monochromatic neutral in admin contexts
     final Color primary = color ?? (isNeutral 
@@ -458,9 +479,9 @@ class BoxyArtSlider extends StatelessWidget {
         inactiveTrackColor: inactiveColor,
         thumbColor: primary,
         overlayColor: primary.withValues(alpha: 0.12),
-        trackHeight: 4,
-        thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 10),
-        overlayShape: const RoundSliderOverlayShape(overlayRadius: 20),
+        trackHeight: config.sliderTrackHeight,
+        thumbShape: RoundSliderThumbShape(enabledThumbRadius: config.sliderThumbRadius),
+        overlayShape: RoundSliderOverlayShape(overlayRadius: config.sliderThumbRadius * 2),
         valueIndicatorColor: primary,
         valueIndicatorTextStyle: TextStyle(
           color: isNeutral ? (isDark ? AppColors.dark900 : AppColors.pureWhite) : AppColors.actionText, 
@@ -525,10 +546,11 @@ class BoxyArtSwitchTile extends ConsumerWidget {
               children: [
                 ...[
                   Text(
-                    toTitleCase(label),
-                    style: AppTypography.label.copyWith(
+                    label.toUpperCase(),
+                    style: AppTypography.micro.copyWith(
                       fontWeight: AppTypography.weightBold,
-                      fontSize: AppTypography.sizeLabel,
+                      color: theme.textTheme.bodySmall?.color?.withValues(alpha: AppColors.opacityHigh),
+                      letterSpacing: 1.2,
                     ),
                   ),
                   if (subtitle != null) ...[
@@ -614,12 +636,11 @@ class BoxyArtNavTile extends ConsumerWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    toTitleCase(title),
-                    style: AppTypography.label.copyWith(
+                    title.toUpperCase(),
+                    style: AppTypography.micro.copyWith(
                       color: theme.colorScheme.onSurface,
                       fontWeight: AppTypography.weightBold,
-                      letterSpacing: AppTypography.lsStandard,
-                      fontSize: AppTypography.sizeLabel,
+                      letterSpacing: 1.2,
                     ),
                   ),
                   const SizedBox(height: 2),
@@ -726,10 +747,11 @@ class BoxyArtDropdownField<T> extends ConsumerWidget {
           Padding(
             padding: const EdgeInsets.only(left: AppSpacing.xs, bottom: AppSpacing.labelToCard),
             child: Text(
-              toTitleCase(label),
-              style: AppTypography.label.copyWith(
+              label.toUpperCase(),
+              style: AppTypography.micro.copyWith(
                 fontWeight: AppTypography.weightBold,
                 color: theme.textTheme.bodySmall?.color?.withValues(alpha: AppColors.opacityHigh),
+                letterSpacing: 1.2,
               ),
             ),
           ),
@@ -768,14 +790,14 @@ class BoxyArtDropdownField<T> extends ConsumerWidget {
                 borderRadius: BorderRadius.circular(radius),
                 borderSide: BorderSide(
                   color: isDark ? AppColors.dark500 : AppColors.lightBorder,
-                  width: AppShapes.borderThin,
+                  width: config.borderWidth,
                 ),
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(radius),
                 borderSide: BorderSide(
                   color: theme.primaryColor,
-                  width: AppShapes.borderLight,
+                  width: config.borderWidth * 1.5,
                 ),
               ),
               contentPadding: const EdgeInsets.symmetric(
@@ -829,7 +851,7 @@ class BoxyArtSegmentedControl<T> extends ConsumerWidget {
         
         return Container(
           width: totalWidth,
-          height: 54, // Design 4.x standard for segmented inputs
+          height: config.surfaceHeightMedium, // Design 4.x standard for segmented inputs
           decoration: BoxDecoration(
             color: isDark ? AppColors.dark700 : AppColors.lightHeader,
             borderRadius: BorderRadius.circular(radius),

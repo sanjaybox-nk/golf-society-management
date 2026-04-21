@@ -1,19 +1,12 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
-import 'package:uuid/uuid.dart';
 import 'package:golf_society/design_system/design_system.dart';
 import 'package:golf_society/utils/string_utils.dart';
 
 import 'package:golf_society/domain/models/season.dart';
 import 'package:golf_society/domain/models/leaderboard_config.dart';
 import '../../../events/presentation/events_provider.dart';
-import '../leaderboards/controls/oom_control.dart';
-import '../leaderboards/controls/best_of_control.dart';
-import '../leaderboards/controls/eclectic_control.dart';
-import '../leaderboards/controls/marker_counter_control.dart';
-import '../leaderboards/controls/base_leaderboard_control.dart';
-import 'widgets/leaderboard_template_selector.dart';
 import '../../../competitions/services/leaderboard_invoker_service.dart';
 
 class SeasonFormScreen extends ConsumerStatefulWidget {
@@ -100,86 +93,83 @@ class _SeasonFormScreenState extends ConsumerState<SeasonFormScreen> {
           sliver: SliverToBoxAdapter(
             child: Form(
               key: _formKey,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const BoxyArtSectionTitle(title: 'Basic info', isPeeking: true),
-                  BoxyArtCard(
-                    child: BoxyArtFormColumn(
-                      children: [
-                        BoxyArtInputField(
-                          label: 'Season name',
-                          controller: _nameController,
-                          validator: (v) => v!.isEmpty ? 'Required' : null,
-                        ),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: BoxyArtInputField(
-                                label: 'Year',
-                                controller: _yearController,
-                                keyboardType: TextInputType.number,
-                              ),
+            child: BoxyArtFormColumn(
+              children: [
+                const BoxyArtSectionTitle(title: 'Basic info', isPeeking: true),
+                BoxyArtCard(
+                  child: BoxyArtFormColumn(
+                    children: [
+                      BoxyArtInputField(
+                        label: 'Season name',
+                        controller: _nameController,
+                        validator: (v) => v!.isEmpty ? 'Required' : null,
+                      ),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: BoxyArtInputField(
+                              label: 'Year',
+                              controller: _yearController,
+                              keyboardType: TextInputType.number,
                             ),
-                            const SizedBox(width: AppSpacing.lg),
-                            Expanded(
-                              child: BoxyArtDropdownField<SeasonStatus>(
-                                label: 'Status',
-                                value: _status,
-                                items: SeasonStatus.values.map((s) => DropdownMenuItem(value: s, child: Text(toSentenceCase(s.name)))).toList(),
-                                onChanged: (v) => setState(() => _status = v!),
-                              ),
+                          ),
+                          const SizedBox(width: AppSpacing.lg),
+                          Expanded(
+                            child: BoxyArtDropdownField<SeasonStatus>(
+                              label: 'Status',
+                              value: _status,
+                              items: SeasonStatus.values.map((s) => DropdownMenuItem(value: s, child: Text(toSentenceCase(s.name)))).toList(),
+                              onChanged: (v) => setState(() => _status = v!),
                             ),
-                          ],
-                        ),
-                      ],
-                    ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
-                  const BoxyArtSectionTitle(title: 'Dates'),
-                  BoxyArtCard(
-                    child: BoxyArtFormColumn(
-                      children: [
-                        Row(
-                          children: [
-                            Expanded(
-                              child: BoxyArtDatePickerField(
-                                label: 'Starts',
-                                value: DateFormat.yMMMd().format(_startDate),
-                                onTap: () => _pickDate(isStart: true),
-                              ),
+                ),
+                const BoxyArtSectionTitle(title: 'Dates'),
+                BoxyArtCard(
+                  child: BoxyArtFormColumn(
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: BoxyArtDatePickerField(
+                              label: 'Starts',
+                              value: DateFormat.yMMMd().format(_startDate),
+                              onTap: () => _pickDate(isStart: true),
                             ),
-                            const SizedBox(width: AppSpacing.md),
-                            Expanded(
-                              child: BoxyArtDatePickerField(
-                                label: 'Ends',
-                                value: DateFormat.yMMMd().format(_endDate),
-                                onTap: () => _pickDate(isStart: false),
-                              ),
+                          ),
+                          const SizedBox(width: AppSpacing.md),
+                          Expanded(
+                            child: BoxyArtDatePickerField(
+                              label: 'Ends',
+                              value: DateFormat.yMMMd().format(_endDate),
+                              onTap: () => _pickDate(isStart: false),
                             ),
-                          ],
-                        ),
-                      ],
-                    ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: AppSpacing.md),
-                  BoxyArtSwitchField(
-                    label: 'Set as current season',
-                    value: _isCurrent,
-                    onChanged: (v) => setState(() => _isCurrent = v),
-                  ),
+                ),
+                BoxyArtSwitchField(
+                  label: 'Set as current season',
+                  value: _isCurrent,
+                  onChanged: (v) => setState(() => _isCurrent = v),
+                ),
 
-                  const BoxyArtSectionTitle(title: 'Season Standings'),
-                  _buildLeaderboardsList(),
-                  const SizedBox(height: AppSpacing.xl),
-                  BoxyArtButton(
-                    title: 'Add from Template',
-                    isSecondary: true,
-                    icon: Icons.add_to_photos_rounded,
-                    fullWidth: true,
-                    onTap: _showTemplateSelector,
-                  ),
-                ],
-              ),
+                const BoxyArtSectionTitle(title: 'Season Standings'),
+                _buildLeaderboardsList(),
+                BoxyArtButton(
+                  title: 'Add from Template',
+                  isSecondary: true,
+                  icon: Icons.add_to_photos_rounded,
+                  fullWidth: true,
+                  onTap: _showTemplateSelector,
+                ),
+              ],
+            ),
             ),
           ),
         ),
@@ -220,55 +210,53 @@ class _SeasonFormScreenState extends ConsumerState<SeasonFormScreen> {
       );
     }
 
-    return Column(
-      children: _leaderboards.map((l) => Padding(
-        padding: const EdgeInsets.only(bottom: AppSpacing.md),
-        child: BoxyArtCard(
-          child: Row(
-            children: [
-              BoxyArtIconBadge(
-                icon: l.map(
-                  orderOfMerit: (_) => Icons.format_list_numbered_rounded,
-                  bestOfSeries: (_) => Icons.stars_rounded,
-                  eclectic: (_) => Icons.grid_on_rounded,
-                  markerCounter: (_) => Icons.emoji_events_rounded,
-                ),
-                color: Theme.of(context).colorScheme.primary,
+    return BoxyArtFormColumn(
+      spacing: AppSpacing.md,
+      children: _leaderboards.map((l) => BoxyArtCard(
+        child: Row(
+          children: [
+            BoxyArtIconBadge(
+              icon: l.map(
+                orderOfMerit: (_) => Icons.format_list_numbered_rounded,
+                bestOfSeries: (_) => Icons.stars_rounded,
+                eclectic: (_) => Icons.grid_on_rounded,
+                markerCounter: (_) => Icons.emoji_events_rounded,
               ),
-              const SizedBox(width: AppSpacing.md),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(l.name, style: AppTypography.cardTitle),
-                    Row(
-                      children: [
-                        BoxyArtPill.status(
-                          label: toSentenceCase(l.scope.name),
-                          color: l.scope == LeaderboardScope.global 
-                              ? AppColors.lime500 
-                              : AppColors.teamA,
+              color: Theme.of(context).colorScheme.primary,
+            ),
+            const SizedBox(width: AppSpacing.md),
+            Expanded(
+              child: BoxyArtFormColumn(
+                spacing: AppSpacing.xs,
+                children: [
+                  Text(l.name, style: AppTypography.cardTitle),
+                  Row(
+                    children: [
+                      BoxyArtPill.status(
+                        label: toSentenceCase(l.scope.name),
+                        color: l.scope == LeaderboardScope.global 
+                            ? AppColors.lime500 
+                            : AppColors.teamA,
+                      ),
+                      const SizedBox(width: AppSpacing.xs),
+                      Expanded(
+                        child: Text(
+                          _getFormatConfigSummary(l),
+                          style: AppTypography.micro.copyWith(color: AppColors.dark400),
+                          overflow: TextOverflow.ellipsis,
                         ),
-                        const SizedBox(width: AppSpacing.xs),
-                        Expanded(
-                          child: Text(
-                            _getFormatConfigSummary(l),
-                            style: AppTypography.micro.copyWith(color: AppColors.dark400),
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
+                      ),
+                    ],
+                  ),
+                ],
               ),
-              IconButton(
-                icon: const Icon(Icons.delete_outline_rounded, color: AppColors.coral500),
-                onPressed: () => _removeLeaderboard(l),
-                visualDensity: VisualDensity.compact,
-              ),
-            ],
-          ),
+            ),
+            IconButton(
+              icon: const Icon(Icons.delete_outline_rounded, color: AppColors.coral500),
+              onPressed: () => _removeLeaderboard(l),
+              visualDensity: VisualDensity.compact,
+            ),
+          ],
         ),
       )).toList(),
     );

@@ -1,4 +1,4 @@
-# Team Scoring & Handicap System
+# Team Scoring & Handicap System (v4.5)
 
 This document explains the technical implementation of team-based scoring (Scramble, Pairs) within the Golf Society Management system. This system ensures consistency across the Leaderboard, Group Hub, and individual Scorecards.
 
@@ -82,7 +82,8 @@ The system prioritizes "To-Par" scoring for clarity. A team's net score is calcu
 ### 3.3 Group Hub (`GroupingCard`)
 -   **Scramble/Team Scores**: All members of a team in the group hub show the identical "Live" net score.
 -   **Fourball Individual Scores**: In Fourball (Pairs), each player shows their **own individual** Stableford/Stroke score, not the shared team score.
--   **Better-Ball Footer**: The footer displays pre-computed better-ball (BB) aggregate scores per pair as colored pills — **orange** pill for Side A, **blue** pill for Side B — matching the individual score badge shape.
+-   **Better-Ball Footer**: The footer displays pre-computed better-ball (BB) aggregate scores per pair as colored pills. These use the society's **Team A** and **Team B** colors (configured in the Design Token Studio) to match the match-play identity standards.
+-   **Side Labeling**: Side A and Side B labels in the group hub utilize dynamic branding tokens, ensuring visual consistency across all team formats.
 -   **PHC Overrides**: Individual player tiles in a team game display the **Team PHC** rather than their personal index, reflecting the collective nature of the format.
 
 ### 3.4 Florida Scramble & Shot Attributions
@@ -121,7 +122,8 @@ To minimize confusion between Match Play and Stableford variants:
 
 #### B. Match Play
 - **Relative PHCs**: Players display PHCs **relative to the lowest player** in the group (who is zeroed).
-- **Themed Display**: Handicaps are displayed using the premium `BoxyArtPill.hc()` and `BoxyArtPill.phc()` components. These pills use consistent uppercase labels ("HC:", "PHC:") and ensure the index is always formatted to one decimal place (e.g., `8.4`). PHC is highlighted in the primary theme color.
+- **v4.5 Metadata Standards**: To ensure administrative distinction, all handicap labels ("HC", "PHC") and team identifiers are rendered in **ALL-CAPS** with 1.2 letter spacing.
+- **Themed Display**: Handicaps are displayed using the premium `BoxyArtPill.hc()` and `BoxyArtPill.phc()` components. These pills ensure the index is always formatted to one decimal place (e.g., `8.4`). PHC is rendered using the society-level primary accent or team-specific color as appropriate.
 - **Reasoning**: In Match Play, only the *difference* in strokes matters. This simplifies on-course tracking.
 
 ### 7.3 Score Propagation (Marker vs. Player)
@@ -129,7 +131,7 @@ To prevent "missing score" confusion:
 - The **Marker's Card** (`playerVerifierScores`) automatically falls back to displaying the **Official Card** (`holeScores`) if the marker has not yet entered their own record. This ensures a consistent "Live" view for everyone in the group.
 
 ---
-*Last Updated: February 19, 2026*
+*Last Updated: April 21, 2026*
 
 ---
 
@@ -176,3 +178,8 @@ For **Stroke Play** and **Stableford** competitions involving mixed tees (e.g., 
 The system supports multiple tie-break methods (Back 9, Back 6, etc.), but now allows for a **Manual Playoff** override.
 -   **Standard**: Automatically sorts tied players using a progressive countback (B9, then B6, then B3, then B1). The leaderboard displays these values (B9 • B6 • B3) to provide transparency on tied rankings.
 -   **Playoff (Manual)**: Disables automatic sorting. Tied players remain in their original order (or entry order) until an admin manually adjusts the result or enters a playoff score.
+
+### 6.3 Scoring Aesthetic Standards (Phase 9)
+All scoring visualizations (Scorecards, Leaderboards, Results) now utilize the dynamic **Scoring Aesthetics** palette from the `SocietyConfig`.
+- **Identity Lock**: Eagle (-2), Birdie (-1), Par (E), Bogey (+1), Double (+2), and Triple+ (+3) indicators use the whitelabel colors defined in the Branding Console.
+- **Team Registry**: Team A and Team B color tokens provide a stable identity for Match Play pairings across all hubs.

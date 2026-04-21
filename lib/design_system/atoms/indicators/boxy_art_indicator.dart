@@ -76,13 +76,12 @@ class BoxyArtIndicator extends StatelessWidget {
           // The Label
           Flexible(
             child: Text(
-              // Match detail view's visual Title Case style
-              label,
-              style: AppTypography.label.copyWith(
-                fontSize: fontSize ?? 13.0,
-                color: textColor ?? AppColors.dark800,
-                fontWeight: AppTypography.weightStrong, // w600
-                letterSpacing: AppTypography.lsLabel,
+              label.toUpperCase(),
+              style: AppTypography.micro.copyWith(
+                fontSize: fontSize ?? AppTypography.sizeMicro,
+                color: textColor ?? AppColors.textTertiary,
+                fontWeight: AppTypography.weightBold,
+                letterSpacing: 1.2,
                 height: 1.0,
               ),
               overflow: TextOverflow.ellipsis,

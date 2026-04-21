@@ -23,7 +23,7 @@ class EventAwardsSection extends ConsumerWidget {
           children: [
             const BoxyArtSectionTitle(title: 'Prizes & Awards', followsCard: true),
             BoxyArtCard(
-              child: Column(
+              child: BoxyArtFormColumn(
                 children: [
                   BoxyArtSwitchField(
                     label: 'Enable Prize Table',
@@ -43,7 +43,6 @@ class EventAwardsSection extends ConsumerWidget {
                         ref: ref,
                       );
                     }),
-                    const SizedBox(height: AppSpacing.lg),
                     BoxyArtButton(
                       title: 'Add award',
                       onTap: () => ref.read(eventFormNotifierProvider.notifier).addAward(),
@@ -116,7 +115,7 @@ class _AwardRowState extends State<_AwardRow> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
+    return BoxyArtFormColumn(
       children: [
         if (widget.index > 0) const Divider(height: AppSpacing.x3l),
         Row(
@@ -145,7 +144,6 @@ class _AwardRowState extends State<_AwardRow> {
             ),
           ],
         ),
-        const SizedBox(height: AppSpacing.lg),
         Row(
           children: ['Cup', 'Cash', 'Voucher'].map((type) {
             final isSelected = widget.award.type.toLowerCase() == type.toLowerCase();

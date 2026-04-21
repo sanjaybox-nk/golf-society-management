@@ -12,8 +12,28 @@ _SocietyConfig _$SocietyConfigFromJson(Map<String, dynamic> json) =>
       logoUrl: json['logoUrl'] as String?,
       primaryColor: (json['primaryColor'] as num?)?.toInt() ?? 0xFFF7D354,
       secondaryColor: (json['secondaryColor'] as num?)?.toInt() ?? 0xFF4ADE80,
+      tertiaryColor: (json['tertiaryColor'] as num?)?.toInt() ?? 0xFF475569,
       dangerousColor: (json['dangerousColor'] as num?)?.toInt() ?? 0xFFFF5533,
       backgroundColor: (json['backgroundColor'] as num?)?.toInt() ?? 0xFFEFEFED,
+      cardColor: (json['cardColor'] as num?)?.toInt() ?? 0xFFFFFFFF,
+      surfaceElevatedColor:
+          (json['surfaceElevatedColor'] as num?)?.toInt() ?? 0xFFF0F0F0,
+      textPrimaryColor:
+          (json['textPrimaryColor'] as num?)?.toInt() ?? 0xFF1A1A1A,
+      textSecondaryColor:
+          (json['textSecondaryColor'] as num?)?.toInt() ?? 0xFF6B7280,
+      textMutedColor: (json['textMutedColor'] as num?)?.toInt() ?? 0xFF9CA3AF,
+      scoreEagleColor: (json['scoreEagleColor'] as num?)?.toInt() ?? 0xFF34D399,
+      scoreBirdieColor:
+          (json['scoreBirdieColor'] as num?)?.toInt() ?? 0xFF4ADE80,
+      scoreParColor: (json['scoreParColor'] as num?)?.toInt() ?? 0xFFA0A0A0,
+      scoreBogeyColor: (json['scoreBogeyColor'] as num?)?.toInt() ?? 0xFFFF745C,
+      scoreDoubleColor:
+          (json['scoreDoubleColor'] as num?)?.toInt() ?? 0xFFFF5533,
+      scoreTriplePlusColor:
+          (json['scoreTriplePlusColor'] as num?)?.toInt() ?? 0xFFFF3333,
+      teamAColor: (json['teamAColor'] as num?)?.toInt() ?? 0xFF1E40AF,
+      teamBColor: (json['teamBColor'] as num?)?.toInt() ?? 0xFF166534,
       statusPublishedColor:
           (json['statusPublishedColor'] as num?)?.toInt() ?? 0xFF4ADE80,
       statusConfirmedColor:
@@ -34,6 +54,8 @@ _SocietyConfig _$SocietyConfigFromJson(Map<String, dynamic> json) =>
       borderWidth: (json['borderWidth'] as num?)?.toDouble() ?? 1.5,
       pillRadius: (json['pillRadius'] as num?)?.toDouble() ?? 30.0,
       buttonRadius: (json['buttonRadius'] as num?)?.toDouble() ?? 16.0,
+      borderColor: (json['borderColor'] as num?)?.toInt() ?? 0xFFE2E2DC,
+      dividerColor: (json['dividerColor'] as num?)?.toInt() ?? 0xFFE2E2DC,
       heroRadius: (json['heroRadius'] as num?)?.toDouble() ?? 28.0,
       accentRadius: (json['accentRadius'] as num?)?.toDouble() ?? 8.0,
       accentOpacity: (json['accentOpacity'] as num?)?.toDouble() ?? 0.15,
@@ -43,6 +65,8 @@ _SocietyConfig _$SocietyConfigFromJson(Map<String, dynamic> json) =>
           (json['labelToCardSpacing'] as num?)?.toDouble() ?? 8.0,
       cardToLabelSpacing:
           (json['cardToLabelSpacing'] as num?)?.toDouble() ?? 16.0,
+      fieldToFieldSpacing:
+          (json['fieldToFieldSpacing'] as num?)?.toDouble() ?? 16.0,
       cardToCardSpacing:
           (json['cardToCardSpacing'] as num?)?.toDouble() ?? 16.0,
       cardVerticalPadding:
@@ -60,6 +84,20 @@ _SocietyConfig _$SocietyConfigFromJson(Map<String, dynamic> json) =>
       iconBadgeSize: (json['iconBadgeSize'] as num?)?.toDouble() ?? 38.0,
       iconBadgeIconSize:
           (json['iconBadgeIconSize'] as num?)?.toDouble() ?? 18.0,
+      buttonHeight: (json['buttonHeight'] as num?)?.toDouble() ?? 42.0,
+      buttonSmallHeight:
+          (json['buttonSmallHeight'] as num?)?.toDouble() ?? 32.0,
+      buttonHorizontalPadding:
+          (json['buttonHorizontalPadding'] as num?)?.toDouble() ?? 24.0,
+      sliderTrackHeight: (json['sliderTrackHeight'] as num?)?.toDouble() ?? 4.0,
+      sliderThumbRadius:
+          (json['sliderThumbRadius'] as num?)?.toDouble() ?? 10.0,
+      dividerThickness: (json['dividerThickness'] as num?)?.toDouble() ?? 1.0,
+      surfaceHeightLarge:
+          (json['surfaceHeightLarge'] as num?)?.toDouble() ?? 60.0,
+      surfaceHeightMedium:
+          (json['surfaceHeightMedium'] as num?)?.toDouble() ?? 50.0,
+      fontFamily: json['fontFamily'] as String? ?? 'Plus Jakarta Sans',
       themeMode: json['themeMode'] as String? ?? 'system',
       customColors: (json['customColors'] as List<dynamic>?)
               ?.map((e) => (e as num).toInt())
@@ -122,8 +160,22 @@ Map<String, dynamic> _$SocietyConfigToJson(_SocietyConfig instance) =>
       'logoUrl': instance.logoUrl,
       'primaryColor': instance.primaryColor,
       'secondaryColor': instance.secondaryColor,
+      'tertiaryColor': instance.tertiaryColor,
       'dangerousColor': instance.dangerousColor,
       'backgroundColor': instance.backgroundColor,
+      'cardColor': instance.cardColor,
+      'surfaceElevatedColor': instance.surfaceElevatedColor,
+      'textPrimaryColor': instance.textPrimaryColor,
+      'textSecondaryColor': instance.textSecondaryColor,
+      'textMutedColor': instance.textMutedColor,
+      'scoreEagleColor': instance.scoreEagleColor,
+      'scoreBirdieColor': instance.scoreBirdieColor,
+      'scoreParColor': instance.scoreParColor,
+      'scoreBogeyColor': instance.scoreBogeyColor,
+      'scoreDoubleColor': instance.scoreDoubleColor,
+      'scoreTriplePlusColor': instance.scoreTriplePlusColor,
+      'teamAColor': instance.teamAColor,
+      'teamBColor': instance.teamBColor,
       'statusPublishedColor': instance.statusPublishedColor,
       'statusConfirmedColor': instance.statusConfirmedColor,
       'statusReservedColor': instance.statusReservedColor,
@@ -138,6 +190,8 @@ Map<String, dynamic> _$SocietyConfigToJson(_SocietyConfig instance) =>
       'borderWidth': instance.borderWidth,
       'pillRadius': instance.pillRadius,
       'buttonRadius': instance.buttonRadius,
+      'borderColor': instance.borderColor,
+      'dividerColor': instance.dividerColor,
       'heroRadius': instance.heroRadius,
       'accentRadius': instance.accentRadius,
       'accentOpacity': instance.accentOpacity,
@@ -145,6 +199,7 @@ Map<String, dynamic> _$SocietyConfigToJson(_SocietyConfig instance) =>
       'shadowOpacity': instance.shadowOpacity,
       'labelToCardSpacing': instance.labelToCardSpacing,
       'cardToLabelSpacing': instance.cardToLabelSpacing,
+      'fieldToFieldSpacing': instance.fieldToFieldSpacing,
       'cardToCardSpacing': instance.cardToCardSpacing,
       'cardVerticalPadding': instance.cardVerticalPadding,
       'cardHorizontalPadding': instance.cardHorizontalPadding,
@@ -155,6 +210,15 @@ Map<String, dynamic> _$SocietyConfigToJson(_SocietyConfig instance) =>
       'iconOpacity': instance.iconOpacity,
       'iconBadgeSize': instance.iconBadgeSize,
       'iconBadgeIconSize': instance.iconBadgeIconSize,
+      'buttonHeight': instance.buttonHeight,
+      'buttonSmallHeight': instance.buttonSmallHeight,
+      'buttonHorizontalPadding': instance.buttonHorizontalPadding,
+      'sliderTrackHeight': instance.sliderTrackHeight,
+      'sliderThumbRadius': instance.sliderThumbRadius,
+      'dividerThickness': instance.dividerThickness,
+      'surfaceHeightLarge': instance.surfaceHeightLarge,
+      'surfaceHeightMedium': instance.surfaceHeightMedium,
+      'fontFamily': instance.fontFamily,
       'themeMode': instance.themeMode,
       'customColors': instance.customColors,
       'cardTintIntensity': instance.cardTintIntensity,

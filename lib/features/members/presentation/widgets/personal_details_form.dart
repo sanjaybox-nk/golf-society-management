@@ -185,9 +185,10 @@ class _PersonalDetailsFormState extends State<PersonalDetailsForm> {
 
   Widget _buildInfoRow(BuildContext context, String label, String value) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final spacing = Theme.of(context).extension<AppSpacingTokens>();
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    return BoxyArtFormColumn(
+      spacing: spacing?.labelToCard ?? AppSpacing.xs,
       children: [
         Text(
           label.toUpperCase(),
@@ -196,7 +197,6 @@ class _PersonalDetailsFormState extends State<PersonalDetailsForm> {
             letterSpacing: AppTypography.lsLabel,
           ),
         ),
-        const SizedBox(height: AppSpacing.xs),
         Text(
           value.isEmpty ? '-' : value,
           style: AppTypography.body.copyWith(
@@ -209,12 +209,14 @@ class _PersonalDetailsFormState extends State<PersonalDetailsForm> {
 
   Widget _buildCountryCodePicker(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final spacing = Theme.of(context).extension<AppSpacingTokens>();
+    final shapes = Theme.of(context).extension<AppShapeTokens>();
     
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    return BoxyArtFormColumn(
+      spacing: spacing?.labelToCard ?? AppSpacing.labelToCard,
       children: [
         Padding(
-          padding: const EdgeInsets.only(left: AppSpacing.xs, bottom: AppSpacing.labelToCard),
+          padding: const EdgeInsets.only(left: AppSpacing.xs),
           child: Text(
             'CODE',
             style: AppTypography.micro.copyWith(
@@ -226,14 +228,14 @@ class _PersonalDetailsFormState extends State<PersonalDetailsForm> {
         ),
         InkWell(
           onTap: () => _showCountryCodePicker(context),
-          borderRadius: BorderRadius.circular(Theme.of(context).extension<AppShapeTokens>()?.inputRadius ?? 12),
+          borderRadius: BorderRadius.circular(shapes?.inputRadius ?? 12),
           child: Container(
             height: 52,
             width: 90,
             alignment: Alignment.center,
             decoration: BoxDecoration(
               color: isDark ? AppColors.dark600 : AppColors.pureWhite,
-              borderRadius: BorderRadius.circular(Theme.of(context).extension<AppShapeTokens>()?.inputRadius ?? 12),
+              borderRadius: BorderRadius.circular(shapes?.inputRadius ?? 12),
               border: Border.all(
                 color: isDark ? AppColors.dark500 : AppColors.lightBorder, 
                 width: AppShapes.borderThin,

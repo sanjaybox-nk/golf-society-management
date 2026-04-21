@@ -16,6 +16,7 @@ class BoxyArtIconBadge extends ConsumerWidget {
   final Color? iconColor;
   final Color? borderColor;
   final double? fillOpacity;
+  final bool isTertiary;
   final String? tooltip;
 
   const BoxyArtIconBadge({
@@ -25,6 +26,7 @@ class BoxyArtIconBadge extends ConsumerWidget {
     this.size,
     this.iconSize,
     this.isTinted = true,
+    this.isTertiary = false,
     this.showFill = true,
     this.showBorder = false,
     this.useCircle = false,
@@ -55,10 +57,14 @@ class BoxyArtIconBadge extends ConsumerWidget {
     final double effectiveOpacity = fillOpacity ?? shapeTokens?.iconBadgeOpacity ?? config.iconBadgeOpacity;
     
     final Color effectiveFill = showFill 
-      ? (shapeTokens?.iconBadgeFill ?? Color(config.iconBadgeFillColor)).withValues(alpha: effectiveOpacity)
+      ? (isTertiary 
+          ? Theme.of(context).colorScheme.tertiary.withValues(alpha: effectiveOpacity)
+          : (shapeTokens?.iconBadgeFill ?? Color(config.iconBadgeFillColor)).withValues(alpha: effectiveOpacity))
       : Colors.transparent;
       
-    final Color effectiveIconColor = iconColor ?? (shapeTokens?.iconBadgeIcon ?? (color != Colors.transparent ? color : Color(config.iconBadgeIconColor)));
+    final Color effectiveIconColor = iconColor ?? (isTertiary 
+      ? Theme.of(context).colorScheme.tertiary
+      : (shapeTokens?.iconBadgeIcon ?? (color != Colors.transparent ? color : Color(config.iconBadgeIconColor))));
 
     final Widget content = Container(
       width: effectiveSize,
@@ -413,12 +419,12 @@ class BoxyArtPill extends ConsumerWidget {
           ],
           Flexible(
             child: Text(
-              label.contains(':') ? label : toTitleCase(label),
-              style: AppTypography.label.copyWith(
-                fontSize: fontSize ?? AppTypography.sizeLabel,
+              label.toUpperCase(),
+              style: AppTypography.micro.copyWith(
+                fontSize: fontSize ?? AppTypography.sizeMicro,
                 color: effectiveTextColor,
                 fontWeight: fontWeight ?? AppTypography.weightBold,
-                letterSpacing: letterSpacing ?? AppTypography.lsLabel,
+                letterSpacing: letterSpacing ?? 1.2,
               ),
               overflow: TextOverflow.ellipsis,
               maxLines: 1,

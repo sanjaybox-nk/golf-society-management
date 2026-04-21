@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:golf_society/theme/app_colors.dart';
 import 'package:golf_society/theme/app_typography.dart';
 import 'package:golf_society/theme/app_shapes.dart';
@@ -9,19 +10,21 @@ import 'package:golf_society/design_system/theme/contrast_helper.dart';
 import 'package:golf_society/design_system/theme/animation_constants.dart';
 import 'package:golf_society/utils/string_utils.dart';
 import '../atoms/buttons/boxy_art_icon_buttons.dart';
+import 'package:golf_society/design_system/theme/theme_controller.dart';
 
 /// A floating bottom bar with Search and Filter segments.
-class FloatingBottomSearch extends StatelessWidget {
+class FloatingBottomSearch extends ConsumerWidget {
   final VoidCallback? onSearchTap;
   final VoidCallback? onFilterTap;
 
   const FloatingBottomSearch({super.key, this.onSearchTap, this.onFilterTap});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final config = ref.watch(themeControllerProvider);
     return Container(
       margin: const EdgeInsets.only(bottom: AppSpacing.x2l, left: AppSpacing.x3l, right: AppSpacing.x3l),
-      height: 60,
+      height: config.surfaceHeightLarge,
       decoration: BoxDecoration(
         color: Theme.of(context).brightness == Brightness.dark ? AppColors.dark600 : AppColors.pureWhite,
         borderRadius: AppShapes.md,
@@ -86,7 +89,7 @@ class FloatingBottomSearch extends StatelessWidget {
 }
 
 /// A segment control style filter bar.
-class FloatingFilterBar<T> extends StatelessWidget {
+class FloatingFilterBar<T> extends ConsumerWidget {
   final T selectedValue;
   final List<FloatingFilterOption<T>> options;
   final ValueChanged<T> onChanged;
@@ -99,7 +102,8 @@ class FloatingFilterBar<T> extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final config = ref.watch(themeControllerProvider);
     final selectedIndex = options.indexWhere((o) => o.value == selectedValue);
     final count = options.length;
     final alignmentX = count > 1 ? (selectedIndex / (count - 1)) * 2 - 1 : 0.0;
@@ -108,7 +112,7 @@ class FloatingFilterBar<T> extends StatelessWidget {
       child: Container(
         margin: const EdgeInsets.only(bottom: 30),
         width: AppShapes.borderMedium,
-        height: 50,
+        height: config.surfaceHeightMedium,
         decoration: ShapeDecoration(
           color: Theme.of(context).brightness == Brightness.dark ? AppColors.dark600 : AppColors.pureWhite,
           shape: const StadiumBorder(),
@@ -225,10 +229,11 @@ class ProfileInfoRow extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    toTitleCase(label),
-                    style: AppTypography.caption.copyWith(
+                    label.toUpperCase(),
+                    style: AppTypography.micro.copyWith(
                       color: isDark ? AppColors.dark200 : AppColors.dark300,
-                      letterSpacing: 1.0,
+                      fontWeight: AppTypography.weightBold,
+                      letterSpacing: 1.2,
                     ),
                   ),
                   const SizedBox(height: AppSpacing.xs),
@@ -310,11 +315,11 @@ class BoxyArtSectionTitle extends StatelessWidget {
               ],
               Flexible(
                 child: Text(
-                  displayTitle,
+                  displayTitle.toUpperCase(),
                   style: (isLevel2 ? AppTypography.micro : AppTypography.label).copyWith(
                     fontWeight: AppTypography.weightBold,
                     color: color ?? onSurface,
-                    letterSpacing: AppTypography.lsLabel,
+                    letterSpacing: 1.2,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -330,7 +335,7 @@ class BoxyArtSectionTitle extends StatelessWidget {
 }
 
 /// A standardized subtle divider for the Boxy Art design system.
-class BoxyArtDivider extends StatelessWidget {
+class BoxyArtDivider extends ConsumerWidget {
   final double verticalPadding;
 
   const BoxyArtDivider({
@@ -339,12 +344,13 @@ class BoxyArtDivider extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final config = ref.watch(themeControllerProvider);
     return Padding(
       padding: EdgeInsets.symmetric(vertical: verticalPadding),
       child: Divider(
-        height: 1,
-        thickness: 1,
+        height: config.dividerThickness,
+        thickness: config.dividerThickness,
         color: Theme.of(context).dividerColor.withValues(alpha: AppColors.opacityLow),
       ),
     );
@@ -352,7 +358,7 @@ class BoxyArtDivider extends StatelessWidget {
 }
 
 /// A standardized subtle vertical divider for the Boxy Art design system.
-class BoxyArtVerticalDivider extends StatelessWidget {
+class BoxyArtVerticalDivider extends ConsumerWidget {
   final double horizontalPadding;
   final double? height;
 
@@ -363,11 +369,12 @@ class BoxyArtVerticalDivider extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final config = ref.watch(themeControllerProvider);
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
       child: Container(
-        width: 1,
+        width: config.dividerThickness,
         height: height,
         color: Theme.of(context).dividerColor.withValues(alpha: AppColors.opacityLow),
       ),

@@ -52,6 +52,104 @@ class ThemeController extends Notifier<SocietyConfig> {
     await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
   }
 
+  Future<void> setTertiaryColor(Color color) async {
+    final hex = color.toARGB32();
+    final newConfig = state.copyWith(tertiaryColor: hex);
+    state = newConfig;
+    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
+  }
+
+  Future<void> setCardColor(Color color) async {
+    final hex = color.toARGB32();
+    final newConfig = state.copyWith(cardColor: hex);
+    state = newConfig;
+    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
+  }
+
+  Future<void> setSurfaceElevatedColor(Color color) async {
+    final hex = color.toARGB32();
+    final newConfig = state.copyWith(surfaceElevatedColor: hex);
+    state = newConfig;
+    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
+  }
+
+  Future<void> setTextPrimaryColor(Color color) async {
+    final hex = color.toARGB32();
+    final newConfig = state.copyWith(textPrimaryColor: hex);
+    state = newConfig;
+    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
+  }
+
+  Future<void> setTextSecondaryColor(Color color) async {
+    final hex = color.toARGB32();
+    final newConfig = state.copyWith(textSecondaryColor: hex);
+    state = newConfig;
+    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
+  }
+
+  Future<void> setTextMutedColor(Color color) async {
+    final hex = color.toARGB32();
+    final newConfig = state.copyWith(textMutedColor: hex);
+    state = newConfig;
+    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
+  }
+
+  Future<void> setScoreEagleColor(Color color) async {
+    final hex = color.toARGB32();
+    final newConfig = state.copyWith(scoreEagleColor: hex);
+    state = newConfig;
+    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
+  }
+
+  Future<void> setScoreBirdieColor(Color color) async {
+    final hex = color.toARGB32();
+    final newConfig = state.copyWith(scoreBirdieColor: hex);
+    state = newConfig;
+    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
+  }
+
+  Future<void> setScoreParColor(Color color) async {
+    final hex = color.toARGB32();
+    final newConfig = state.copyWith(scoreParColor: hex);
+    state = newConfig;
+    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
+  }
+
+  Future<void> setScoreBogeyColor(Color color) async {
+    final hex = color.toARGB32();
+    final newConfig = state.copyWith(scoreBogeyColor: hex);
+    state = newConfig;
+    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
+  }
+
+  Future<void> setScoreDoubleColor(Color color) async {
+    final hex = color.toARGB32();
+    final newConfig = state.copyWith(scoreDoubleColor: hex);
+    state = newConfig;
+    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
+  }
+
+  Future<void> setScoreTriplePlusColor(Color color) async {
+    final hex = color.toARGB32();
+    final newConfig = state.copyWith(scoreTriplePlusColor: hex);
+    state = newConfig;
+    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
+  }
+
+  Future<void> setTeamAColor(Color color) async {
+    final hex = color.toARGB32();
+    final newConfig = state.copyWith(teamAColor: hex);
+    state = newConfig;
+    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
+  }
+
+  Future<void> setTeamBColor(Color color) async {
+    final hex = color.toARGB32();
+    final newConfig = state.copyWith(teamBColor: hex);
+    state = newConfig;
+    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
+  }
+
   Future<void> setBackgroundColor(Color color) async {
     final hex = color.toARGB32();
     final newConfig = state.copyWith(backgroundColor: hex);
@@ -125,6 +223,20 @@ class ThemeController extends Notifier<SocietyConfig> {
     await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
   }
 
+  Future<void> setBorderColor(Color color) async {
+    final hex = color.toARGB32();
+    final newConfig = state.copyWith(borderColor: hex);
+    state = newConfig;
+    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
+  }
+
+  Future<void> setDividerColor(Color color) async {
+    final hex = color.toARGB32();
+    final newConfig = state.copyWith(dividerColor: hex);
+    state = newConfig;
+    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
+  }
+
   Future<void> setPillRadius(double radius) async {
     final newConfig = state.copyWith(pillRadius: radius);
     state = newConfig;
@@ -133,6 +245,12 @@ class ThemeController extends Notifier<SocietyConfig> {
 
   Future<void> setButtonRadius(double radius) async {
     final newConfig = state.copyWith(buttonRadius: radius);
+    state = newConfig;
+    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
+  }
+
+  Future<void> setDividerThickness(double thickness) async {
+    final newConfig = state.copyWith(dividerThickness: thickness);
     state = newConfig;
     await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
   }
@@ -187,6 +305,12 @@ class ThemeController extends Notifier<SocietyConfig> {
 
   Future<void> setCardToLabelSpacing(double spacing) async {
     final newConfig = state.copyWith(cardToLabelSpacing: spacing);
+    state = newConfig;
+    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
+  }
+
+  Future<void> setFieldToFieldSpacing(double spacing) async {
+    final newConfig = state.copyWith(fieldToFieldSpacing: spacing);
     state = newConfig;
     await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
   }
@@ -275,6 +399,12 @@ class ThemeController extends Notifier<SocietyConfig> {
   Future<void> setThemeMode(String mode) async {
     final newConfig = state.copyWith(themeMode: mode);
     state = newConfig; // Optimistic update
+    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
+  }
+
+  Future<void> setFontFamily(String family) async {
+    final newConfig = state.copyWith(fontFamily: family);
+    state = newConfig;
     await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
   }
 

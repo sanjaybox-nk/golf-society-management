@@ -30,12 +30,9 @@ mixin BaseLeaderboardControlMixin<T extends StatefulWidget> on State<T> {
           width: 1,
         ),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: rows.expand((r) => [
-          buildInfoRow(r.$1, r.$2, isLast: r == rows.last),
-          if (r != rows.last) const SizedBox(height: AppSpacing.md),
-        ]).toList(),
+      child: BoxyArtFormColumn(
+        spacing: AppSpacing.md,
+        children: rows.map((r) => buildInfoRow(r.$1, r.$2, isLast: r == rows.last)).toList(),
       ),
     );
   }
@@ -250,8 +247,8 @@ mixin BaseLeaderboardControlMixin<T extends StatefulWidget> on State<T> {
       LeaderboardScope.global => 'Counts ALL events in the season date range.',
     };
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    return BoxyArtFormColumn(
+      spacing: AppSpacing.xs,
       children: [
         BoxyArtDropdownField<LeaderboardScope>(
           label: 'Event Scope',

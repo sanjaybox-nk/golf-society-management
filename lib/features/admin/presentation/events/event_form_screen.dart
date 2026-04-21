@@ -121,8 +121,7 @@ class _GolfFormBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    return const BoxyArtFormColumn(
       children: [
         EventTypeSection(isPeeking: true),
         EventLogisticsSection(),
@@ -132,7 +131,6 @@ class _GolfFormBody extends StatelessWidget {
         EventPricingSection(),
         EventAwardsSection(),
         EventContentSection(),
-        SizedBox(height: AppSpacing.pageBottom),
       ],
     );
   }
@@ -145,8 +143,7 @@ class _SocialFormBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    return const BoxyArtFormColumn(
       children: [
         EventTypeSection(isPeeking: true),
         // Social events often prioritize the concept/info and costs
@@ -154,7 +151,6 @@ class _SocialFormBody extends StatelessWidget {
         EventPricingSection(),
         EventLogisticsSection(),
         EventContentSection(),
-        SizedBox(height: AppSpacing.pageBottom),
       ],
     );
   }

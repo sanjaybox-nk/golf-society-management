@@ -138,7 +138,7 @@ class CompetitionTypeSelectionScreen extends StatelessWidget {
 
   void _navigateToBuilder(BuildContext context, dynamic type) async {
     final typeName = type is CompetitionFormat ? type.name : (type as CompetitionSubtype).name;
-    final base = isPicker ? '/admin/events/competitions/new/gallery' : '/admin/settings/templates/gallery';
+    final base = isPicker ? '/admin/events/manage/$eventId/game-setup/gallery' : '/admin/settings/templates/gallery';
     final result = await context.push<String>('$base/$typeName');
     
     if (isPicker && result != null && context.mounted) {

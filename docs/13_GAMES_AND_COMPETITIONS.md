@@ -153,6 +153,12 @@ All player entries on the leaderboard and admin scoring lists share a unified "U
     - **Scoring Impact**: Cuts are subtracted from the player's calculated Playing Handicap (PHC) across all supported formats (Stableford, Medal, etc.).
     - **Dynamic Sync**: Saving cuts automatically triggers a recalculation of any snapshotted group handicaps on the tee sheet to maintain absolute data consistency.
 
+### 4.5 Dynamic Scoring Aesthetics (Phase 9)
+The visual identity of scores and team lineups is now context-sensitive and society-driven.
+- **Branded Scoring Palette**: Score indicators (Eagle, Birdie, Par, Bogey, Double, Triple+) no longer use static colors. They are dynamically generated from the `SocietyConfig` aesthetics palette.
+- **Team Identities**: Match Play and Team events utilize `teamAColor` and `teamBColor` tokens to distinguish pairings, ensuring the "Red vs Blue" or "Lime vs Navy" rivalry is perfectly whitelabeled to the society's specific colors.
+- **Live Sync**: Any aesthetic changes made in the **Design Token Studio** (Admin > Branding) propagate immediately to the `LeaderboardWidget` and `ScorecardModal` via the `ThemeController`.
+
 ## 6. UI Flow
 
 ### Selecting a Format
@@ -183,7 +189,7 @@ The Competition Builder interface uses a "Consolidated Card" pattern to reduce v
     - **Neutral Configuration**: Administrative controls use a **Monochromatic Neutral** palette. Configuration sliders are rendered in greyscale to distinguish technical setup from branded player-facing UI.
 
 ### On-the-Fly Creation
-Admins can select a template and immediately click **CUSTOMIZE RULES**. If the event is new, the system prompts to save the basic event details first to generate a stable ID. Once saved, the competition is created on-the-fly using the template as a baseline, allowing the Admin to edit rules without back-and-forth saves.
+Admins can select a template (via **Add game format**) or immediately click **CUSTOMIZE RULES**. If the event is new, the system prompts to save the basic event details (Name, Date, Venue) first to generate a stable ID. Once saved, the competition is created on-the-fly using the template as a baseline, allowing the Admin to edit rules without back-and-forth saves. This workflow ensures that all competition rules are anchored to a valid, persistent event identity.
 
 ### Persistence & Syncing
 - **ID Preservation**: When customizing a game for an event, the Competition ID is synced to the Event ID.
@@ -257,7 +263,8 @@ The scoring engine is hardened against edge cases to ensure 100% accuracy and ab
 Starting in Feb 2026, all competitive UI components follow a unified "Pro Max" standard:
 -   **Typography**: Functional labels (`Total`, `Hole`, `Scores`) use `FontWeight.w900` and `letterSpacing: 2.0`.
 -   **Administrative Alignment**: Admin scorecard editors and competition configuration cards are visually synchronized with member views to ensure a cohesive mental model between players and committees.
--   **Actionable Cards**: Competition config cards include centered, bordered customize buttons and refined vertical spacing for better visual hierarchy.
+-   **Actionable Cards**: Competition config cards include centered, bordered customize buttons when in active administrative "Edit Mode" (e.g., during event setup or management). These controls are hidden in standard view-only modes to maintain a clean, visual-first presentation.
+-   **Adaptive Controls**: The button label dynamically shifts from "Customize" to "Customized" (Design 4.x) based on the competition's `computeVersion`.
 
 ### 9.3 Automated Unit Tests
 

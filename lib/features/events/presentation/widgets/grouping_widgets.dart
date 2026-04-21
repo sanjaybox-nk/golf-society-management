@@ -119,6 +119,7 @@ class GroupingPlayerTile extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final config = ref.watch(themeControllerProvider);
     // Single Source of Truth: PHC comes from stored grouping data.
     final int displayPhc = phcOverride ?? player.playingHandicap.round();
 
@@ -126,7 +127,7 @@ class GroupingPlayerTile extends ConsumerWidget {
     Color? varietyColor;
     if (matchSide != null) {
        // Match Play side coloring
-       varietyColor = (matchSide == 'A') ? AppColors.lime600 : AppColors.amber500;
+       varietyColor = (matchSide == 'A') ? Color(config.teamAColor) : Color(config.teamBColor);
     } else if (!player.isGuest) {
       final matchesCount = GroupingService.getTeeTimeVariety(
         player.registrationMemberId,
@@ -176,7 +177,7 @@ class GroupingPlayerTile extends ConsumerWidget {
       useCard: true,
       showVerticalDivider: true,
       showChevron: false,
-      accentColor: matchSide != null ? (matchSide == 'A' ? AppColors.teamA : AppColors.teamB) : null,
+      accentColor: matchSide != null ? (matchSide == 'A' ? Color(config.teamAColor) : Color(config.teamBColor)) : null,
       leading: isAdmin 
         ? PopupMenuButton<String>(
             onSelected: (val) => onAction?.call(val, player, group),
@@ -308,7 +309,7 @@ class GroupingPlayerTile extends ConsumerWidget {
   }
 }
 
-class GroupingCard extends StatelessWidget {
+class GroupingCard extends ConsumerWidget {
   final TeeGroup group;
   final Map<String, Member> memberMap;
   final List<GolfEvent> history;
@@ -383,7 +384,8 @@ class GroupingCard extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final config = ref.watch(themeControllerProvider);
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final spacing = Theme.of(context).extension<AppSpacingTokens>();
     
@@ -773,7 +775,7 @@ class GroupingCard extends StatelessWidget {
                           alignment: Alignment.centerRight,
                           child: Text(
                             'SIDE A: $teamALabel',
-                            style: AppTypography.label.copyWith(color: AppColors.lime600, fontWeight: AppTypography.weightExtraBold, fontSize: 10),
+                            style: AppTypography.label.copyWith(color: Color(config.teamAColor), fontWeight: AppTypography.weightExtraBold, fontSize: 10),
                           ),
                         ),
                       ),
@@ -795,7 +797,7 @@ class GroupingCard extends StatelessWidget {
                          alignment: Alignment.centerRight,
                          child: Text(
                            'SIDE B: $teamBLabel',
-                           style: AppTypography.label.copyWith(color: AppColors.amber500, fontWeight: AppTypography.weightExtraBold, fontSize: 10),
+                           style: AppTypography.label.copyWith(color: Color(config.teamBColor), fontWeight: AppTypography.weightExtraBold, fontSize: 10),
                          ),
                        ),
                      ),

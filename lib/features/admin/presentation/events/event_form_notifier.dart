@@ -318,9 +318,10 @@ class EventFormNotifier extends AsyncNotifier<EventFormState> {
       // Competition Management
       await _syncCompetitions(eventId, s);
       
+      state = AsyncData(s.copyWith(eventId: eventId));
       return true;
-    } catch (e) {
-      state = AsyncError(e, StackTrace.current);
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
       return false;
     }
   }

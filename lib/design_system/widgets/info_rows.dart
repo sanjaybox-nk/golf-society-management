@@ -56,7 +56,7 @@ class ModernInfoRow extends ConsumerWidget {
             children: [
               Text(
                 label.toUpperCase(),
-                style: AppTypography.caption.copyWith(
+                style: AppTypography.micro.copyWith(
                   fontWeight: AppTypography.weightBold,
                   color: labelColor ?? textSecondary?.withValues(alpha: AppColors.opacityHigh),
                   letterSpacing: 1.2,
@@ -168,9 +168,11 @@ class ModernCostRow extends StatelessWidget {
         children: [
           Expanded(
             child: Text(
-              label,
-              style: (isTotal ? AppTypography.label : AppTypography.label).copyWith(
+              label.toUpperCase(),
+              style: (isTotal ? AppTypography.label : AppTypography.micro).copyWith(
                 color: color ?? (isTotal ? textPrimary : textSecondary),
+                fontWeight: AppTypography.weightBold,
+                letterSpacing: 1.2,
               ),
             ),
           ),

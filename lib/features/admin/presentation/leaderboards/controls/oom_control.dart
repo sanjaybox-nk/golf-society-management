@@ -68,15 +68,12 @@ class _OrderOfMeritControlState extends State<OrderOfMeritControl>
 
     return Form(
       key: _formKey,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: BoxyArtFormColumn(
         children: [
           // ── IDENTITY ─────────────────────────────────────────
           const BoxyArtSectionTitle(title: 'LEADERBOARD DETAILS', isPeeking: true),
           BoxyArtCard(
-            padding: const EdgeInsets.all(AppSpacing.xl),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            child: BoxyArtFormColumn(
               children: [
                 BoxyArtInputField(
                   label: 'Name',
@@ -85,7 +82,6 @@ class _OrderOfMeritControlState extends State<OrderOfMeritControl>
                   prefixIcon: Icon(Icons.emoji_events_rounded),
                   validator: (v) => (v == null || v.isEmpty) ? 'Required' : null,
                 ),
-                const SizedBox(height: AppSpacing.lg),
                 buildScopeSelector(
                   value: _scope,
                   onChanged: (v) => setState(() => _scope = v as LeaderboardScope),
@@ -97,9 +93,7 @@ class _OrderOfMeritControlState extends State<OrderOfMeritControl>
           // ── SCORING RULES ─────────────────────────────────────
           const BoxyArtSectionTitle(title: 'SCORING RULES'),
           BoxyArtCard(
-            padding: const EdgeInsets.all(AppSpacing.xl),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            child: BoxyArtFormColumn(
               children: [
                 BoxyArtDropdownField<OOMRankingBasis>(
                   label: 'Metric',
@@ -112,7 +106,6 @@ class _OrderOfMeritControlState extends State<OrderOfMeritControl>
                       .toList(),
                   onChanged: (v) => setState(() => _metric = v!),
                 ),
-                const SizedBox(height: AppSpacing.lg),
                 BoxyArtDropdownField<ScoringType>(
                   label: 'Scoring Type',
                   value: _scoringType,
@@ -133,9 +126,7 @@ class _OrderOfMeritControlState extends State<OrderOfMeritControl>
           if (_scoringType == ScoringType.position) ...[
             const BoxyArtSectionTitle(title: 'POINTS DISTRIBUTION'),
             BoxyArtCard(
-              padding: const EdgeInsets.all(AppSpacing.xl),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              child: BoxyArtFormColumn(
                 children: [
                   BoxyArtInputField(
                     label: 'Appearance Points (bonus per event)',
@@ -143,22 +134,22 @@ class _OrderOfMeritControlState extends State<OrderOfMeritControl>
                     keyboardType: TextInputType.number,
                     prefixIcon: Icon(Icons.star_outline_rounded),
                   ),
-                  const SizedBox(height: AppSpacing.lg),
                   Divider(
                       color: theme.dividerColor
                           .withValues(alpha: AppColors.opacityLow)),
-                  const SizedBox(height: AppSpacing.lg),
-                  ...(_positionPoints.entries.toList()
-                      ..sort((a, b) => a.key.compareTo(b.key)))
-                      .map((e) => buildPointRow(
-                            position: e.key,
-                            points: e.value,
-                            onChanged: (pos, val) =>
-                                setState(() => _positionPoints[pos] = val),
-                            onRemove: (pos) =>
-                                setState(() => _positionPoints.remove(pos)),
-                          )),
-                  const SizedBox(height: AppSpacing.lg),
+                  BoxyArtFormColumn(
+                    spacing: AppSpacing.md,
+                    children: (_positionPoints.entries.toList()
+                        ..sort((a, b) => a.key.compareTo(b.key)))
+                        .map((e) => buildPointRow(
+                              position: e.key,
+                              points: e.value,
+                              onChanged: (pos, val) =>
+                                  setState(() => _positionPoints[pos] = val),
+                              onRemove: (pos) =>
+                                  setState(() => _positionPoints.remove(pos)),
+                            )).toList(),
+                  ),
                   buildAddButton(
                     label: 'Add next position',
                     onTap: _addNextPosition,
@@ -168,7 +159,6 @@ class _OrderOfMeritControlState extends State<OrderOfMeritControl>
             ),
           ],
 
-          const SizedBox(height: AppSpacing.x4l),
           BoxyArtButton(
             title: widget.existingConfig == null ? 'Create leaderboard' : 'Save changes',
             onTap: _isSaving ? null : _save,
@@ -177,7 +167,6 @@ class _OrderOfMeritControlState extends State<OrderOfMeritControl>
             backgroundColor: Theme.of(context).primaryColor,
             textColor: AppColors.pureWhite,
           ),
-          const SizedBox(height: AppSpacing.x4l),
         ],
       ),
     );

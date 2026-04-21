@@ -16,9 +16,13 @@ class AppTheme {
   static const Color surfaceWhite = Color(0xFFFFFFFF);
 
   static ThemeData dark(SocietyConfig config) {
+    // Dynamic Font Setup
+    AppTypography.uiFont = config.fontFamily;
+    
     // Dynamic Color Setup
     final primaryColor = Color(config.primaryColor);
     final secondaryColor = Color(config.secondaryColor);
+    final tertiaryColor = Color(config.tertiaryColor);
     final dangerousColor = Color(config.dangerousColor);
     
     final colorScheme = ColorScheme.fromSeed(
@@ -26,6 +30,7 @@ class AppTheme {
       brightness: Brightness.dark,
       primary: primaryColor,
       secondary: secondaryColor,
+      tertiary: tertiaryColor,
       surface: AppColors.dark700,
       error: dangerousColor,
     ).copyWith(
@@ -48,7 +53,7 @@ class AppTheme {
       fontFamily: AppTypography.uiFont,
       textTheme: textTheme,
       extensions: [
-        ScoreColors.dark(),
+        ScoreColors.fromConfig(config, isDark: true),
         AppShapeTokens(
           heroRadius: config.heroRadius,
           cardRadius: config.cardRadius,
@@ -72,9 +77,11 @@ class AppTheme {
         AppSpacingTokens(
           labelToCard: config.labelToCardSpacing,
           cardToLabel: config.cardToLabelSpacing,
+          fieldToField: config.fieldToFieldSpacing,
           cardToCard: config.cardToCardSpacing,
           cardVerticalPadding: config.cardVerticalPadding,
-          cardHorizontalPadding: config.cardHorizontalPadding, tabToContent: config.tabToContentSpacing,
+          cardHorizontalPadding: config.cardHorizontalPadding, 
+          tabToContent: config.tabToContentSpacing,
         ),
       ],
 
@@ -133,7 +140,7 @@ class AppTheme {
         contentPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: 12),
         border: OutlineInputBorder(
           borderRadius: inputRadius,
-          borderSide: BorderSide.none,
+          borderSide: BorderSide(color: Color(config.borderColor).withValues(alpha: 0.1)),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: inputRadius,
@@ -188,9 +195,9 @@ class AppTheme {
       ),
 
       // Components - Divider
-      dividerTheme: const DividerThemeData(
-        color: AppColors.dark500,
-        thickness: 1,
+      dividerTheme: DividerThemeData(
+        color: Color(config.dividerColor).withValues(alpha: 0.5),
+        thickness: config.dividerThickness,
         space: 1,
       ),
 
@@ -214,9 +221,13 @@ class AppTheme {
   }
 
   static ThemeData light(SocietyConfig config) {
+    // Dynamic Font Setup
+    AppTypography.uiFont = config.fontFamily;
+
     // Dynamic Color Setup
     final primaryColor = Color(config.primaryColor);
     final secondaryColor = Color(config.secondaryColor);
+    final tertiaryColor = Color(config.tertiaryColor);
     final dangerousColor = Color(config.dangerousColor);
 
     final colorScheme = ColorScheme.fromSeed(
@@ -224,11 +235,12 @@ class AppTheme {
       brightness: Brightness.light,
       primary: primaryColor,
       secondary: secondaryColor,
-      surface: AppColors.lightSurface,
+      tertiary: tertiaryColor,
+      surface: Color(config.cardColor),
       error: dangerousColor,
     ).copyWith(
       surfaceContainer: Color(config.backgroundColor), // Page Background
-      onSurface: const Color(0xFF1A1A1A),
+      onSurface: Color(config.textPrimaryColor),
     );
 
     final textTheme = AppTypography.createTextTheme();
@@ -246,7 +258,7 @@ class AppTheme {
       fontFamily: AppTypography.uiFont,
       textTheme: textTheme,
       extensions: [
-        ScoreColors.light(),
+        ScoreColors.fromConfig(config, isDark: false),
         AppShadows(
           useShadows: config.useShadows,
           intensity: config.shadowIntensity,
@@ -270,9 +282,11 @@ class AppTheme {
         AppSpacingTokens(
           labelToCard: config.labelToCardSpacing,
           cardToLabel: config.cardToLabelSpacing,
+          fieldToField: config.fieldToFieldSpacing,
           cardToCard: config.cardToCardSpacing,
           cardVerticalPadding: config.cardVerticalPadding,
-          cardHorizontalPadding: config.cardHorizontalPadding, tabToContent: config.tabToContentSpacing,
+          cardHorizontalPadding: config.cardHorizontalPadding, 
+          tabToContent: config.tabToContentSpacing,
         ),
       ],
 
@@ -290,7 +304,7 @@ class AppTheme {
 
       // Components - Cards
       cardTheme: CardThemeData(
-        color: AppColors.lightSurface,
+        color: Color(config.cardColor),
         shape: cardShape,
         elevation: 0,
       ),
@@ -318,7 +332,7 @@ class AppTheme {
         enabledBorder: OutlineInputBorder(
           borderRadius: inputRadius,
           borderSide: config.useBorders 
-              ? BorderSide(color: AppColors.lightBorder, width: config.borderWidth)
+              ? BorderSide(color: Color(config.borderColor), width: config.borderWidth)
               : BorderSide.none,
         ),
         focusedBorder: OutlineInputBorder(
@@ -343,9 +357,9 @@ class AppTheme {
         indicatorSize: TabBarIndicatorSize.label,
       ),
 
-      dividerTheme: const DividerThemeData(
-        color: AppColors.lightBorder,
-        thickness: 1,
+      dividerTheme: DividerThemeData(
+        color: Color(config.dividerColor),
+        thickness: config.dividerThickness,
         space: 1,
       ),
 

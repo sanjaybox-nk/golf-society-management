@@ -44,15 +44,12 @@ class _EclecticControlState extends State<EclecticControl>
 
     return Form(
       key: _formKey,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: BoxyArtFormColumn(
         children: [
           // ── IDENTITY ─────────────────────────────────────────
           const BoxyArtSectionTitle(title: 'LEADERBOARD DETAILS', isPeeking: true),
           BoxyArtCard(
-            padding: const EdgeInsets.all(AppSpacing.xl),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            child: BoxyArtFormColumn(
               children: [
                 BoxyArtInputField(
                   label: 'Name',
@@ -61,7 +58,6 @@ class _EclecticControlState extends State<EclecticControl>
                   prefixIcon: Icon(Icons.grid_on_rounded),
                   validator: (v) => (v == null || v.isEmpty) ? 'Required' : null,
                 ),
-                const SizedBox(height: AppSpacing.lg),
                 buildScopeSelector(
                   value: _scope,
                   onChanged: (v) => setState(() => _scope = v as LeaderboardScope),
@@ -73,9 +69,7 @@ class _EclecticControlState extends State<EclecticControl>
           // ── ECLECTIC RULES ────────────────────────────────────
           const BoxyArtSectionTitle(title: 'ECLECTIC RULES'),
           BoxyArtCard(
-            padding: const EdgeInsets.all(AppSpacing.xl),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            child: BoxyArtFormColumn(
               children: [
                 BoxyArtDropdownField<EclecticMetric>(
                   label: 'Metric',
@@ -90,39 +84,42 @@ class _EclecticControlState extends State<EclecticControl>
                 ),
 
                 if (_metric == EclecticMetric.strokes) ...[
-                  const SizedBox(height: AppSpacing.xl),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  BoxyArtFormColumn(
+                    spacing: AppSpacing.sm,
                     children: [
-                      Text(
-                        'HANDICAP ALLOWANCE',
-                        style: AppTypography.labelStrong.copyWith(
-                          color: theme.colorScheme.onSurface,
-                          letterSpacing: 1.0,
-                        ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'HANDICAP ALLOWANCE',
+                            style: AppTypography.labelStrong.copyWith(
+                              color: theme.colorScheme.onSurface,
+                              letterSpacing: 1.0,
+                            ),
+                          ),
+                          BoxyArtPill.format(
+                            label: _handicapPercentage == 0
+                                ? 'None'
+                                : '${_handicapPercentage.toInt()}%',
+                            color: theme.colorScheme.primary,
+                          ),
+                        ],
                       ),
-                      BoxyArtPill.format(
-                        label: _handicapPercentage == 0
-                            ? 'None'
-                            : '${_handicapPercentage.toInt()}%',
-                        color: theme.colorScheme.primary,
+                      BoxyArtSlider(
+                        value: _handicapPercentage,
+                        min: 0,
+                        max: 100,
+                        divisions: 20,
+                        label: '${_handicapPercentage.toInt()}%',
+                        isNeutral: true,
+                        onChanged: (v) => setState(() => _handicapPercentage = v),
+                      ),
+                      buildInfoBubble(
+                        _handicapPercentage == 0
+                            ? 'Gross Score — no handicap applied.'
+                            : 'Net Score — Gross minus ${_handicapPercentage.toInt()}% of Final Handicap.',
                       ),
                     ],
-                  ),
-                  const SizedBox(height: AppSpacing.sm),
-                  BoxyArtSlider(
-                    value: _handicapPercentage,
-                    min: 0,
-                    max: 100,
-                    divisions: 20,
-                    label: '${_handicapPercentage.toInt()}%',
-                    isNeutral: true,
-                    onChanged: (v) => setState(() => _handicapPercentage = v),
-                  ),
-                  buildInfoBubble(
-                    _handicapPercentage == 0
-                        ? 'Gross Score — no handicap applied.'
-                        : 'Net Score — Gross minus ${_handicapPercentage.toInt()}% of Final Handicap.',
                   ),
                 ],
 
@@ -131,7 +128,6 @@ class _EclecticControlState extends State<EclecticControl>
             ),
           ),
 
-          const SizedBox(height: AppSpacing.x4l),
           BoxyArtButton(
             title: widget.existingConfig == null ? 'Create leaderboard' : 'Save changes',
             onTap: _isSaving ? null : _save,
@@ -140,7 +136,6 @@ class _EclecticControlState extends State<EclecticControl>
             backgroundColor: Theme.of(context).primaryColor,
             textColor: AppColors.pureWhite,
           ),
-          const SizedBox(height: AppSpacing.x4l),
         ],
       ),
     );

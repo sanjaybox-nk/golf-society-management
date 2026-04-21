@@ -109,10 +109,14 @@ class LockerScreen extends ConsumerWidget {
                     children: [
                       Icon(Icons.sports_golf_rounded, color: AppColors.lime500, size: 40),
                       SizedBox(height: AppSpacing.md),
-                      Text(
-                        'Not Registered',
-                        style: AppTypography.labelStrong.copyWith(color: AppColors.lime500),
-                      ),
+                        Text(
+                          'NOT REGISTERED',
+                          style: AppTypography.micro.copyWith(
+                            color: AppColors.lime500,
+                            fontWeight: AppTypography.weightBold,
+                            letterSpacing: 1.2,
+                          ),
+                        ),
                       SizedBox(height: AppSpacing.xs),
                       Text(
                         'You are managing this society but are not currently listed as a playing member.',
@@ -166,7 +170,13 @@ class LockerScreen extends ConsumerWidget {
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
-                                  Text('Finances', style: AppTypography.displayLocker),
+                                  Text(
+                                    'FINANCES', 
+                                    style: AppTypography.micro.copyWith(
+                                      fontWeight: AppTypography.weightBold,
+                                      letterSpacing: 1.2,
+                                    ),
+                                  ),
                                   if (isCredit)
                                     Container(
                                       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: 4),
@@ -183,14 +193,34 @@ class LockerScreen extends ConsumerWidget {
                               ),
                               const SizedBox(height: AppSpacing.md),
                               if (status.accountCredit > 0) ...[
-                                Text('Available Voucher Credit: £${status.accountCredit.toStringAsFixed(0)}', style: AppTypography.micro.copyWith(color: AppColors.lime500, fontWeight: AppTypography.weightBold)),
+                                Text(
+                                  'AVAILABLE VOUCHER CREDIT: £${status.accountCredit.toStringAsFixed(0)}',
+                                  style: AppTypography.micro.copyWith(
+                                    color: AppColors.lime500,
+                                    fontWeight: AppTypography.weightBold,
+                                    letterSpacing: 1.2,
+                                  ),
+                                ),
                                 const SizedBox(height: AppSpacing.sm),
                               ],
                               if (status.totalEventFeesOwed > 0) ...[
-                                Text('Event Entry Fees Owed: £${status.totalEventFeesOwed.toStringAsFixed(0)}', style: AppTypography.micro),
+                                Text(
+                                  'EVENT ENTRY FEES OWED: £${status.totalEventFeesOwed.toStringAsFixed(0)}',
+                                  style: AppTypography.micro.copyWith(
+                                    fontWeight: AppTypography.weightBold,
+                                    letterSpacing: 1.2,
+                                  ),
+                                ),
                               ],
                               if (status.totalFinesOwed > 0) ...[
-                                Text('Accumulated Fines Owed: £${status.totalFinesOwed.toStringAsFixed(0)}', style: AppTypography.micro.copyWith(color: AppColors.coral500)),
+                                Text(
+                                  'ACCUMULATED FINES OWED: £${status.totalFinesOwed.toStringAsFixed(0)}',
+                                  style: AppTypography.micro.copyWith(
+                                    color: AppColors.coral500,
+                                    fontWeight: AppTypography.weightBold,
+                                    letterSpacing: 1.2,
+                                  ),
+                                ),
                               ],
                             ],
                           ),
@@ -229,9 +259,12 @@ class LockerScreen extends ConsumerWidget {
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    const Text(
+                                    Text(
                                       'SEASON STAKES',
-                                      style: AppTypography.micro,
+                                      style: AppTypography.micro.copyWith(
+                                        fontWeight: AppTypography.weightBold,
+                                        letterSpacing: 1.2,
+                                      ),
                                     ),
                                     const SizedBox(height: AppSpacing.xs),
                                     Text(

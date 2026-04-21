@@ -49,7 +49,7 @@ class CompetitionTemplateGalleryScreen extends ConsumerWidget {
               BoxyArtCard(
                 onTap: () async {
                   if (isPicker) {
-                    final result = await context.push<String>('/admin/events/competitions/new/create/$typeStr');
+                    final result = await context.push<String>('/admin/events/manage/$eventId/game-setup/create/$typeStr');
                     if (result != null && context.mounted) {
                       context.pop(result);
                     }

@@ -33,30 +33,22 @@ class EventCompetitionSection extends ConsumerWidget {
             const BoxyArtSectionTitle(title: 'Competition Rules', followsCard: true),
             if (!hasGame || displayComp == null)
               BoxyArtCard(
-                child: Column(
+                child: BoxyArtFormColumn(
                   children: [
                     Text(
                       "No rules applied", 
                       style: AppTypography.labelStrong.copyWith(color: AppColors.textSecondary),
                     ),
-                    const SizedBox(height: AppSpacing.md),
-                    Center(
-                      child: BoxyArtButton(
-                        title: "Add game format",
-                        onTap: () async {
-                          final result = await context.push<String>("/admin/events/competitions/new");
-                          if (result != null) {
-                            ref.read(eventFormNotifierProvider.notifier).updateTemplateId(result);
-                          }
-                        },
-                      ),
+                    BoxyArtButton(
+                      title: "Add game format",
+                      onTap: () => _handleAddGame(context, ref, state),
                     ),
                   ],
                 ),
               )
             else
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
+              BoxyArtFormColumn(
+                spacing: Theme.of(context).extension<AppSpacingTokens>()?.cardToLabel,
                 children: [
                    CompetitionRulesCard(
                     competition: displayComp,
@@ -64,14 +56,13 @@ class EventCompetitionSection extends ConsumerWidget {
                     title: "",
                     onTap: () async {
                       if (state.eventId != null) {
-                        context.push("/admin/events/competitions/edit/${Uri.encodeComponent(state.eventId!)}");
+                        context.push("/admin/events/manage/${Uri.encodeComponent(state.eventId!)}/game-builder");
                       }
                     },
                     onCustomize: () => _handleCustomize(context, ref, state),
                     onRemove: () => ref.read(eventFormNotifierProvider.notifier).updateTemplateId(null),
                     customizeLabel: state.isCustomized ? "Customized" : "Customize",
                   ),
-                  const SizedBox(height: AppSpacing.cardToLabel),
                   BoxyArtCard(
                     padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
                     child: BoxyArtSwitchField(
@@ -82,29 +73,32 @@ class EventCompetitionSection extends ConsumerWidget {
                     ),
                   ),
                   if (state.isMultiDay && displayComp.rules.roundsCount > 1) ...[
-                    const SizedBox(height: AppSpacing.cardToLabel),
-                    Text(
-                      'Season Standings (OOM/Eclectic)',
-                      style: AppTypography.captionStrong.copyWith(color: AppColors.textSecondary),
-                    ),
-                    const SizedBox(height: AppSpacing.labelToCard),
-                    BoxyArtCard(
-                      child: Column(
-                        children: List.generate(displayComp.rules.roundsCount, (index) {
-                          final roundId = 'round_${index + 1}';
-                          final isExcluded = state.oomExcludedRoundIds.contains(roundId);
-                          return Column(
-                            children: [
-                              BoxyArtSwitchField(
-                                label: 'Include Round ${index + 1}',
-                                value: !isExcluded,
-                                onChanged: (v) => ref.read(eventFormNotifierProvider.notifier).toggleOomRound(roundId, v),
-                              ),
-                              if (index < displayComp.rules.roundsCount - 1) const BoxyArtDivider(),
-                            ],
-                          );
-                        }),
-                      ),
+                    BoxyArtFormColumn(
+                      spacing: Theme.of(context).extension<AppSpacingTokens>()?.labelToCard,
+                      children: [
+                        Text(
+                          'Season Standings (OOM/Eclectic)',
+                          style: AppTypography.captionStrong.copyWith(color: AppColors.textSecondary),
+                        ),
+                        BoxyArtCard(
+                          child: BoxyArtFormColumn(
+                            children: List.generate(displayComp.rules.roundsCount, (index) {
+                              final roundId = 'round_${index + 1}';
+                              final isExcluded = state.oomExcludedRoundIds.contains(roundId);
+                              return BoxyArtFormColumn(
+                                children: [
+                                  BoxyArtSwitchField(
+                                    label: 'Include Round ${index + 1}',
+                                    value: !isExcluded,
+                                    onChanged: (v) => ref.read(eventFormNotifierProvider.notifier).toggleOomRound(roundId, v),
+                                  ),
+                                  if (index < displayComp.rules.roundsCount - 1) const BoxyArtDivider(),
+                                ],
+                              );
+                            }),
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ],
@@ -131,7 +125,26 @@ class EventCompetitionSection extends ConsumerWidget {
     if (context.mounted) {
       final currentEventId = ref.read(eventFormNotifierProvider).value?.eventId;
       if (currentEventId != null) {
-        context.push("/admin/events/competitions/edit/$currentEventId");
+        context.push("/admin/events/manage/$currentEventId/game-builder");
+      }
+    }
+  }
+
+  Future<void> _handleAddGame(BuildContext context, WidgetRef ref, EventFormState state) async {
+    final notifier = ref.read(eventFormNotifierProvider.notifier);
+    if (state.eventId == null) {
+      final confirm = await _showSaveConfirm(context);
+      if (confirm != true) return;
+      await notifier.save();
+    }
+    
+    if (context.mounted) {
+      final currentEventId = ref.read(eventFormNotifierProvider).value?.eventId;
+      if (currentEventId != null) {
+        final result = await context.push<String>("/admin/events/manage/$currentEventId/game-setup");
+        if (result != null) {
+          notifier.updateTemplateId(result);
+        }
       }
     }
   }

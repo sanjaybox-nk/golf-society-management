@@ -71,15 +71,12 @@ class _BestOfSeriesControlState extends State<BestOfSeriesControl>
 
     return Form(
       key: _formKey,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: BoxyArtFormColumn(
         children: [
           // ── IDENTITY ─────────────────────────────────────────
           const BoxyArtSectionTitle(title: 'LEADERBOARD DETAILS', isPeeking: true),
           BoxyArtCard(
-            padding: const EdgeInsets.all(AppSpacing.xl),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            child: BoxyArtFormColumn(
               children: [
                 BoxyArtInputField(
                   label: 'Name',
@@ -88,7 +85,6 @@ class _BestOfSeriesControlState extends State<BestOfSeriesControl>
                   prefixIcon: Icon(Icons.list_alt_rounded),
                   validator: (v) => (v == null || v.isEmpty) ? 'Required' : null,
                 ),
-                const SizedBox(height: AppSpacing.lg),
                 buildScopeSelector(
                   value: _scope,
                   onChanged: (v) => setState(() => _scope = v as LeaderboardScope),
@@ -100,9 +96,7 @@ class _BestOfSeriesControlState extends State<BestOfSeriesControl>
           // ── LEAGUE RULES ──────────────────────────────────────
           const BoxyArtSectionTitle(title: 'LEAGUE RULES'),
           BoxyArtCard(
-            padding: const EdgeInsets.all(AppSpacing.xl),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            child: BoxyArtFormColumn(
               children: [
                 BoxyArtInputField(
                   label: 'Count Best N Rounds',
@@ -115,7 +109,6 @@ class _BestOfSeriesControlState extends State<BestOfSeriesControl>
                   },
                 ),
                 buildInfoBubble('Only the top N scores will count toward the final total.'),
-                const SizedBox(height: AppSpacing.lg),
                 BoxyArtDropdownField<BestOfMetric>(
                   label: 'Metric',
                   value: _metric,
@@ -127,7 +120,6 @@ class _BestOfSeriesControlState extends State<BestOfSeriesControl>
                       .toList(),
                   onChanged: (v) => setState(() => _metric = v!),
                 ),
-                const SizedBox(height: AppSpacing.lg),
                 BoxyArtDropdownField<ScoringType>(
                   label: 'Scoring Type',
                   value: _scoringType,
@@ -148,9 +140,7 @@ class _BestOfSeriesControlState extends State<BestOfSeriesControl>
           if (_scoringType == ScoringType.position) ...[
             const BoxyArtSectionTitle(title: 'POINTS DISTRIBUTION'),
             BoxyArtCard(
-              padding: const EdgeInsets.all(AppSpacing.xl),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              child: BoxyArtFormColumn(
                 children: [
                   BoxyArtInputField(
                     label: 'Appearance Points (bonus per event)',
@@ -158,22 +148,22 @@ class _BestOfSeriesControlState extends State<BestOfSeriesControl>
                     keyboardType: TextInputType.number,
                     prefixIcon: Icon(Icons.star_outline_rounded),
                   ),
-                  const SizedBox(height: AppSpacing.lg),
                   Divider(
                       color: theme.dividerColor
                           .withValues(alpha: AppColors.opacityLow)),
-                  const SizedBox(height: AppSpacing.lg),
-                  ...(_positionPoints.entries.toList()
-                      ..sort((a, b) => a.key.compareTo(b.key)))
-                      .map((e) => buildPointRow(
-                            position: e.key,
-                            points: e.value,
-                            onChanged: (pos, val) =>
-                                setState(() => _positionPoints[pos] = val),
-                            onRemove: (pos) =>
-                                setState(() => _positionPoints.remove(pos)),
-                          )),
-                  const SizedBox(height: AppSpacing.lg),
+                  BoxyArtFormColumn(
+                    spacing: AppSpacing.md,
+                    children: (_positionPoints.entries.toList()
+                        ..sort((a, b) => a.key.compareTo(b.key)))
+                        .map((e) => buildPointRow(
+                              position: e.key,
+                              points: e.value,
+                              onChanged: (pos, val) =>
+                                  setState(() => _positionPoints[pos] = val),
+                              onRemove: (pos) =>
+                                  setState(() => _positionPoints.remove(pos)),
+                            )).toList(),
+                  ),
                   buildAddButton(
                     label: 'Add next position',
                     onTap: _addNextPosition,
@@ -183,7 +173,6 @@ class _BestOfSeriesControlState extends State<BestOfSeriesControl>
             ),
           ],
 
-          const SizedBox(height: AppSpacing.x4l),
           BoxyArtButton(
             title: widget.existingConfig == null ? 'Create leaderboard' : 'Save changes',
             onTap: _isSaving ? null : _save,
@@ -192,7 +181,6 @@ class _BestOfSeriesControlState extends State<BestOfSeriesControl>
             backgroundColor: Theme.of(context).primaryColor,
             textColor: AppColors.pureWhite,
           ),
-          const SizedBox(height: AppSpacing.x4l),
         ],
       ),
     );

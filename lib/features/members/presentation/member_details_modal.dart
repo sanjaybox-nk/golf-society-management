@@ -336,8 +336,8 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
           sliver: SliverToBoxAdapter(
             child: Form(
               key: _formKey,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+            child: BoxyArtFormColumn(
+                spacing: spacing?.cardToLabel ?? AppSpacing.cardToLabel,
                 children: [
                   ListenableBuilder(
                     listenable: Listenable.merge([
@@ -413,15 +413,14 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
                       builder: (context, ref, _) {
                         final society = ref.watch(themeControllerProvider);
                         final system = society.handicapSystem;
-                        return Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                        return BoxyArtFormColumn(
+                          spacing: spacing?.cardToLabel ?? AppSpacing.cardToLabel,
                           children: [
                             const BoxyArtSectionTitle(
                               title: 'Membership Details',
                             ),
                             BoxyArtCard(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
+                              child: BoxyArtFormColumn(
                                 children: [
                                   Row(
                                     children: [
@@ -435,11 +434,11 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
                                             )
                                           : _buildValueDisplay(context, 'HC', _handicapController.text),
                                       ),
-                                      const SizedBox(width: AppSpacing.x2l),
+                                      const SizedBox(width: AppSpacing.lg),
                                       Expanded(
                                         child: _isEditing
                                           ? BoxyArtInputField(
-                                              label: toTitleCase(system.idLabel),
+                                              label: system.idLabel.toUpperCase(),
                                               controller: _handicapIdController,
                                               focusNode: _handicapIdFocusNode,
                                               hint: system.hintText,
@@ -452,7 +451,6 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
                                       ),
                                     ],
                                   ),
-                                  const SizedBox(height: AppSpacing.lg),
                                   if (_isEditing && isAdmin)
                                     BoxyArtDatePickerField(
                                       label: 'Membership Valid Till',
@@ -488,8 +486,8 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
                                 child: Row(
                                   children: [
                                     Expanded(
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                      child: BoxyArtFormColumn(
+                                        spacing: spacing?.labelToCard ?? AppSpacing.xs,
                                         children: [
                                           Text(
                                             'Allow Social Events Only'.toUpperCase(),
@@ -559,8 +557,7 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
                   ),
 
                   // [DEV/ADMIN] Impersonation / Peek Mode
-                  if (isAdmin && widget.member != null && widget.member!.id != currentUser.id) ...[
-                    SizedBox(height: spacing?.cardToCard ?? AppSpacing.md),
+                  if (isAdmin && widget.member != null && widget.member!.id != currentUser.id)
                     BoxyArtButton(
                       title: 'View As This Member',
                       isPrimary: false,
@@ -573,10 +570,8 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
                         context.go('/home');
                       },
                     ),
-                  ],
 
-                  if (_isEditing) ...[
-                    SizedBox(height: spacing?.cardToCard ?? AppSpacing.md),
+                  if (_isEditing)
                     BoxyArtCard(
                       child: BoxyArtFormActionRow(
                         onSave: _save,
@@ -584,7 +579,6 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
                         isSaving: _isSaving,
                       ),
                     ),
-                  ],
                   const SizedBox(height: AppSpacing.pageBottom),
                 ],
               ),
@@ -607,11 +601,11 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
   }
 
   Widget _buildValueDisplay(BuildContext context, String label, String value) {
-    final isBio = label.toLowerCase() == 'bio';
     final theme = Theme.of(context);
+    final spacing = theme.extension<AppSpacingTokens>();
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    return BoxyArtFormColumn(
+      spacing: spacing?.labelToCard ?? AppSpacing.xs,
       children: [
         Text(
           label.toUpperCase(),
@@ -620,7 +614,6 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
             letterSpacing: AppTypography.lsLabel,
           ),
         ),
-        const SizedBox(height: AppSpacing.xs),
         Text(
           value.isEmpty ? '-' : value,
           style: AppTypography.body.copyWith(

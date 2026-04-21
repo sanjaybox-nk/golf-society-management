@@ -273,12 +273,12 @@ class _UnderlinedTabItem extends StatelessWidget {
                   ],
                   Flexible(
                     child: Text(
-                      toTitleCase(label),
-                      style: AppTypography.displayLocker.copyWith(
-                        fontSize: AppTypography.sizeBodySmall,
-                        fontWeight: isSelected ? AppTypography.weightExtraBold : AppTypography.weightSemibold,
+                      label.toUpperCase(),
+                      style: AppTypography.micro.copyWith(
+                        fontSize: AppTypography.sizeMicro,
+                        fontWeight: isSelected ? AppTypography.weightExtraBold : AppTypography.weightBold,
                         color: isSelected ? activeTextColor : inactiveTextColor,
-                        letterSpacing: 0.5,
+                        letterSpacing: 1.2,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,

@@ -7,30 +7,30 @@ The BoxyArt theme system is the single source of truth for all visual tokens in 
 
 ---
 
-## 1. Colors (`AppColors`)
+### Semantic Branding Tokens (v4.5)
+The theme engine is driven by 15+ semantic branding tokens managed via the **Branding Console**:
 
-### Opacity-Based Text Strategy
-All text colors are derived from the `onSurface` base color using semantic opacity levels:
-
-| Token | Opacity | Usage |
+| Token | Category | Description |
 |---|---|---|
-| `textPrimary` | 0.9 (`opacityStrong`) | Main content |
-| `textSecondary` | 0.6 (`opacitySecondary`) | Supporting text |
-| `textTertiary` | 0.3 (`opacitySubtle`) | Placeholders, quiet metadata |
-
-### Semantic Entity Colors
-Hardcoded entity colors replaced with semantic branding tokens:
-- `AppColors.guestPurple` — `#8E44AD`
-- `AppColors.mealBreakfast` — `#8D6E63`
-- `AppColors.mealDinner` — `#673AB7`
-- `AppColors.mealLunch` — `#2ECC71`
-- `AppColors.teamA` / `AppColors.teamB` — Team identity
-
-### Status Colors (`StatusColors`)
-Semantic palette for consistent status indicators:
-- `StatusColors.positive` — Success / Confirmed
-- `StatusColors.negative` — Error / Declined
-- `StatusColors.warning` — Caution / Pending
+| `primaryColor` | Essence | Main brand accent (e.g. Lime/Yellow) |
+| `secondaryColor` | Action | Primary action/success color (e.g. Green) |
+| `tertiaryColor` | Foundation | Secondary solid accent (e.g. Slate/Navy) |
+| `textPrimary` | Typography | High-contrast main text (config-defined) |
+| `textSecondary` | Typography | Mid-contrast supporting text |
+| `textMuted` | Typography | Low-contrast hint/metadata text |
+| `cardColor` | Surface | Standard card/sheet background |
+| `surfaceElevated` | Surface | Floating/Modal elevated background |
+| `borderColor` | Mechanical | The color of structural borders |
+| `dividerColor` | Mechanical | The color of structural dividers |
+| `dividerThickness` | Mechanical | The thickness of structural dividers (default: 1.0) |
+| `scoreEagle` | Aesthetics | Color for -2 or better (e.g. Gold) |
+| `scoreBirdie` | Aesthetics | Color for -1 (e.g. Blue) |
+| `scorePar` | Aesthetics | Color for E (e.g. Dark) |
+| `scoreBogey` | Aesthetics | Color for +1 (e.g. Grey) |
+| `scoreDouble` | Aesthetics | Color for +2 (e.g. Light Grey) |
+| `scoreTriplePlus` | Aesthetics | Color for +3 or worse (e.g. Subtle Grey) |
+| `teamAColor` | Aesthetics | Primary team identity (e.g. Lime) |
+| `teamBColor` | Aesthetics | Secondary team identity (e.g. Navy) |
 
 ### Opacity Constants
 Use these instead of `withOpacity(0.X)`:
@@ -64,8 +64,9 @@ Use these instead of `withOpacity(0.X)`:
 | `weightBold` / `weightSemibold` | 600–700 | Labels, secondary emphasis |
 | `weightRegular` | 400 | Body text |
 
-### Letter Spacing
-- `AppTypography.lsLabel` — Standard label letter-spacing (used with UPPERCASE micro labels).
+### Letter Spacing & Rhythm
+- `AppTypography.lsLabel` — Standard label letter-spacing (**1.2**). Strictly used with **ALL-CAPS** administrative metadata to ensure a premium, breathable rhythm.
+- **Rhythm**: Metadata labels are typically paired with `AppTypography.weightBold` (w700).
 
 ---
 
@@ -156,24 +157,27 @@ High-level assets and "atmosphere" controls found in the **Society Identity Scre
 - **Society Logo**: The brand mark used in scaffolds and auth flows.
 - **Theme Mode**: Global preference (Light / Dark / System).
 
-### Tier 2: Technical Design Tokens (Management Console)
-Granular, token-based controls used for technical design system alignment.
+### Tier 2: Design Token Studio (Branding Console)
+Granular, token-based controls for expert design system alignment.
+- **Colors**: Full control over Foundation (Tertiary), Typography hierarchy, and Surface tones.
 - **Radii**: Card, Input, Button, and Hero corner configurations.
-- **Shadows**: Global intensity, spread, and opacity overrides.
-- **Vertical Spacing**: `cardToLabel`, `labelToCard`, and `cardToCard` rhythm.
+- **Mechanicals**: Border and Divider color/thickness settings.
+- **Scoring**: Deep customization of domain-specific scoring and team aesthetics.
 
 > [!IMPORTANT]
-> The **Management Console** (legacy Branding Hub) is reserved for future developer utilities and is hidden from standard administrative navigation. Most day-to-day administrative tasks should take place in the **Society Identity** hub.
+> The **Branding Console** is the "Expert Mode" of the society. It allows for full whitelabeling by overriding every semantic token in the design system.
 
 
 ---
 
 ## 7. Design 4.x Standard ("True Minimal")
 
-### Universal Title Case
-- **Policy**: All UI labels, headers, and buttons MUST use Title Case.
-- **Prohibited**: `ALL-CAPS` section titles, `UPPERCASE` tab labels, shouting pill labels.
-- **Exception**: Acronyms (GPS, OoM, HC, PHC) may retain caps.
+### Administrative Metadata Rhythm
+- **Policy**: All administrative labels, metadata headers, and configuration keys MUST use **ALL-CAPS**.
+- **Distinction**:
+    - **Metadata/Labels**: System-defined keys (e.g. "HANDICAP INDEX", "STATUS") -> **ALL-CAPS + Bold + 1.2 Spacing**.
+    - **Content/Titles**: User-entered or dynamic data (e.g. "John Smith", "Society Cup") -> **Title Case**.
+- **Exception**: Long descriptions or helper text remain in standard sentence case.
 
 ### Admin Identity Standard (titleSuffix v4.3+)
 All primary administrative screens (Events, Members, Settings) MUST use the **titleSuffix Identity** pattern. This places the "ADMIN" signifier directly next to the screen title, establishing a consistent administrative context while freeing the `actions` slot for functional buttons.

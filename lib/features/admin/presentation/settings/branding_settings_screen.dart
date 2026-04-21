@@ -22,8 +22,10 @@ class BrandingSettingsScreen extends ConsumerWidget {
       slivers: [
         SliverPadding(
           padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
-          sliver: SliverList(
-            delegate: SliverChildListDelegate([
+          sliver: SliverToBoxAdapter(
+            child: BoxyArtFormColumn(
+              spacing: spacing?.cardToLabel ?? AppSpacing.cardToLabel,
+              children: [
               const BoxyArtSectionTitle(
                 title: 'Live Preview',
                 isPeeking: true,
@@ -58,23 +60,27 @@ class BrandingSettingsScreen extends ConsumerWidget {
                 config.statusWithdrawnColor,
                 config.statusDinnerColor,
                 config.iconBadgeOpacity,
+                config.tertiaryColor,
+                config.textPrimaryColor,
+                config.textSecondaryColor,
+                config.textMutedColor,
+                config.cardColor,
+                config.surfaceElevatedColor,
+                config.borderColor,
+                config.dividerColor,
               ),
 
 // Redundant Identity and Appearance cards removed - managed via SocietyIdentityScreen
 
               const BoxyArtSectionTitle(title: 'Style Preference'),
               BoxyArtCard(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                child: BoxyArtFormColumn(
                   children: [
                     Text(
                       'Choose a structural tone for your society. This adjusts corner rounding and depth.',
                       style: AppTypography.bodySmall.copyWith(
                         fontWeight: AppTypography.weightMedium,
                       ),
-                    ),
-                    SizedBox(
-                      height: spacing?.labelToCard ?? AppSpacing.labelToCard,
                     ),
                     BoxyArtSwitchField(
                       label: 'Use Shadows',
@@ -197,18 +203,11 @@ class BrandingSettingsScreen extends ConsumerWidget {
                         ),
                       ],
                     ),
-                    SizedBox(
-                      height: spacing?.cardToCard ?? AppSpacing.standard,
-                    ),
-                    const BoxyArtSectionTitle(
-                      title: 'SHAPE & RADIUS',
-                      isLevel2: true,
-                    ),
                     if (config.useBorders) ...[
                       Row(
                         children: [
                           Text(
-                            'Border',
+                            'Thickness',
                             style: AppTypography.helper.copyWith(
                               fontWeight: AppTypography.weightBold,
                             ),
@@ -232,8 +231,55 @@ class BrandingSettingsScreen extends ConsumerWidget {
                           ),
                         ],
                       ),
+                      _CompactColorPicker(
+                        label: 'Border Color',
+                        color: Color(config.borderColor),
+                        onTap: () => _pickColor(
+                          context,
+                          'Border Color',
+                          Color(config.borderColor),
+                          (c) => controller.setBorderColor(c),
+                        ),
+                      ),
                     ],
-                    SizedBox(height: spacing?.labelToCard ?? AppSpacing.atomic),
+                    const BoxyArtDivider(),
+                    Row(
+                      children: [
+                        Text(
+                          'Divider',
+                          style: AppTypography.helper.copyWith(
+                            fontWeight: AppTypography.weightBold,
+                          ),
+                        ),
+                        Expanded(
+                          child: Slider(
+                            value: config.dividerThickness,
+                            min: 0.5,
+                            max: 3.0,
+                            divisions: 5,
+                            label: config.dividerThickness.toStringAsFixed(1),
+                            activeColor: Color(config.secondaryColor),
+                            onChanged: (v) => controller.setDividerThickness(v),
+                          ),
+                        ),
+                        Text(
+                          config.dividerThickness.toStringAsFixed(1),
+                          style: AppTypography.helper.copyWith(
+                            fontWeight: AppTypography.weightBlack,
+                          ),
+                        ),
+                      ],
+                    ),
+                    _CompactColorPicker(
+                      label: 'Divider Color',
+                      color: Color(config.dividerColor),
+                      onTap: () => _pickColor(
+                        context,
+                        'Divider Color',
+                        Color(config.dividerColor),
+                        (c) => controller.setDividerColor(c),
+                      ),
+                    ),
                     Row(
                       children: [
                         Text(
@@ -341,10 +387,6 @@ class BrandingSettingsScreen extends ConsumerWidget {
                           ),
                         ),
                       ],
-                    ),
-                    BoxyArtDivider(
-                      verticalPadding:
-                          spacing?.labelToCard ?? AppSpacing.labelToCard,
                     ),
                     const BoxyArtSectionTitle(
                       title: 'VERTICAL SPACING & RHYTHM',
@@ -524,8 +566,7 @@ class BrandingSettingsScreen extends ConsumerWidget {
 
               const BoxyArtSectionTitle(title: 'Badges & Status Styling'),
               BoxyArtCard(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                child: BoxyArtFormColumn(
                   children: [
                     Text(
                       'Configure how status indicators, badges and pills appear across the app.',
@@ -533,10 +574,8 @@ class BrandingSettingsScreen extends ConsumerWidget {
                         fontWeight: AppTypography.weightMedium,
                       ),
                     ),
-                    SizedBox(height: spacing?.labelToCard ?? AppSpacing.lg),
                     
                     const BoxyArtSectionTitle(title: 'STATUS PILLS (Lifecycle & Registry)', isLevel2: true),
-                    SizedBox(height: spacing?.cardToCard ?? AppSpacing.md),
                     _StatusColorRow(
                       label: 'Published',
                       color: Color(config.statusPublishedColor),
@@ -547,7 +586,6 @@ class BrandingSettingsScreen extends ConsumerWidget {
                         (c) => controller.setStatusPublishedColor(c),
                       ),
                     ),
-                    const SizedBox(height: AppSpacing.sm),
                     _StatusColorRow(
                       label: 'Confirmed',
                       color: Color(config.statusConfirmedColor),
@@ -558,7 +596,6 @@ class BrandingSettingsScreen extends ConsumerWidget {
                         (c) => controller.setStatusConfirmedColor(c),
                       ),
                     ),
-                    const SizedBox(height: AppSpacing.sm),
                     _StatusColorRow(
                       label: 'Waitlist',
                       color: Color(config.statusWaitlistColor),
@@ -569,7 +606,6 @@ class BrandingSettingsScreen extends ConsumerWidget {
                         (c) => controller.setStatusWaitlistColor(c),
                       ),
                     ),
-                    const SizedBox(height: AppSpacing.sm),
                     _StatusColorRow(
                       label: 'Reserved',
                       color: Color(config.statusReservedColor),
@@ -580,7 +616,6 @@ class BrandingSettingsScreen extends ConsumerWidget {
                         (c) => controller.setStatusReservedColor(c),
                       ),
                     ),
-                    const SizedBox(height: AppSpacing.sm),
                     _StatusColorRow(
                       label: 'Withdrawn',
                       color: Color(config.statusWithdrawnColor),
@@ -591,7 +626,6 @@ class BrandingSettingsScreen extends ConsumerWidget {
                         (c) => controller.setStatusWithdrawnColor(c),
                       ),
                     ),
-                    const SizedBox(height: AppSpacing.sm),
                     _StatusColorRow(
                       label: 'Dinner Only',
                       color: Color(config.statusDinnerColor),
@@ -602,7 +636,6 @@ class BrandingSettingsScreen extends ConsumerWidget {
                         (c) => controller.setStatusDinnerColor(c),
                       ),
                     ),
-                    const SizedBox(height: AppSpacing.md),
                     _buildRadiusSlider(
                       label: 'Pill Rounding',
                       helper: 'Affects status pills and tags',
@@ -611,10 +644,8 @@ class BrandingSettingsScreen extends ConsumerWidget {
                       activeColor: Color(config.secondaryColor),
                       onChanged: (v) => controller.setPillRadius(v),
                     ),
-                    const SizedBox(height: AppSpacing.x2l),
 
                     const BoxyArtSectionTitle(title: 'METRIC & ICON BADGES', isLevel2: true),
-                    const SizedBox(height: AppSpacing.md),
                     Center(
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -637,7 +668,6 @@ class BrandingSettingsScreen extends ConsumerWidget {
                         ],
                       ),
                     ),
-                    SizedBox(height: spacing?.labelToCard ?? AppSpacing.lg),
 
                     const BoxyArtSectionTitle(title: 'ICON BADGE STYLE', isLevel2: true),
                     Row(
@@ -669,7 +699,6 @@ class BrandingSettingsScreen extends ConsumerWidget {
                         ),
                       ],
                     ),
-                    const SizedBox(height: AppSpacing.x2l),
 
                     const BoxyArtSectionTitle(title: 'BADGE ROUNDING & OPACITY', isLevel2: true),
                     _buildRadiusSlider(
@@ -723,7 +752,7 @@ class BrandingSettingsScreen extends ConsumerWidget {
 
               const BoxyArtSectionTitle(title: 'App Identity Colors'),
               BoxyArtCard(
-                child: Column(
+                child: BoxyArtFormColumn(
                   children: [
                     Row(
                       children: [
@@ -739,9 +768,7 @@ class BrandingSettingsScreen extends ConsumerWidget {
                             ),
                           ),
                         ),
-                        SizedBox(
-                          width: spacing?.labelToCard ?? AppSpacing.labelToCard,
-                        ),
+                        SizedBox(width: AppSpacing.sm),
                         Expanded(
                           child: _CompactColorPicker(
                             label: 'Action Color',
@@ -754,10 +781,20 @@ class BrandingSettingsScreen extends ConsumerWidget {
                             ),
                           ),
                         ),
+                        SizedBox(width: AppSpacing.sm),
+                        Expanded(
+                          child: _CompactColorPicker(
+                            label: 'Foundation',
+                            color: Color(config.tertiaryColor),
+                            onTap: () => _pickColor(
+                              context,
+                              'Foundation / Tertiary',
+                              Color(config.tertiaryColor),
+                              (c) => controller.setTertiaryColor(c),
+                            ),
+                          ),
+                        ),
                       ],
-                    ),
-                    SizedBox(
-                      height: spacing?.labelToCard ?? AppSpacing.labelToCard,
                     ),
                     _CompactColorPicker(
                       label: 'Page Background (Light Mode)',
@@ -769,9 +806,6 @@ class BrandingSettingsScreen extends ConsumerWidget {
                         (c) => controller.setBackgroundColor(c),
                       ),
                     ),
-                    SizedBox(
-                      height: spacing?.labelToCard ?? AppSpacing.labelToCard,
-                    ),
                     _CompactColorPicker(
                       label: 'High Alert / Dangerous Action',
                       color: Color(config.dangerousColor),
@@ -781,6 +815,194 @@ class BrandingSettingsScreen extends ConsumerWidget {
                         Color(config.dangerousColor),
                         (c) => controller.setDangerousColor(c),
                       ),
+                    ),
+                  ],
+                ),
+              ),
+
+              const BoxyArtSectionTitle(title: 'Surface & Typography (Light Mode)'),
+              BoxyArtCard(
+                child: BoxyArtFormColumn(
+                  children: [
+                    Text(
+                      'Control the baseline legibility and sheet aesthetics of the Light theme.',
+                      style: AppTypography.bodySmall.copyWith(
+                        fontWeight: AppTypography.weightMedium,
+                      ),
+                    ),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _CompactColorPicker(
+                            label: 'Primary Text',
+                            color: Color(config.textPrimaryColor),
+                            onTap: () => _pickColor(
+                              context,
+                              'Primary Text',
+                              Color(config.textPrimaryColor),
+                              (c) => controller.setTextPrimaryColor(c),
+                            ),
+                          ),
+                        ),
+                        SizedBox(width: AppSpacing.sm),
+                        Expanded(
+                          child: _CompactColorPicker(
+                            label: 'Secondary Text',
+                            color: Color(config.textSecondaryColor),
+                            onTap: () => _pickColor(
+                              context,
+                              'Secondary Text',
+                              Color(config.textSecondaryColor),
+                              (c) => controller.setTextSecondaryColor(c),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    _CompactColorPicker(
+                      label: 'Muted / Hint Text',
+                      color: Color(config.textMutedColor),
+                      onTap: () => _pickColor(
+                        context,
+                        'Muted Text',
+                        Color(config.textMutedColor),
+                        (c) => controller.setTextMutedColor(c),
+                      ),
+                    ),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _CompactColorPicker(
+                            label: 'Standard Card',
+                            color: Color(config.cardColor),
+                            onTap: () => _pickColor(
+                              context,
+                              'Card Surface',
+                              Color(config.cardColor),
+                              (c) => controller.setCardColor(c),
+                            ),
+                          ),
+                        ),
+                        SizedBox(width: AppSpacing.sm),
+                        Expanded(
+                          child: _CompactColorPicker(
+                            label: 'Elevated Surface',
+                            color: Color(config.surfaceElevatedColor),
+                            onTap: () => _pickColor(
+                              context,
+                              'Elevated Surface',
+                              Color(config.surfaceElevatedColor),
+                              (c) => controller.setSurfaceElevatedColor(c),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    _CompactColorPicker(
+                      label: 'Page Background',
+                      color: Color(config.backgroundColor),
+                      onTap: () => _pickColor(
+                        context,
+                        'Page Background',
+                        Color(config.backgroundColor),
+                        (c) => controller.setBackgroundColor(c),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              const BoxyArtSectionTitle(title: 'Scoring & Team Identity'),
+              BoxyArtCard(
+                padding: EdgeInsets.zero, // Keep card clean for the expansion tile
+                child: ExpansionTile(
+                  title: Text(
+                    'SCORING AESTHETICS',
+                    style: AppTypography.label.copyWith(
+                      fontWeight: AppTypography.weightBold,
+                      letterSpacing: 1.2,
+                    ),
+                  ),
+                  subtitle: Text(
+                    'Configure team and domain-specific scoring colors',
+                    style: AppTypography.micro.copyWith(color: AppColors.textSecondary),
+                  ),
+                  shape: const RoundedRectangleBorder(side: BorderSide.none),
+                  collapsedShape: const RoundedRectangleBorder(side: BorderSide.none),
+                  childrenPadding: const EdgeInsets.all(AppSpacing.lg),
+                  children: [
+                    const BoxyArtSectionTitle(title: 'TEAM IDENTITIES', isLevel2: true),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _CompactColorPicker(
+                            label: 'Team A',
+                            color: Color(config.teamAColor),
+                            onTap: () => _pickColor(
+                              context,
+                              'Team A',
+                              Color(config.teamAColor),
+                              (c) => controller.setTeamAColor(c),
+                            ),
+                          ),
+                        ),
+                        SizedBox(width: AppSpacing.sm),
+                        Expanded(
+                          child: _CompactColorPicker(
+                            label: 'Team B',
+                            color: Color(config.teamBColor),
+                            onTap: () => _pickColor(
+                              context,
+                              'Team B',
+                              Color(config.teamBColor),
+                              (c) => controller.setTeamBColor(c),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const BoxyArtDivider(verticalPadding: AppSpacing.lg),
+                    const BoxyArtSectionTitle(title: 'GOLF SCORING PALETTE', isLevel2: true),
+                    Text(
+                      'These colors drive the live leaderboard and scorecard visuals.',
+                      style: AppTypography.micro.copyWith(color: AppColors.textSecondary),
+                    ),
+                    const SizedBox(height: AppSpacing.md),
+                    Wrap(
+                      spacing: AppSpacing.sm,
+                      runSpacing: AppSpacing.sm,
+                      children: [
+                        _ScoreColorGridItem(
+                          label: 'Eagle',
+                          color: Color(config.scoreEagleColor),
+                          onTap: () => _pickColor(context, 'Eagle', Color(config.scoreEagleColor), (c) => controller.setScoreEagleColor(c)),
+                        ),
+                        _ScoreColorGridItem(
+                          label: 'Birdie',
+                          color: Color(config.scoreBirdieColor),
+                          onTap: () => _pickColor(context, 'Birdie', Color(config.scoreBirdieColor), (c) => controller.setScoreBirdieColor(c)),
+                        ),
+                        _ScoreColorGridItem(
+                          label: 'Par',
+                          color: Color(config.scoreParColor),
+                          onTap: () => _pickColor(context, 'Par', Color(config.scoreParColor), (c) => controller.setScoreParColor(c)),
+                        ),
+                        _ScoreColorGridItem(
+                          label: 'Bogey',
+                          color: Color(config.scoreBogeyColor),
+                          onTap: () => _pickColor(context, 'Bogey', Color(config.scoreBogeyColor), (c) => controller.setScoreBogeyColor(c)),
+                        ),
+                        _ScoreColorGridItem(
+                          label: 'Double+',
+                          color: Color(config.scoreDoubleColor),
+                          onTap: () => _pickColor(context, 'Double Bogey', Color(config.scoreDoubleColor), (c) => controller.setScoreDoubleColor(c)),
+                        ),
+                        _ScoreColorGridItem(
+                          label: 'Triple+',
+                          color: Color(config.scoreTriplePlusColor),
+                          onTap: () => _pickColor(context, 'Triple+', Color(config.scoreTriplePlusColor), (c) => controller.setScoreTriplePlusColor(c)),
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -801,8 +1023,8 @@ class BrandingSettingsScreen extends ConsumerWidget {
                   ],
                 ),
               ),
-              SizedBox(height: spacing?.cardToLabel ?? 60),
-            ]),
+              ],
+            ),
           ),
         ),
       ],
@@ -898,7 +1120,6 @@ class BrandingSettingsScreen extends ConsumerWidget {
       ],
     );
   }
-
   Widget _buildPreviewCard(
     int primaryInt,
     int secondaryInt,
@@ -929,44 +1150,68 @@ class BrandingSettingsScreen extends ConsumerWidget {
     int withdrawnInt,
     int dinnerInt,
     double iconBadgeOpacity,
+    int tertiaryInt,
+    int textPrimaryInt,
+    int textSecondaryInt,
+    int textMutedInt,
+    int cardColorInt,
+    int elevatedColorInt,
+    int borderColorInt,
+    int dividerColorInt,
   ) {
     final primary = Color(primaryInt);
     final secondary = Color(secondaryInt);
+    final tertiary = Color(tertiaryInt);
+    final textPrimary = Color(textPrimaryInt);
+    final textSecondary = Color(textSecondaryInt);
+    final textMuted = Color(textMutedInt);
+    final cardColor = Color(cardColorInt);
+    final elevatedColor = Color(elevatedColorInt);
+    final borderColor = Color(borderColorInt);
+    final dividerColor = Color(dividerColorInt);
+
     final iconBadgeFill = Color(iconBadgeFillInt);
     final iconBadgeIcon = Color(iconBadgeIconInt);
+    
     final bool isDark =
         themeMode == 'dark' ||
         (themeMode == 'system' &&
             WidgetsBinding.instance.platformDispatcher.platformBrightness ==
                 Brightness.dark);
-    final bgColor = isDark ? const Color(0xFF1E1E1E) : AppColors.pureWhite;
-    final textColor = isDark ? AppColors.pureWhite : Colors.black;
+
+    // Preview background should respect the config's card color in light mode
+    // but we allow it to be deep for dark mode preview if the user selects dark mode.
+    final finalBgColor = isDark ? elevatedColor : cardColor;
+    
+    // We use the config's text tokens for the preview
+    final pText = isDark ? AppColors.pureWhite : textPrimary;
+    final sText = isDark ? AppColors.dark150 : textSecondary;
+    final mText = isDark ? AppColors.dark200 : textMuted;
 
     return BoxyArtCard(
       padding: const EdgeInsets.all(AppSpacing.xl),
       showShadow: useShadows,
       child: Column(
         children: [
-          const BoxyArtSectionTitle(title: 'PREVIEW SECTION', isLevel2: true),
+          const BoxyArtSectionTitle(title: 'LIVE PREVIEW', isLevel2: true),
           Container(
             padding: EdgeInsets.symmetric(
               vertical: cardVerticalPadding,
               horizontal: cardHorizontalPadding,
             ),
             decoration: BoxDecoration(
-              color: bgColor,
+              color: finalBgColor,
               borderRadius: BorderRadius.circular(cardRadius),
               border: useBorders
                   ? Border.all(
-                      color: textColor.withValues(alpha: AppColors.opacityLow),
+                      color: borderColor,
                       width: borderWidth,
                     )
                   : null,
               boxShadow: useShadows
                   ? [
                       BoxShadow(
-                        color: Colors.black.withValues(alpha: shadowOpacity * shadowIntensity.clamp(0.0, 1.0),
-                        ),
+                        color: Colors.black.withValues(alpha: shadowOpacity * shadowIntensity.clamp(0.0, 1.0)),
                         blurRadius: 20 * shadowIntensity,
                         offset: Offset(0, 4 * shadowIntensity),
                         spreadRadius: shadowSpread,
@@ -975,40 +1220,42 @@ class BrandingSettingsScreen extends ConsumerWidget {
                   : null,
             ),
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
                   children: [
                     CircleAvatar(
-                      backgroundColor: secondary.withValues(alpha: AppColors.opacityMedium),
-                      radius: 24,
-                      child: Icon(Icons.person, color: secondary),
+                      backgroundColor: tertiary.withValues(alpha: AppColors.opacityLow),
+                      radius: 20,
+                      child: Icon(Icons.person, color: tertiary, size: 20),
                     ),
-                    const SizedBox(width: AppSpacing.lg),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'John Doe',
-                          style: TextStyle(
-                            fontWeight: AppTypography.weightBlack,
-                            fontSize: AppTypography.sizeBody,
-                            color: textColor,
-                            letterSpacing: -0.5,
+                    const SizedBox(width: AppSpacing.md),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'John Doe',
+                            style: TextStyle(
+                              fontWeight: AppTypography.weightBlack,
+                              fontSize: AppTypography.sizeBody,
+                              color: pText,
+                              letterSpacing: -0.5,
+                            ),
                           ),
-                        ),
-                        Text(
-                          'Handicap: 14.2',
-                          style: TextStyle(
-                            color: textColor.withValues(alpha: AppColors.opacityHalf),
-                            fontSize: AppTypography.sizeLabelStrong,
-                            fontWeight: AppTypography.weightSemibold,
+                          Text(
+                            'Premium Member • 14.2 HC',
+                            style: TextStyle(
+                              color: sText,
+                              fontSize: 12,
+                              fontWeight: AppTypography.weightSemibold,
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                    const Spacer(),
                     Container(
-                      padding: const EdgeInsets.all(8),
+                      padding: const EdgeInsets.all(6),
                       decoration: BoxDecoration(
                         color: iconBadgeFill.withValues(alpha: iconBadgeOpacity),
                         borderRadius: BorderRadius.circular(accentRadius),
@@ -1016,41 +1263,85 @@ class BrandingSettingsScreen extends ConsumerWidget {
                       child: Icon(
                         Icons.star_rounded,
                         color: iconBadgeIcon.withValues(alpha: iconOpacity),
-                        size: 20,
+                        size: 16,
                       ),
                     ),
                   ],
                 ),
-                SizedBox(height: labelToCardSpacing),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () {},
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: primary,
-                      foregroundColor: ContrastHelper.getContrastingText(
-                        primary,
-                      ),
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(buttonRadius),
-                      ),
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                    ),
-                    child: const Text(
-                      'Action Button',
-                      style: TextStyle(
-                        fontWeight: AppTypography.weightBlack,
-                        fontSize: AppTypography.sizeButton,
-                        letterSpacing: -0.2,
-                      ),
-                    ),
+                const SizedBox(height: AppSpacing.md),
+                Text(
+                  'Next Competition: Spring Trophy',
+                  style: TextStyle(
+                    color: mText,
+                    fontSize: 11,
+                    fontWeight: AppTypography.weightBold,
+                    letterSpacing: 0.5,
                   ),
+                ),
+                Divider(
+                  height: 24,
+                  thickness: 1,
+                  color: dividerColor.withValues(alpha: 0.3),
+                ),
+                Row(
+                  children: [
+                    // Primary Action (Brand Lime/Action)
+                    Expanded(
+                      child: SizedBox(
+                        height: 38,
+                        child: ElevatedButton(
+                          onPressed: () {},
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: primary,
+                            foregroundColor: ContrastHelper.getContrastingText(primary),
+                            elevation: 0,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(buttonRadius),
+                            ),
+                            padding: EdgeInsets.zero,
+                          ),
+                          child: const Text(
+                            'JOIN',
+                            style: TextStyle(
+                              fontWeight: AppTypography.weightBlack,
+                              fontSize: 13,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: AppSpacing.sm),
+                    // Tertiary Action (Foundation Slate)
+                    Expanded(
+                      child: SizedBox(
+                        height: 38,
+                        child: ElevatedButton(
+                          onPressed: () {},
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: tertiary,
+                            foregroundColor: ContrastHelper.getContrastingText(tertiary),
+                            elevation: 0,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(buttonRadius),
+                            ),
+                            padding: EdgeInsets.zero,
+                          ),
+                          child: const Text(
+                            'DETAILS',
+                            style: TextStyle(
+                              fontWeight: AppTypography.weightBlack,
+                              fontSize: 13,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
           ),
-          const BoxyArtSectionTitle(title: 'NEXT SECTION', isLevel2: true),
+          const BoxyArtSectionTitle(title: 'STYLE SETTINGS', isLevel2: true),
         ],
       ),
     );
@@ -1506,6 +1797,56 @@ class _DarkSwatch extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _ScoreColorGridItem extends StatelessWidget {
+  final String label;
+  final Color color;
+  final VoidCallback onTap;
+
+  const _ScoreColorGridItem({
+    required this.label,
+    required this.color,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: color.withValues(alpha: 0.2)),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 12,
+              height: 12,
+              decoration: BoxDecoration(
+                color: color,
+                shape: BoxShape.circle,
+              ),
+            ),
+            const SizedBox(width: 8),
+            Text(
+              label,
+              style: AppTypography.micro.copyWith(
+                fontWeight: AppTypography.weightBold,
+                color: Theme.of(context).brightness == Brightness.dark 
+                    ? AppColors.pureWhite 
+                    : AppColors.dark800,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

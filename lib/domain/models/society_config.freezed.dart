@@ -18,8 +18,22 @@ mixin _$SocietyConfig {
   String? get logoUrl;
   int get primaryColor; // Default: BoxyArt Yellow
   int get secondaryColor; // Default: Emerald Green (Action)
+  int get tertiaryColor; // [NEW] Foundation/Accent color (Professional Slate)
   int get dangerousColor; // [NEW] High Alert / Dangerous Action color (Coral)
   int get backgroundColor; // Default: Light Gray/Neutral
+  int get cardColor; // [NEW] Base card fill (L-PureWhite, D-Surface)
+  int get surfaceElevatedColor; // [NEW] Elevated menu/indicator fill
+  int get textPrimaryColor; // [NEW] Primary Title/Body text
+  int get textSecondaryColor; // [NEW] Secondary/Label text
+  int get textMutedColor; // [NEW] Muted/Metadata text
+  int get scoreEagleColor; // [NEW] Scoring palette
+  int get scoreBirdieColor;
+  int get scoreParColor;
+  int get scoreBogeyColor;
+  int get scoreDoubleColor;
+  int get scoreTriplePlusColor;
+  int get teamAColor; // [NEW] Team Identity
+  int get teamBColor;
   int get statusPublishedColor; // [NEW] Pill Subset (Emerald Green - Lifecycle)
   int get statusConfirmedColor; // [NEW] Pill Subset (Emerald Green - Registration)
   int get statusReservedColor; // [NEW] Pill Subset (Brand Amber)
@@ -34,6 +48,8 @@ mixin _$SocietyConfig {
   double get borderWidth; // [NEW] Granular Border Width
   double get pillRadius; // [NEW] Granular Pill Radius
   double get buttonRadius; // [NEW] Granular Button Radius (4.x Default)
+  int get borderColor; // [NEW] Soft border color (Light-First)
+  int get dividerColor; // [NEW] Standard divider color
   double get heroRadius; // [NEW] Granular Hero Radius (Independent)
   double get accentRadius; // [NEW] Metric & Icon Radius (4.x Default)
   double get accentOpacity; // [NEW] Metric & Icon Background Opacity
@@ -41,6 +57,8 @@ mixin _$SocietyConfig {
   double get shadowOpacity; // [NEW] Granular Shadow Opacity
   double get labelToCardSpacing; // [NEW] Vertical rhythm: Label to Card
   double get cardToLabelSpacing; // [NEW] Vertical rhythm: Card to Label
+  double
+      get fieldToFieldSpacing; // [NEW] Vertical rhythm: Field to Field (Form Density)
   double
       get cardToCardSpacing; // [NEW] Vertical rhythm: Card to Card (List Density)
   double get cardVerticalPadding; // [NEW] Global Card Internal Padding
@@ -52,6 +70,16 @@ mixin _$SocietyConfig {
   double get iconOpacity; // [NEW] Icon Glyph opacity
   double get iconBadgeSize; // [NEW] Tokenized Badge Size
   double get iconBadgeIconSize; // [NEW] Tokenized Badge Glyph Size
+  double get buttonHeight; // [NEW] Tokenized Button Height
+  double get buttonSmallHeight; // [NEW] Tokenized Small Button Height
+  double get buttonHorizontalPadding; // [NEW] Tokenized Button Padding
+  double get sliderTrackHeight; // [NEW] Tokenized Slider Track
+  double get sliderThumbRadius; // [NEW] Tokenized Slider Thumb
+  double get dividerThickness; // [NEW] Tokenized Divider weight
+  double
+      get surfaceHeightLarge; // [NEW] Tokenized Surface height (Headers/Search)
+  double get surfaceHeightMedium; // [NEW] Tokenized Surface height (Bars/Tabs)
+  String get fontFamily; // [NEW] Standardized Typeface Control
   String get themeMode; // 'system', 'light', 'dark'
   List<int> get customColors; // User-created custom colors (up to 5)
   double get cardTintIntensity; // Card background tint intensity (0.0 to 1.0)
@@ -113,10 +141,38 @@ mixin _$SocietyConfig {
                 other.primaryColor == primaryColor) &&
             (identical(other.secondaryColor, secondaryColor) ||
                 other.secondaryColor == secondaryColor) &&
+            (identical(other.tertiaryColor, tertiaryColor) ||
+                other.tertiaryColor == tertiaryColor) &&
             (identical(other.dangerousColor, dangerousColor) ||
                 other.dangerousColor == dangerousColor) &&
             (identical(other.backgroundColor, backgroundColor) ||
                 other.backgroundColor == backgroundColor) &&
+            (identical(other.cardColor, cardColor) ||
+                other.cardColor == cardColor) &&
+            (identical(other.surfaceElevatedColor, surfaceElevatedColor) ||
+                other.surfaceElevatedColor == surfaceElevatedColor) &&
+            (identical(other.textPrimaryColor, textPrimaryColor) ||
+                other.textPrimaryColor == textPrimaryColor) &&
+            (identical(other.textSecondaryColor, textSecondaryColor) ||
+                other.textSecondaryColor == textSecondaryColor) &&
+            (identical(other.textMutedColor, textMutedColor) ||
+                other.textMutedColor == textMutedColor) &&
+            (identical(other.scoreEagleColor, scoreEagleColor) ||
+                other.scoreEagleColor == scoreEagleColor) &&
+            (identical(other.scoreBirdieColor, scoreBirdieColor) ||
+                other.scoreBirdieColor == scoreBirdieColor) &&
+            (identical(other.scoreParColor, scoreParColor) ||
+                other.scoreParColor == scoreParColor) &&
+            (identical(other.scoreBogeyColor, scoreBogeyColor) ||
+                other.scoreBogeyColor == scoreBogeyColor) &&
+            (identical(other.scoreDoubleColor, scoreDoubleColor) ||
+                other.scoreDoubleColor == scoreDoubleColor) &&
+            (identical(other.scoreTriplePlusColor, scoreTriplePlusColor) ||
+                other.scoreTriplePlusColor == scoreTriplePlusColor) &&
+            (identical(other.teamAColor, teamAColor) ||
+                other.teamAColor == teamAColor) &&
+            (identical(other.teamBColor, teamBColor) ||
+                other.teamBColor == teamBColor) &&
             (identical(other.statusPublishedColor, statusPublishedColor) ||
                 other.statusPublishedColor == statusPublishedColor) &&
             (identical(other.statusConfirmedColor, statusConfirmedColor) ||
@@ -145,6 +201,10 @@ mixin _$SocietyConfig {
                 other.pillRadius == pillRadius) &&
             (identical(other.buttonRadius, buttonRadius) ||
                 other.buttonRadius == buttonRadius) &&
+            (identical(other.borderColor, borderColor) ||
+                other.borderColor == borderColor) &&
+            (identical(other.dividerColor, dividerColor) ||
+                other.dividerColor == dividerColor) &&
             (identical(other.heroRadius, heroRadius) ||
                 other.heroRadius == heroRadius) &&
             (identical(other.accentRadius, accentRadius) ||
@@ -159,40 +219,34 @@ mixin _$SocietyConfig {
                 other.labelToCardSpacing == labelToCardSpacing) &&
             (identical(other.cardToLabelSpacing, cardToLabelSpacing) ||
                 other.cardToLabelSpacing == cardToLabelSpacing) &&
-            (identical(other.cardToCardSpacing, cardToCardSpacing) ||
-                other.cardToCardSpacing == cardToCardSpacing) &&
-            (identical(other.cardVerticalPadding, cardVerticalPadding) ||
-                other.cardVerticalPadding == cardVerticalPadding) &&
-            (identical(other.cardHorizontalPadding, cardHorizontalPadding) ||
-                other.cardHorizontalPadding == cardHorizontalPadding) &&
-            (identical(other.tabToContentSpacing, tabToContentSpacing) ||
-                other.tabToContentSpacing == tabToContentSpacing) &&
-            (identical(other.iconBadgeFillColor, iconBadgeFillColor) ||
-                other.iconBadgeFillColor == iconBadgeFillColor) &&
-            (identical(other.iconBadgeIconColor, iconBadgeIconColor) ||
-                other.iconBadgeIconColor == iconBadgeIconColor) &&
-            (identical(other.iconBadgeOpacity, iconBadgeOpacity) ||
-                other.iconBadgeOpacity == iconBadgeOpacity) &&
-            (identical(other.iconOpacity, iconOpacity) ||
-                other.iconOpacity == iconOpacity) &&
-            (identical(other.iconBadgeSize, iconBadgeSize) ||
-                other.iconBadgeSize == iconBadgeSize) &&
-            (identical(other.iconBadgeIconSize, iconBadgeIconSize) ||
-                other.iconBadgeIconSize == iconBadgeIconSize) &&
-            (identical(other.themeMode, themeMode) ||
-                other.themeMode == themeMode) &&
-            const DeepCollectionEquality()
-                .equals(other.customColors, customColors) &&
-            (identical(other.cardTintIntensity, cardTintIntensity) ||
-                other.cardTintIntensity == cardTintIntensity) &&
-            (identical(other.useCardGradient, useCardGradient) ||
-                other.useCardGradient == useCardGradient) &&
-            (identical(other.currencySymbol, currencySymbol) ||
-                other.currencySymbol == currencySymbol) &&
-            (identical(other.currencyCode, currencyCode) ||
-                other.currencyCode == currencyCode) &&
-            (identical(other.groupingStrategy, groupingStrategy) ||
-                other.groupingStrategy == groupingStrategy) &&
+            (identical(other.fieldToFieldSpacing, fieldToFieldSpacing) ||
+                other.fieldToFieldSpacing == fieldToFieldSpacing) &&
+            (identical(other.cardToCardSpacing, cardToCardSpacing) || other.cardToCardSpacing == cardToCardSpacing) &&
+            (identical(other.cardVerticalPadding, cardVerticalPadding) || other.cardVerticalPadding == cardVerticalPadding) &&
+            (identical(other.cardHorizontalPadding, cardHorizontalPadding) || other.cardHorizontalPadding == cardHorizontalPadding) &&
+            (identical(other.tabToContentSpacing, tabToContentSpacing) || other.tabToContentSpacing == tabToContentSpacing) &&
+            (identical(other.iconBadgeFillColor, iconBadgeFillColor) || other.iconBadgeFillColor == iconBadgeFillColor) &&
+            (identical(other.iconBadgeIconColor, iconBadgeIconColor) || other.iconBadgeIconColor == iconBadgeIconColor) &&
+            (identical(other.iconBadgeOpacity, iconBadgeOpacity) || other.iconBadgeOpacity == iconBadgeOpacity) &&
+            (identical(other.iconOpacity, iconOpacity) || other.iconOpacity == iconOpacity) &&
+            (identical(other.iconBadgeSize, iconBadgeSize) || other.iconBadgeSize == iconBadgeSize) &&
+            (identical(other.iconBadgeIconSize, iconBadgeIconSize) || other.iconBadgeIconSize == iconBadgeIconSize) &&
+            (identical(other.buttonHeight, buttonHeight) || other.buttonHeight == buttonHeight) &&
+            (identical(other.buttonSmallHeight, buttonSmallHeight) || other.buttonSmallHeight == buttonSmallHeight) &&
+            (identical(other.buttonHorizontalPadding, buttonHorizontalPadding) || other.buttonHorizontalPadding == buttonHorizontalPadding) &&
+            (identical(other.sliderTrackHeight, sliderTrackHeight) || other.sliderTrackHeight == sliderTrackHeight) &&
+            (identical(other.sliderThumbRadius, sliderThumbRadius) || other.sliderThumbRadius == sliderThumbRadius) &&
+            (identical(other.dividerThickness, dividerThickness) || other.dividerThickness == dividerThickness) &&
+            (identical(other.surfaceHeightLarge, surfaceHeightLarge) || other.surfaceHeightLarge == surfaceHeightLarge) &&
+            (identical(other.surfaceHeightMedium, surfaceHeightMedium) || other.surfaceHeightMedium == surfaceHeightMedium) &&
+            (identical(other.fontFamily, fontFamily) || other.fontFamily == fontFamily) &&
+            (identical(other.themeMode, themeMode) || other.themeMode == themeMode) &&
+            const DeepCollectionEquality().equals(other.customColors, customColors) &&
+            (identical(other.cardTintIntensity, cardTintIntensity) || other.cardTintIntensity == cardTintIntensity) &&
+            (identical(other.useCardGradient, useCardGradient) || other.useCardGradient == useCardGradient) &&
+            (identical(other.currencySymbol, currencySymbol) || other.currencySymbol == currencySymbol) &&
+            (identical(other.currencyCode, currencyCode) || other.currencyCode == currencyCode) &&
+            (identical(other.groupingStrategy, groupingStrategy) || other.groupingStrategy == groupingStrategy) &&
             (identical(other.useWhsHandicaps, useWhsHandicaps) || other.useWhsHandicaps == useWhsHandicaps) &&
             (identical(other.distanceUnit, distanceUnit) || other.distanceUnit == distanceUnit) &&
             (identical(other.handicapSystem, handicapSystem) || other.handicapSystem == handicapSystem) &&
@@ -225,8 +279,22 @@ mixin _$SocietyConfig {
         logoUrl,
         primaryColor,
         secondaryColor,
+        tertiaryColor,
         dangerousColor,
         backgroundColor,
+        cardColor,
+        surfaceElevatedColor,
+        textPrimaryColor,
+        textSecondaryColor,
+        textMutedColor,
+        scoreEagleColor,
+        scoreBirdieColor,
+        scoreParColor,
+        scoreBogeyColor,
+        scoreDoubleColor,
+        scoreTriplePlusColor,
+        teamAColor,
+        teamBColor,
         statusPublishedColor,
         statusConfirmedColor,
         statusReservedColor,
@@ -241,6 +309,8 @@ mixin _$SocietyConfig {
         borderWidth,
         pillRadius,
         buttonRadius,
+        borderColor,
+        dividerColor,
         heroRadius,
         accentRadius,
         accentOpacity,
@@ -248,6 +318,7 @@ mixin _$SocietyConfig {
         shadowOpacity,
         labelToCardSpacing,
         cardToLabelSpacing,
+        fieldToFieldSpacing,
         cardToCardSpacing,
         cardVerticalPadding,
         cardHorizontalPadding,
@@ -258,6 +329,15 @@ mixin _$SocietyConfig {
         iconOpacity,
         iconBadgeSize,
         iconBadgeIconSize,
+        buttonHeight,
+        buttonSmallHeight,
+        buttonHorizontalPadding,
+        sliderTrackHeight,
+        sliderThumbRadius,
+        dividerThickness,
+        surfaceHeightLarge,
+        surfaceHeightMedium,
+        fontFamily,
         themeMode,
         const DeepCollectionEquality().hash(customColors),
         cardTintIntensity,
@@ -291,7 +371,7 @@ mixin _$SocietyConfig {
 
   @override
   String toString() {
-    return 'SocietyConfig(societyName: $societyName, logoUrl: $logoUrl, primaryColor: $primaryColor, secondaryColor: $secondaryColor, dangerousColor: $dangerousColor, backgroundColor: $backgroundColor, statusPublishedColor: $statusPublishedColor, statusConfirmedColor: $statusConfirmedColor, statusReservedColor: $statusReservedColor, statusWaitlistColor: $statusWaitlistColor, statusWithdrawnColor: $statusWithdrawnColor, statusDinnerColor: $statusDinnerColor, cardRadius: $cardRadius, inputRadius: $inputRadius, useShadows: $useShadows, shadowIntensity: $shadowIntensity, useBorders: $useBorders, borderWidth: $borderWidth, pillRadius: $pillRadius, buttonRadius: $buttonRadius, heroRadius: $heroRadius, accentRadius: $accentRadius, accentOpacity: $accentOpacity, shadowSpread: $shadowSpread, shadowOpacity: $shadowOpacity, labelToCardSpacing: $labelToCardSpacing, cardToLabelSpacing: $cardToLabelSpacing, cardToCardSpacing: $cardToCardSpacing, cardVerticalPadding: $cardVerticalPadding, cardHorizontalPadding: $cardHorizontalPadding, tabToContentSpacing: $tabToContentSpacing, iconBadgeFillColor: $iconBadgeFillColor, iconBadgeIconColor: $iconBadgeIconColor, iconBadgeOpacity: $iconBadgeOpacity, iconOpacity: $iconOpacity, iconBadgeSize: $iconBadgeSize, iconBadgeIconSize: $iconBadgeIconSize, themeMode: $themeMode, customColors: $customColors, cardTintIntensity: $cardTintIntensity, useCardGradient: $useCardGradient, currencySymbol: $currencySymbol, currencyCode: $currencyCode, groupingStrategy: $groupingStrategy, useWhsHandicaps: $useWhsHandicaps, distanceUnit: $distanceUnit, handicapSystem: $handicapSystem, selectedPaletteName: $selectedPaletteName, separateGuestLeaderboard: $separateGuestLeaderboard, societyCutMode: $societyCutMode, societyCutRules: $societyCutRules, societyCutEventLimit: $societyCutEventLimit, societyCutCountPlayedOnly: $societyCutCountPlayedOnly, societyCutFilterSeason: $societyCutFilterSeason, societyCutFilterInvitational: $societyCutFilterInvitational, globalMarkupPercentage: $globalMarkupPercentage, guestMarkupExtra: $guestMarkupExtra, globalMembershipEndDate: $globalMembershipEndDate, renewalWindowDays: $renewalWindowDays, isRenewalActive: $isRenewalActive, renewalLaunchDate: $renewalLaunchDate, renewalDeadline: $renewalDeadline, renewalPaymentDeadline: $renewalPaymentDeadline, startingBalance: $startingBalance, ledgerEntries: $ledgerEntries, sponsors: $sponsors)';
+    return 'SocietyConfig(societyName: $societyName, logoUrl: $logoUrl, primaryColor: $primaryColor, secondaryColor: $secondaryColor, tertiaryColor: $tertiaryColor, dangerousColor: $dangerousColor, backgroundColor: $backgroundColor, cardColor: $cardColor, surfaceElevatedColor: $surfaceElevatedColor, textPrimaryColor: $textPrimaryColor, textSecondaryColor: $textSecondaryColor, textMutedColor: $textMutedColor, scoreEagleColor: $scoreEagleColor, scoreBirdieColor: $scoreBirdieColor, scoreParColor: $scoreParColor, scoreBogeyColor: $scoreBogeyColor, scoreDoubleColor: $scoreDoubleColor, scoreTriplePlusColor: $scoreTriplePlusColor, teamAColor: $teamAColor, teamBColor: $teamBColor, statusPublishedColor: $statusPublishedColor, statusConfirmedColor: $statusConfirmedColor, statusReservedColor: $statusReservedColor, statusWaitlistColor: $statusWaitlistColor, statusWithdrawnColor: $statusWithdrawnColor, statusDinnerColor: $statusDinnerColor, cardRadius: $cardRadius, inputRadius: $inputRadius, useShadows: $useShadows, shadowIntensity: $shadowIntensity, useBorders: $useBorders, borderWidth: $borderWidth, pillRadius: $pillRadius, buttonRadius: $buttonRadius, borderColor: $borderColor, dividerColor: $dividerColor, heroRadius: $heroRadius, accentRadius: $accentRadius, accentOpacity: $accentOpacity, shadowSpread: $shadowSpread, shadowOpacity: $shadowOpacity, labelToCardSpacing: $labelToCardSpacing, cardToLabelSpacing: $cardToLabelSpacing, fieldToFieldSpacing: $fieldToFieldSpacing, cardToCardSpacing: $cardToCardSpacing, cardVerticalPadding: $cardVerticalPadding, cardHorizontalPadding: $cardHorizontalPadding, tabToContentSpacing: $tabToContentSpacing, iconBadgeFillColor: $iconBadgeFillColor, iconBadgeIconColor: $iconBadgeIconColor, iconBadgeOpacity: $iconBadgeOpacity, iconOpacity: $iconOpacity, iconBadgeSize: $iconBadgeSize, iconBadgeIconSize: $iconBadgeIconSize, buttonHeight: $buttonHeight, buttonSmallHeight: $buttonSmallHeight, buttonHorizontalPadding: $buttonHorizontalPadding, sliderTrackHeight: $sliderTrackHeight, sliderThumbRadius: $sliderThumbRadius, dividerThickness: $dividerThickness, surfaceHeightLarge: $surfaceHeightLarge, surfaceHeightMedium: $surfaceHeightMedium, fontFamily: $fontFamily, themeMode: $themeMode, customColors: $customColors, cardTintIntensity: $cardTintIntensity, useCardGradient: $useCardGradient, currencySymbol: $currencySymbol, currencyCode: $currencyCode, groupingStrategy: $groupingStrategy, useWhsHandicaps: $useWhsHandicaps, distanceUnit: $distanceUnit, handicapSystem: $handicapSystem, selectedPaletteName: $selectedPaletteName, separateGuestLeaderboard: $separateGuestLeaderboard, societyCutMode: $societyCutMode, societyCutRules: $societyCutRules, societyCutEventLimit: $societyCutEventLimit, societyCutCountPlayedOnly: $societyCutCountPlayedOnly, societyCutFilterSeason: $societyCutFilterSeason, societyCutFilterInvitational: $societyCutFilterInvitational, globalMarkupPercentage: $globalMarkupPercentage, guestMarkupExtra: $guestMarkupExtra, globalMembershipEndDate: $globalMembershipEndDate, renewalWindowDays: $renewalWindowDays, isRenewalActive: $isRenewalActive, renewalLaunchDate: $renewalLaunchDate, renewalDeadline: $renewalDeadline, renewalPaymentDeadline: $renewalPaymentDeadline, startingBalance: $startingBalance, ledgerEntries: $ledgerEntries, sponsors: $sponsors)';
   }
 }
 
@@ -306,8 +386,22 @@ abstract mixin class $SocietyConfigCopyWith<$Res> {
       String? logoUrl,
       int primaryColor,
       int secondaryColor,
+      int tertiaryColor,
       int dangerousColor,
       int backgroundColor,
+      int cardColor,
+      int surfaceElevatedColor,
+      int textPrimaryColor,
+      int textSecondaryColor,
+      int textMutedColor,
+      int scoreEagleColor,
+      int scoreBirdieColor,
+      int scoreParColor,
+      int scoreBogeyColor,
+      int scoreDoubleColor,
+      int scoreTriplePlusColor,
+      int teamAColor,
+      int teamBColor,
       int statusPublishedColor,
       int statusConfirmedColor,
       int statusReservedColor,
@@ -322,6 +416,8 @@ abstract mixin class $SocietyConfigCopyWith<$Res> {
       double borderWidth,
       double pillRadius,
       double buttonRadius,
+      int borderColor,
+      int dividerColor,
       double heroRadius,
       double accentRadius,
       double accentOpacity,
@@ -329,6 +425,7 @@ abstract mixin class $SocietyConfigCopyWith<$Res> {
       double shadowOpacity,
       double labelToCardSpacing,
       double cardToLabelSpacing,
+      double fieldToFieldSpacing,
       double cardToCardSpacing,
       double cardVerticalPadding,
       double cardHorizontalPadding,
@@ -339,6 +436,15 @@ abstract mixin class $SocietyConfigCopyWith<$Res> {
       double iconOpacity,
       double iconBadgeSize,
       double iconBadgeIconSize,
+      double buttonHeight,
+      double buttonSmallHeight,
+      double buttonHorizontalPadding,
+      double sliderTrackHeight,
+      double sliderThumbRadius,
+      double dividerThickness,
+      double surfaceHeightLarge,
+      double surfaceHeightMedium,
+      String fontFamily,
       String themeMode,
       List<int> customColors,
       double cardTintIntensity,
@@ -387,8 +493,22 @@ class _$SocietyConfigCopyWithImpl<$Res>
     Object? logoUrl = freezed,
     Object? primaryColor = null,
     Object? secondaryColor = null,
+    Object? tertiaryColor = null,
     Object? dangerousColor = null,
     Object? backgroundColor = null,
+    Object? cardColor = null,
+    Object? surfaceElevatedColor = null,
+    Object? textPrimaryColor = null,
+    Object? textSecondaryColor = null,
+    Object? textMutedColor = null,
+    Object? scoreEagleColor = null,
+    Object? scoreBirdieColor = null,
+    Object? scoreParColor = null,
+    Object? scoreBogeyColor = null,
+    Object? scoreDoubleColor = null,
+    Object? scoreTriplePlusColor = null,
+    Object? teamAColor = null,
+    Object? teamBColor = null,
     Object? statusPublishedColor = null,
     Object? statusConfirmedColor = null,
     Object? statusReservedColor = null,
@@ -403,6 +523,8 @@ class _$SocietyConfigCopyWithImpl<$Res>
     Object? borderWidth = null,
     Object? pillRadius = null,
     Object? buttonRadius = null,
+    Object? borderColor = null,
+    Object? dividerColor = null,
     Object? heroRadius = null,
     Object? accentRadius = null,
     Object? accentOpacity = null,
@@ -410,6 +532,7 @@ class _$SocietyConfigCopyWithImpl<$Res>
     Object? shadowOpacity = null,
     Object? labelToCardSpacing = null,
     Object? cardToLabelSpacing = null,
+    Object? fieldToFieldSpacing = null,
     Object? cardToCardSpacing = null,
     Object? cardVerticalPadding = null,
     Object? cardHorizontalPadding = null,
@@ -420,6 +543,15 @@ class _$SocietyConfigCopyWithImpl<$Res>
     Object? iconOpacity = null,
     Object? iconBadgeSize = null,
     Object? iconBadgeIconSize = null,
+    Object? buttonHeight = null,
+    Object? buttonSmallHeight = null,
+    Object? buttonHorizontalPadding = null,
+    Object? sliderTrackHeight = null,
+    Object? sliderThumbRadius = null,
+    Object? dividerThickness = null,
+    Object? surfaceHeightLarge = null,
+    Object? surfaceHeightMedium = null,
+    Object? fontFamily = null,
     Object? themeMode = null,
     Object? customColors = null,
     Object? cardTintIntensity = null,
@@ -467,6 +599,10 @@ class _$SocietyConfigCopyWithImpl<$Res>
           ? _self.secondaryColor
           : secondaryColor // ignore: cast_nullable_to_non_nullable
               as int,
+      tertiaryColor: null == tertiaryColor
+          ? _self.tertiaryColor
+          : tertiaryColor // ignore: cast_nullable_to_non_nullable
+              as int,
       dangerousColor: null == dangerousColor
           ? _self.dangerousColor
           : dangerousColor // ignore: cast_nullable_to_non_nullable
@@ -474,6 +610,58 @@ class _$SocietyConfigCopyWithImpl<$Res>
       backgroundColor: null == backgroundColor
           ? _self.backgroundColor
           : backgroundColor // ignore: cast_nullable_to_non_nullable
+              as int,
+      cardColor: null == cardColor
+          ? _self.cardColor
+          : cardColor // ignore: cast_nullable_to_non_nullable
+              as int,
+      surfaceElevatedColor: null == surfaceElevatedColor
+          ? _self.surfaceElevatedColor
+          : surfaceElevatedColor // ignore: cast_nullable_to_non_nullable
+              as int,
+      textPrimaryColor: null == textPrimaryColor
+          ? _self.textPrimaryColor
+          : textPrimaryColor // ignore: cast_nullable_to_non_nullable
+              as int,
+      textSecondaryColor: null == textSecondaryColor
+          ? _self.textSecondaryColor
+          : textSecondaryColor // ignore: cast_nullable_to_non_nullable
+              as int,
+      textMutedColor: null == textMutedColor
+          ? _self.textMutedColor
+          : textMutedColor // ignore: cast_nullable_to_non_nullable
+              as int,
+      scoreEagleColor: null == scoreEagleColor
+          ? _self.scoreEagleColor
+          : scoreEagleColor // ignore: cast_nullable_to_non_nullable
+              as int,
+      scoreBirdieColor: null == scoreBirdieColor
+          ? _self.scoreBirdieColor
+          : scoreBirdieColor // ignore: cast_nullable_to_non_nullable
+              as int,
+      scoreParColor: null == scoreParColor
+          ? _self.scoreParColor
+          : scoreParColor // ignore: cast_nullable_to_non_nullable
+              as int,
+      scoreBogeyColor: null == scoreBogeyColor
+          ? _self.scoreBogeyColor
+          : scoreBogeyColor // ignore: cast_nullable_to_non_nullable
+              as int,
+      scoreDoubleColor: null == scoreDoubleColor
+          ? _self.scoreDoubleColor
+          : scoreDoubleColor // ignore: cast_nullable_to_non_nullable
+              as int,
+      scoreTriplePlusColor: null == scoreTriplePlusColor
+          ? _self.scoreTriplePlusColor
+          : scoreTriplePlusColor // ignore: cast_nullable_to_non_nullable
+              as int,
+      teamAColor: null == teamAColor
+          ? _self.teamAColor
+          : teamAColor // ignore: cast_nullable_to_non_nullable
+              as int,
+      teamBColor: null == teamBColor
+          ? _self.teamBColor
+          : teamBColor // ignore: cast_nullable_to_non_nullable
               as int,
       statusPublishedColor: null == statusPublishedColor
           ? _self.statusPublishedColor
@@ -531,6 +719,14 @@ class _$SocietyConfigCopyWithImpl<$Res>
           ? _self.buttonRadius
           : buttonRadius // ignore: cast_nullable_to_non_nullable
               as double,
+      borderColor: null == borderColor
+          ? _self.borderColor
+          : borderColor // ignore: cast_nullable_to_non_nullable
+              as int,
+      dividerColor: null == dividerColor
+          ? _self.dividerColor
+          : dividerColor // ignore: cast_nullable_to_non_nullable
+              as int,
       heroRadius: null == heroRadius
           ? _self.heroRadius
           : heroRadius // ignore: cast_nullable_to_non_nullable
@@ -558,6 +754,10 @@ class _$SocietyConfigCopyWithImpl<$Res>
       cardToLabelSpacing: null == cardToLabelSpacing
           ? _self.cardToLabelSpacing
           : cardToLabelSpacing // ignore: cast_nullable_to_non_nullable
+              as double,
+      fieldToFieldSpacing: null == fieldToFieldSpacing
+          ? _self.fieldToFieldSpacing
+          : fieldToFieldSpacing // ignore: cast_nullable_to_non_nullable
               as double,
       cardToCardSpacing: null == cardToCardSpacing
           ? _self.cardToCardSpacing
@@ -599,6 +799,42 @@ class _$SocietyConfigCopyWithImpl<$Res>
           ? _self.iconBadgeIconSize
           : iconBadgeIconSize // ignore: cast_nullable_to_non_nullable
               as double,
+      buttonHeight: null == buttonHeight
+          ? _self.buttonHeight
+          : buttonHeight // ignore: cast_nullable_to_non_nullable
+              as double,
+      buttonSmallHeight: null == buttonSmallHeight
+          ? _self.buttonSmallHeight
+          : buttonSmallHeight // ignore: cast_nullable_to_non_nullable
+              as double,
+      buttonHorizontalPadding: null == buttonHorizontalPadding
+          ? _self.buttonHorizontalPadding
+          : buttonHorizontalPadding // ignore: cast_nullable_to_non_nullable
+              as double,
+      sliderTrackHeight: null == sliderTrackHeight
+          ? _self.sliderTrackHeight
+          : sliderTrackHeight // ignore: cast_nullable_to_non_nullable
+              as double,
+      sliderThumbRadius: null == sliderThumbRadius
+          ? _self.sliderThumbRadius
+          : sliderThumbRadius // ignore: cast_nullable_to_non_nullable
+              as double,
+      dividerThickness: null == dividerThickness
+          ? _self.dividerThickness
+          : dividerThickness // ignore: cast_nullable_to_non_nullable
+              as double,
+      surfaceHeightLarge: null == surfaceHeightLarge
+          ? _self.surfaceHeightLarge
+          : surfaceHeightLarge // ignore: cast_nullable_to_non_nullable
+              as double,
+      surfaceHeightMedium: null == surfaceHeightMedium
+          ? _self.surfaceHeightMedium
+          : surfaceHeightMedium // ignore: cast_nullable_to_non_nullable
+              as double,
+      fontFamily: null == fontFamily
+          ? _self.fontFamily
+          : fontFamily // ignore: cast_nullable_to_non_nullable
+              as String,
       themeMode: null == themeMode
           ? _self.themeMode
           : themeMode // ignore: cast_nullable_to_non_nullable
@@ -817,8 +1053,22 @@ extension SocietyConfigPatterns on SocietyConfig {
             String? logoUrl,
             int primaryColor,
             int secondaryColor,
+            int tertiaryColor,
             int dangerousColor,
             int backgroundColor,
+            int cardColor,
+            int surfaceElevatedColor,
+            int textPrimaryColor,
+            int textSecondaryColor,
+            int textMutedColor,
+            int scoreEagleColor,
+            int scoreBirdieColor,
+            int scoreParColor,
+            int scoreBogeyColor,
+            int scoreDoubleColor,
+            int scoreTriplePlusColor,
+            int teamAColor,
+            int teamBColor,
             int statusPublishedColor,
             int statusConfirmedColor,
             int statusReservedColor,
@@ -833,6 +1083,8 @@ extension SocietyConfigPatterns on SocietyConfig {
             double borderWidth,
             double pillRadius,
             double buttonRadius,
+            int borderColor,
+            int dividerColor,
             double heroRadius,
             double accentRadius,
             double accentOpacity,
@@ -840,6 +1092,7 @@ extension SocietyConfigPatterns on SocietyConfig {
             double shadowOpacity,
             double labelToCardSpacing,
             double cardToLabelSpacing,
+            double fieldToFieldSpacing,
             double cardToCardSpacing,
             double cardVerticalPadding,
             double cardHorizontalPadding,
@@ -850,6 +1103,15 @@ extension SocietyConfigPatterns on SocietyConfig {
             double iconOpacity,
             double iconBadgeSize,
             double iconBadgeIconSize,
+            double buttonHeight,
+            double buttonSmallHeight,
+            double buttonHorizontalPadding,
+            double sliderTrackHeight,
+            double sliderThumbRadius,
+            double dividerThickness,
+            double surfaceHeightLarge,
+            double surfaceHeightMedium,
+            String fontFamily,
             String themeMode,
             List<int> customColors,
             double cardTintIntensity,
@@ -890,8 +1152,22 @@ extension SocietyConfigPatterns on SocietyConfig {
             _that.logoUrl,
             _that.primaryColor,
             _that.secondaryColor,
+            _that.tertiaryColor,
             _that.dangerousColor,
             _that.backgroundColor,
+            _that.cardColor,
+            _that.surfaceElevatedColor,
+            _that.textPrimaryColor,
+            _that.textSecondaryColor,
+            _that.textMutedColor,
+            _that.scoreEagleColor,
+            _that.scoreBirdieColor,
+            _that.scoreParColor,
+            _that.scoreBogeyColor,
+            _that.scoreDoubleColor,
+            _that.scoreTriplePlusColor,
+            _that.teamAColor,
+            _that.teamBColor,
             _that.statusPublishedColor,
             _that.statusConfirmedColor,
             _that.statusReservedColor,
@@ -906,6 +1182,8 @@ extension SocietyConfigPatterns on SocietyConfig {
             _that.borderWidth,
             _that.pillRadius,
             _that.buttonRadius,
+            _that.borderColor,
+            _that.dividerColor,
             _that.heroRadius,
             _that.accentRadius,
             _that.accentOpacity,
@@ -913,6 +1191,7 @@ extension SocietyConfigPatterns on SocietyConfig {
             _that.shadowOpacity,
             _that.labelToCardSpacing,
             _that.cardToLabelSpacing,
+            _that.fieldToFieldSpacing,
             _that.cardToCardSpacing,
             _that.cardVerticalPadding,
             _that.cardHorizontalPadding,
@@ -923,6 +1202,15 @@ extension SocietyConfigPatterns on SocietyConfig {
             _that.iconOpacity,
             _that.iconBadgeSize,
             _that.iconBadgeIconSize,
+            _that.buttonHeight,
+            _that.buttonSmallHeight,
+            _that.buttonHorizontalPadding,
+            _that.sliderTrackHeight,
+            _that.sliderThumbRadius,
+            _that.dividerThickness,
+            _that.surfaceHeightLarge,
+            _that.surfaceHeightMedium,
+            _that.fontFamily,
             _that.themeMode,
             _that.customColors,
             _that.cardTintIntensity,
@@ -977,8 +1265,22 @@ extension SocietyConfigPatterns on SocietyConfig {
             String? logoUrl,
             int primaryColor,
             int secondaryColor,
+            int tertiaryColor,
             int dangerousColor,
             int backgroundColor,
+            int cardColor,
+            int surfaceElevatedColor,
+            int textPrimaryColor,
+            int textSecondaryColor,
+            int textMutedColor,
+            int scoreEagleColor,
+            int scoreBirdieColor,
+            int scoreParColor,
+            int scoreBogeyColor,
+            int scoreDoubleColor,
+            int scoreTriplePlusColor,
+            int teamAColor,
+            int teamBColor,
             int statusPublishedColor,
             int statusConfirmedColor,
             int statusReservedColor,
@@ -993,6 +1295,8 @@ extension SocietyConfigPatterns on SocietyConfig {
             double borderWidth,
             double pillRadius,
             double buttonRadius,
+            int borderColor,
+            int dividerColor,
             double heroRadius,
             double accentRadius,
             double accentOpacity,
@@ -1000,6 +1304,7 @@ extension SocietyConfigPatterns on SocietyConfig {
             double shadowOpacity,
             double labelToCardSpacing,
             double cardToLabelSpacing,
+            double fieldToFieldSpacing,
             double cardToCardSpacing,
             double cardVerticalPadding,
             double cardHorizontalPadding,
@@ -1010,6 +1315,15 @@ extension SocietyConfigPatterns on SocietyConfig {
             double iconOpacity,
             double iconBadgeSize,
             double iconBadgeIconSize,
+            double buttonHeight,
+            double buttonSmallHeight,
+            double buttonHorizontalPadding,
+            double sliderTrackHeight,
+            double sliderThumbRadius,
+            double dividerThickness,
+            double surfaceHeightLarge,
+            double surfaceHeightMedium,
+            String fontFamily,
             String themeMode,
             List<int> customColors,
             double cardTintIntensity,
@@ -1049,8 +1363,22 @@ extension SocietyConfigPatterns on SocietyConfig {
             _that.logoUrl,
             _that.primaryColor,
             _that.secondaryColor,
+            _that.tertiaryColor,
             _that.dangerousColor,
             _that.backgroundColor,
+            _that.cardColor,
+            _that.surfaceElevatedColor,
+            _that.textPrimaryColor,
+            _that.textSecondaryColor,
+            _that.textMutedColor,
+            _that.scoreEagleColor,
+            _that.scoreBirdieColor,
+            _that.scoreParColor,
+            _that.scoreBogeyColor,
+            _that.scoreDoubleColor,
+            _that.scoreTriplePlusColor,
+            _that.teamAColor,
+            _that.teamBColor,
             _that.statusPublishedColor,
             _that.statusConfirmedColor,
             _that.statusReservedColor,
@@ -1065,6 +1393,8 @@ extension SocietyConfigPatterns on SocietyConfig {
             _that.borderWidth,
             _that.pillRadius,
             _that.buttonRadius,
+            _that.borderColor,
+            _that.dividerColor,
             _that.heroRadius,
             _that.accentRadius,
             _that.accentOpacity,
@@ -1072,6 +1402,7 @@ extension SocietyConfigPatterns on SocietyConfig {
             _that.shadowOpacity,
             _that.labelToCardSpacing,
             _that.cardToLabelSpacing,
+            _that.fieldToFieldSpacing,
             _that.cardToCardSpacing,
             _that.cardVerticalPadding,
             _that.cardHorizontalPadding,
@@ -1082,6 +1413,15 @@ extension SocietyConfigPatterns on SocietyConfig {
             _that.iconOpacity,
             _that.iconBadgeSize,
             _that.iconBadgeIconSize,
+            _that.buttonHeight,
+            _that.buttonSmallHeight,
+            _that.buttonHorizontalPadding,
+            _that.sliderTrackHeight,
+            _that.sliderThumbRadius,
+            _that.dividerThickness,
+            _that.surfaceHeightLarge,
+            _that.surfaceHeightMedium,
+            _that.fontFamily,
             _that.themeMode,
             _that.customColors,
             _that.cardTintIntensity,
@@ -1135,8 +1475,22 @@ extension SocietyConfigPatterns on SocietyConfig {
             String? logoUrl,
             int primaryColor,
             int secondaryColor,
+            int tertiaryColor,
             int dangerousColor,
             int backgroundColor,
+            int cardColor,
+            int surfaceElevatedColor,
+            int textPrimaryColor,
+            int textSecondaryColor,
+            int textMutedColor,
+            int scoreEagleColor,
+            int scoreBirdieColor,
+            int scoreParColor,
+            int scoreBogeyColor,
+            int scoreDoubleColor,
+            int scoreTriplePlusColor,
+            int teamAColor,
+            int teamBColor,
             int statusPublishedColor,
             int statusConfirmedColor,
             int statusReservedColor,
@@ -1151,6 +1505,8 @@ extension SocietyConfigPatterns on SocietyConfig {
             double borderWidth,
             double pillRadius,
             double buttonRadius,
+            int borderColor,
+            int dividerColor,
             double heroRadius,
             double accentRadius,
             double accentOpacity,
@@ -1158,6 +1514,7 @@ extension SocietyConfigPatterns on SocietyConfig {
             double shadowOpacity,
             double labelToCardSpacing,
             double cardToLabelSpacing,
+            double fieldToFieldSpacing,
             double cardToCardSpacing,
             double cardVerticalPadding,
             double cardHorizontalPadding,
@@ -1168,6 +1525,15 @@ extension SocietyConfigPatterns on SocietyConfig {
             double iconOpacity,
             double iconBadgeSize,
             double iconBadgeIconSize,
+            double buttonHeight,
+            double buttonSmallHeight,
+            double buttonHorizontalPadding,
+            double sliderTrackHeight,
+            double sliderThumbRadius,
+            double dividerThickness,
+            double surfaceHeightLarge,
+            double surfaceHeightMedium,
+            String fontFamily,
             String themeMode,
             List<int> customColors,
             double cardTintIntensity,
@@ -1207,8 +1573,22 @@ extension SocietyConfigPatterns on SocietyConfig {
             _that.logoUrl,
             _that.primaryColor,
             _that.secondaryColor,
+            _that.tertiaryColor,
             _that.dangerousColor,
             _that.backgroundColor,
+            _that.cardColor,
+            _that.surfaceElevatedColor,
+            _that.textPrimaryColor,
+            _that.textSecondaryColor,
+            _that.textMutedColor,
+            _that.scoreEagleColor,
+            _that.scoreBirdieColor,
+            _that.scoreParColor,
+            _that.scoreBogeyColor,
+            _that.scoreDoubleColor,
+            _that.scoreTriplePlusColor,
+            _that.teamAColor,
+            _that.teamBColor,
             _that.statusPublishedColor,
             _that.statusConfirmedColor,
             _that.statusReservedColor,
@@ -1223,6 +1603,8 @@ extension SocietyConfigPatterns on SocietyConfig {
             _that.borderWidth,
             _that.pillRadius,
             _that.buttonRadius,
+            _that.borderColor,
+            _that.dividerColor,
             _that.heroRadius,
             _that.accentRadius,
             _that.accentOpacity,
@@ -1230,6 +1612,7 @@ extension SocietyConfigPatterns on SocietyConfig {
             _that.shadowOpacity,
             _that.labelToCardSpacing,
             _that.cardToLabelSpacing,
+            _that.fieldToFieldSpacing,
             _that.cardToCardSpacing,
             _that.cardVerticalPadding,
             _that.cardHorizontalPadding,
@@ -1240,6 +1623,15 @@ extension SocietyConfigPatterns on SocietyConfig {
             _that.iconOpacity,
             _that.iconBadgeSize,
             _that.iconBadgeIconSize,
+            _that.buttonHeight,
+            _that.buttonSmallHeight,
+            _that.buttonHorizontalPadding,
+            _that.sliderTrackHeight,
+            _that.sliderThumbRadius,
+            _that.dividerThickness,
+            _that.surfaceHeightLarge,
+            _that.surfaceHeightMedium,
+            _that.fontFamily,
             _that.themeMode,
             _that.customColors,
             _that.cardTintIntensity,
@@ -1283,8 +1675,22 @@ class _SocietyConfig implements SocietyConfig {
       this.logoUrl,
       this.primaryColor = 0xFFF7D354,
       this.secondaryColor = 0xFF4ADE80,
+      this.tertiaryColor = 0xFF475569,
       this.dangerousColor = 0xFFFF5533,
       this.backgroundColor = 0xFFEFEFED,
+      this.cardColor = 0xFFFFFFFF,
+      this.surfaceElevatedColor = 0xFFF0F0F0,
+      this.textPrimaryColor = 0xFF1A1A1A,
+      this.textSecondaryColor = 0xFF6B7280,
+      this.textMutedColor = 0xFF9CA3AF,
+      this.scoreEagleColor = 0xFF34D399,
+      this.scoreBirdieColor = 0xFF4ADE80,
+      this.scoreParColor = 0xFFA0A0A0,
+      this.scoreBogeyColor = 0xFFFF745C,
+      this.scoreDoubleColor = 0xFFFF5533,
+      this.scoreTriplePlusColor = 0xFFFF3333,
+      this.teamAColor = 0xFF1E40AF,
+      this.teamBColor = 0xFF166534,
       this.statusPublishedColor = 0xFF4ADE80,
       this.statusConfirmedColor = 0xFF4ADE80,
       this.statusReservedColor = 0xFFFFAA00,
@@ -1299,6 +1705,8 @@ class _SocietyConfig implements SocietyConfig {
       this.borderWidth = 1.5,
       this.pillRadius = 30.0,
       this.buttonRadius = 16.0,
+      this.borderColor = 0xFFE2E2DC,
+      this.dividerColor = 0xFFE2E2DC,
       this.heroRadius = 28.0,
       this.accentRadius = 8.0,
       this.accentOpacity = 0.15,
@@ -1306,6 +1714,7 @@ class _SocietyConfig implements SocietyConfig {
       this.shadowOpacity = 0.12,
       this.labelToCardSpacing = 8.0,
       this.cardToLabelSpacing = 16.0,
+      this.fieldToFieldSpacing = 16.0,
       this.cardToCardSpacing = 16.0,
       this.cardVerticalPadding = 16.0,
       this.cardHorizontalPadding = 16.0,
@@ -1316,6 +1725,15 @@ class _SocietyConfig implements SocietyConfig {
       this.iconOpacity = 1.0,
       this.iconBadgeSize = 38.0,
       this.iconBadgeIconSize = 18.0,
+      this.buttonHeight = 42.0,
+      this.buttonSmallHeight = 32.0,
+      this.buttonHorizontalPadding = 24.0,
+      this.sliderTrackHeight = 4.0,
+      this.sliderThumbRadius = 10.0,
+      this.dividerThickness = 1.0,
+      this.surfaceHeightLarge = 60.0,
+      this.surfaceHeightMedium = 50.0,
+      this.fontFamily = 'Plus Jakarta Sans',
       this.themeMode = 'system',
       final List<int> customColors = const <int>[],
       this.cardTintIntensity = 0.1,
@@ -1371,12 +1789,62 @@ class _SocietyConfig implements SocietyConfig {
 // Default: Emerald Green (Action)
   @override
   @JsonKey()
+  final int tertiaryColor;
+// [NEW] Foundation/Accent color (Professional Slate)
+  @override
+  @JsonKey()
   final int dangerousColor;
 // [NEW] High Alert / Dangerous Action color (Coral)
   @override
   @JsonKey()
   final int backgroundColor;
 // Default: Light Gray/Neutral
+  @override
+  @JsonKey()
+  final int cardColor;
+// [NEW] Base card fill (L-PureWhite, D-Surface)
+  @override
+  @JsonKey()
+  final int surfaceElevatedColor;
+// [NEW] Elevated menu/indicator fill
+  @override
+  @JsonKey()
+  final int textPrimaryColor;
+// [NEW] Primary Title/Body text
+  @override
+  @JsonKey()
+  final int textSecondaryColor;
+// [NEW] Secondary/Label text
+  @override
+  @JsonKey()
+  final int textMutedColor;
+// [NEW] Muted/Metadata text
+  @override
+  @JsonKey()
+  final int scoreEagleColor;
+// [NEW] Scoring palette
+  @override
+  @JsonKey()
+  final int scoreBirdieColor;
+  @override
+  @JsonKey()
+  final int scoreParColor;
+  @override
+  @JsonKey()
+  final int scoreBogeyColor;
+  @override
+  @JsonKey()
+  final int scoreDoubleColor;
+  @override
+  @JsonKey()
+  final int scoreTriplePlusColor;
+  @override
+  @JsonKey()
+  final int teamAColor;
+// [NEW] Team Identity
+  @override
+  @JsonKey()
+  final int teamBColor;
   @override
   @JsonKey()
   final int statusPublishedColor;
@@ -1435,6 +1903,14 @@ class _SocietyConfig implements SocietyConfig {
 // [NEW] Granular Button Radius (4.x Default)
   @override
   @JsonKey()
+  final int borderColor;
+// [NEW] Soft border color (Light-First)
+  @override
+  @JsonKey()
+  final int dividerColor;
+// [NEW] Standard divider color
+  @override
+  @JsonKey()
   final double heroRadius;
 // [NEW] Granular Hero Radius (Independent)
   @override
@@ -1461,6 +1937,10 @@ class _SocietyConfig implements SocietyConfig {
   @JsonKey()
   final double cardToLabelSpacing;
 // [NEW] Vertical rhythm: Card to Label
+  @override
+  @JsonKey()
+  final double fieldToFieldSpacing;
+// [NEW] Vertical rhythm: Field to Field (Form Density)
   @override
   @JsonKey()
   final double cardToCardSpacing;
@@ -1501,6 +1981,42 @@ class _SocietyConfig implements SocietyConfig {
   @JsonKey()
   final double iconBadgeIconSize;
 // [NEW] Tokenized Badge Glyph Size
+  @override
+  @JsonKey()
+  final double buttonHeight;
+// [NEW] Tokenized Button Height
+  @override
+  @JsonKey()
+  final double buttonSmallHeight;
+// [NEW] Tokenized Small Button Height
+  @override
+  @JsonKey()
+  final double buttonHorizontalPadding;
+// [NEW] Tokenized Button Padding
+  @override
+  @JsonKey()
+  final double sliderTrackHeight;
+// [NEW] Tokenized Slider Track
+  @override
+  @JsonKey()
+  final double sliderThumbRadius;
+// [NEW] Tokenized Slider Thumb
+  @override
+  @JsonKey()
+  final double dividerThickness;
+// [NEW] Tokenized Divider weight
+  @override
+  @JsonKey()
+  final double surfaceHeightLarge;
+// [NEW] Tokenized Surface height (Headers/Search)
+  @override
+  @JsonKey()
+  final double surfaceHeightMedium;
+// [NEW] Tokenized Surface height (Bars/Tabs)
+  @override
+  @JsonKey()
+  final String fontFamily;
+// [NEW] Standardized Typeface Control
   @override
   @JsonKey()
   final String themeMode;
@@ -1665,10 +2181,38 @@ class _SocietyConfig implements SocietyConfig {
                 other.primaryColor == primaryColor) &&
             (identical(other.secondaryColor, secondaryColor) ||
                 other.secondaryColor == secondaryColor) &&
+            (identical(other.tertiaryColor, tertiaryColor) ||
+                other.tertiaryColor == tertiaryColor) &&
             (identical(other.dangerousColor, dangerousColor) ||
                 other.dangerousColor == dangerousColor) &&
             (identical(other.backgroundColor, backgroundColor) ||
                 other.backgroundColor == backgroundColor) &&
+            (identical(other.cardColor, cardColor) ||
+                other.cardColor == cardColor) &&
+            (identical(other.surfaceElevatedColor, surfaceElevatedColor) ||
+                other.surfaceElevatedColor == surfaceElevatedColor) &&
+            (identical(other.textPrimaryColor, textPrimaryColor) ||
+                other.textPrimaryColor == textPrimaryColor) &&
+            (identical(other.textSecondaryColor, textSecondaryColor) ||
+                other.textSecondaryColor == textSecondaryColor) &&
+            (identical(other.textMutedColor, textMutedColor) ||
+                other.textMutedColor == textMutedColor) &&
+            (identical(other.scoreEagleColor, scoreEagleColor) ||
+                other.scoreEagleColor == scoreEagleColor) &&
+            (identical(other.scoreBirdieColor, scoreBirdieColor) ||
+                other.scoreBirdieColor == scoreBirdieColor) &&
+            (identical(other.scoreParColor, scoreParColor) ||
+                other.scoreParColor == scoreParColor) &&
+            (identical(other.scoreBogeyColor, scoreBogeyColor) ||
+                other.scoreBogeyColor == scoreBogeyColor) &&
+            (identical(other.scoreDoubleColor, scoreDoubleColor) ||
+                other.scoreDoubleColor == scoreDoubleColor) &&
+            (identical(other.scoreTriplePlusColor, scoreTriplePlusColor) ||
+                other.scoreTriplePlusColor == scoreTriplePlusColor) &&
+            (identical(other.teamAColor, teamAColor) ||
+                other.teamAColor == teamAColor) &&
+            (identical(other.teamBColor, teamBColor) ||
+                other.teamBColor == teamBColor) &&
             (identical(other.statusPublishedColor, statusPublishedColor) ||
                 other.statusPublishedColor == statusPublishedColor) &&
             (identical(other.statusConfirmedColor, statusConfirmedColor) ||
@@ -1697,6 +2241,10 @@ class _SocietyConfig implements SocietyConfig {
                 other.pillRadius == pillRadius) &&
             (identical(other.buttonRadius, buttonRadius) ||
                 other.buttonRadius == buttonRadius) &&
+            (identical(other.borderColor, borderColor) ||
+                other.borderColor == borderColor) &&
+            (identical(other.dividerColor, dividerColor) ||
+                other.dividerColor == dividerColor) &&
             (identical(other.heroRadius, heroRadius) ||
                 other.heroRadius == heroRadius) &&
             (identical(other.accentRadius, accentRadius) ||
@@ -1711,40 +2259,34 @@ class _SocietyConfig implements SocietyConfig {
                 other.labelToCardSpacing == labelToCardSpacing) &&
             (identical(other.cardToLabelSpacing, cardToLabelSpacing) ||
                 other.cardToLabelSpacing == cardToLabelSpacing) &&
-            (identical(other.cardToCardSpacing, cardToCardSpacing) ||
-                other.cardToCardSpacing == cardToCardSpacing) &&
-            (identical(other.cardVerticalPadding, cardVerticalPadding) ||
-                other.cardVerticalPadding == cardVerticalPadding) &&
-            (identical(other.cardHorizontalPadding, cardHorizontalPadding) ||
-                other.cardHorizontalPadding == cardHorizontalPadding) &&
-            (identical(other.tabToContentSpacing, tabToContentSpacing) ||
-                other.tabToContentSpacing == tabToContentSpacing) &&
-            (identical(other.iconBadgeFillColor, iconBadgeFillColor) ||
-                other.iconBadgeFillColor == iconBadgeFillColor) &&
-            (identical(other.iconBadgeIconColor, iconBadgeIconColor) ||
-                other.iconBadgeIconColor == iconBadgeIconColor) &&
-            (identical(other.iconBadgeOpacity, iconBadgeOpacity) ||
-                other.iconBadgeOpacity == iconBadgeOpacity) &&
-            (identical(other.iconOpacity, iconOpacity) ||
-                other.iconOpacity == iconOpacity) &&
-            (identical(other.iconBadgeSize, iconBadgeSize) ||
-                other.iconBadgeSize == iconBadgeSize) &&
-            (identical(other.iconBadgeIconSize, iconBadgeIconSize) ||
-                other.iconBadgeIconSize == iconBadgeIconSize) &&
-            (identical(other.themeMode, themeMode) ||
-                other.themeMode == themeMode) &&
-            const DeepCollectionEquality()
-                .equals(other._customColors, _customColors) &&
-            (identical(other.cardTintIntensity, cardTintIntensity) ||
-                other.cardTintIntensity == cardTintIntensity) &&
-            (identical(other.useCardGradient, useCardGradient) ||
-                other.useCardGradient == useCardGradient) &&
-            (identical(other.currencySymbol, currencySymbol) ||
-                other.currencySymbol == currencySymbol) &&
-            (identical(other.currencyCode, currencyCode) ||
-                other.currencyCode == currencyCode) &&
-            (identical(other.groupingStrategy, groupingStrategy) ||
-                other.groupingStrategy == groupingStrategy) &&
+            (identical(other.fieldToFieldSpacing, fieldToFieldSpacing) ||
+                other.fieldToFieldSpacing == fieldToFieldSpacing) &&
+            (identical(other.cardToCardSpacing, cardToCardSpacing) || other.cardToCardSpacing == cardToCardSpacing) &&
+            (identical(other.cardVerticalPadding, cardVerticalPadding) || other.cardVerticalPadding == cardVerticalPadding) &&
+            (identical(other.cardHorizontalPadding, cardHorizontalPadding) || other.cardHorizontalPadding == cardHorizontalPadding) &&
+            (identical(other.tabToContentSpacing, tabToContentSpacing) || other.tabToContentSpacing == tabToContentSpacing) &&
+            (identical(other.iconBadgeFillColor, iconBadgeFillColor) || other.iconBadgeFillColor == iconBadgeFillColor) &&
+            (identical(other.iconBadgeIconColor, iconBadgeIconColor) || other.iconBadgeIconColor == iconBadgeIconColor) &&
+            (identical(other.iconBadgeOpacity, iconBadgeOpacity) || other.iconBadgeOpacity == iconBadgeOpacity) &&
+            (identical(other.iconOpacity, iconOpacity) || other.iconOpacity == iconOpacity) &&
+            (identical(other.iconBadgeSize, iconBadgeSize) || other.iconBadgeSize == iconBadgeSize) &&
+            (identical(other.iconBadgeIconSize, iconBadgeIconSize) || other.iconBadgeIconSize == iconBadgeIconSize) &&
+            (identical(other.buttonHeight, buttonHeight) || other.buttonHeight == buttonHeight) &&
+            (identical(other.buttonSmallHeight, buttonSmallHeight) || other.buttonSmallHeight == buttonSmallHeight) &&
+            (identical(other.buttonHorizontalPadding, buttonHorizontalPadding) || other.buttonHorizontalPadding == buttonHorizontalPadding) &&
+            (identical(other.sliderTrackHeight, sliderTrackHeight) || other.sliderTrackHeight == sliderTrackHeight) &&
+            (identical(other.sliderThumbRadius, sliderThumbRadius) || other.sliderThumbRadius == sliderThumbRadius) &&
+            (identical(other.dividerThickness, dividerThickness) || other.dividerThickness == dividerThickness) &&
+            (identical(other.surfaceHeightLarge, surfaceHeightLarge) || other.surfaceHeightLarge == surfaceHeightLarge) &&
+            (identical(other.surfaceHeightMedium, surfaceHeightMedium) || other.surfaceHeightMedium == surfaceHeightMedium) &&
+            (identical(other.fontFamily, fontFamily) || other.fontFamily == fontFamily) &&
+            (identical(other.themeMode, themeMode) || other.themeMode == themeMode) &&
+            const DeepCollectionEquality().equals(other._customColors, _customColors) &&
+            (identical(other.cardTintIntensity, cardTintIntensity) || other.cardTintIntensity == cardTintIntensity) &&
+            (identical(other.useCardGradient, useCardGradient) || other.useCardGradient == useCardGradient) &&
+            (identical(other.currencySymbol, currencySymbol) || other.currencySymbol == currencySymbol) &&
+            (identical(other.currencyCode, currencyCode) || other.currencyCode == currencyCode) &&
+            (identical(other.groupingStrategy, groupingStrategy) || other.groupingStrategy == groupingStrategy) &&
             (identical(other.useWhsHandicaps, useWhsHandicaps) || other.useWhsHandicaps == useWhsHandicaps) &&
             (identical(other.distanceUnit, distanceUnit) || other.distanceUnit == distanceUnit) &&
             (identical(other.handicapSystem, handicapSystem) || other.handicapSystem == handicapSystem) &&
@@ -1777,8 +2319,22 @@ class _SocietyConfig implements SocietyConfig {
         logoUrl,
         primaryColor,
         secondaryColor,
+        tertiaryColor,
         dangerousColor,
         backgroundColor,
+        cardColor,
+        surfaceElevatedColor,
+        textPrimaryColor,
+        textSecondaryColor,
+        textMutedColor,
+        scoreEagleColor,
+        scoreBirdieColor,
+        scoreParColor,
+        scoreBogeyColor,
+        scoreDoubleColor,
+        scoreTriplePlusColor,
+        teamAColor,
+        teamBColor,
         statusPublishedColor,
         statusConfirmedColor,
         statusReservedColor,
@@ -1793,6 +2349,8 @@ class _SocietyConfig implements SocietyConfig {
         borderWidth,
         pillRadius,
         buttonRadius,
+        borderColor,
+        dividerColor,
         heroRadius,
         accentRadius,
         accentOpacity,
@@ -1800,6 +2358,7 @@ class _SocietyConfig implements SocietyConfig {
         shadowOpacity,
         labelToCardSpacing,
         cardToLabelSpacing,
+        fieldToFieldSpacing,
         cardToCardSpacing,
         cardVerticalPadding,
         cardHorizontalPadding,
@@ -1810,6 +2369,15 @@ class _SocietyConfig implements SocietyConfig {
         iconOpacity,
         iconBadgeSize,
         iconBadgeIconSize,
+        buttonHeight,
+        buttonSmallHeight,
+        buttonHorizontalPadding,
+        sliderTrackHeight,
+        sliderThumbRadius,
+        dividerThickness,
+        surfaceHeightLarge,
+        surfaceHeightMedium,
+        fontFamily,
         themeMode,
         const DeepCollectionEquality().hash(_customColors),
         cardTintIntensity,
@@ -1843,7 +2411,7 @@ class _SocietyConfig implements SocietyConfig {
 
   @override
   String toString() {
-    return 'SocietyConfig(societyName: $societyName, logoUrl: $logoUrl, primaryColor: $primaryColor, secondaryColor: $secondaryColor, dangerousColor: $dangerousColor, backgroundColor: $backgroundColor, statusPublishedColor: $statusPublishedColor, statusConfirmedColor: $statusConfirmedColor, statusReservedColor: $statusReservedColor, statusWaitlistColor: $statusWaitlistColor, statusWithdrawnColor: $statusWithdrawnColor, statusDinnerColor: $statusDinnerColor, cardRadius: $cardRadius, inputRadius: $inputRadius, useShadows: $useShadows, shadowIntensity: $shadowIntensity, useBorders: $useBorders, borderWidth: $borderWidth, pillRadius: $pillRadius, buttonRadius: $buttonRadius, heroRadius: $heroRadius, accentRadius: $accentRadius, accentOpacity: $accentOpacity, shadowSpread: $shadowSpread, shadowOpacity: $shadowOpacity, labelToCardSpacing: $labelToCardSpacing, cardToLabelSpacing: $cardToLabelSpacing, cardToCardSpacing: $cardToCardSpacing, cardVerticalPadding: $cardVerticalPadding, cardHorizontalPadding: $cardHorizontalPadding, tabToContentSpacing: $tabToContentSpacing, iconBadgeFillColor: $iconBadgeFillColor, iconBadgeIconColor: $iconBadgeIconColor, iconBadgeOpacity: $iconBadgeOpacity, iconOpacity: $iconOpacity, iconBadgeSize: $iconBadgeSize, iconBadgeIconSize: $iconBadgeIconSize, themeMode: $themeMode, customColors: $customColors, cardTintIntensity: $cardTintIntensity, useCardGradient: $useCardGradient, currencySymbol: $currencySymbol, currencyCode: $currencyCode, groupingStrategy: $groupingStrategy, useWhsHandicaps: $useWhsHandicaps, distanceUnit: $distanceUnit, handicapSystem: $handicapSystem, selectedPaletteName: $selectedPaletteName, separateGuestLeaderboard: $separateGuestLeaderboard, societyCutMode: $societyCutMode, societyCutRules: $societyCutRules, societyCutEventLimit: $societyCutEventLimit, societyCutCountPlayedOnly: $societyCutCountPlayedOnly, societyCutFilterSeason: $societyCutFilterSeason, societyCutFilterInvitational: $societyCutFilterInvitational, globalMarkupPercentage: $globalMarkupPercentage, guestMarkupExtra: $guestMarkupExtra, globalMembershipEndDate: $globalMembershipEndDate, renewalWindowDays: $renewalWindowDays, isRenewalActive: $isRenewalActive, renewalLaunchDate: $renewalLaunchDate, renewalDeadline: $renewalDeadline, renewalPaymentDeadline: $renewalPaymentDeadline, startingBalance: $startingBalance, ledgerEntries: $ledgerEntries, sponsors: $sponsors)';
+    return 'SocietyConfig(societyName: $societyName, logoUrl: $logoUrl, primaryColor: $primaryColor, secondaryColor: $secondaryColor, tertiaryColor: $tertiaryColor, dangerousColor: $dangerousColor, backgroundColor: $backgroundColor, cardColor: $cardColor, surfaceElevatedColor: $surfaceElevatedColor, textPrimaryColor: $textPrimaryColor, textSecondaryColor: $textSecondaryColor, textMutedColor: $textMutedColor, scoreEagleColor: $scoreEagleColor, scoreBirdieColor: $scoreBirdieColor, scoreParColor: $scoreParColor, scoreBogeyColor: $scoreBogeyColor, scoreDoubleColor: $scoreDoubleColor, scoreTriplePlusColor: $scoreTriplePlusColor, teamAColor: $teamAColor, teamBColor: $teamBColor, statusPublishedColor: $statusPublishedColor, statusConfirmedColor: $statusConfirmedColor, statusReservedColor: $statusReservedColor, statusWaitlistColor: $statusWaitlistColor, statusWithdrawnColor: $statusWithdrawnColor, statusDinnerColor: $statusDinnerColor, cardRadius: $cardRadius, inputRadius: $inputRadius, useShadows: $useShadows, shadowIntensity: $shadowIntensity, useBorders: $useBorders, borderWidth: $borderWidth, pillRadius: $pillRadius, buttonRadius: $buttonRadius, borderColor: $borderColor, dividerColor: $dividerColor, heroRadius: $heroRadius, accentRadius: $accentRadius, accentOpacity: $accentOpacity, shadowSpread: $shadowSpread, shadowOpacity: $shadowOpacity, labelToCardSpacing: $labelToCardSpacing, cardToLabelSpacing: $cardToLabelSpacing, fieldToFieldSpacing: $fieldToFieldSpacing, cardToCardSpacing: $cardToCardSpacing, cardVerticalPadding: $cardVerticalPadding, cardHorizontalPadding: $cardHorizontalPadding, tabToContentSpacing: $tabToContentSpacing, iconBadgeFillColor: $iconBadgeFillColor, iconBadgeIconColor: $iconBadgeIconColor, iconBadgeOpacity: $iconBadgeOpacity, iconOpacity: $iconOpacity, iconBadgeSize: $iconBadgeSize, iconBadgeIconSize: $iconBadgeIconSize, buttonHeight: $buttonHeight, buttonSmallHeight: $buttonSmallHeight, buttonHorizontalPadding: $buttonHorizontalPadding, sliderTrackHeight: $sliderTrackHeight, sliderThumbRadius: $sliderThumbRadius, dividerThickness: $dividerThickness, surfaceHeightLarge: $surfaceHeightLarge, surfaceHeightMedium: $surfaceHeightMedium, fontFamily: $fontFamily, themeMode: $themeMode, customColors: $customColors, cardTintIntensity: $cardTintIntensity, useCardGradient: $useCardGradient, currencySymbol: $currencySymbol, currencyCode: $currencyCode, groupingStrategy: $groupingStrategy, useWhsHandicaps: $useWhsHandicaps, distanceUnit: $distanceUnit, handicapSystem: $handicapSystem, selectedPaletteName: $selectedPaletteName, separateGuestLeaderboard: $separateGuestLeaderboard, societyCutMode: $societyCutMode, societyCutRules: $societyCutRules, societyCutEventLimit: $societyCutEventLimit, societyCutCountPlayedOnly: $societyCutCountPlayedOnly, societyCutFilterSeason: $societyCutFilterSeason, societyCutFilterInvitational: $societyCutFilterInvitational, globalMarkupPercentage: $globalMarkupPercentage, guestMarkupExtra: $guestMarkupExtra, globalMembershipEndDate: $globalMembershipEndDate, renewalWindowDays: $renewalWindowDays, isRenewalActive: $isRenewalActive, renewalLaunchDate: $renewalLaunchDate, renewalDeadline: $renewalDeadline, renewalPaymentDeadline: $renewalPaymentDeadline, startingBalance: $startingBalance, ledgerEntries: $ledgerEntries, sponsors: $sponsors)';
   }
 }
 
@@ -1860,8 +2428,22 @@ abstract mixin class _$SocietyConfigCopyWith<$Res>
       String? logoUrl,
       int primaryColor,
       int secondaryColor,
+      int tertiaryColor,
       int dangerousColor,
       int backgroundColor,
+      int cardColor,
+      int surfaceElevatedColor,
+      int textPrimaryColor,
+      int textSecondaryColor,
+      int textMutedColor,
+      int scoreEagleColor,
+      int scoreBirdieColor,
+      int scoreParColor,
+      int scoreBogeyColor,
+      int scoreDoubleColor,
+      int scoreTriplePlusColor,
+      int teamAColor,
+      int teamBColor,
       int statusPublishedColor,
       int statusConfirmedColor,
       int statusReservedColor,
@@ -1876,6 +2458,8 @@ abstract mixin class _$SocietyConfigCopyWith<$Res>
       double borderWidth,
       double pillRadius,
       double buttonRadius,
+      int borderColor,
+      int dividerColor,
       double heroRadius,
       double accentRadius,
       double accentOpacity,
@@ -1883,6 +2467,7 @@ abstract mixin class _$SocietyConfigCopyWith<$Res>
       double shadowOpacity,
       double labelToCardSpacing,
       double cardToLabelSpacing,
+      double fieldToFieldSpacing,
       double cardToCardSpacing,
       double cardVerticalPadding,
       double cardHorizontalPadding,
@@ -1893,6 +2478,15 @@ abstract mixin class _$SocietyConfigCopyWith<$Res>
       double iconOpacity,
       double iconBadgeSize,
       double iconBadgeIconSize,
+      double buttonHeight,
+      double buttonSmallHeight,
+      double buttonHorizontalPadding,
+      double sliderTrackHeight,
+      double sliderThumbRadius,
+      double dividerThickness,
+      double surfaceHeightLarge,
+      double surfaceHeightMedium,
+      String fontFamily,
       String themeMode,
       List<int> customColors,
       double cardTintIntensity,
@@ -1941,8 +2535,22 @@ class __$SocietyConfigCopyWithImpl<$Res>
     Object? logoUrl = freezed,
     Object? primaryColor = null,
     Object? secondaryColor = null,
+    Object? tertiaryColor = null,
     Object? dangerousColor = null,
     Object? backgroundColor = null,
+    Object? cardColor = null,
+    Object? surfaceElevatedColor = null,
+    Object? textPrimaryColor = null,
+    Object? textSecondaryColor = null,
+    Object? textMutedColor = null,
+    Object? scoreEagleColor = null,
+    Object? scoreBirdieColor = null,
+    Object? scoreParColor = null,
+    Object? scoreBogeyColor = null,
+    Object? scoreDoubleColor = null,
+    Object? scoreTriplePlusColor = null,
+    Object? teamAColor = null,
+    Object? teamBColor = null,
     Object? statusPublishedColor = null,
     Object? statusConfirmedColor = null,
     Object? statusReservedColor = null,
@@ -1957,6 +2565,8 @@ class __$SocietyConfigCopyWithImpl<$Res>
     Object? borderWidth = null,
     Object? pillRadius = null,
     Object? buttonRadius = null,
+    Object? borderColor = null,
+    Object? dividerColor = null,
     Object? heroRadius = null,
     Object? accentRadius = null,
     Object? accentOpacity = null,
@@ -1964,6 +2574,7 @@ class __$SocietyConfigCopyWithImpl<$Res>
     Object? shadowOpacity = null,
     Object? labelToCardSpacing = null,
     Object? cardToLabelSpacing = null,
+    Object? fieldToFieldSpacing = null,
     Object? cardToCardSpacing = null,
     Object? cardVerticalPadding = null,
     Object? cardHorizontalPadding = null,
@@ -1974,6 +2585,15 @@ class __$SocietyConfigCopyWithImpl<$Res>
     Object? iconOpacity = null,
     Object? iconBadgeSize = null,
     Object? iconBadgeIconSize = null,
+    Object? buttonHeight = null,
+    Object? buttonSmallHeight = null,
+    Object? buttonHorizontalPadding = null,
+    Object? sliderTrackHeight = null,
+    Object? sliderThumbRadius = null,
+    Object? dividerThickness = null,
+    Object? surfaceHeightLarge = null,
+    Object? surfaceHeightMedium = null,
+    Object? fontFamily = null,
     Object? themeMode = null,
     Object? customColors = null,
     Object? cardTintIntensity = null,
@@ -2021,6 +2641,10 @@ class __$SocietyConfigCopyWithImpl<$Res>
           ? _self.secondaryColor
           : secondaryColor // ignore: cast_nullable_to_non_nullable
               as int,
+      tertiaryColor: null == tertiaryColor
+          ? _self.tertiaryColor
+          : tertiaryColor // ignore: cast_nullable_to_non_nullable
+              as int,
       dangerousColor: null == dangerousColor
           ? _self.dangerousColor
           : dangerousColor // ignore: cast_nullable_to_non_nullable
@@ -2028,6 +2652,58 @@ class __$SocietyConfigCopyWithImpl<$Res>
       backgroundColor: null == backgroundColor
           ? _self.backgroundColor
           : backgroundColor // ignore: cast_nullable_to_non_nullable
+              as int,
+      cardColor: null == cardColor
+          ? _self.cardColor
+          : cardColor // ignore: cast_nullable_to_non_nullable
+              as int,
+      surfaceElevatedColor: null == surfaceElevatedColor
+          ? _self.surfaceElevatedColor
+          : surfaceElevatedColor // ignore: cast_nullable_to_non_nullable
+              as int,
+      textPrimaryColor: null == textPrimaryColor
+          ? _self.textPrimaryColor
+          : textPrimaryColor // ignore: cast_nullable_to_non_nullable
+              as int,
+      textSecondaryColor: null == textSecondaryColor
+          ? _self.textSecondaryColor
+          : textSecondaryColor // ignore: cast_nullable_to_non_nullable
+              as int,
+      textMutedColor: null == textMutedColor
+          ? _self.textMutedColor
+          : textMutedColor // ignore: cast_nullable_to_non_nullable
+              as int,
+      scoreEagleColor: null == scoreEagleColor
+          ? _self.scoreEagleColor
+          : scoreEagleColor // ignore: cast_nullable_to_non_nullable
+              as int,
+      scoreBirdieColor: null == scoreBirdieColor
+          ? _self.scoreBirdieColor
+          : scoreBirdieColor // ignore: cast_nullable_to_non_nullable
+              as int,
+      scoreParColor: null == scoreParColor
+          ? _self.scoreParColor
+          : scoreParColor // ignore: cast_nullable_to_non_nullable
+              as int,
+      scoreBogeyColor: null == scoreBogeyColor
+          ? _self.scoreBogeyColor
+          : scoreBogeyColor // ignore: cast_nullable_to_non_nullable
+              as int,
+      scoreDoubleColor: null == scoreDoubleColor
+          ? _self.scoreDoubleColor
+          : scoreDoubleColor // ignore: cast_nullable_to_non_nullable
+              as int,
+      scoreTriplePlusColor: null == scoreTriplePlusColor
+          ? _self.scoreTriplePlusColor
+          : scoreTriplePlusColor // ignore: cast_nullable_to_non_nullable
+              as int,
+      teamAColor: null == teamAColor
+          ? _self.teamAColor
+          : teamAColor // ignore: cast_nullable_to_non_nullable
+              as int,
+      teamBColor: null == teamBColor
+          ? _self.teamBColor
+          : teamBColor // ignore: cast_nullable_to_non_nullable
               as int,
       statusPublishedColor: null == statusPublishedColor
           ? _self.statusPublishedColor
@@ -2085,6 +2761,14 @@ class __$SocietyConfigCopyWithImpl<$Res>
           ? _self.buttonRadius
           : buttonRadius // ignore: cast_nullable_to_non_nullable
               as double,
+      borderColor: null == borderColor
+          ? _self.borderColor
+          : borderColor // ignore: cast_nullable_to_non_nullable
+              as int,
+      dividerColor: null == dividerColor
+          ? _self.dividerColor
+          : dividerColor // ignore: cast_nullable_to_non_nullable
+              as int,
       heroRadius: null == heroRadius
           ? _self.heroRadius
           : heroRadius // ignore: cast_nullable_to_non_nullable
@@ -2112,6 +2796,10 @@ class __$SocietyConfigCopyWithImpl<$Res>
       cardToLabelSpacing: null == cardToLabelSpacing
           ? _self.cardToLabelSpacing
           : cardToLabelSpacing // ignore: cast_nullable_to_non_nullable
+              as double,
+      fieldToFieldSpacing: null == fieldToFieldSpacing
+          ? _self.fieldToFieldSpacing
+          : fieldToFieldSpacing // ignore: cast_nullable_to_non_nullable
               as double,
       cardToCardSpacing: null == cardToCardSpacing
           ? _self.cardToCardSpacing
@@ -2153,6 +2841,42 @@ class __$SocietyConfigCopyWithImpl<$Res>
           ? _self.iconBadgeIconSize
           : iconBadgeIconSize // ignore: cast_nullable_to_non_nullable
               as double,
+      buttonHeight: null == buttonHeight
+          ? _self.buttonHeight
+          : buttonHeight // ignore: cast_nullable_to_non_nullable
+              as double,
+      buttonSmallHeight: null == buttonSmallHeight
+          ? _self.buttonSmallHeight
+          : buttonSmallHeight // ignore: cast_nullable_to_non_nullable
+              as double,
+      buttonHorizontalPadding: null == buttonHorizontalPadding
+          ? _self.buttonHorizontalPadding
+          : buttonHorizontalPadding // ignore: cast_nullable_to_non_nullable
+              as double,
+      sliderTrackHeight: null == sliderTrackHeight
+          ? _self.sliderTrackHeight
+          : sliderTrackHeight // ignore: cast_nullable_to_non_nullable
+              as double,
+      sliderThumbRadius: null == sliderThumbRadius
+          ? _self.sliderThumbRadius
+          : sliderThumbRadius // ignore: cast_nullable_to_non_nullable
+              as double,
+      dividerThickness: null == dividerThickness
+          ? _self.dividerThickness
+          : dividerThickness // ignore: cast_nullable_to_non_nullable
+              as double,
+      surfaceHeightLarge: null == surfaceHeightLarge
+          ? _self.surfaceHeightLarge
+          : surfaceHeightLarge // ignore: cast_nullable_to_non_nullable
+              as double,
+      surfaceHeightMedium: null == surfaceHeightMedium
+          ? _self.surfaceHeightMedium
+          : surfaceHeightMedium // ignore: cast_nullable_to_non_nullable
+              as double,
+      fontFamily: null == fontFamily
+          ? _self.fontFamily
+          : fontFamily // ignore: cast_nullable_to_non_nullable
+              as String,
       themeMode: null == themeMode
           ? _self.themeMode
           : themeMode // ignore: cast_nullable_to_non_nullable

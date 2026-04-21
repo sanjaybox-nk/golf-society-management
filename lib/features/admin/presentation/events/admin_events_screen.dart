@@ -292,11 +292,11 @@ class _AdminEventRow extends ConsumerWidget {
                   iconColor: isSelected ? Theme.of(context).primaryColor : AppColors.dark600,
                 ),
                 title: Text(
-                  label,
-                  style: AppTypography.body.copyWith(
-                    fontWeight: isSelected ? AppTypography.weightExtraBold : AppTypography.weightSemibold,
+                  label.toUpperCase(),
+                  style: AppTypography.micro.copyWith(
+                    fontWeight: isSelected ? AppTypography.weightExtraBold : AppTypography.weightBold,
                     color: isSelected ? Theme.of(context).primaryColor : AppColors.dark600,
-                    height: 1.0, // Tighter for UI lists
+                    letterSpacing: 1.2,
                   ),
                 ),
                 trailing: isSelected 

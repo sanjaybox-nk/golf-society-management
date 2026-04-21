@@ -12,7 +12,8 @@
 6. **Locker Room**: User profile management (Bio, Photo), handicap tracking, WHS Net Differential stats, and season standings.
 7. **Season Standings**: Advanced leaderboards (OoM, Birdie Tree, Eclectic) with industry-standard point systems and Best-N selection.
 8. **Society Surveys**: Multi-question WYSIWYG survey engine with drag-and-drop reordering, single/multi/text question types, and real-time voting.
-9. **Demo Seeding (Admin)**: Sophisticated multi-phase engine for generating historical member, event, and competition data for development and testing.
+9. **Design Token Studio (Branding Console)**: Granular, whitelabel configuration for 30+ semantic design tokens, including mechanical overrides (borders/dividers) and domain-specific scoring aesthetics.
+10. **Demo Seeding (Admin)**: Sophisticated multi-phase engine for generating historical member, event, and competition data for development and testing.
 
 ## Typography
 - **Body / Labels**: Inter
@@ -38,14 +39,15 @@
 - [Demo Data & Seeding](./14_DEMO_DATA_AND_SEEDING.md)
 - [Roadmap & ToDo](./06_ROADMAP_TODO.md)
 
-## Visual Identity ("BoxyArt True Minimal" v4.1)
+## Visual Identity ("BoxyArt True Minimal" v4.5+)
 
-The app uses a centralized design system called **BoxyArt**:
+The app uses a centralized, whitelabellable design system called **BoxyArt**:
 
-- **Primary Color**: Configurable seed color (e.g., Mustard Yellow `#F7D354`, Navy, Indigo).
-- **Secondary Color**: Solid Black (`#000000`).
+- **Dynamic Theme Engine**: Real-time configuration of Primary, Secondary, and Tertiary (Foundation) colors.
+- **Scoring Aesthetics**: Society-defined palette for golf scoring (Birdie, Eagle, etc.) and team identities.
+- **Mechanical Control**: Granular overrides for border width, divider thickness, and semantic status colors.
 - **True Minimal Legend**: Minimalist dot + text indicators (no background pills for status).
-- **Universal Title Case**: 100% adherence to Title Case for all labels and headers. No ALL-CAPS.
-- **Shapes**: High border radius (`18px` for cards, `AppShapes.rXl`); all controlled via branding console.
+- **Universal Title Case**: 100% adherence to Title Case for all content; ALL-CAPS reserved for structural metadata.
+- **Shapes**: High border radius (`18px` default); all controlled via Branding Console.
 - **Shadows**: Custom "Soft Scale" and "Floating Alt" shadows (no default Material elevation).
 - **Admin Identity**: `BoxyArtPill.committee(label: 'ADMIN')` applied as `titleSuffix` on all administrative `HeadlessScaffold` screens.

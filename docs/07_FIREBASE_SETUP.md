@@ -44,7 +44,39 @@ Once files are in place:
 2.  Run `flutter run` again.
 3.  The error `Firebase init failed` should disappear from the logs.
 
-## Phase 3: Data Migration (Developer Action)
+## Phase 3: Cloud Functions Setup (Developer Action)
+
+The project includes a robust set of Cloud Functions located in the `firebase/functions` directory. These functions handle automated tasks such as Match Play reminders and scoring.
+
+### 1. Structure Initialization
+If the environment is missing, the following files must be present:
+- `firebase/functions/package.json`: Manages Node.js dependencies (`firebase-admin`, `firebase-functions`).
+- `firebase/functions/tsconfig.json`: Configures the TypeScript compiler.
+- `firebase/functions/src/index.ts`: The central entry point for all function triggers.
+
+### 2. Development Workflow
+To install dependencies and build the functions:
+```bash
+cd firebase/functions
+npm install
+npm run build
+```
+
+### 3. Deployment
+Register the functions directory in the root `firebase.json`:
+```json
+{
+  "functions": {
+    "source": "firebase/functions"
+  }
+}
+```
+Deploy using the Firebase CLI:
+```bash
+firebase deploy --only functions
+```
+
+## Phase 4: Data Migration (Developer Action)
 Once connected, I will update the code to:
 1.  Stop using "Mock Data".
 2.  Read from the `events` collection in Firestore.

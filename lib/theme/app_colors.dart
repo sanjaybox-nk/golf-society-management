@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:golf_society/domain/models/society_config.dart';
 import 'package:collection/collection.dart';
 import '../domain/models/course_config.dart';
 
@@ -205,21 +206,24 @@ class ScoreColors extends ThemeExtension<ScoreColors> {
     );
   }
 
-  static ScoreColors dark() => const ScoreColors(
-    eagle: AppColors.scoreEagle,
-    birdie: AppColors.scoreBirdie,
-    par: AppColors.dark200,
-    bogey: AppColors.scoreBogey,
-    doubleBogey: AppColors.scoreDouble, // Renamed here
-    triplePlus: AppColors.scoreTriplePlus,
-  );
-
-  static ScoreColors light() => const ScoreColors(
-    eagle: Color(0xFF065F46),
-    birdie: Color(0xFF166534),
-    par: Color(0xFF555550),
-    bogey: Color(0xFFC2410C),
-    doubleBogey: Color(0xFF9A3412),
-    triplePlus: Color(0xFF7F1D1D),
-  );
+  static ScoreColors fromConfig(SocietyConfig config, {bool isDark = false}) {
+    if (isDark) {
+      return ScoreColors(
+        eagle: Color(config.scoreEagleColor),
+        birdie: Color(config.scoreBirdieColor),
+        par: Color(config.scoreParColor),
+        bogey: Color(config.scoreBogeyColor),
+        doubleBogey: Color(config.scoreDoubleColor),
+        triplePlus: Color(config.scoreTriplePlusColor),
+      );
+    }
+    return ScoreColors(
+      eagle: Color(config.scoreEagleColor),
+      birdie: Color(config.scoreBirdieColor),
+      par: Color(config.scoreParColor),
+      bogey: Color(config.scoreBogeyColor),
+      doubleBogey: Color(config.scoreDoubleColor),
+      triplePlus: Color(config.scoreTriplePlusColor),
+    );
+  }
 }

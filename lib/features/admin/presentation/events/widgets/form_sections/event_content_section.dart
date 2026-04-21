@@ -19,23 +19,19 @@ class EventContentSection extends ConsumerWidget {
         children: [
           const BoxyArtSectionTitle(title: 'Facilities'),
           BoxyArtCard(
-            child: Column(
+            child: BoxyArtFormColumn(
               children: [
                 ...state.facilities.asMap().entries.map((entry) {
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: AppSpacing.cardToLabel),
-                    child: BoxyArtFormField(
-                      label: 'Facility ${entry.key + 1}',
-                      initialValue: entry.value,
-                      onChanged: (v) {
-                        final list = List<String>.from(state.facilities);
-                        list[entry.key] = v;
-                        ref.read(eventFormNotifierProvider.notifier).updateFacilities(list);
-                      },
-                    ),
+                  return BoxyArtFormField(
+                    label: 'Facility ${entry.key + 1}',
+                    initialValue: entry.value,
+                    onChanged: (v) {
+                      final list = List<String>.from(state.facilities);
+                      list[entry.key] = v;
+                      ref.read(eventFormNotifierProvider.notifier).updateFacilities(list);
+                    },
                   );
                 }),
-                const SizedBox(height: AppSpacing.sm),
                 BoxyArtButton(
                   title: 'Add facility',
                   onTap: () => ref.read(eventFormNotifierProvider.notifier).addFacility(),
@@ -46,34 +42,34 @@ class EventContentSection extends ConsumerWidget {
             ),
           ),
           const BoxyArtSectionTitle(title: 'Notes & Content', followsCard: true),
-          ...state.notes.asMap().entries.map((entry) {
-             final index = entry.key;
-             final note = entry.value;
-             return Padding(
-               padding: const EdgeInsets.only(bottom: AppSpacing.cardToLabel),
-               child: BoxyArtRichNoteEditor(
-                 key: ValueKey('note_$index'),
-                 initialTitle: note.title,
-                 initialContent: note.content,
-                 initialImageUrl: note.imageUrl,
-                 onChanged: (title, content, imageUrl) {
-                   final list = List<EventNote>.from(state.notes);
-                   list[index] = note.copyWith(title: title, content: content, imageUrl: imageUrl);
-                   ref.read(eventFormNotifierProvider.notifier).updateNotes(list);
-                 },
-                 onRemove: () {
-                   final list = List<EventNote>.from(state.notes)..removeAt(index);
-                   ref.read(eventFormNotifierProvider.notifier).updateNotes(list);
-                 },
-               ),
-             );
-          }),
-          const SizedBox(height: AppSpacing.cardToLabel),
-          BoxyArtButton(
-            title: 'Add note',
-            onTap: () => ref.read(eventFormNotifierProvider.notifier).addNote(),
-            isGhost: true,
-            icon: Icons.add_circle_outline_rounded,
+          BoxyArtFormColumn(
+            children: [
+              ...state.notes.asMap().entries.map((entry) {
+                 final index = entry.key;
+                 final note = entry.value;
+                 return BoxyArtRichNoteEditor(
+                   key: ValueKey('note_$index'),
+                   initialTitle: note.title,
+                   initialContent: note.content,
+                   initialImageUrl: note.imageUrl,
+                   onChanged: (title, content, imageUrl) {
+                     final list = List<EventNote>.from(state.notes);
+                     list[index] = note.copyWith(title: title, content: content, imageUrl: imageUrl);
+                     ref.read(eventFormNotifierProvider.notifier).updateNotes(list);
+                   },
+                   onRemove: () {
+                     final list = List<EventNote>.from(state.notes)..removeAt(index);
+                     ref.read(eventFormNotifierProvider.notifier).updateNotes(list);
+                   },
+                 );
+              }),
+              BoxyArtButton(
+                title: 'Add note',
+                onTap: () => ref.read(eventFormNotifierProvider.notifier).addNote(),
+                isGhost: true,
+                icon: Icons.add_circle_outline_rounded,
+              ),
+            ],
           ),
         ],
       ),
