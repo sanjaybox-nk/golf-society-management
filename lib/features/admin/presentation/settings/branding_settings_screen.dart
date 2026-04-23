@@ -670,31 +670,26 @@ class BrandingSettingsScreen extends ConsumerWidget {
                     ),
 
                     const BoxyArtSectionTitle(title: 'ICON BADGE STYLE', isLevel2: true),
-                    Row(
+                    _ResponsiveColorRow(
                       children: [
-                        Expanded(
-                          child: _CompactColorPicker(
-                            label: 'Badge Fill',
-                            color: Color(config.iconBadgeFillColor),
-                            onTap: () => _pickColor(
-                              context,
-                              'Icon Fill',
-                              Color(config.iconBadgeFillColor),
-                              (c) => controller.setIconBadgeFillColor(c),
-                            ),
+                        _CompactColorPicker(
+                          label: 'Badge Fill',
+                          color: Color(config.iconBadgeFillColor),
+                          onTap: () => _pickColor(
+                            context,
+                            'Icon Fill',
+                            Color(config.iconBadgeFillColor),
+                            (c) => controller.setIconBadgeFillColor(c),
                           ),
                         ),
-                        SizedBox(width: spacing?.labelToCard ?? AppSpacing.labelToCard),
-                        Expanded(
-                          child: _CompactColorPicker(
-                            label: 'Badge Glyph',
-                            color: Color(config.iconBadgeIconColor),
-                            onTap: () => _pickColor(
-                              context,
-                              'Icon Glyph',
-                              Color(config.iconBadgeIconColor),
-                              (c) => controller.setIconBadgeIconColor(c),
-                            ),
+                        _CompactColorPicker(
+                          label: 'Badge Glyph',
+                          color: Color(config.iconBadgeIconColor),
+                          onTap: () => _pickColor(
+                            context,
+                            'Icon Glyph',
+                            Color(config.iconBadgeIconColor),
+                            (c) => controller.setIconBadgeIconColor(c),
                           ),
                         ),
                       ],
@@ -754,44 +749,36 @@ class BrandingSettingsScreen extends ConsumerWidget {
               BoxyArtCard(
                 child: BoxyArtFormColumn(
                   children: [
-                    Row(
+                    _ResponsiveColorRow(
                       children: [
-                        Expanded(
-                          child: _CompactColorPicker(
-                            label: 'Primary Accent',
-                            color: Color(config.primaryColor),
-                            onTap: () => _pickColor(
-                              context,
-                              'Primary',
-                              Color(config.primaryColor),
-                              (c) => controller.setPrimaryColor(c),
-                            ),
+                        _CompactColorPicker(
+                          label: 'Primary Accent',
+                          color: Color(config.primaryColor),
+                          onTap: () => _pickColor(
+                            context,
+                            'Primary',
+                            Color(config.primaryColor),
+                            (c) => controller.setPrimaryColor(c),
                           ),
                         ),
-                        SizedBox(width: AppSpacing.sm),
-                        Expanded(
-                          child: _CompactColorPicker(
-                            label: 'Action Color',
-                            color: Color(config.secondaryColor),
-                            onTap: () => _pickColor(
-                              context,
-                              'Action',
-                              Color(config.secondaryColor),
-                              (c) => controller.setSecondaryColor(c),
-                            ),
+                        _CompactColorPicker(
+                          label: 'Action Color',
+                          color: Color(config.secondaryColor),
+                          onTap: () => _pickColor(
+                            context,
+                            'Action',
+                            Color(config.secondaryColor),
+                            (c) => controller.setSecondaryColor(c),
                           ),
                         ),
-                        SizedBox(width: AppSpacing.sm),
-                        Expanded(
-                          child: _CompactColorPicker(
-                            label: 'Foundation',
-                            color: Color(config.tertiaryColor),
-                            onTap: () => _pickColor(
-                              context,
-                              'Foundation / Tertiary',
-                              Color(config.tertiaryColor),
-                              (c) => controller.setTertiaryColor(c),
-                            ),
+                        _CompactColorPicker(
+                          label: 'Foundation',
+                          color: Color(config.tertiaryColor),
+                          onTap: () => _pickColor(
+                            context,
+                            'Foundation / Tertiary',
+                            Color(config.tertiaryColor),
+                            (c) => controller.setTertiaryColor(c),
                           ),
                         ),
                       ],
@@ -830,31 +817,26 @@ class BrandingSettingsScreen extends ConsumerWidget {
                         fontWeight: AppTypography.weightMedium,
                       ),
                     ),
-                    Row(
+                    _ResponsiveColorRow(
                       children: [
-                        Expanded(
-                          child: _CompactColorPicker(
-                            label: 'Primary Text',
-                            color: Color(config.textPrimaryColor),
-                            onTap: () => _pickColor(
-                              context,
-                              'Primary Text',
-                              Color(config.textPrimaryColor),
-                              (c) => controller.setTextPrimaryColor(c),
-                            ),
+                        _CompactColorPicker(
+                          label: 'Primary Text',
+                          color: Color(config.textPrimaryColor),
+                          onTap: () => _pickColor(
+                            context,
+                            'Primary Text',
+                            Color(config.textPrimaryColor),
+                            (c) => controller.setTextPrimaryColor(c),
                           ),
                         ),
-                        SizedBox(width: AppSpacing.sm),
-                        Expanded(
-                          child: _CompactColorPicker(
-                            label: 'Secondary Text',
-                            color: Color(config.textSecondaryColor),
-                            onTap: () => _pickColor(
-                              context,
-                              'Secondary Text',
-                              Color(config.textSecondaryColor),
-                              (c) => controller.setTextSecondaryColor(c),
-                            ),
+                        _CompactColorPicker(
+                          label: 'Secondary Text',
+                          color: Color(config.textSecondaryColor),
+                          onTap: () => _pickColor(
+                            context,
+                            'Secondary Text',
+                            Color(config.textSecondaryColor),
+                            (c) => controller.setTextSecondaryColor(c),
                           ),
                         ),
                       ],
@@ -869,31 +851,26 @@ class BrandingSettingsScreen extends ConsumerWidget {
                         (c) => controller.setTextMutedColor(c),
                       ),
                     ),
-                    Row(
+                    _ResponsiveColorRow(
                       children: [
-                        Expanded(
-                          child: _CompactColorPicker(
-                            label: 'Standard Card',
-                            color: Color(config.cardColor),
-                            onTap: () => _pickColor(
-                              context,
-                              'Card Surface',
-                              Color(config.cardColor),
-                              (c) => controller.setCardColor(c),
-                            ),
+                        _CompactColorPicker(
+                          label: 'Standard Card',
+                          color: Color(config.cardColor),
+                          onTap: () => _pickColor(
+                            context,
+                            'Card Surface',
+                            Color(config.cardColor),
+                            (c) => controller.setCardColor(c),
                           ),
                         ),
-                        SizedBox(width: AppSpacing.sm),
-                        Expanded(
-                          child: _CompactColorPicker(
-                            label: 'Elevated Surface',
-                            color: Color(config.surfaceElevatedColor),
-                            onTap: () => _pickColor(
-                              context,
-                              'Elevated Surface',
-                              Color(config.surfaceElevatedColor),
-                              (c) => controller.setSurfaceElevatedColor(c),
-                            ),
+                        _CompactColorPicker(
+                          label: 'Elevated Surface',
+                          color: Color(config.surfaceElevatedColor),
+                          onTap: () => _pickColor(
+                            context,
+                            'Elevated Surface',
+                            Color(config.surfaceElevatedColor),
+                            (c) => controller.setSurfaceElevatedColor(c),
                           ),
                         ),
                       ],
@@ -932,31 +909,26 @@ class BrandingSettingsScreen extends ConsumerWidget {
                   childrenPadding: const EdgeInsets.all(AppSpacing.lg),
                   children: [
                     const BoxyArtSectionTitle(title: 'TEAM IDENTITIES', isLevel2: true),
-                    Row(
+                    _ResponsiveColorRow(
                       children: [
-                        Expanded(
-                          child: _CompactColorPicker(
-                            label: 'Team A',
-                            color: Color(config.teamAColor),
-                            onTap: () => _pickColor(
-                              context,
-                              'Team A',
-                              Color(config.teamAColor),
-                              (c) => controller.setTeamAColor(c),
-                            ),
+                        _CompactColorPicker(
+                          label: 'Team A',
+                          color: Color(config.teamAColor),
+                          onTap: () => _pickColor(
+                            context,
+                            'Team A',
+                            Color(config.teamAColor),
+                            (c) => controller.setTeamAColor(c),
                           ),
                         ),
-                        SizedBox(width: AppSpacing.sm),
-                        Expanded(
-                          child: _CompactColorPicker(
-                            label: 'Team B',
-                            color: Color(config.teamBColor),
-                            onTap: () => _pickColor(
-                              context,
-                              'Team B',
-                              Color(config.teamBColor),
-                              (c) => controller.setTeamBColor(c),
-                            ),
+                        _CompactColorPicker(
+                          label: 'Team B',
+                          color: Color(config.teamBColor),
+                          onTap: () => _pickColor(
+                            context,
+                            'Team B',
+                            Color(config.teamBColor),
+                            (c) => controller.setTeamBColor(c),
                           ),
                         ),
                       ],
@@ -1847,6 +1819,37 @@ class _ScoreColorGridItem extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _ResponsiveColorRow extends StatelessWidget {
+  final List<Widget> children;
+  const _ResponsiveColorRow({required this.children});
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final width = constraints.maxWidth;
+        // Determine items per row based on width
+        // A single _CompactColorPicker needs at least ~140px to look decent
+        int itemsPerRow = children.length;
+        if (width < 440 && itemsPerRow > 2) itemsPerRow = 2;
+        if (width < 280) itemsPerRow = 1;
+        
+        final spacing = AppSpacing.sm;
+        final itemWidth = (width - (spacing * (itemsPerRow - 1))) / itemsPerRow;
+
+        return Wrap(
+          spacing: spacing,
+          runSpacing: spacing,
+          children: children.map((c) => SizedBox(
+            width: itemWidth, 
+            child: c
+          )).toList(),
+        );
+      },
     );
   }
 }

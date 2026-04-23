@@ -1,5 +1,4 @@
 import 'package:golf_society/design_system/design_system.dart';
-import 'package:golf_society/utils/string_utils.dart';
 
 /// A horizontally scrolling, underlined filter bar used as a sleek alternative to pill chips.
 /// Matches the interaction style of the Event Top Menus.
@@ -123,12 +122,14 @@ class _ModernUnderlinedFilterBarState<T> extends State<ModernUnderlinedFilterBar
 class ModernUnderlinedTabBar extends StatefulWidget implements PreferredSizeWidget {
   final TabController? controller;
   final List<String> tabLabels;
+  final List<IconData?>? icons;
   final EdgeInsetsGeometry padding;
 
   const ModernUnderlinedTabBar({
     super.key,
     this.controller,
     required this.tabLabels,
+    this.icons,
     this.padding = EdgeInsets.zero,
   });
 
@@ -200,6 +201,7 @@ class _ModernUnderlinedTabBarState extends State<ModernUnderlinedTabBar> {
           return Expanded(
             child: _UnderlinedTabItem(
               label: widget.tabLabels[index],
+              icon: widget.icons != null && widget.icons!.length > index ? widget.icons![index] : null,
               isSelected: isSelected,
               onTap: () => controller.animateTo(index),
             ),
@@ -241,9 +243,8 @@ class _UnderlinedTabItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    final activeTextColor = isDark ? AppColors.pureWhite : AppColors.dark950;
-    final inactiveTextColor = isDark ? AppColors.dark300 : AppColors.dark400;
+    final activeTextColor = theme.colorScheme.onSurface;
+    final inactiveTextColor = theme.colorScheme.onSurfaceVariant;
 
     return InkWell(
       onTap: onTap,
@@ -275,7 +276,7 @@ class _UnderlinedTabItem extends StatelessWidget {
                     child: Text(
                       label.toUpperCase(),
                       style: AppTypography.micro.copyWith(
-                        fontSize: AppTypography.sizeMicro,
+                        fontSize: 12,
                         fontWeight: isSelected ? AppTypography.weightExtraBold : AppTypography.weightBold,
                         color: isSelected ? activeTextColor : inactiveTextColor,
                         letterSpacing: 1.2,

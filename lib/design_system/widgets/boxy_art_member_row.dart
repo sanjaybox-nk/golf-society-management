@@ -90,11 +90,6 @@ class BoxyArtMemberRow extends StatelessWidget {
     BoxBorder? cardBorder;
     if (isSelected) {
       cardBorder = Border.all(color: primary, width: AppShapes.borderMedium);
-    } else if (matchSide != null) {
-      cardBorder = Border.all(
-        color: matchSide == 'A' ? AppColors.teamA : AppColors.teamB,
-        width: AppShapes.borderMedium,
-      );
     } else {
       cardBorder = Border.all(
         color: isDark ? AppColors.dark500 : AppColors.lightBorder,
@@ -230,9 +225,9 @@ class BoxyArtMemberRow extends StatelessWidget {
               children: [
                 Container(
                   width: 4,
-                  decoration: BoxDecoration(
-                    color: accentColor ?? Colors.transparent, // Always reserve space
-                    borderRadius: const BorderRadius.only(
+                  decoration: const BoxDecoration(
+                    color: Colors.transparent, // Always reserve space
+                    borderRadius: BorderRadius.only(
                       topLeft: Radius.circular(18),
                       bottomLeft: Radius.circular(18),
                     ),
@@ -389,47 +384,45 @@ class BoxyArtMemberRow extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              if (tieBreakLabel != null)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 2),
-                  child: Text(
-                    tieBreakLabel!,
-                    style: AppTypography.label.copyWith(
-                      fontSize: 10,
-                      fontWeight: AppTypography.weightBold,
-                      color: isDark ? AppColors.dark400 : AppColors.dark500,
+              Container(
+                constraints: const BoxConstraints(minWidth: 40),
+                alignment: Alignment.centerRight,
+                child: RichText(
+                  text: TextSpan(
+                    style: AppTypography.displaySection.copyWith(
+                      color: scoreColor ?? (isDark ? AppColors.pureWhite : AppColors.dark900),
+                      height: 1.0,
                     ),
-                  ),
-                ),
-                Container(
-                  constraints: const BoxConstraints(minWidth: 40),
-                  alignment: Alignment.centerRight,
-                  child: RichText(
-                    text: TextSpan(
-                      style: AppTypography.displaySection.copyWith(
-                        color: scoreColor ?? (isDark ? AppColors.pureWhite : AppColors.dark900),
-                        height: 1.0,
+                    children: [
+                      TextSpan(
+                        text: score!,
+                        style: AppTypography.displaySection.copyWith(
+                          color: scoreColor ?? (isDark ? AppColors.pureWhite : AppColors.dark900),
+                          fontSize: (score!.length > 5) ? 16 : 18,
+                          height: 1.0,
+                        ),
                       ),
-                      children: [
+                      if (isStableford && score!.length <= 3 && !score!.contains('&'))
                         TextSpan(
-                          text: score!,
-                          style: AppTypography.displaySection.copyWith(
-                            color: scoreColor ?? (isDark ? AppColors.pureWhite : AppColors.dark900),
-                            fontSize: (score!.length > 5) ? 18 : 24,
-                            height: 1.0,
+                          text: ' pts',
+                          style: AppTypography.label.copyWith(
+                            fontSize: 12,
+                            fontWeight: AppTypography.weightMedium,
+                            color: (scoreColor ?? (isDark ? AppColors.pureWhite : AppColors.dark900)).withValues(alpha: AppColors.opacityMedium),
                           ),
                         ),
-                        if (isStableford && score!.length <= 3 && !score!.contains('&'))
-                          TextSpan(
-                            text: ' pts',
-                            style: AppTypography.label.copyWith(
-                              fontSize: 12,
-                              fontWeight: AppTypography.weightMedium,
-                              color: (scoreColor ?? (isDark ? AppColors.pureWhite : AppColors.dark900)).withValues(alpha: AppColors.opacityMedium),
-                            ),
-                          ),
-                      ],
-                    ),
+                    ],
+                  ),
+                ),
+              ),
+              if (tieBreakLabel != null)
+                Text(
+                  tieBreakLabel!,
+                  textAlign: TextAlign.end,
+                  style: AppTypography.label.copyWith(
+                    fontSize: 10,
+                    fontWeight: AppTypography.weightBold,
+                    color: isDark ? AppColors.dark400 : AppColors.dark500,
                   ),
                 ),
             ],

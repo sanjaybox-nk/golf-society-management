@@ -16,16 +16,17 @@ class EventTypeSection extends ConsumerWidget {
       data: (state) => Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          BoxyArtSegmentedControl<EventType>(
-            value: state.eventType,
-            onChanged: (type) => ref.read(eventFormNotifierProvider.notifier).updateEventType(type),
-            options: const [
-              BoxyOption(
+          ModernUnderlinedFilterBar<EventType>(
+            isExpanded: true,
+            selectedValue: state.eventType,
+            onTabSelected: (type) => ref.read(eventFormNotifierProvider.notifier).updateEventType(type),
+            tabs: const [
+              ModernFilterTab(
                 label: 'Golf', 
                 value: EventType.golf, 
                 icon: Icons.sports_golf_rounded,
               ),
-              BoxyOption(
+              ModernFilterTab(
                 label: 'Social', 
                 value: EventType.social, 
                 icon: Icons.groups_rounded,

@@ -23,6 +23,7 @@ class EventCompetitionSection extends ConsumerWidget {
         final templatesAsync = ref.watch(templatesListProvider);
         final templates = templatesAsync.value ?? [];
         final selectedTemplate = templates.where((t) => t.id == state.selectedTemplateId).firstOrNull;
+        final selectedSecondaryTemplate = templates.where((t) => t.id == state.secondaryTemplateId).firstOrNull;
         
         final hasGame = state.selectedTemplateId != null || state.eventCompetition != null;
         final displayComp = state.eventCompetition ?? selectedTemplate;
@@ -37,10 +38,11 @@ class EventCompetitionSection extends ConsumerWidget {
                   children: [
                     Text(
                       "No rules applied", 
-                      style: AppTypography.labelStrong.copyWith(color: AppColors.textSecondary),
+                      style: AppTypography.labelStrong.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
                     ),
                     BoxyArtButton(
                       title: "Add game format",
+                      fullWidth: true,
                       onTap: () => _handleAddGame(context, ref, state),
                     ),
                   ],
@@ -63,6 +65,43 @@ class EventCompetitionSection extends ConsumerWidget {
                     onRemove: () => ref.read(eventFormNotifierProvider.notifier).updateTemplateId(null),
                     customizeLabel: state.isCustomized ? "Customized" : "Customize",
                   ),
+
+                  // Secondary Competition Section
+                  if (state.secondaryTemplateId != null || state.secondaryCompetition != null) ...[
+                    const SizedBox(height: AppSpacing.lg),
+                    CompetitionRulesCard(
+                      competition: state.secondaryCompetition ?? selectedSecondaryTemplate,
+                      eventId: state.eventId ?? "",
+                      title: "Side Game Overlay",
+                      isSecondary: true,
+                      onTap: () async {
+                        if (state.eventId != null) {
+                          context.push("/admin/events/manage/${Uri.encodeComponent(state.eventId!)}/secondary-game-builder");
+                        }
+                      },
+                      onCustomize: () => _handleCustomize(context, ref, state, isSecondary: true),
+                      onRemove: () => ref.read(eventFormNotifierProvider.notifier).updateSecondaryTemplateId(null),
+                      customizeLabel: state.isSecondaryCustomized ? "Customized" : "Customize",
+                    ),
+                  ] else ...[
+                    const SizedBox(height: AppSpacing.lg),
+                    BoxyArtCard(
+                      child: BoxyArtFormColumn(
+                        children: [
+                          Text(
+                            "No side game active", 
+                            style: AppTypography.labelStrong.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                          ),
+                          BoxyArtButton(
+                            title: "Add side game overlay",
+                            fullWidth: true,
+                            onTap: () => _handleAddGame(context, ref, state, isSecondary: true),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+
                   BoxyArtCard(
                     padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
                     child: BoxyArtSwitchField(
@@ -104,6 +143,7 @@ class EventCompetitionSection extends ConsumerWidget {
                 ],
               ),
             
+            
 
           ],
         );
@@ -115,7 +155,7 @@ class EventCompetitionSection extends ConsumerWidget {
 
 
 
-  Future<void> _handleCustomize(BuildContext context, WidgetRef ref, EventFormState state) async {
+  Future<void> _handleCustomize(BuildContext context, WidgetRef ref, EventFormState state, {bool isSecondary = false}) async {
     final notifier = ref.read(eventFormNotifierProvider.notifier);
     if (state.eventId == null) {
       final confirm = await _showSaveConfirm(context);
@@ -125,12 +165,13 @@ class EventCompetitionSection extends ConsumerWidget {
     if (context.mounted) {
       final currentEventId = ref.read(eventFormNotifierProvider).value?.eventId;
       if (currentEventId != null) {
-        context.push("/admin/events/manage/$currentEventId/game-builder");
+        final path = isSecondary ? "secondary-game-builder" : "game-builder";
+        context.push("/admin/events/manage/$currentEventId/$path");
       }
     }
   }
 
-  Future<void> _handleAddGame(BuildContext context, WidgetRef ref, EventFormState state) async {
+  Future<void> _handleAddGame(BuildContext context, WidgetRef ref, EventFormState state, {bool isSecondary = false}) async {
     final notifier = ref.read(eventFormNotifierProvider.notifier);
     if (state.eventId == null) {
       final confirm = await _showSaveConfirm(context);
@@ -143,7 +184,11 @@ class EventCompetitionSection extends ConsumerWidget {
       if (currentEventId != null) {
         final result = await context.push<String>("/admin/events/manage/$currentEventId/game-setup");
         if (result != null) {
-          notifier.updateTemplateId(result);
+          if (isSecondary) {
+            notifier.updateSecondaryTemplateId(result);
+          } else {
+            notifier.updateTemplateId(result);
+          }
         }
       }
     }

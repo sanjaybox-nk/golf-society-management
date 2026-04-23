@@ -69,8 +69,12 @@ class EventFieldAdminScreen extends ConsumerWidget {
                 isExpanded: true,
                 onTabSelected: (val) => ref.read(eventFieldTabProvider.notifier).set(val),
                 tabs: [
-                  const ModernFilterTab(label: 'Entries', value: 0),
-                  ModernFilterTab(label: isMatchPlay ? 'The Draw' : 'Tee Time', value: 1),
+                  const ModernFilterTab(label: 'Entries', value: 0, icon: Icons.people_rounded),
+                  ModernFilterTab(
+                    label: isMatchPlay ? 'The Draw' : 'Tee Time', 
+                    value: 1,
+                    icon: isMatchPlay ? Icons.account_tree_rounded : Icons.access_time_rounded,
+                  ),
                 ],
               ),
             ),

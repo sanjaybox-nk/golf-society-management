@@ -236,6 +236,13 @@ Members interact with the tournament via a high-fidelity, scrollable bracket fea
 - **Live Scoring**: Derived "Holes Up" status synced from live scorecards.
 - **Interactive Navigation**: Seamless switching between Division standings and the Knockout bracket.
 
+### 9.4 Seeding & Grouping Rules (Hardened)
+To maintain the professional integrity of matchplay competitions, the seeding engine enforces several strict constraints:
+- **Member-Only Seeding**: Guests are strictly excluded from Match Play seeding. The engine automatically filters out guest registrations during the "Auto-Group" process.
+- **Head-to-Head Parity**: The field size is automatically balanced to an even number. If an odd number of players is confirmed, the system holds the last registrant out of the initial seeding to ensure every player has an opponent.
+- **Strict Group Sizes**: Match Play groups are restricted to **2-balls** or **4-balls**. 3-balls are disallowed as they break the head-to-head rhythm of the competition.
+- **Vertical Rhythm**: Tee sheets use a "Match-First" vertical rhythm, grouping cards under `MATCH N` headers with minimal `v` separators.
+
 ## 10. Scoring Status Lifecycle
 
 To ensure data integrity, Admin's have granular control over when scoring is available.

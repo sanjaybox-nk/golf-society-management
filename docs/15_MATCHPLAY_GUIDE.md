@@ -47,6 +47,7 @@ Launched directly from an event, the manager (Design 4.x):
 6. **Manual Swapping**: Committee members can manually swap opponents between matches in the **Draft** phase by tapping two players. Selection state is visually confirmed via primary-color borders and haptic feedback.
 7. **Administrative Overrides (Live)**: Once published, committee members can manage uncompleted matches through the **MANAGE** toolkit. Tapping a live match provides options for **Walkovers**, **Withdrawals**, and **Manual Score Entry** (e.g., 3&2). Manual results are indicated with an amber status identifier and take precedence over automatic scorecard calculations.
 8. **Shell Persistence**: The Draw Manager is integrated into the event administration hub using `hubPage` routing. This ensures that the event context and shell state (tabs, header) remain stable and persistent when navigating between the draw and other event tools.
+9. **Clean Draw Policy**: Once published, live match results (e.g., "3 & 2") are strictly hidden in the Draw Manager and Field management views. This ensures a clean organizational interface focused on pairing and scheduling. Live results are exclusively visible in the dedicated **Scores** hub.
 
 ## 5. Result States & Derivement
 

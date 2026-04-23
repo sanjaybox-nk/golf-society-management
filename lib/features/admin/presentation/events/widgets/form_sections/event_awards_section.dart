@@ -45,6 +45,7 @@ class EventAwardsSection extends ConsumerWidget {
                     }),
                     BoxyArtButton(
                       title: 'Add award',
+                      fullWidth: true,
                       onTap: () => ref.read(eventFormNotifierProvider.notifier).addAward(),
                       isGhost: true,
                       icon: Icons.add_circle_outline_rounded,
@@ -144,24 +145,14 @@ class _AwardRowState extends State<_AwardRow> {
             ),
           ],
         ),
-        Row(
-          children: ['Cup', 'Cash', 'Voucher'].map((type) {
-            final isSelected = widget.award.type.toLowerCase() == type.toLowerCase();
-            return Expanded(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 2.0),
-                child: SizedBox(
-                  height: 36, // Compact height for smaller buttons
-                  child: BoxyArtButton(
-                    title: type,
-                    onTap: () => widget.ref.read(eventFormNotifierProvider.notifier).updateAward(widget.index, widget.award.copyWith(type: type)),
-                    isGhost: !isSelected,
-                    isSmall: true,
-                  ),
-                ),
-              ),
-            );
-          }).toList(),
+        BoxyArtSegmentedControl<String>(
+          value: ['Cup', 'Cash', 'Voucher'].firstWhere((t) => t.toLowerCase() == widget.award.type.toLowerCase(), orElse: () => 'Cup'),
+          options: const [
+            BoxyOption(value: 'Cup', label: 'Cup'),
+            BoxyOption(value: 'Cash', label: 'Cash'),
+            BoxyOption(value: 'Voucher', label: 'Voucher'),
+          ],
+          onChanged: (type) => widget.ref.read(eventFormNotifierProvider.notifier).updateAward(widget.index, widget.award.copyWith(type: type)),
         ),
       ],
     );

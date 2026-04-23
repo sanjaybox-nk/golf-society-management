@@ -47,6 +47,7 @@ class AdminDashboardScreen extends ConsumerWidget {
             delegate: _SliverTabBarDelegate(
               const ModernUnderlinedTabBar(
                 tabLabels: ['Overview', 'Operations'],
+                icons: [Icons.dashboard_rounded, Icons.settings_suggest_rounded],
                 padding: EdgeInsets.symmetric(horizontal: AppSpacing.xl),
               ),
               backgroundColor: theme.scaffoldBackgroundColor,

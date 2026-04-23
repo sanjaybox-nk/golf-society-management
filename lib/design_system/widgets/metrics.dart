@@ -127,7 +127,7 @@ class ModernMetricStat extends ConsumerWidget {
 }
 
 /// A simple icon + label column used for summaries (e.g., attending status).
-class ModernSummaryIcon extends StatelessWidget {
+class ModernSummaryIcon extends ConsumerWidget {
   final IconData icon;
   final String label;
   final bool active;
@@ -142,9 +142,10 @@ class ModernSummaryIcon extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
-    final color = active ? (activeColor ?? theme.colorScheme.primary) : AppColors.dark300;
+    final config = ref.watch(themeControllerProvider);
+    final color = active ? (activeColor ?? Color(config.secondaryColor)) : AppColors.dark300;
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [

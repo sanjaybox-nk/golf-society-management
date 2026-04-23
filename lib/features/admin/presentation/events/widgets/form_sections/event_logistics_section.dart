@@ -18,10 +18,19 @@ class EventLogisticsSection extends ConsumerWidget {
       data: (state) => Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const BoxyArtSectionTitle(title: 'DateTime & Registration', followsCard: true),
+          const BoxyArtSectionTitle(title: 'DateTime & Registration'),
           BoxyArtCard(
             child: BoxyArtFormColumn(
               children: [
+                // Multi-Day Settings
+                if (state.eventType == EventType.golf) ...[
+                  BoxyArtSwitchField(
+                    label: 'Multi-Day Event', 
+                    value: state.isMultiDay, 
+                    onChanged: (v) => ref.read(eventFormNotifierProvider.notifier).updateMultiDay(v),
+                  ),
+                ],
+
                 // Date Selection
                 BoxyArtDatePickerField(
                   label: state.isMultiDay ? 'Start date' : 'Date',
@@ -39,30 +48,22 @@ class EventLogisticsSection extends ConsumerWidget {
                   },
                 ),
                 
-                // Multi-Day Settings
-                if (state.eventType == EventType.golf) ...[
-                  BoxyArtSwitchField(
-                    label: 'Multi-Day Event', 
-                    value: state.isMultiDay, 
-                    onChanged: (v) => ref.read(eventFormNotifierProvider.notifier).updateMultiDay(v),
+                if (state.eventType == EventType.golf && state.isMultiDay) ...[
+                  BoxyArtDatePickerField(
+                    label: 'End date',
+                    value: state.endDate != null ? DateFormat.yMMMd().format(state.endDate!) : 'Select End Date',
+                    onTap: () async {
+                        final picked = await showDatePicker(
+                          context: context, 
+                          initialDate: state.endDate ?? state.selectedDate, 
+                          firstDate: state.selectedDate, 
+                          lastDate: DateTime(2030)
+                        );
+                        if (picked != null) {
+                          ref.read(eventFormNotifierProvider.notifier).updateEndDate(picked);
+                        }
+                    },
                   ),
-                  if (state.isMultiDay) ...[
-                    BoxyArtDatePickerField(
-                      label: 'End date',
-                      value: state.endDate != null ? DateFormat.yMMMd().format(state.endDate!) : 'Select End Date',
-                      onTap: () async {
-                          final picked = await showDatePicker(
-                            context: context, 
-                            initialDate: state.endDate ?? state.selectedDate, 
-                            firstDate: state.selectedDate, 
-                            lastDate: DateTime(2030)
-                          );
-                          if (picked != null) {
-                            ref.read(eventFormNotifierProvider.notifier).updateEndDate(picked);
-                          }
-                      },
-                    ),
-                  ],
                 ],
 
                 // Registration Settings
@@ -111,7 +112,6 @@ class EventLogisticsSection extends ConsumerWidget {
                     label: 'First Tee Off',
                     value: state.selectedTime.format(context),
                     icon: Icons.access_time_rounded,
-                    iconColor: theme.primaryColor,
                     onTap: () async {
                       final picked = await showTimePicker(
                         context: context,

@@ -1,44 +1,63 @@
 # Demo Data & Seeding
+**v4.x Authority — The "Master Seed" Infrastructure**
 
-The Demo Seeding system is a powerful administrative tool used to populate the society management app with realistic, high-quality data for testing, training, and demonstration purposes.
+The Demo Seeding system is a high-fidelity administrative tool used to populate the society management app with a "production-ready" 2025-26 season state.
 
-## Location
+## 01 · Location & Access
 - **Settings Hub** (Gear Icon) > **INFRASTRUCTURE**
+- **Signifier**: Access is gated behind the **ADMIN** pill context in the HeadlessScaffold.
 
-## Features
+---
 
-### 1. Seeding Base Foundation
--   **Function**: Seeds **75 members** (20 female, 55 male) with realistic handicap distributions.
--   **Hero Account**: Includes "Sanjay Patel" as a consistent Admin/Hero user for personal stats verification.
--   **Automatic Scaling**: Generates a full multi-year history (Jan 2025 - March 2026) with realistic attendance (12-32 players per event).
--   **2025-26 Season Synchronization**: Implements a professional 12-month calendar (March 12 opener) with 8 Season (Stableford) and 4 Invitational (Mixed Format) events.
--   **Multi-Tee Architecture**: All seeded courses feature full **Yellow (Men's Standard)** and **Red (Ladies)** tee sets to verify mixed-gender equity.
--   **Explicit Mapping**: Seeded events now include an explicit `selectedFemaleTeeName: 'Red'`, ensuring accurate Par/SI resolution even in complex mixed-gender competitions.
--   **Financial & Fines Seeding**: Generates realistic payment statuses, custom prize distributions, ad-hoc member fines (paid/unpaid), and event-wide charity pots to verify the **Reporting Hub** metrics.
--   **Voucher & Debt Simulation [NEW]**: 
-    -   Assigns **£50.0 credit** to **Eric Adams** to verify "Use Voucher" flows.
-    -   Assigns varied debts (up to -£100.0) to ~25% of members to populate the **Central Debt Ledger**.
--   **Registration Registry Exclusions [NEW]**: Explicitly excludes **Eric Adams** from the final event's registration registry. This ensures he is a clean candidate for testing the "Use Voucher" toggle in the registration flow.
--   **Survey, Poll & Note Seeding [APRIL 2026]**: Automatically generates two modernized member surveys ("Season 2026 Feedback" and "Apparel Design Poll") and multiple **Note Studio** broadcasts with realistic **50-60% participation rate** to demonstrate the survey reporting and high-fidelity communications features.
+## 02 · The 3-Tier Infrastructure Hierarchy
 
-### 2. Historical Data Generation
-The seeding engine populates the society history with various scenarios:
-- **Individual Play**: Stableford, Medal, and Max Score events.
-- **Team Logistics**: Texas Scramble and 4BBB Pairs events with team-to-individual point attribution.
-- **Match Play**: Events with configured matches and calculated winners.
-- **Season Standings**: Populates Order of Merit, Birdie Tree, and Eclectic leaderboards.
+As of the April 2026 consolidation, administrative infrastructure controls are streamlined into three high-fidelity actions:
 
-## Technical Details
+### 1. Initialize Demo Season (The "Master Seed")
+The primary tool for environment generation. It performs a surgical wipe and then orchestrates a full multi-module population.
+- **Stableford Foundation**: Seeds 75 members and a full 12-month calendar (March 2025 - March 2026).
+- **Match Play Progression**: Automatically instantiates a 36-player Match Play tournament, including the "Season Opener" hybrid event, guest exclusion logic, and automated bracket progression.
+- **Financial State**: Seeds central debt ledger entries, vouchers, and charitable contributions.
+- **Communications**: Populates the Note Studio and Survey Hub with realistic participation data.
 
-### `SeedingService`
-The core engine for generating believable competition data.
--   **Stroke-First Approach**: Instead of seeding random points, the engine generates raw hole-by-hole strokes (3-8 per hole) biased by handicap. This allows the same result set to be viewed across different game formats.
--   **Authoritative Course Config**: Seeded events store the full course configuration (Tees, Pars, SIs, Yardages) at the time of creation. Fallback logic in `SeedingService` ensures that even if manual marker selection is not present, the `holes` map defaults to the authoritative Men's (Yellow) or Ladies' (Red) set to prevent resolution errors.
--   **Unused Data Purge**: Each seeding run starts with a `clearActivityData()` call to ensure a perfectly clean and consistent state.
--   **Hardened Infrastructure Purge [APRIL 2026]**: The `clearActivityData()` service now performs a surgical wipe of events, members, results, financial ledger entries, and seasonal sponsors while preserving foundational society branding, competition templates, and course libraries. It enforces a full state refresh via `ref.invalidate(themeControllerProvider)` and persistence flushing to ensure demo "noise" is immediately removed from the UI.
+### 2. Clear Activity Data (The "Surgical Wipe")
+Wipes all dynamic "Activity" while preserving the "Society Foundation."
+- **Wiped**: Events, registrations, results, member roster, financial entries, and surveys.
+- **Preserved**: Society name/logo (Branding), Course Libraries, and Competition Templates.
+- **Usage**: Use this when you want to start a new season from scratch using existing rules and branding.
 
-### Unit Test Complement
-While seeding verifies the **UI and Integration**, raw **Logic Accuracy** is enforced via unit tests:
-- `test/scoring_engine_test.dart`: Texas Scramble and 4BBB math.
-- `test/handicap_calculation_test.dart`: PHC and allowance logic.
-- `test/match_play_calculator_test.dart`: Matchplay status and termination.
+### 3. System Factory Reset (The "Deep Wipe")
+A total, unrecoverable deletion of all data in the current society context. This returns the app to an unconfigured "Day Zero" state.
+
+---
+
+## 03 · Match Play Progression Scenario
+The Match Play engine is now fully integrated into the **Master Seed** to ensure tournament integrity.
+
+- **Hybrid Season Opener**: The first event is seeded as a Stableford game with a Match Play overlay.
+- **36 Entries (33 Members + 3 Guests)**:
+    - **Guests**: Participate in Stableford but are excluded from brackets.
+    - **Bye Member**: The 33rd member receives an automated 1st-round bye.
+    - **Strategic Grouping**: The Bye member is grouped with the 3 guests to maintain event rhythm.
+- **Tournament Switchboard**: Controlled via the `showMatchPlayOverlay` toggle in Society Config.
+
+---
+
+## 04 · Technical Orchestration
+
+### `SeedingService.seedFullDemoData()`
+This is the single source of truth for society initialization.
+1. **Purge**: Calls `clearActivityData()` + `clearDemoData()`.
+2. **Scaffolding**: Seeds courses and members.
+3. **Activity**: Seeds the 12-event season history.
+4. **Tournaments**: Calls `MatchPlaySeeder` to generate the 36-player bracket progression.
+5. **Hardening**: Flushes all persistence layers and invalidates Riverpod providers to ensure a zero-error UI state.
+
+### Design Standard
+All seeding logic adheres to the **Boxy Art (v4.x)** standards:
+- **Tabular Numerals**: All score/handicap data is formatted for alignment.
+- **ALL-CAPS Metadata**: Seeded labels and statuses use the professional administrative typography.
+
+---
+
+*Fairway Design System v4.x · Seeding Authority.*

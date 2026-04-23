@@ -8,7 +8,7 @@ class AppTypography {
   static const double sizeHeadline = 20.0;  // Section headers (Previously 28-20)
   static const double sizeBody = 16.0;      // Primary reading (Previously 18-16)
   static const double sizeLabel = 13.0;     // Secondary metadata (Standardized to 13pt)
-  static const double sizeMicro = 10.0;     // Captions & Micro-UI (Previously 11-8)
+  static const double sizeMicro = 11.0;     // Captions & Micro-UI (Refined to 11pt)
   static const double sizeMetric = 18.0;    // [NEW] Dashboard metrics
 
   // Legacy Size Aliases

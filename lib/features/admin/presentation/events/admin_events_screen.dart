@@ -44,8 +44,8 @@ class AdminEventsScreen extends ConsumerWidget {
         SliverToBoxAdapter(
           child: ModernUnderlinedFilterBar<EventFilter>(
             tabs: const [
-              ModernFilterTab(label: 'Events', value: EventFilter.season),
-              ModernFilterTab(label: 'Social', value: EventFilter.social),
+              ModernFilterTab(label: 'Events', value: EventFilter.season, icon: Icons.sports_golf_rounded),
+              ModernFilterTab(label: 'Social', value: EventFilter.social, icon: Icons.groups_rounded),
             ],
             selectedValue: filter,
             onTabSelected: (val) => ref.read(adminEventFilterProvider.notifier).update(val),

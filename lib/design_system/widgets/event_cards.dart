@@ -71,17 +71,17 @@ class BoxyArtEventCard extends ConsumerWidget {
                     if (event.isSeasonEvent)
                       _buildTag(
                         label: 'Season',
-                        color: primary,
+                        color: textColor,
                       ),
                     if (event.isInvitational)
                       _buildTag(
                         label: 'Invite',
-                        color: Color(config.secondaryColor),
+                        color: textColor,
                       ),
                     if (event.eventType == EventType.social)
                       _buildTag(
                         label: 'Social',
-                        color: Color(config.secondaryColor),
+                        color: textColor,
                       ),
                   ],
                 ),
@@ -227,7 +227,7 @@ class BoxyArtEventCard extends ConsumerWidget {
         Text(
           label.toUpperCase(),
           style: AppTypography.caption.copyWith(
-            color: color.withValues(alpha: 0.8),
+            color: color,
             fontWeight: AppTypography.weightBlack,
             fontSize: 10,
             letterSpacing: 1.2,

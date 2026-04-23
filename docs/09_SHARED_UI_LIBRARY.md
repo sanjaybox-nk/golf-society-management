@@ -98,9 +98,9 @@ Multipurpose action button.
 - **Dynamic Radius**: shares `inputRadius` token.
 - **Variants**: `isPrimary`, `isSecondary`, `isTertiary`, `isGhost`, `isSmall`, `fullWidth`, `isLoading`.
 - **Primary Variant**: Uses the `actionColor` (Vivid Emerald/Primary) token.
-- **Tertiary Variant**: Uses the `tertiaryColor` (Foundation - Slate) token for solid backgrounds—ideal for secondary solid actions that shouldn't compete with the main Action/Primary colors.
-- **Implementation Note**: All variants now use direct `ButtonStyle` properties (Size, EdgeInsets) for Material 3 stability.
-- **Typography**: `AppTypography.label` + `weightHeavy`.
+- **Tertiary Variant**: Uses the `tertiaryColor` (Foundation - Slate) token for solid backgrounds.
+- **Typography**: `AppTypography.label` + `weightBold`.
+- **Flexible Layout (v4.x)**: As of April 2026, buttons NO LONGER truncate text. They are allowed to wrap or expand to ensure labels like "CLEAR ACTIVITY" remain legible. Use `fullWidth: true` for primary actions.
 
 ### `BoxyArtGlassIconButton`
 Compact glass-style icon button. Used for header actions, inline card actions.
@@ -288,6 +288,7 @@ final result = await showBoxyArtDialog<bool>(
 
 - **Standards**: Replaces legacy `AlertDialog`. Always use `rootNavigator: true` to ensure the dialog appears above the bottom navigation bar.
 - **Dangerous Mode**: Setting `isDangerous: true` tints the confirm button with `coral500`.
+- **Responsive Layout (v4.x)**: As of April 2026, all dialogs use `OverflowBar` and `AppSpacing.standard` for inset padding. This ensures that action buttons have maximum horizontal space and will automatically stack vertically if labels are too long, preventing text truncation.
 
 ---
 
@@ -303,7 +304,23 @@ final result = await showBoxyArtDialog<bool>(
 
 ---
 
-## 12. Deprecated Patterns (Do Not Use)
+## 13. Navigation & Tabs (`navigation.dart`)
+
+### `ModernUnderlinedFilterBar<T>`
+A horizontally scrolling, underlined filter bar used as a sleek alternative to pill chips.
+- **`ModernFilterTab<T>`**: Represents a single tab with `label`, `value`, and optional `icon`.
+- **`isExpanded: true`**: Evenly distributes tabs across the full width (ideal for 2-3 tabs).
+- **Icon Support**: Supports optional iconography for improved visual scanability.
+
+### `ModernUnderlinedTabBar`
+A standard Material `TabController` driven underlined tab bar.
+- **`tabLabels`**: List of strings for the tab titles.
+- **`icons`**: Optional list of `IconData` to display alongside labels.
+- **Usage**: Use with `DefaultTabController` or a custom `TabController`.
+
+---
+
+## 14. Deprecated Patterns (Do Not Use)
 
 | Deprecated | Replacement |
 |---|---|
@@ -386,3 +403,24 @@ Standardized card for the Season Leaderboard Gallery.
 2. **Dividers**: Include a `BoxyArtDivider(verticalPadding: 0)` between the header and the description.
 3. **Typography**: Use `AppTypography.labelStrong` for the template title and `AppTypography.body` for the long description (height 1.5).
 4. **Blank Formats**: "Start Blank" cards must use the same `BoxyArtCard` + `BoxyArtIconBadge` layout (omitting description/pills) to maintain visual rhythm.
+
+---
+
+## 17. Badge & Icon Token Branding (v4.5)
+
+To ensure high-contrast and society-specific branding across the application, use the standardized badge system which links directly to the **Branding Console**.
+
+### `BoxyArtIconBadge` & `BoxyArtSquareBadge`
+These components automatically consume global branding tokens:
+- **Fill Color**: Linked to `iconBadgeFillColor` (Society secondary color by default).
+- **Icon Color**: Linked to `iconBadgeIconColor` (Society secondary color by default).
+- **Opacity**: Controlled by `iconBadgeOpacity`. **IMPORTANT**: Default is **0.15** to ensure the icon glyph remains sharp and high-contrast against the tinted background.
+
+### Standard Information Rows
+- **`ModernInfoRow`**: The primary component for event details. It now defaults to the **Global Branding** tokens (no flags required).
+- **`BoxyArtSwitchTile` / `BoxyArtNavTile`**: Use these for settings and navigation. They automatically apply branding tokens to their leading icons.
+
+### Implementation Best Practices
+1. **Prefer Branding Tokens**: Avoid passing `isPrimary` or `isSecondary` flags for standard informational icons. Let them fall back to the branding tokens for maximum administrative control.
+2. **Override with Intent**: Only use `isPrimary`, `isSecondary`, or `isTertiary` flags when the icon represents a specific state or "brand action" that MUST remain distinct from the global theme.
+3. **Typography Alignment**: All badge-adjacent labels must follow the **v4.5 ALL-CAPS standard** (`AppTypography.micro` with `letterSpacing: 1.2`).

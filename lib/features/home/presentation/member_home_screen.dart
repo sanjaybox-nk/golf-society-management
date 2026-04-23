@@ -979,8 +979,7 @@ class _GlobalPollCard extends ConsumerWidget {
             children: [
               const BoxyArtIconBadge(
                 icon: Icons.poll_rounded,
-                color: AppColors.lime500,
-                isTinted: true,
+                isSecondary: true,
                 size: AppShapes.iconLg,
               ),
               const SizedBox(width: AppSpacing.md),

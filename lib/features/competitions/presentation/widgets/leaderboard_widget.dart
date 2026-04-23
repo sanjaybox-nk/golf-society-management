@@ -78,28 +78,37 @@ class LeaderboardWidget extends StatelessWidget {
         }
 
         final bool hasScore = entry.scoringStatus == ScoringStatus.ok;
-        final String rawScore = hasScore ? (entry.scoreLabel ?? '${entry.score}') : entry.scoringStatus.name.toUpperCase();
+        final String baseScore = hasScore ? (entry.scoreLabel ?? '${entry.score}') : entry.scoringStatus.name.toUpperCase();
+        final String rawScore = baseScore
+            .replaceAll('WIN', 'Won')
+            .replaceAll('LOSS', 'Lost')
+            .replaceAll('HALVED', 'Halved');
+            
         final theme = Theme.of(context);
+        final spacing = theme.extension<AppSpacingTokens>();
 
-        return BoxyArtMemberRow(
-          name: entry.playerName,
-          secondaryName: (entry.isGuest && entry.hostName != null) ? 'Guest of ${entry.hostName}' : null,
-          initials: entry.playerName,
-          avatarUrl: entry.avatarUrl,
-          handicapIndex: entry.handicapIndex,
-          playingHandicap: entry.playingHandicap,
-          score: rawScore,
-          scoreColor: hasScore ? theme.colorScheme.primary : AppColors.coral500,
-          tieBreakLabel: differentiatorChain,
-          thruLabel: entry.thruLabel,
-          ranking: entry.position,
-          isGuest: entry.isGuest,
-          hasMemberGuest: entry.hasGuest,
-          isStableford: isStableford,
-          useCard: true,
-          showChevron: false,
-          isSelected: highlightEntryId != null && entry.entryId == highlightEntryId,
-          onTap: () => onPlayerTap?.call(entry),
+        return Padding(
+          padding: EdgeInsets.only(bottom: spacing?.cardToCard ?? AppSpacing.md),
+          child: BoxyArtMemberRow(
+            name: entry.playerName,
+            secondaryName: (entry.isGuest && entry.hostName != null) ? 'Guest of ${entry.hostName}' : null,
+            initials: entry.playerName,
+            avatarUrl: entry.avatarUrl,
+            handicapIndex: entry.handicapIndex,
+            playingHandicap: entry.playingHandicap,
+            score: rawScore,
+            scoreColor: null,
+            tieBreakLabel: format == CompetitionFormat.matchPlay ? null : differentiatorChain,
+            thruLabel: entry.thruLabel,
+            ranking: entry.position,
+            isGuest: entry.isGuest,
+            hasMemberGuest: entry.hasGuest,
+            isStableford: isStableford,
+            useCard: true,
+            showChevron: false,
+            isSelected: highlightEntryId != null && entry.entryId == highlightEntryId,
+            onTap: () => onPlayerTap?.call(entry),
+          ),
         );
       }).toList(),
     );

@@ -65,8 +65,8 @@ The optimization engine includes a weighted factor for **Buggy Efficiency**:
 After optimization, the system performs a final pass to:
 - **Assign Captains**: Each group is assigned a Captain (prioritizing members).
 - **Synchronize Buggy Status**: Every player's `buggyStatus` is recalculated based on the final group composition and the global available capacity.
-- **Team Scoring (Best X)**: In Scoring Mode, the grouping card automatically calculates the "Team Total" based on the `teamBestXCount` defined in the competition rules. The top X points/scores for the group are summed dynamically.
-- **Winner Indicators**: The top-performing group(s) in each flight (or overall) are highlighted with a **Trophy Icon** on the grouping card.
+- **Team Scoring (Best X)**: In the **Scores hub**, the grouping card automatically calculates the "Team Total" based on the `teamBestXCount` defined in the competition rules. This data is **hidden in the Field (Draw) tab** to maintain a clean management interface.
+- **Winner Indicators**: Top-performing groups are highlighted with a **Trophy Icon** only in the Scores hub. Administrative management views enforce strict data isolation to prevent live scoring leaks.
 
 ---
 
@@ -149,3 +149,18 @@ Admins can toggle which types of events contribute to and are affected by automa
 
 ### Transparency
 - **Locker Room Card**: Members can see their active cut status, the breakdown of contributing finishes, and the remaining validity (event countdown) in their private Locker Room.
+
+---
+
+## 12. Administrative Data Isolation (Hardening)
+
+To ensure a professional and focused management experience, the administrative suite enforces strict isolation between "Field Management" (Organization) and "Scoring Hubs" (Results).
+
+### Clean Draw Policy
+The **"The Draw" (Field Management)** tab remains clean of live scoring data at all times. This includes:
+- **Suppression of Result Labels**: Strings like "Won 3 & 1" or "Lost 2 up" are never visible in the organization views.
+- **Zero Scoring Leaks**: The `isScoreMode` and `showScoring` flags are forced to `false` in the `AdminGroupingHubContent` and `EventAdminGroupingScreen`.
+- **Interaction Parity**: Admins maintain full drag-and-drop and swap interactivity without the visual clutter of live match-play results.
+
+### Dedicated Scoring Hubs
+All live result data, including group totals, winner icons, and match statuses, are centralized in the **"Scores" hub**. This ensures architectural stability and prevents unintended data exposure during pre-event or mid-event field adjustments.

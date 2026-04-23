@@ -98,7 +98,7 @@ class _BoxyArtRichNoteEditorState extends ConsumerState<BoxyArtRichNoteEditor> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(
-                child: BoxyArtTextField(
+                child: BoxyArtFormField(
                   label: toTitleCase(widget.titleHint!),
                   controller: _titleController,
                   hintText: 'Enter title here...',
@@ -114,6 +114,7 @@ class _BoxyArtRichNoteEditorState extends ConsumerState<BoxyArtRichNoteEditor> {
                       iconSize: 20,
                       onPressed: _pickImage,
                       tooltip: 'Add Photo',
+                      iconColor: Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
                     const SizedBox(width: AppSpacing.sm),
                     BoxyArtGlassIconButton(
@@ -121,6 +122,7 @@ class _BoxyArtRichNoteEditorState extends ConsumerState<BoxyArtRichNoteEditor> {
                       iconSize: 20,
                       onPressed: widget.onRemove,
                       tooltip: 'Remove Note',
+                      iconColor: Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
                   ],
                 ),

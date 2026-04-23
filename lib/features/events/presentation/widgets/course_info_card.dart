@@ -22,6 +22,7 @@ class CourseInfoCard extends StatelessWidget {
   final String? mainRowLabel; 
   final int? overrideTotalPoints;
   final List<String>? matchPlayResults;
+  final int? conclusionHole; // [NEW] The hole where the match play was decided
 
   const CourseInfoCard({
     super.key,
@@ -44,6 +45,7 @@ class CourseInfoCard extends StatelessWidget {
     this.isNet = true, 
     this.overrideTotalPoints,
     this.matchPlayResults,
+    this.conclusionHole,
   });
 
   @override
@@ -54,9 +56,31 @@ class CourseInfoCard extends StatelessWidget {
     final List<int> dists = holeDistances ?? (courseConfig is CourseConfig ? (courseConfig as CourseConfig).holes.map((h) => (h.yardage ?? 0)).toList() : List.filled(18, 0));
 
     // 2. Totals Calculation (Simple sum of pre-calculated data)
-    final int holesPlayed = (holeScores ?? []).where((s) => s != null).length;
-    final int totalStrokes = (holeScores ?? []).whereType<int>().fold<int>(0, (a, b) => a + b);
-    final int totalNetStrokes = (holeNetScores ?? []).whereType<int>().fold<int>(0, (a, b) => a + b);
+    final int holesPlayed = (holeScores ?? []).asMap().entries.where((e) {
+      final idx = e.key;
+      final score = e.value;
+      if (score == null) return false;
+      if (matchPlayResults != null && matchPlayResults!.length > idx && matchPlayResults![idx].isEmpty) return false;
+      return true;
+    }).length;
+
+    final int totalStrokes = (holeScores ?? []).asMap().entries.where((e) {
+      final idx = e.key;
+      final score = e.value;
+      if (score == null) return false;
+      // [FIX] Bounds check for matchPlayResults
+      if (matchPlayResults != null && matchPlayResults!.length > idx && matchPlayResults![idx].isEmpty) return false;
+      return true;
+    }).fold<int>(0, (sum, e) => sum + (e.value as int));
+
+    final int totalNetStrokes = (holeNetScores ?? []).asMap().entries.where((e) {
+      final idx = e.key;
+      final score = e.value;
+      if (score == null) return false;
+      // [FIX] Bounds check for matchPlayResults
+      if (matchPlayResults != null && matchPlayResults!.length > idx && matchPlayResults![idx].isEmpty) return false;
+      return true;
+    }).fold<int>(0, (sum, e) => sum + (e.value as int));
     final int totalPoints = overrideTotalPoints ?? (holePoints ?? []).whereType<int>().fold<int>(0, (a, b) => a + b);
     final int totalPar = pars.fold<int>(0, (a, b) => a + b);
 
@@ -104,95 +128,114 @@ class CourseInfoCard extends StatelessWidget {
     final nineScores = (scores ?? List.filled(18, null)).skip(startIdx).take(9).toList();
     final ninePoints = (points ?? List.filled(18, null)).skip(startIdx).take(9).toList();
 
+    final List<String>? nineMatchResults = matchPlayResults?.skip(startIdx).take(9).toList();
+
     final String distLabel = distanceUnit.toUpperCase().contains('METRE') ? 'MTR' : 'YDS';
     final int nineDistTotal = nineDists.fold<int>(0, (a, b) => a + b);
     final int nineParTotal = ninePars.fold<int>(0, (a, b) => a + b);
-    final int nineScoreTotal = nineScores.whereType<int>().fold<int>(0, (a, b) => a + b);
+    final int nineScoreTotal = nineScores.asMap().entries.where((e) {
+      final idx = e.key;
+      final score = e.value;
+      if (score == null) return false;
+      // [FIX] Bounds check for nineMatchResults
+      if (nineMatchResults != null && nineMatchResults.length > idx && nineMatchResults[idx].isEmpty) return false;
+      return true;
+    }).fold<int>(0, (sum, e) => sum + (e.value as int));
 
-    return Column(
+    final List<Widget> children = [];
+
+    // Hole Row
+    children.add(Row(
       children: [
-        // Hole Row
-        Row(
-          children: [
-            _buildSideLabel(context, 'Hole'),
-            for (int i = 0; i < 9; i++)
-              Expanded(child: _buildValueCell(context, '${startHole + i}', isHeader: true)),
-            _buildTotalCell(context, label, isHeader: true),
-          ],
-        ),
-        const Divider(height: 1),
-
-        // Distance Row
-        Row(
-          children: [
-            _buildSideLabel(context, distLabel),
-            for (int i = 0; i < 9; i++)
-              Expanded(child: _buildValueCell(context, nineDists[i] > 0 ? '${nineDists[i]}' : '-', isDimmed: true, fontSize: 12, fontWeight: FontWeight.w300)),
-            _buildTotalCell(context, nineDistTotal > 0 ? '$nineDistTotal' : '-', isDimmed: true, fontSize: 12, fontWeight: FontWeight.w300),
-          ],
-        ),
-        const Divider(height: 1),
-
-        // Par Row (Yellow/Tee styled)
-        (() {
-          final teeColor = AppColors.getTeeColor(selectedTeeName);
-          final teeTextColor = teeColor.computeLuminance() > 0.5 ? Colors.black : Colors.white;
-          return Container(
-            color: teeColor,
-            child: Row(
-              children: [
-                _buildSideLabel(context, 'Par', color: teeTextColor),
-                for (int i = 0; i < 9; i++)
-                  Expanded(child: _buildValueCell(context, '${ninePars[i]}', color: teeTextColor, isBold: true)),
-                _buildTotalCell(context, '$nineParTotal', color: teeTextColor, isBold: true, bgColor: teeColor),
-              ],
+        _buildSideLabel(context, 'Hole'),
+        for (int i = 0; i < 9; i++)
+          Expanded(
+            child: _buildValueCell(
+              context, 
+              '${startHole + i}', 
+              isHeader: true,
+              bgColor: (startHole + i) == conclusionHole ? AppColors.dark900 : null,
+              color: (startHole + i) == conclusionHole ? Colors.white : null,
+              isBold: (startHole + i) == conclusionHole,
             ),
-          );
-        })(),
-        const Divider(height: 1),
-
-        // SI Row
-        Row(
-          children: [
-            _buildSideLabel(context, 'SI'),
-            for (int i = 0; i < 9; i++)
-              Expanded(child: _buildValueCell(context, '${nineSIs[i]}')),
-            _buildTotalCell(context, ''),
-          ],
-        ),
-        const Divider(height: 1),
-
-        // Main Score Row (STR)
-        Row(
-          children: [
-            _buildSideLabel(context, mainRowLabel ?? 'STR'),
-            for (int i = 0; i < 9; i++)
-              Expanded(child: _buildScoreCell(context, nineScores[i], ninePars[i])),
-            _buildTotalCell(context, nineScoreTotal > 0 ? '$nineScoreTotal' : '-', isBold: true),
-          ],
-        ),
-        const Divider(height: 1),
-
-        // Partner Rows
-        if (additionalRows != null) ...[
-          for (var row in additionalRows!)
-            _buildPartnerScoreRow(context, row, startIdx, ninePars),
-        ],
-
-        // PTS Row (Stableford only)
-        if (isStableford) ...[
-          Row(
-            children: [
-              _buildSideLabel(context, 'Pts'),
-              for (int i = 0; i < 9; i++)
-                Expanded(child: _buildValueCell(context, ninePoints[i] != null || nineScores[i] != null ? (ninePoints[i]?.toString() ?? '-') : '-', isDimmed: true)),
-              _buildTotalCell(context, ninePoints.whereType<int>().fold<int>(0, (a, b) => a + b).toString(), isDimmed: true, isBold: true),
-            ],
           ),
-          const Divider(height: 1),
-        ],
+        _buildTotalCell(context, label, isHeader: true),
       ],
-    );
+    ));
+    children.add(const Divider(height: 1));
+
+    // Distance Row
+    final List<Widget> distRowCells = [];
+    for (int i = 0; i < 9; i++) {
+      final isNotPlayed = nineMatchResults != null && nineMatchResults.length > i && nineMatchResults[i].isEmpty;
+      distRowCells.add(Expanded(child: _buildValueCell(context, (nineDists[i] > 0 && !isNotPlayed) ? '${nineDists[i]}' : '-', isDimmed: true, fontSize: 12, fontWeight: FontWeight.w300)));
+    }
+    children.add(Row(children: [
+      _buildSideLabel(context, distLabel),
+      ...distRowCells,
+      _buildTotalCell(context, nineDistTotal > 0 ? '$nineDistTotal' : '-', isDimmed: true, fontSize: 12, fontWeight: FontWeight.w300),
+    ]));
+    children.add(const Divider(height: 1));
+
+    // Par Row
+    final teeColor = AppColors.getTeeColor(selectedTeeName);
+    final teeTextColor = teeColor.computeLuminance() > 0.5 ? Colors.black : Colors.white;
+    children.add(Container(
+      color: teeColor,
+      child: Row(
+        children: [
+          _buildSideLabel(context, 'Par', color: teeTextColor),
+          for (int i = 0; i < 9; i++)
+            Expanded(child: _buildValueCell(context, (nineMatchResults != null && nineMatchResults.length > i && nineMatchResults[i].isEmpty) ? '-' : '${ninePars[i]}', color: teeTextColor, isBold: true)),
+          _buildTotalCell(context, '$nineParTotal', color: teeTextColor, isBold: true, bgColor: teeColor),
+        ],
+      ),
+    ));
+    children.add(const Divider(height: 1));
+
+    // SI Row
+    children.add(Row(
+      children: [
+        _buildSideLabel(context, 'SI'),
+        for (int i = 0; i < 9; i++)
+          Expanded(child: _buildValueCell(context, (nineMatchResults != null && nineMatchResults.length > i && nineMatchResults[i].isEmpty) ? '-' : '${nineSIs[i]}')),
+        _buildTotalCell(context, ''),
+      ],
+    ));
+    children.add(const Divider(height: 1));
+
+    // Main Score Row (STR)
+    children.add(Row(
+      children: [
+        _buildSideLabel(context, mainRowLabel ?? 'STR'),
+        for (int i = 0; i < 9; i++)
+          Expanded(child: _buildScoreCell(context, (nineMatchResults != null && nineMatchResults.length > i && nineMatchResults[i].isEmpty) ? null : nineScores[i], ninePars[i])),
+        _buildTotalCell(context, nineScoreTotal > 0 ? '$nineScoreTotal' : '-', isBold: true),
+      ],
+    ));
+    children.add(const Divider(height: 1));
+
+    // Partner Rows
+    if (additionalRows != null) {
+      for (var row in additionalRows!) {
+        children.add(_buildPartnerScoreRow(context, row, startIdx, ninePars));
+      }
+    }
+
+    // PTS Row (Stableford only)
+    if (isStableford) {
+      children.add(Row(
+        children: [
+          _buildSideLabel(context, 'Pts'),
+          for (int i = 0; i < 9; i++)
+            Expanded(child: _buildValueCell(context, ninePoints[i] != null || nineScores[i] != null ? (ninePoints[i]?.toString() ?? '-') : '-', isDimmed: true)),
+          _buildTotalCell(context, ninePoints.whereType<int>().fold<int>(0, (a, b) => a + b).toString(), isDimmed: true, isBold: true),
+        ],
+      ));
+      children.add(const Divider(height: 1));
+    }
+
+    return Column(children: children);
   }
 
   Widget _buildPartnerScoreRow(BuildContext context, CourseScoreRow row, int startIdx, List<int> pars) {
@@ -261,10 +304,35 @@ class CourseInfoCard extends StatelessWidget {
     );
   }
 
-  Widget _buildValueCell(BuildContext context, String text, {bool isHeader = false, bool isDimmed = false, bool isBold = false, Color? color, double? fontSize, FontWeight? fontWeight}) {
+  Widget _buildValueCell(BuildContext context, String text, {
+    bool isHeader = false, 
+    bool isDimmed = false, 
+    bool isBold = false, 
+    Color? color, 
+    double? fontSize, 
+    FontWeight? fontWeight,
+    Color? bgColor,
+  }) {
     return Container(
-      height: 28, alignment: Alignment.center,
-      child: Text(text, style: AppTypography.labelStrong.copyWith(fontSize: fontSize ?? 13, fontWeight: fontWeight ?? (isBold ? AppTypography.weightBlack : (isHeader ? AppTypography.weightBold : AppTypography.weightSemibold)), color: color ?? (isHeader ? AppColors.dark200 : (isDimmed ? AppColors.dark300 : AppColors.dark900)))),
+      height: 28, 
+      alignment: Alignment.center,
+      child: Container(
+        width: bgColor != null ? 22 : null,
+        height: bgColor != null ? 22 : null,
+        decoration: bgColor != null ? BoxDecoration(
+          color: bgColor,
+          shape: BoxShape.circle,
+        ) : null,
+        alignment: Alignment.center,
+        child: Text(
+          text, 
+          style: AppTypography.labelStrong.copyWith(
+            fontSize: fontSize ?? 13, 
+            fontWeight: fontWeight ?? (isBold ? AppTypography.weightBlack : (isHeader ? AppTypography.weightBold : AppTypography.weightSemibold)), 
+            color: color ?? (isHeader ? AppColors.dark200 : (isDimmed ? AppColors.dark300 : AppColors.dark900)),
+          ),
+        ),
+      ),
     );
   }
 

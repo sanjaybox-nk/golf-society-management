@@ -49,7 +49,7 @@ class BoxyArtButton extends ConsumerWidget {
         backgroundColor: theme.colorScheme.error,
         foregroundColor: theme.colorScheme.onError,
         elevation: 0,
-        textStyle: isSmall ? AppTypography.micro.copyWith(fontWeight: AppTypography.weightHeavy) : AppTypography.label.copyWith(fontWeight: AppTypography.weightHeavy),
+        textStyle: isSmall ? AppTypography.micro.copyWith(fontWeight: AppTypography.weightBold) : AppTypography.label.copyWith(fontWeight: AppTypography.weightBold),
         padding: EdgeInsets.symmetric(horizontal: config.buttonHorizontalPadding, vertical: isSmall ? 6 : 10),
         minimumSize: Size(0, isSmall ? config.buttonSmallHeight : config.buttonHeight),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(isSmall ? config.accentRadius : config.buttonRadius)),
@@ -90,7 +90,7 @@ class BoxyArtButton extends ConsumerWidget {
       style = ElevatedButton.styleFrom(
         backgroundColor: actionColor,
         foregroundColor: foregroundColor,
-        textStyle: AppTypography.label.copyWith(fontWeight: AppTypography.weightHeavy),
+        textStyle: AppTypography.label.copyWith(fontWeight: AppTypography.weightBold),
         padding: EdgeInsets.symmetric(horizontal: config.buttonHorizontalPadding, vertical: isSmall ? 6 : 10),
         minimumSize: Size(0, isSmall ? config.buttonSmallHeight : config.buttonHeight),
         shape: RoundedRectangleBorder(
@@ -113,7 +113,7 @@ class BoxyArtButton extends ConsumerWidget {
       style = ElevatedButton.styleFrom(
         backgroundColor: actionColor,
         foregroundColor: foregroundColor,
-        textStyle: AppTypography.label.copyWith(fontWeight: AppTypography.weightHeavy),
+        textStyle: AppTypography.label.copyWith(fontWeight: AppTypography.weightBold),
         padding: EdgeInsets.symmetric(horizontal: config.buttonHorizontalPadding, vertical: isSmall ? 6 : 10),
         minimumSize: Size(0, isSmall ? config.buttonSmallHeight : config.buttonHeight),
         shape: RoundedRectangleBorder(
@@ -177,12 +177,13 @@ class BoxyArtButton extends ConsumerWidget {
           const SizedBox(width: AppSpacing.sm),
         ],
         Text(
-          title,
+          title.toUpperCase(),
+          textAlign: TextAlign.center,
           style: (isSmall ? AppTypography.label : AppTypography.body).copyWith(
             color: color,
-            fontWeight: AppTypography.weightHeavy,
+            fontWeight: AppTypography.weightBold,
             fontSize: isSmall ? 13 : 16,
-            height: 1.1, // Tighten height for button labels to prevent overflow
+            height: 1.1,
           ),
         ),
       ],

@@ -25,7 +25,7 @@ class AppShapeTokens extends ThemeExtension<AppShapeTokens> {
     required this.accentOpacity,
     this.iconBadgeFill,
     this.iconBadgeIcon,
-    this.iconBadgeOpacity = 1.0,
+    this.iconBadgeOpacity = 0.15,
     required this.iconBadgeSize,
     required this.iconBadgeIconSize,
   });

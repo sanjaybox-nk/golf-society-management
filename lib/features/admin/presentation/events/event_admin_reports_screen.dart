@@ -46,8 +46,8 @@ class EventAdminReportsScreen extends ConsumerWidget {
                 selectedValue: selectedTab,
                 onTabSelected: (val) => ref.read(adminReportsTabProvider.notifier).set(val),
                 tabs: const [
-                  ModernFilterTab(label: 'Financials', value: 0),
-                  ModernFilterTab(label: 'Event Stats', value: 1),
+                  ModernFilterTab(label: 'Financials', value: 0, icon: Icons.payments_rounded),
+                  ModernFilterTab(label: 'Event Stats', value: 1, icon: Icons.analytics_rounded),
                 ],
               ),
             ),

@@ -76,10 +76,10 @@ _SocietyConfig _$SocietyConfigFromJson(Map<String, dynamic> json) =>
       tabToContentSpacing:
           (json['tabToContentSpacing'] as num?)?.toDouble() ?? 16.0,
       iconBadgeFillColor:
-          (json['iconBadgeFillColor'] as num?)?.toInt() ?? 0x264ADE80,
+          (json['iconBadgeFillColor'] as num?)?.toInt() ?? 0xFF4ADE80,
       iconBadgeIconColor:
           (json['iconBadgeIconColor'] as num?)?.toInt() ?? 0xFF4ADE80,
-      iconBadgeOpacity: (json['iconBadgeOpacity'] as num?)?.toDouble() ?? 1.0,
+      iconBadgeOpacity: (json['iconBadgeOpacity'] as num?)?.toDouble() ?? 0.15,
       iconOpacity: (json['iconOpacity'] as num?)?.toDouble() ?? 1.0,
       iconBadgeSize: (json['iconBadgeSize'] as num?)?.toDouble() ?? 38.0,
       iconBadgeIconSize:
@@ -133,6 +133,7 @@ _SocietyConfig _$SocietyConfigFromJson(Map<String, dynamic> json) =>
       globalMarkupPercentage:
           (json['globalMarkupPercentage'] as num?)?.toDouble() ?? 0.10,
       guestMarkupExtra: (json['guestMarkupExtra'] as num?)?.toDouble() ?? 10.0,
+      showMatchPlayOverlay: json['showMatchPlayOverlay'] as bool? ?? true,
       globalMembershipEndDate: const OptionalTimestampConverter()
           .fromJson(json['globalMembershipEndDate']),
       renewalWindowDays: (json['renewalWindowDays'] as num?)?.toInt() ?? 30,
@@ -239,6 +240,7 @@ Map<String, dynamic> _$SocietyConfigToJson(_SocietyConfig instance) =>
       'societyCutFilterInvitational': instance.societyCutFilterInvitational,
       'globalMarkupPercentage': instance.globalMarkupPercentage,
       'guestMarkupExtra': instance.guestMarkupExtra,
+      'showMatchPlayOverlay': instance.showMatchPlayOverlay,
       'globalMembershipEndDate': const OptionalTimestampConverter()
           .toJson(instance.globalMembershipEndDate),
       'renewalWindowDays': instance.renewalWindowDays,

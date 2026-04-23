@@ -231,8 +231,8 @@ class _AdminGroupingHubContentState extends ConsumerState<AdminGroupingHubConten
              scorecardMap: scorecardsAsync.asData?.value != null 
                  ? {for (var s in scorecardsAsync.asData!.value) s.entryId: s}
                  : null,
-            isScoreMode: true, 
-            showScoring: true, 
+            isScoreMode: false, 
+            showScoring: false, 
             computedEntries: computedEntries,
             computedGroupResults: computedGroupResults,
           );

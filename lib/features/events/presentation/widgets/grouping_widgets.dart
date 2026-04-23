@@ -125,9 +125,9 @@ class GroupingPlayerTile extends ConsumerWidget {
 
     // Calculate Variety Color (Priority: Match Side > Grouping History)
     Color? varietyColor;
-    if (matchSide != null) {
-       // Match Play side coloring
-       varietyColor = (matchSide == 'A') ? Color(config.teamAColor) : Color(config.teamBColor);
+    if (matchSide != null && config.showMatchPlayOverlay) {
+       // Match Play side coloring removed as per user preference
+       varietyColor = null;
     } else if (!player.isGuest) {
       final matchesCount = GroupingService.getTeeTimeVariety(
         player.registrationMemberId,
@@ -165,19 +165,20 @@ class GroupingPlayerTile extends ConsumerWidget {
       isCaptain: player.isCaptain,
       hasMemberGuest: hasGuestInGroup,
       isWinner: isWinner,
-      matchSide: matchSide,
+      matchSide: config.showMatchPlayOverlay ? matchSide : null,
       varietyPillarColor: varietyColor,
       hasSocietyCut: hasSocietyCut,
       tieBreakLabel: tieBreakLabel,
       thruLabel: thruLabel,
       score: hasScore ? scoreDisplay : null,
       isStableford: isStableford,
+      scoreColor: null,
       onTap: onTap,
       isSelected: isSelected,
       useCard: true,
       showVerticalDivider: true,
       showChevron: false,
-      accentColor: matchSide != null ? (matchSide == 'A' ? Color(config.teamAColor) : Color(config.teamBColor)) : null,
+      accentColor: null,
       leading: isAdmin 
         ? PopupMenuButton<String>(
             onSelected: (val) => onAction?.call(val, player, group),
@@ -388,6 +389,7 @@ class GroupingCard extends ConsumerWidget {
     final config = ref.watch(themeControllerProvider);
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final spacing = Theme.of(context).extension<AppSpacingTokens>();
+
     
     // 1. Calculate Total PHC dynamically
     double displayTotalHandicap = 0;
@@ -446,7 +448,10 @@ class GroupingCard extends ConsumerWidget {
            playerMatchResults[id] = MatchResult(
              matchId: 'centralized',
              winningTeamIndex: entry.matchScore != null ? (entry.matchScore! > 0 ? 0 : 1) : -1,
-             status: entry.matchStatus!,
+             status: entry.matchStatus!
+                 .replaceAll('WIN', 'Won')
+                 .replaceAll('LOSS', 'Lost')
+                 .replaceAll('HALVED', 'Halved'),
              score: entry.matchScore ?? 0,
              holeResults: [],
              holesPlayed: entry.holesPlayed,
@@ -544,194 +549,139 @@ class GroupingCard extends ConsumerWidget {
                   fontSize: AppTypography.sizeLargeBody,
                 ),
               ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: 6),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.primary,
-                  borderRadius: AppShapes.xl,
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(Icons.access_time_filled_rounded, size: AppShapes.iconXs, color: AppColors.pureWhite),
-                    const SizedBox(width: 6),
-                    Text(_formatTime(context, group.teeTime), style: AppTypography.label.copyWith(color: AppColors.pureWhite)),
-                  ],
-                ),
+              BoxyArtPill(
+                label: _formatTime(context, group.teeTime),
+                icon: Icons.access_time_filled_rounded,
+                isAction: true,
+                hasHorizontalMargin: false,
               ),
             ],
           ),
           SizedBox(height: spacing?.labelToCard ?? AppSpacing.md),
           // 7. Render Players (Match Play aware reordering)
           ...() {
+            Widget buildParticipantTile(TeeGroupParticipant p, String id, String? side) {
+              final bool hasGuestInGroupP = !p.isGuest && group.players.any((other) => other.isGuest && other.registrationMemberId == p.registrationMemberId);
+              
+              return GroupingPlayerTile(
+                player: p,
+                group: group,
+                member: memberMap[p.registrationMemberId],
+                history: history,
+                totalGroups: totalGroups,
+                rules: rules,
+                courseConfig: courseConfig,
+                useWhs: useWhs,
+                isAdmin: isAdmin,
+                isSelected: isSelected?.call(p) ?? false,
+                onAction: onAction,
+                isScoreMode: isScoreMode,
+                scoreDisplay: isScoreMode 
+                    ? (playerMatchResults[id]?.status ?? (scoreMap != null ? scoreMap![id] : null)) 
+                    : null,
+                isWinner: isScoreMode ? (internalWinnerMap[id] ?? false) : false,
+                thruLabel: isScoreMode ? (thruMap != null ? thruMap![id] : null) : null,
+                handicapIndex: hcMap != null ? hcMap![id] : null,
+                scoringStatus: (statusMap != null ? statusMap![id] : null) ?? ScoringStatus.ok,
+                onTap: () => onTapParticipant?.call(p, group),
+                hasSocietyCut: p.hasSocietyCut,
+                hasGuestInGroup: hasGuestInGroupP,
+                matchSide: side,
+                phcOverride: isScoreMode ? relativePhcMap[id] : null,
+              );
+            }
+
             final List<Widget> children = [];
             final List<TeeGroupParticipant> players = List.from(group.players);
             
-            // Reordering for Match Play Forced Adjacency
-            if (isMatchPlay || matchPlayMode || matches.isNotEmpty) {
-              final List<TeeGroupParticipant> ordered = [];
+            // Reordering and Vertical Rhythm for Match Play (v4.x)
+            if (config.showMatchPlayOverlay && (isMatchPlay || matchPlayMode || matches.isNotEmpty)) {
               final Set<String> processedIds = {};
+              int matchIndex = 1;
               
+              // 1. Render Defined Matches
               for (final match in (matches ?? [])) {
                 final allMatchIds = [...match.team1Ids, ...match.team2Ids];
-                // Check if this match belongs to this group
-                bool matchInGroup = false;
+                final List<TeeGroupParticipant> sideA = [];
+                final List<TeeGroupParticipant> sideB = [];
+
                 for (var p in players) {
                   final pid = p.isGuest ? '${p.registrationMemberId}_guest' : p.registrationMemberId;
-                  if (allMatchIds.contains(pid) || allMatchIds.contains(p.registrationMemberId)) {
-                    matchInGroup = true;
-                    break;
-                  }
-                }
-                
-                if (matchInGroup) {
-                  final List<TeeGroupParticipant> team1 = [];
-                  final List<TeeGroupParticipant> team2 = [];
-                  
-                  for (var p in players) {
-                    final pid = p.isGuest ? '${p.registrationMemberId}_guest' : p.registrationMemberId;
-                    if (processedIds.contains(pid)) continue;
-                    
-                    if (match.team1Ids.contains(pid) || match.team1Ids.contains(p.registrationMemberId)) {
-                      team1.add(p);
-                    } else if (match.team2Ids.contains(pid) || match.team2Ids.contains(p.registrationMemberId)) {
-                      team2.add(p);
-                    }
-                  }
-                  
-                  if (team1.isNotEmpty || team2.isNotEmpty) {
-                    ordered.addAll(team1);
-                    // Mark as processed
-                    for (var p in team1) processedIds.add(p.isGuest ? '${p.registrationMemberId}_guest' : p.registrationMemberId);
-                    
-                    // Inject VS indicator if both sides exist
-                    if (team1.isNotEmpty && team2.isNotEmpty) {
-                       // We'll mark the index where VS should go later or handle it in the widget list
-                    }
-                    
-                    ordered.addAll(team2);
-                    for (var p in team2) processedIds.add(p.isGuest ? '${p.registrationMemberId}_guest' : p.registrationMemberId);
-                  }
-                }
-              }
-              // Add remaining players
-              for (var p in players) {
-                final pid = p.isGuest ? '${p.registrationMemberId}_guest' : p.registrationMemberId;
-                if (!processedIds.contains(pid)) ordered.add(p);
-              }
-              
-              // Second pass: Create widgets with VS
-              for (int i = 0; i < ordered.length; i++) {
-                final p = ordered[i];
-                final id = p.isGuest ? '${p.registrationMemberId}_guest' : p.registrationMemberId;
-                
-                // Identify match and side
-                String? matchSide;
-                MatchDefinition? currentMatch;
-                for (final match in (matches ?? [])) {
-                  // Robust matching: Check specific participant ID first, then fall back to member ID
-                  final bool isTeam1 = match.team1Ids.contains(id) || (!p.isGuest && match.team1Ids.contains(p.registrationMemberId));
-                  final bool isTeam2 = match.team2Ids.contains(id) || (!p.isGuest && match.team2Ids.contains(p.registrationMemberId));
+                  if (processedIds.contains(pid)) continue;
 
-                  if (isTeam1) { 
-                    matchSide = 'A'; currentMatch = match; break; 
-                  } else if (isTeam2) { 
-                    matchSide = 'B'; currentMatch = match; break; 
+                  if (match.team1Ids.contains(pid) || match.team1Ids.contains(p.registrationMemberId)) {
+                    sideA.add(p);
+                  } else if (match.team2Ids.contains(pid) || match.team2Ids.contains(p.registrationMemberId)) {
+                    sideB.add(p);
                   }
                 }
 
-                // Render Tile
-                final participantMatchResult = playerMatchResults[id];
-                final bool hasCentralMatchStatus = participantMatchResult != null;
-                final bool effectiveIsMatchPlay = isMatchPlay || matchPlayMode || (matches.isNotEmpty) || hasCentralMatchStatus;
-                
-                String? scoreForTile;
-                if (effectiveIsMatchPlay && hasCentralMatchStatus) {
-                  scoreForTile = participantMatchResult!.status;
-                } else if (showScoring && scoreMap != null && !effectiveIsMatchPlay) {
-                  scoreForTile = scoreMap![id];
-                }
+                if (sideA.isNotEmpty || sideB.isNotEmpty) {
+                  // Add Match Header (Microtext)
+                  children.add(
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 8.0, top: 4.0),
+                      child: Text(
+                        'MATCH $matchIndex',
+                        style: AppTypography.micro.copyWith(
+                          color: (isDark ? AppColors.pureWhite : AppColors.dark900).withValues(alpha: 0.6),
+                          fontWeight: AppTypography.weightExtraBold,
+                          letterSpacing: 1.5,
+                        ),
+                      ),
+                    ),
+                  );
 
-                final bool hasGuestInGroupP = !p.isGuest && group.players.any((other) => other.isGuest && other.registrationMemberId == p.registrationMemberId);
-                
-                final baseTile = GroupingPlayerTile(
-                  player: p,
-                  group: group,
-                  member: memberMap[p.registrationMemberId],
-                  history: history,
-                  totalGroups: totalGroups,
-                  rules: rules,
-                  courseConfig: courseConfig,
-                  useWhs: useWhs,
-                  isAdmin: isAdmin,
-                  isSelected: isSelected?.call(p) ?? false,
-                  onAction: onAction,
-                  isScoreMode: isScoreMode,
-                  scoreDisplay: scoreForTile,
-                  isWinner: showScoring ? (internalWinnerMap[id] ?? false) : false,
-                  thruLabel: showScoring ? (thruMap?[id]) : null,
-                  handicapIndex: hcMap?[id],
-                  scoringStatus: statusMap?[id] ?? ScoringStatus.ok,
-                  onTap: () => onTapParticipant?.call(p, group),
-                  hasSocietyCut: p.hasSocietyCut,
-                  hasGuestInGroup: hasGuestInGroupP,
-                  matchSide: matchSide,
-                );
-
-                children.add(isAdmin ? _wrapWithDraggable(context, p, baseTile) : baseTile);
-
-                // Inject VS Lettering / Separation
-                final bool isMatchPlayOrPairs = matchPlayMode || isMatchPlay || (rules?.mode == CompetitionMode.pairs) || (rules?.format == CompetitionFormat.matchPlay);
-                final bool isLastPlayerSubgroup = i < ordered.length - 1;
-                
-                bool shouldInjectVS = false;
-                final bool isSingles = rules?.mode == CompetitionMode.singles;
-
-                if (matchSide == 'A' && isLastPlayerSubgroup) {
-                   final nextP = ordered[i+1];
-                   final nextId = nextP.isGuest ? '${nextP.registrationMemberId}_guest' : nextP.registrationMemberId;
-                   // If next player is explicitly on Team 2 of the same match
-                   if (currentMatch != null && (currentMatch.team2Ids.contains(nextId) || currentMatch.team2Ids.contains(nextP.registrationMemberId))) {
-                      shouldInjectVS = true;
-                   }
-                } else if (matchSide == null && isMatchPlayOrPairs && isLastPlayerSubgroup && (ordered.length == 2 || ordered.length == 4)) {
-                  // Fallback: Smart split for Match Play groups without formal match definitions
-                  if (isSingles) {
-                    // Singles: Split every 2 players
-                    if (i % 2 == 0) shouldInjectVS = true;
-                  } else {
-                    // Pairs: Split exactly in half
-                    if (i == (ordered.length ~/ 2 - 1)) shouldInjectVS = true;
+                  // Add Side A Cards
+                  for (var p in sideA) {
+                    final id = p.isGuest ? '${p.registrationMemberId}_guest' : p.registrationMemberId;
+                    processedIds.add(id);
+                    final tile = buildParticipantTile(p, id, 'A');
+                    children.add(isAdmin ? _wrapWithDraggable(context, p, tile) : tile);
+                    if (p != sideA.last) children.add(const SizedBox(height: 8));
                   }
-                }
 
-                if (shouldInjectVS) {
+                  // Add "v" Separator
+                  if (sideA.isNotEmpty && sideB.isNotEmpty) {
                     children.add(
                       Padding(
-                        padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm), 
-                        child: Row(
-                          children: [
-                            Expanded(child: Divider(color: (isDark ? AppColors.pureWhite : AppColors.dark900).withValues(alpha: 0.1), thickness: 1)),
-                            Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
-                              child: Text(
-                                'VS',
-                                style: TextStyle(
-                                  fontSize: 10,
-                                  fontWeight: AppTypography.weightBlack,
-                                  color: (isDark ? AppColors.pureWhite : AppColors.dark900).withValues(alpha: 0.5),
-                                  letterSpacing: 4.0,
-                                ),
-                              ),
+                        padding: const EdgeInsets.symmetric(vertical: 4.0),
+                        child: Center(
+                          child: Text(
+                            'v',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: AppTypography.weightExtraBold,
+                              color: (isDark ? AppColors.pureWhite : AppColors.dark900).withValues(alpha: 0.7),
                             ),
-                            Expanded(child: Divider(color: (isDark ? AppColors.pureWhite : AppColors.dark900).withValues(alpha: 0.1), thickness: 1)),
-                          ],
+                          ),
                         ),
                       ),
                     );
-                } else if (isLastPlayerSubgroup) {
-                    // Standard spacing between teammates or non-match-play groups
-                    children.add(SizedBox(height: spacing?.labelToCard ?? AppSpacing.md));
+                  }
+
+                  // Add Side B Cards
+                  for (var p in sideB) {
+                    final id = p.isGuest ? '${p.registrationMemberId}_guest' : p.registrationMemberId;
+                    processedIds.add(id);
+                    final tile = buildParticipantTile(p, id, 'B');
+                    children.add(isAdmin ? _wrapWithDraggable(context, p, tile) : tile);
+                    if (p != sideB.last) children.add(const SizedBox(height: 8));
+                  }
+
+                  matchIndex++;
+                  // Spacing between matches
+                  children.add(SizedBox(height: spacing?.cardToCard ?? AppSpacing.x2l));
+                }
+              }
+
+              // 2. Add remaining players (Fallback)
+              for (var p in players) {
+                final id = p.isGuest ? '${p.registrationMemberId}_guest' : p.registrationMemberId;
+                if (!processedIds.contains(id)) {
+                  final tile = buildParticipantTile(p, id, null);
+                  children.add(isAdmin ? _wrapWithDraggable(context, p, tile) : tile);
+                  children.add(SizedBox(height: spacing?.cardToCard ?? AppSpacing.md));
                 }
               }
             } else {
@@ -752,10 +702,11 @@ class GroupingCard extends ConsumerWidget {
                   isAdmin: isAdmin,
                   isSelected: isSelected?.call(p) ?? false,
                   onAction: onAction,
-                  isScoreMode: isScoreMode,
-                  scoreDisplay: (showScoring && scoreMap != null && !matchPlayMode && !isMatchPlay) ? scoreMap![id] : null,
-                  isWinner: showScoring ? (internalWinnerMap[id] ?? false) : false,
-                  thruLabel: showScoring ? (thruMap?[id]) : null,
+                  scoreDisplay: isScoreMode 
+                      ? (playerMatchResults[id]?.status ?? (scoreMap != null ? scoreMap![id] : null)) 
+                      : null,
+                  isWinner: isScoreMode ? (internalWinnerMap[id] ?? false) : false,
+                  thruLabel: isScoreMode ? (thruMap != null ? thruMap![id] : null) : null,
                   handicapIndex: hcMap?[id],
                   scoringStatus: statusMap?[id] ?? ScoringStatus.ok,
                   onTap: () => onTapParticipant?.call(p, group),
@@ -782,9 +733,19 @@ class GroupingCard extends ConsumerWidget {
                     Padding(
                       padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
                       child: Row(children: [
-                        Expanded(child: Divider(color: AppColors.dark400, height: 1)),
-                        Padding(padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm), child: Text('VS', style: TextStyle(fontSize: AppTypography.sizeCaption, fontWeight: AppTypography.weightBold, color: Colors.black.withValues(alpha: 0.54)))),
-                        Expanded(child: Divider(color: AppColors.dark400, height: 1)),
+                        Expanded(child: SizedBox.shrink()),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm), 
+                          child: Text(
+                            'VS', 
+                            style: TextStyle(
+                              fontSize: AppTypography.sizeCaption, 
+                              fontWeight: AppTypography.weightExtraBold, 
+                              color: (isDark ? AppColors.pureWhite : AppColors.dark900).withValues(alpha: 0.7),
+                            ),
+                          ),
+                        ),
+                        Expanded(child: SizedBox.shrink()),
                       ]),
                     ),
                   ]));
@@ -817,14 +778,8 @@ class GroupingCard extends ConsumerWidget {
           Padding(
             padding: EdgeInsets.zero,
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              mainAxisAlignment: MainAxisAlignment.end, // Align PHC to the right
               children: [
-                if (showScoring && isScoreMode && groupTotalCount > 0)
-                  Text(
-                    isScramble ? 'Team Score: $groupTotalCount${isStableford ? ' pts' : ''}' : 'Group (Best $bestX): $groupTotalCount${isStableford ? ' pts' : ''}',
-                    style: AppTypography.label.copyWith(color: Theme.of(context).colorScheme.primary, fontWeight: AppTypography.weightExtraBold, fontSize: 12, letterSpacing: -0.2),
-                  ),
-                const Spacer(),
                 if (isFourball)
                   Text(rules?.format == CompetitionFormat.matchPlay ? 'Match Play (Rel)' : 'Fourball (Pairs)', style: AppTypography.label.copyWith(color: isDark ? AppColors.dark100 : AppColors.dark900, fontWeight: AppTypography.weightBold, fontSize: 12, letterSpacing: -0.2))
                 else if (isScramble)
@@ -865,6 +820,7 @@ class GroupingCard extends ConsumerWidget {
 
     // If locked, return just the decorated container to keep layout stable
     if (isLocked) return decoratedChild;
+
 
     return DragTarget<Map<String, dynamic>>(
       onWillAcceptWithDetails: (details) =>
@@ -913,6 +869,7 @@ class GroupingCard extends ConsumerWidget {
       },
     );
   }
+
 }
 
 class PodiumEntry {

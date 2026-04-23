@@ -398,8 +398,8 @@ class _EventAdminGroupingScreenState extends ConsumerState<EventAdminGroupingScr
               scorecardMap: scorecardsAsync.asData?.value != null 
                   ? {for (var s in scorecardsAsync.asData!.value) s.entryId: s}
                   : null,
-              isScoreMode: true,
-              showScoring: true,
+              isScoreMode: false,
+              showScoring: false,
           emptySlotBuilder: (g) => DragTarget<Map<String, dynamic>>(
             onWillAcceptWithDetails: (details) => _isLocked != true && (details.data['group'] != g || g.players.length < 4),
             onAcceptWithDetails: (details) {

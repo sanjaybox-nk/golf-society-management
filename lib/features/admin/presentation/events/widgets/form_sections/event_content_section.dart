@@ -34,6 +34,7 @@ class EventContentSection extends ConsumerWidget {
                 }),
                 BoxyArtButton(
                   title: 'Add facility',
+                  fullWidth: true,
                   onTap: () => ref.read(eventFormNotifierProvider.notifier).addFacility(),
                   isGhost: true,
                   icon: Icons.add_circle_outline_rounded,
@@ -65,6 +66,7 @@ class EventContentSection extends ConsumerWidget {
               }),
               BoxyArtButton(
                 title: 'Add note',
+                fullWidth: true,
                 onTap: () => ref.read(eventFormNotifierProvider.notifier).addNote(),
                 isGhost: true,
                 icon: Icons.add_circle_outline_rounded,

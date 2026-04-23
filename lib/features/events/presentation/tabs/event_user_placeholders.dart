@@ -113,7 +113,7 @@ class EventGroupingUserTab extends ConsumerWidget {
 
         return HeadlessScaffold(
           title: event.title,
-          subtitle: 'Event Field and Tee Time',
+          subtitle: 'Event Field and Tee Times',
           showAdminShortcut: false, // Explicitly removed as per user preference
           showBack: true,
           onBack: () => context.go('/events'),
@@ -168,7 +168,7 @@ class EventGroupingUserTab extends ConsumerWidget {
                 const SliverFillRemaining(
                   hasScrollBody: false,
                   child: BoxyArtEmptyCard(
-                    title: 'Tee Time Not Published',
+                    title: 'Tee Times Not Published',
                     message: 'Official pairings are currently being finalized. Keep an eye on the clubhouse!',
                     icon: Icons.schedule_rounded,
                   ),
@@ -213,7 +213,7 @@ class EventGroupingUserTab extends ConsumerWidget {
                                   rules: comp?.rules,
                                   courseConfig: event.courseConfig,
                                   isAdmin: false,
-                                  isScoreMode: true,
+                                  isScoreMode: false,
                                   scoreMap: scoreMap,
                                   phcMap: phcMap,
                                   hcMap: { for (var s in scoringData.individualScores) s.playerId : s.handicapIndex },
@@ -270,8 +270,8 @@ class _FieldHubToggle extends ConsumerWidget {
       isExpanded: true,
       onTabSelected: (val) => ref.read(eventFieldTabProvider.notifier).set(val),
       tabs: const [
-        ModernFilterTab(label: 'Entries', value: 0),
-        ModernFilterTab(label: 'Tee Time', value: 1),
+        ModernFilterTab(label: 'Entries', value: 0, icon: Icons.people_rounded),
+        ModernFilterTab(label: 'Tee Times', value: 1, icon: Icons.access_time_rounded),
       ],
     );
   }
@@ -1690,16 +1690,19 @@ class _LiveHubToggle extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final selectedTab = ref.watch(eventMyCardTabProvider);
+    final config = ref.watch(themeControllerProvider);
 
     final tabs = <ModernFilterTab<int>>[
-      const ModernFilterTab(label: 'My Score', value: 0),
+      const ModernFilterTab(label: 'My Score', value: 0, icon: Icons.sports_score_rounded),
     ];
 
-    if (event.matches.isNotEmpty) {
-      tabs.add(const ModernFilterTab(label: 'Matches', value: 4));
-    }
-    if (event.matches.any((m) => m.bracketId != null)) {
-      tabs.add(const ModernFilterTab(label: 'Bracket', value: 5));
+    if (config.showMatchPlayOverlay) {
+      if (event.matches.isNotEmpty) {
+        tabs.add(const ModernFilterTab(label: 'Matches', value: 4, icon: Icons.groups_rounded));
+      }
+      if (event.matches.any((m) => m.bracketId != null)) {
+        tabs.add(const ModernFilterTab(label: 'Bracket', value: 5, icon: Icons.account_tree_rounded));
+      }
     }
 
     return ModernUnderlinedFilterBar<int>(
@@ -1722,8 +1725,8 @@ class _ScoresHubToggle extends ConsumerWidget {
     final selectedTab = ref.watch(eventScoresHubTabProvider);
 
     final tabs = <ModernFilterTab<int>>[
-      const ModernFilterTab(label: 'Group', value: 1),
-      const ModernFilterTab(label: 'Leaderboard', value: 2),
+      const ModernFilterTab(label: 'Groups', value: 1, icon: Icons.groups_rounded),
+      const ModernFilterTab(label: 'Leaderboard', value: 2, icon: Icons.leaderboard_rounded),
     ];
 
     return ModernUnderlinedFilterBar<int>(
@@ -1863,12 +1866,14 @@ class __TournamentGroupScoresViewState extends ConsumerState<_TournamentGroupSco
 
 class SharedTournamentLogic {
   static Widget buildGroupScoresTab({
+    Key? key,
     required WidgetRef ref,
     required String eventId,
     required GolfEvent event,
     required CompetitionRules rules,
     required Map<String, int> playerHoleLimits,
     required Map<String, String> teeOverrides,
+    Function(TeeGroupParticipant p, TeeGroup g)? onTapParticipant,
   }) {
     final membersAsync = ref.watch(allMembersProvider);
     final scorecardsAsync = ref.watch(scorecardsListProvider(eventId));
@@ -1877,10 +1882,11 @@ class SharedTournamentLogic {
       data: (scorecards) {
         final groupsData = event.grouping['groups'] as List?;
         final List<TeeGroup> groups = groupsData != null 
-            ? groupsData.map((g) => TeeGroup.fromJson(g)).toList()
+            ? groupsData.map((g) => TeeGroup.fromJson(g)).toList() 
             : [];
 
         return GroupScoresView(
+          key: key,
           event: event,
           rules: rules,
           groups: groups,
@@ -1888,6 +1894,7 @@ class SharedTournamentLogic {
           members: membersAsync.value ?? [],
           playerHoleLimits: playerHoleLimits,
           teeOverrides: teeOverrides,
+          onTapParticipant: onTapParticipant,
         );
       },
       loading: () => const Center(child: CircularProgressIndicator()),
@@ -1904,6 +1911,7 @@ class GroupScoresView extends ConsumerStatefulWidget {
   final List<Member> members;
   final Map<String, int> playerHoleLimits;
   final Map<String, String> teeOverrides;
+  final Function(TeeGroupParticipant p, TeeGroup g)? onTapParticipant;
 
   const GroupScoresView({
     super.key,
@@ -1914,6 +1922,7 @@ class GroupScoresView extends ConsumerStatefulWidget {
     required this.members,
     required this.playerHoleLimits,
     required this.teeOverrides,
+    this.onTapParticipant,
   });
 
   @override
@@ -2103,10 +2112,11 @@ class GroupScoresViewState extends ConsumerState<GroupScoresView> {
             entries: podiumEntries,
             onTap: _scrollToGroup,
           ),
-        BoxyArtSectionTitle(
-          title: isMatchPlay ? 'Matches' : 'Group Scores',
-          followsCard: true,
-        ),
+        if (!isMatchPlay)
+          BoxyArtSectionTitle(
+            title: 'Group Scores',
+            followsCard: true,
+          ),
         ListView.builder(
           padding: EdgeInsets.zero,
           shrinkWrap: true,
@@ -2142,6 +2152,7 @@ class GroupScoresViewState extends ConsumerState<GroupScoresView> {
                 showScoring: true,
                 computedEntries: { for (var e in data.leaderboard) e.entryId : e },
                 computedGroupResults: { for (var g in data.groupRankings) g.groupIndex : g },
+                onTapParticipant: widget.onTapParticipant,
               ),
             );
           },

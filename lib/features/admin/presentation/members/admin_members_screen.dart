@@ -80,9 +80,9 @@ class _AdminMembersScreenState extends ConsumerState<AdminMembersScreen> {
                     padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
                     isExpanded: true,
                     tabs: [
-                      const ModernFilterTab(label: 'Active', value: AdminMemberFilter.current),
-                      const ModernFilterTab(label: 'Committee', value: AdminMemberFilter.committee),
-                      const ModernFilterTab(label: 'Other', value: AdminMemberFilter.other),
+                      const ModernFilterTab(label: 'Active', value: AdminMemberFilter.current, icon: Icons.person_rounded),
+                      const ModernFilterTab(label: 'Committee', value: AdminMemberFilter.committee, icon: Icons.verified_user_rounded),
+                      const ModernFilterTab(label: 'Other', value: AdminMemberFilter.other, icon: Icons.more_horiz_rounded),
                     ],
                   ),
                 ],

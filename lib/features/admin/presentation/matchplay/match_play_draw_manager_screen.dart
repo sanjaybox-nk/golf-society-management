@@ -136,8 +136,8 @@ class _MatchPlayDrawManagerScreenState extends ConsumerState<MatchPlayDrawManage
             onTabSelected: (val) => setState(() => _selectedTab = val),
             padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
             tabs: const [
-              ModernFilterTab(label: 'Entries', value: 0),
-              ModernFilterTab(label: 'The Draw', value: 1),
+              ModernFilterTab(label: 'Entries', value: 0, icon: Icons.people_rounded),
+              ModernFilterTab(label: 'The Draw', value: 1, icon: Icons.account_tree_rounded),
             ],
           ),
         ),
@@ -583,26 +583,18 @@ class _DraftMatchItem extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (isPublished && liveResult != null)
-            Padding(
+          Align(
+            alignment: Alignment.centerRight,
+            child: Padding(
               padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  BoxyArtPill.status(
-                    label: liveResult.status,
-                    color: match.manualResult != null ? AppColors.amber500 : AppColors.dark400,
-                    hasHorizontalMargin: false,
-                  ),
-                  BoxyArtButton(
-                    title: 'MANAGE',
-                    isSmall: true,
-                    isSecondary: true,
-                    onTap: onManageResult,
-                  ),
-                ],
+              child: BoxyArtButton(
+                title: 'MANAGE',
+                isSmall: true,
+                isSecondary: true,
+                onTap: onManageResult,
               ),
             ),
+          ),
           _MatchupPlayerCard(
             member: p1,
             isSelected: selectedMatchId == match.id && selectedTeamIndex == 1,

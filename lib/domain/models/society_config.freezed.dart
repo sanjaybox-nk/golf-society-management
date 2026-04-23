@@ -64,7 +64,7 @@ mixin _$SocietyConfig {
   double get cardVerticalPadding; // [NEW] Global Card Internal Padding
   double get cardHorizontalPadding; // [NEW] Global Card Internal Padding
   double get tabToContentSpacing; // [NEW] Vertical rhythm: Tab to Content
-  int get iconBadgeFillColor; // [NEW] Icon Badge BG (15% Emerald)
+  int get iconBadgeFillColor; // [NEW] Icon Badge BG (Emerald)
   int get iconBadgeIconColor; // [NEW] Icon Badge Glyph (Emerald)
   double get iconBadgeOpacity; // [NEW] Icon Badge background opacity
   double get iconOpacity; // [NEW] Icon Glyph opacity
@@ -102,6 +102,8 @@ mixin _$SocietyConfig {
   bool get societyCutFilterInvitational; // [NEW] Cut triggers for Invitationals
   double get globalMarkupPercentage; // Default: 10%
   double get guestMarkupExtra; // Default: £10 extra for guests
+  bool
+      get showMatchPlayOverlay; // [NEW] Switch to toggle Match Play overlay visibility
   @OptionalTimestampConverter()
   DateTime? get globalMembershipEndDate; // [NEW] Society-wide expiry date
   int get renewalWindowDays; // [NEW] Days before expiry to show home screen alert
@@ -260,6 +262,7 @@ mixin _$SocietyConfig {
             (identical(other.societyCutFilterInvitational, societyCutFilterInvitational) || other.societyCutFilterInvitational == societyCutFilterInvitational) &&
             (identical(other.globalMarkupPercentage, globalMarkupPercentage) || other.globalMarkupPercentage == globalMarkupPercentage) &&
             (identical(other.guestMarkupExtra, guestMarkupExtra) || other.guestMarkupExtra == guestMarkupExtra) &&
+            (identical(other.showMatchPlayOverlay, showMatchPlayOverlay) || other.showMatchPlayOverlay == showMatchPlayOverlay) &&
             (identical(other.globalMembershipEndDate, globalMembershipEndDate) || other.globalMembershipEndDate == globalMembershipEndDate) &&
             (identical(other.renewalWindowDays, renewalWindowDays) || other.renewalWindowDays == renewalWindowDays) &&
             (identical(other.isRenewalActive, isRenewalActive) || other.isRenewalActive == isRenewalActive) &&
@@ -358,6 +361,7 @@ mixin _$SocietyConfig {
         societyCutFilterInvitational,
         globalMarkupPercentage,
         guestMarkupExtra,
+        showMatchPlayOverlay,
         globalMembershipEndDate,
         renewalWindowDays,
         isRenewalActive,
@@ -371,7 +375,7 @@ mixin _$SocietyConfig {
 
   @override
   String toString() {
-    return 'SocietyConfig(societyName: $societyName, logoUrl: $logoUrl, primaryColor: $primaryColor, secondaryColor: $secondaryColor, tertiaryColor: $tertiaryColor, dangerousColor: $dangerousColor, backgroundColor: $backgroundColor, cardColor: $cardColor, surfaceElevatedColor: $surfaceElevatedColor, textPrimaryColor: $textPrimaryColor, textSecondaryColor: $textSecondaryColor, textMutedColor: $textMutedColor, scoreEagleColor: $scoreEagleColor, scoreBirdieColor: $scoreBirdieColor, scoreParColor: $scoreParColor, scoreBogeyColor: $scoreBogeyColor, scoreDoubleColor: $scoreDoubleColor, scoreTriplePlusColor: $scoreTriplePlusColor, teamAColor: $teamAColor, teamBColor: $teamBColor, statusPublishedColor: $statusPublishedColor, statusConfirmedColor: $statusConfirmedColor, statusReservedColor: $statusReservedColor, statusWaitlistColor: $statusWaitlistColor, statusWithdrawnColor: $statusWithdrawnColor, statusDinnerColor: $statusDinnerColor, cardRadius: $cardRadius, inputRadius: $inputRadius, useShadows: $useShadows, shadowIntensity: $shadowIntensity, useBorders: $useBorders, borderWidth: $borderWidth, pillRadius: $pillRadius, buttonRadius: $buttonRadius, borderColor: $borderColor, dividerColor: $dividerColor, heroRadius: $heroRadius, accentRadius: $accentRadius, accentOpacity: $accentOpacity, shadowSpread: $shadowSpread, shadowOpacity: $shadowOpacity, labelToCardSpacing: $labelToCardSpacing, cardToLabelSpacing: $cardToLabelSpacing, fieldToFieldSpacing: $fieldToFieldSpacing, cardToCardSpacing: $cardToCardSpacing, cardVerticalPadding: $cardVerticalPadding, cardHorizontalPadding: $cardHorizontalPadding, tabToContentSpacing: $tabToContentSpacing, iconBadgeFillColor: $iconBadgeFillColor, iconBadgeIconColor: $iconBadgeIconColor, iconBadgeOpacity: $iconBadgeOpacity, iconOpacity: $iconOpacity, iconBadgeSize: $iconBadgeSize, iconBadgeIconSize: $iconBadgeIconSize, buttonHeight: $buttonHeight, buttonSmallHeight: $buttonSmallHeight, buttonHorizontalPadding: $buttonHorizontalPadding, sliderTrackHeight: $sliderTrackHeight, sliderThumbRadius: $sliderThumbRadius, dividerThickness: $dividerThickness, surfaceHeightLarge: $surfaceHeightLarge, surfaceHeightMedium: $surfaceHeightMedium, fontFamily: $fontFamily, themeMode: $themeMode, customColors: $customColors, cardTintIntensity: $cardTintIntensity, useCardGradient: $useCardGradient, currencySymbol: $currencySymbol, currencyCode: $currencyCode, groupingStrategy: $groupingStrategy, useWhsHandicaps: $useWhsHandicaps, distanceUnit: $distanceUnit, handicapSystem: $handicapSystem, selectedPaletteName: $selectedPaletteName, separateGuestLeaderboard: $separateGuestLeaderboard, societyCutMode: $societyCutMode, societyCutRules: $societyCutRules, societyCutEventLimit: $societyCutEventLimit, societyCutCountPlayedOnly: $societyCutCountPlayedOnly, societyCutFilterSeason: $societyCutFilterSeason, societyCutFilterInvitational: $societyCutFilterInvitational, globalMarkupPercentage: $globalMarkupPercentage, guestMarkupExtra: $guestMarkupExtra, globalMembershipEndDate: $globalMembershipEndDate, renewalWindowDays: $renewalWindowDays, isRenewalActive: $isRenewalActive, renewalLaunchDate: $renewalLaunchDate, renewalDeadline: $renewalDeadline, renewalPaymentDeadline: $renewalPaymentDeadline, startingBalance: $startingBalance, ledgerEntries: $ledgerEntries, sponsors: $sponsors)';
+    return 'SocietyConfig(societyName: $societyName, logoUrl: $logoUrl, primaryColor: $primaryColor, secondaryColor: $secondaryColor, tertiaryColor: $tertiaryColor, dangerousColor: $dangerousColor, backgroundColor: $backgroundColor, cardColor: $cardColor, surfaceElevatedColor: $surfaceElevatedColor, textPrimaryColor: $textPrimaryColor, textSecondaryColor: $textSecondaryColor, textMutedColor: $textMutedColor, scoreEagleColor: $scoreEagleColor, scoreBirdieColor: $scoreBirdieColor, scoreParColor: $scoreParColor, scoreBogeyColor: $scoreBogeyColor, scoreDoubleColor: $scoreDoubleColor, scoreTriplePlusColor: $scoreTriplePlusColor, teamAColor: $teamAColor, teamBColor: $teamBColor, statusPublishedColor: $statusPublishedColor, statusConfirmedColor: $statusConfirmedColor, statusReservedColor: $statusReservedColor, statusWaitlistColor: $statusWaitlistColor, statusWithdrawnColor: $statusWithdrawnColor, statusDinnerColor: $statusDinnerColor, cardRadius: $cardRadius, inputRadius: $inputRadius, useShadows: $useShadows, shadowIntensity: $shadowIntensity, useBorders: $useBorders, borderWidth: $borderWidth, pillRadius: $pillRadius, buttonRadius: $buttonRadius, borderColor: $borderColor, dividerColor: $dividerColor, heroRadius: $heroRadius, accentRadius: $accentRadius, accentOpacity: $accentOpacity, shadowSpread: $shadowSpread, shadowOpacity: $shadowOpacity, labelToCardSpacing: $labelToCardSpacing, cardToLabelSpacing: $cardToLabelSpacing, fieldToFieldSpacing: $fieldToFieldSpacing, cardToCardSpacing: $cardToCardSpacing, cardVerticalPadding: $cardVerticalPadding, cardHorizontalPadding: $cardHorizontalPadding, tabToContentSpacing: $tabToContentSpacing, iconBadgeFillColor: $iconBadgeFillColor, iconBadgeIconColor: $iconBadgeIconColor, iconBadgeOpacity: $iconBadgeOpacity, iconOpacity: $iconOpacity, iconBadgeSize: $iconBadgeSize, iconBadgeIconSize: $iconBadgeIconSize, buttonHeight: $buttonHeight, buttonSmallHeight: $buttonSmallHeight, buttonHorizontalPadding: $buttonHorizontalPadding, sliderTrackHeight: $sliderTrackHeight, sliderThumbRadius: $sliderThumbRadius, dividerThickness: $dividerThickness, surfaceHeightLarge: $surfaceHeightLarge, surfaceHeightMedium: $surfaceHeightMedium, fontFamily: $fontFamily, themeMode: $themeMode, customColors: $customColors, cardTintIntensity: $cardTintIntensity, useCardGradient: $useCardGradient, currencySymbol: $currencySymbol, currencyCode: $currencyCode, groupingStrategy: $groupingStrategy, useWhsHandicaps: $useWhsHandicaps, distanceUnit: $distanceUnit, handicapSystem: $handicapSystem, selectedPaletteName: $selectedPaletteName, separateGuestLeaderboard: $separateGuestLeaderboard, societyCutMode: $societyCutMode, societyCutRules: $societyCutRules, societyCutEventLimit: $societyCutEventLimit, societyCutCountPlayedOnly: $societyCutCountPlayedOnly, societyCutFilterSeason: $societyCutFilterSeason, societyCutFilterInvitational: $societyCutFilterInvitational, globalMarkupPercentage: $globalMarkupPercentage, guestMarkupExtra: $guestMarkupExtra, showMatchPlayOverlay: $showMatchPlayOverlay, globalMembershipEndDate: $globalMembershipEndDate, renewalWindowDays: $renewalWindowDays, isRenewalActive: $isRenewalActive, renewalLaunchDate: $renewalLaunchDate, renewalDeadline: $renewalDeadline, renewalPaymentDeadline: $renewalPaymentDeadline, startingBalance: $startingBalance, ledgerEntries: $ledgerEntries, sponsors: $sponsors)';
   }
 }
 
@@ -465,6 +469,7 @@ abstract mixin class $SocietyConfigCopyWith<$Res> {
       bool societyCutFilterInvitational,
       double globalMarkupPercentage,
       double guestMarkupExtra,
+      bool showMatchPlayOverlay,
       @OptionalTimestampConverter() DateTime? globalMembershipEndDate,
       int renewalWindowDays,
       bool isRenewalActive,
@@ -572,6 +577,7 @@ class _$SocietyConfigCopyWithImpl<$Res>
     Object? societyCutFilterInvitational = null,
     Object? globalMarkupPercentage = null,
     Object? guestMarkupExtra = null,
+    Object? showMatchPlayOverlay = null,
     Object? globalMembershipEndDate = freezed,
     Object? renewalWindowDays = null,
     Object? isRenewalActive = null,
@@ -915,6 +921,10 @@ class _$SocietyConfigCopyWithImpl<$Res>
           ? _self.guestMarkupExtra
           : guestMarkupExtra // ignore: cast_nullable_to_non_nullable
               as double,
+      showMatchPlayOverlay: null == showMatchPlayOverlay
+          ? _self.showMatchPlayOverlay
+          : showMatchPlayOverlay // ignore: cast_nullable_to_non_nullable
+              as bool,
       globalMembershipEndDate: freezed == globalMembershipEndDate
           ? _self.globalMembershipEndDate
           : globalMembershipEndDate // ignore: cast_nullable_to_non_nullable
@@ -1132,6 +1142,7 @@ extension SocietyConfigPatterns on SocietyConfig {
             bool societyCutFilterInvitational,
             double globalMarkupPercentage,
             double guestMarkupExtra,
+            bool showMatchPlayOverlay,
             @OptionalTimestampConverter() DateTime? globalMembershipEndDate,
             int renewalWindowDays,
             bool isRenewalActive,
@@ -1231,6 +1242,7 @@ extension SocietyConfigPatterns on SocietyConfig {
             _that.societyCutFilterInvitational,
             _that.globalMarkupPercentage,
             _that.guestMarkupExtra,
+            _that.showMatchPlayOverlay,
             _that.globalMembershipEndDate,
             _that.renewalWindowDays,
             _that.isRenewalActive,
@@ -1344,6 +1356,7 @@ extension SocietyConfigPatterns on SocietyConfig {
             bool societyCutFilterInvitational,
             double globalMarkupPercentage,
             double guestMarkupExtra,
+            bool showMatchPlayOverlay,
             @OptionalTimestampConverter() DateTime? globalMembershipEndDate,
             int renewalWindowDays,
             bool isRenewalActive,
@@ -1442,6 +1455,7 @@ extension SocietyConfigPatterns on SocietyConfig {
             _that.societyCutFilterInvitational,
             _that.globalMarkupPercentage,
             _that.guestMarkupExtra,
+            _that.showMatchPlayOverlay,
             _that.globalMembershipEndDate,
             _that.renewalWindowDays,
             _that.isRenewalActive,
@@ -1554,6 +1568,7 @@ extension SocietyConfigPatterns on SocietyConfig {
             bool societyCutFilterInvitational,
             double globalMarkupPercentage,
             double guestMarkupExtra,
+            bool showMatchPlayOverlay,
             @OptionalTimestampConverter() DateTime? globalMembershipEndDate,
             int renewalWindowDays,
             bool isRenewalActive,
@@ -1652,6 +1667,7 @@ extension SocietyConfigPatterns on SocietyConfig {
             _that.societyCutFilterInvitational,
             _that.globalMarkupPercentage,
             _that.guestMarkupExtra,
+            _that.showMatchPlayOverlay,
             _that.globalMembershipEndDate,
             _that.renewalWindowDays,
             _that.isRenewalActive,
@@ -1719,9 +1735,9 @@ class _SocietyConfig implements SocietyConfig {
       this.cardVerticalPadding = 16.0,
       this.cardHorizontalPadding = 16.0,
       this.tabToContentSpacing = 16.0,
-      this.iconBadgeFillColor = 0x264ADE80,
+      this.iconBadgeFillColor = 0xFF4ADE80,
       this.iconBadgeIconColor = 0xFF4ADE80,
-      this.iconBadgeOpacity = 1.0,
+      this.iconBadgeOpacity = 0.15,
       this.iconOpacity = 1.0,
       this.iconBadgeSize = 38.0,
       this.iconBadgeIconSize = 18.0,
@@ -1758,6 +1774,7 @@ class _SocietyConfig implements SocietyConfig {
       this.societyCutFilterInvitational = false,
       this.globalMarkupPercentage = 0.10,
       this.guestMarkupExtra = 10.0,
+      this.showMatchPlayOverlay = true,
       @OptionalTimestampConverter() this.globalMembershipEndDate,
       this.renewalWindowDays = 30,
       this.isRenewalActive = false,
@@ -1960,7 +1977,7 @@ class _SocietyConfig implements SocietyConfig {
   @override
   @JsonKey()
   final int iconBadgeFillColor;
-// [NEW] Icon Badge BG (15% Emerald)
+// [NEW] Icon Badge BG (Emerald)
   @override
   @JsonKey()
   final int iconBadgeIconColor;
@@ -2105,6 +2122,10 @@ class _SocietyConfig implements SocietyConfig {
   @JsonKey()
   final double guestMarkupExtra;
 // Default: £10 extra for guests
+  @override
+  @JsonKey()
+  final bool showMatchPlayOverlay;
+// [NEW] Switch to toggle Match Play overlay visibility
   @override
   @OptionalTimestampConverter()
   final DateTime? globalMembershipEndDate;
@@ -2300,6 +2321,7 @@ class _SocietyConfig implements SocietyConfig {
             (identical(other.societyCutFilterInvitational, societyCutFilterInvitational) || other.societyCutFilterInvitational == societyCutFilterInvitational) &&
             (identical(other.globalMarkupPercentage, globalMarkupPercentage) || other.globalMarkupPercentage == globalMarkupPercentage) &&
             (identical(other.guestMarkupExtra, guestMarkupExtra) || other.guestMarkupExtra == guestMarkupExtra) &&
+            (identical(other.showMatchPlayOverlay, showMatchPlayOverlay) || other.showMatchPlayOverlay == showMatchPlayOverlay) &&
             (identical(other.globalMembershipEndDate, globalMembershipEndDate) || other.globalMembershipEndDate == globalMembershipEndDate) &&
             (identical(other.renewalWindowDays, renewalWindowDays) || other.renewalWindowDays == renewalWindowDays) &&
             (identical(other.isRenewalActive, isRenewalActive) || other.isRenewalActive == isRenewalActive) &&
@@ -2398,6 +2420,7 @@ class _SocietyConfig implements SocietyConfig {
         societyCutFilterInvitational,
         globalMarkupPercentage,
         guestMarkupExtra,
+        showMatchPlayOverlay,
         globalMembershipEndDate,
         renewalWindowDays,
         isRenewalActive,
@@ -2411,7 +2434,7 @@ class _SocietyConfig implements SocietyConfig {
 
   @override
   String toString() {
-    return 'SocietyConfig(societyName: $societyName, logoUrl: $logoUrl, primaryColor: $primaryColor, secondaryColor: $secondaryColor, tertiaryColor: $tertiaryColor, dangerousColor: $dangerousColor, backgroundColor: $backgroundColor, cardColor: $cardColor, surfaceElevatedColor: $surfaceElevatedColor, textPrimaryColor: $textPrimaryColor, textSecondaryColor: $textSecondaryColor, textMutedColor: $textMutedColor, scoreEagleColor: $scoreEagleColor, scoreBirdieColor: $scoreBirdieColor, scoreParColor: $scoreParColor, scoreBogeyColor: $scoreBogeyColor, scoreDoubleColor: $scoreDoubleColor, scoreTriplePlusColor: $scoreTriplePlusColor, teamAColor: $teamAColor, teamBColor: $teamBColor, statusPublishedColor: $statusPublishedColor, statusConfirmedColor: $statusConfirmedColor, statusReservedColor: $statusReservedColor, statusWaitlistColor: $statusWaitlistColor, statusWithdrawnColor: $statusWithdrawnColor, statusDinnerColor: $statusDinnerColor, cardRadius: $cardRadius, inputRadius: $inputRadius, useShadows: $useShadows, shadowIntensity: $shadowIntensity, useBorders: $useBorders, borderWidth: $borderWidth, pillRadius: $pillRadius, buttonRadius: $buttonRadius, borderColor: $borderColor, dividerColor: $dividerColor, heroRadius: $heroRadius, accentRadius: $accentRadius, accentOpacity: $accentOpacity, shadowSpread: $shadowSpread, shadowOpacity: $shadowOpacity, labelToCardSpacing: $labelToCardSpacing, cardToLabelSpacing: $cardToLabelSpacing, fieldToFieldSpacing: $fieldToFieldSpacing, cardToCardSpacing: $cardToCardSpacing, cardVerticalPadding: $cardVerticalPadding, cardHorizontalPadding: $cardHorizontalPadding, tabToContentSpacing: $tabToContentSpacing, iconBadgeFillColor: $iconBadgeFillColor, iconBadgeIconColor: $iconBadgeIconColor, iconBadgeOpacity: $iconBadgeOpacity, iconOpacity: $iconOpacity, iconBadgeSize: $iconBadgeSize, iconBadgeIconSize: $iconBadgeIconSize, buttonHeight: $buttonHeight, buttonSmallHeight: $buttonSmallHeight, buttonHorizontalPadding: $buttonHorizontalPadding, sliderTrackHeight: $sliderTrackHeight, sliderThumbRadius: $sliderThumbRadius, dividerThickness: $dividerThickness, surfaceHeightLarge: $surfaceHeightLarge, surfaceHeightMedium: $surfaceHeightMedium, fontFamily: $fontFamily, themeMode: $themeMode, customColors: $customColors, cardTintIntensity: $cardTintIntensity, useCardGradient: $useCardGradient, currencySymbol: $currencySymbol, currencyCode: $currencyCode, groupingStrategy: $groupingStrategy, useWhsHandicaps: $useWhsHandicaps, distanceUnit: $distanceUnit, handicapSystem: $handicapSystem, selectedPaletteName: $selectedPaletteName, separateGuestLeaderboard: $separateGuestLeaderboard, societyCutMode: $societyCutMode, societyCutRules: $societyCutRules, societyCutEventLimit: $societyCutEventLimit, societyCutCountPlayedOnly: $societyCutCountPlayedOnly, societyCutFilterSeason: $societyCutFilterSeason, societyCutFilterInvitational: $societyCutFilterInvitational, globalMarkupPercentage: $globalMarkupPercentage, guestMarkupExtra: $guestMarkupExtra, globalMembershipEndDate: $globalMembershipEndDate, renewalWindowDays: $renewalWindowDays, isRenewalActive: $isRenewalActive, renewalLaunchDate: $renewalLaunchDate, renewalDeadline: $renewalDeadline, renewalPaymentDeadline: $renewalPaymentDeadline, startingBalance: $startingBalance, ledgerEntries: $ledgerEntries, sponsors: $sponsors)';
+    return 'SocietyConfig(societyName: $societyName, logoUrl: $logoUrl, primaryColor: $primaryColor, secondaryColor: $secondaryColor, tertiaryColor: $tertiaryColor, dangerousColor: $dangerousColor, backgroundColor: $backgroundColor, cardColor: $cardColor, surfaceElevatedColor: $surfaceElevatedColor, textPrimaryColor: $textPrimaryColor, textSecondaryColor: $textSecondaryColor, textMutedColor: $textMutedColor, scoreEagleColor: $scoreEagleColor, scoreBirdieColor: $scoreBirdieColor, scoreParColor: $scoreParColor, scoreBogeyColor: $scoreBogeyColor, scoreDoubleColor: $scoreDoubleColor, scoreTriplePlusColor: $scoreTriplePlusColor, teamAColor: $teamAColor, teamBColor: $teamBColor, statusPublishedColor: $statusPublishedColor, statusConfirmedColor: $statusConfirmedColor, statusReservedColor: $statusReservedColor, statusWaitlistColor: $statusWaitlistColor, statusWithdrawnColor: $statusWithdrawnColor, statusDinnerColor: $statusDinnerColor, cardRadius: $cardRadius, inputRadius: $inputRadius, useShadows: $useShadows, shadowIntensity: $shadowIntensity, useBorders: $useBorders, borderWidth: $borderWidth, pillRadius: $pillRadius, buttonRadius: $buttonRadius, borderColor: $borderColor, dividerColor: $dividerColor, heroRadius: $heroRadius, accentRadius: $accentRadius, accentOpacity: $accentOpacity, shadowSpread: $shadowSpread, shadowOpacity: $shadowOpacity, labelToCardSpacing: $labelToCardSpacing, cardToLabelSpacing: $cardToLabelSpacing, fieldToFieldSpacing: $fieldToFieldSpacing, cardToCardSpacing: $cardToCardSpacing, cardVerticalPadding: $cardVerticalPadding, cardHorizontalPadding: $cardHorizontalPadding, tabToContentSpacing: $tabToContentSpacing, iconBadgeFillColor: $iconBadgeFillColor, iconBadgeIconColor: $iconBadgeIconColor, iconBadgeOpacity: $iconBadgeOpacity, iconOpacity: $iconOpacity, iconBadgeSize: $iconBadgeSize, iconBadgeIconSize: $iconBadgeIconSize, buttonHeight: $buttonHeight, buttonSmallHeight: $buttonSmallHeight, buttonHorizontalPadding: $buttonHorizontalPadding, sliderTrackHeight: $sliderTrackHeight, sliderThumbRadius: $sliderThumbRadius, dividerThickness: $dividerThickness, surfaceHeightLarge: $surfaceHeightLarge, surfaceHeightMedium: $surfaceHeightMedium, fontFamily: $fontFamily, themeMode: $themeMode, customColors: $customColors, cardTintIntensity: $cardTintIntensity, useCardGradient: $useCardGradient, currencySymbol: $currencySymbol, currencyCode: $currencyCode, groupingStrategy: $groupingStrategy, useWhsHandicaps: $useWhsHandicaps, distanceUnit: $distanceUnit, handicapSystem: $handicapSystem, selectedPaletteName: $selectedPaletteName, separateGuestLeaderboard: $separateGuestLeaderboard, societyCutMode: $societyCutMode, societyCutRules: $societyCutRules, societyCutEventLimit: $societyCutEventLimit, societyCutCountPlayedOnly: $societyCutCountPlayedOnly, societyCutFilterSeason: $societyCutFilterSeason, societyCutFilterInvitational: $societyCutFilterInvitational, globalMarkupPercentage: $globalMarkupPercentage, guestMarkupExtra: $guestMarkupExtra, showMatchPlayOverlay: $showMatchPlayOverlay, globalMembershipEndDate: $globalMembershipEndDate, renewalWindowDays: $renewalWindowDays, isRenewalActive: $isRenewalActive, renewalLaunchDate: $renewalLaunchDate, renewalDeadline: $renewalDeadline, renewalPaymentDeadline: $renewalPaymentDeadline, startingBalance: $startingBalance, ledgerEntries: $ledgerEntries, sponsors: $sponsors)';
   }
 }
 
@@ -2507,6 +2530,7 @@ abstract mixin class _$SocietyConfigCopyWith<$Res>
       bool societyCutFilterInvitational,
       double globalMarkupPercentage,
       double guestMarkupExtra,
+      bool showMatchPlayOverlay,
       @OptionalTimestampConverter() DateTime? globalMembershipEndDate,
       int renewalWindowDays,
       bool isRenewalActive,
@@ -2614,6 +2638,7 @@ class __$SocietyConfigCopyWithImpl<$Res>
     Object? societyCutFilterInvitational = null,
     Object? globalMarkupPercentage = null,
     Object? guestMarkupExtra = null,
+    Object? showMatchPlayOverlay = null,
     Object? globalMembershipEndDate = freezed,
     Object? renewalWindowDays = null,
     Object? isRenewalActive = null,
@@ -2957,6 +2982,10 @@ class __$SocietyConfigCopyWithImpl<$Res>
           ? _self.guestMarkupExtra
           : guestMarkupExtra // ignore: cast_nullable_to_non_nullable
               as double,
+      showMatchPlayOverlay: null == showMatchPlayOverlay
+          ? _self.showMatchPlayOverlay
+          : showMatchPlayOverlay // ignore: cast_nullable_to_non_nullable
+              as bool,
       globalMembershipEndDate: freezed == globalMembershipEndDate
           ? _self.globalMembershipEndDate
           : globalMembershipEndDate // ignore: cast_nullable_to_non_nullable

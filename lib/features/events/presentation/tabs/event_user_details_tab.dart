@@ -171,8 +171,16 @@ class _EventDetailsContentState extends ConsumerState<EventDetailsContent> {
               padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
               isExpanded: true,
               tabs: const [
-                ModernFilterTab(label: 'News updates', value: EventInfoSubTab.notifications),
-                ModernFilterTab(label: 'Event Info', value: EventInfoSubTab.info),
+                ModernFilterTab(
+                  label: 'News updates', 
+                  value: EventInfoSubTab.notifications,
+                  icon: Icons.newspaper_rounded,
+                ),
+                ModernFilterTab(
+                  label: 'Event Info', 
+                  value: EventInfoSubTab.info,
+                  icon: Icons.info_outline_rounded,
+                ),
               ],
               selectedValue: _selectedTab,
               onTabSelected: (tab) => setState(() => _selectedTab = tab),
@@ -1055,55 +1063,15 @@ class _EventDetailsContentState extends ConsumerState<EventDetailsContent> {
                   icon = Icons.payments_rounded;
               }
 
-              return Column(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
-                    child: Row(
-                      children: [
-                        BoxyArtIconBadge(
-                          icon: icon,
-                          color: Color(ref.watch(themeControllerProvider).iconBadgeFillColor),
-                          iconColor: Color(ref.watch(themeControllerProvider).iconBadgeIconColor),
-                          fillOpacity: ref.watch(themeControllerProvider).iconBadgeOpacity,
-                          size: 38,
-                        ),
-                        const SizedBox(width: 14),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                award.label.toUpperCase(),
-                                style: AppTypography.micro.copyWith(
-                                  color: Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha: AppColors.opacityHigh),
-                                ),
-                              ),
-                              const SizedBox(height: 1),
-                              if (award.type.toLowerCase() != 'cup' && award.value > 0)
-                                Text(
-                                  '${ref.watch(themeControllerProvider).currencySymbol}${award.value.toStringAsFixed(2)}',
-                                  style: AppTypography.body,
-                                )
-                              else
-                                Text(
-                                  award.type.toUpperCase(),
-                                  style: AppTypography.micro.copyWith(
-                                    fontWeight: AppTypography.weightBold,
-                                    letterSpacing: 1.2,
-                                  ),
-                                ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  if (!isLast) const Padding(
-                    padding: EdgeInsets.symmetric(vertical: AppSpacing.md),
-                    child: Divider(),
-                  ),
-                ],
+              return Padding(
+                padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
+                child: ModernInfoRow(
+                  label: award.label,
+                  value: (award.type.toLowerCase() != 'cup' && award.value > 0)
+                      ? '${ref.watch(themeControllerProvider).currencySymbol}${award.value.toStringAsFixed(2)}'
+                      : award.type,
+                  icon: icon,
+                ),
               );
             }).toList(),
           ),
@@ -1141,8 +1109,6 @@ class _EventDetailsContentState extends ConsumerState<EventDetailsContent> {
                     fit: BoxFit.cover,
                     errorBuilder: (context, error, stackTrace) => const BoxyArtIconBadge(
                       icon: Icons.handshake_rounded,
-                      color: AppColors.lime500,
-                      isTinted: true,
                       size: 48,
                     ),
                   ),
@@ -1150,8 +1116,6 @@ class _EventDetailsContentState extends ConsumerState<EventDetailsContent> {
               else
                 const BoxyArtIconBadge(
                   icon: Icons.handshake_rounded,
-                  color: AppColors.lime500,
-                  isTinted: true,
                   size: 48,
                 ),
               const SizedBox(width: AppSpacing.lg),

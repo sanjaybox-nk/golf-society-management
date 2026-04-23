@@ -283,9 +283,9 @@ class _AdminMemberRenewalScreenState extends ConsumerState<AdminMemberRenewalScr
                         padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
                         isExpanded: true,
                         tabs: [
-                          const ModernFilterTab(label: 'No Action', value: RenewalFilter.noAction),
-                          const ModernFilterTab(label: 'Requested', value: RenewalFilter.requested),
-                          const ModernFilterTab(label: 'Paid', value: RenewalFilter.paid),
+                          const ModernFilterTab(label: 'No Action', value: RenewalFilter.noAction, icon: Icons.pending_actions_rounded),
+                          const ModernFilterTab(label: 'Requested', value: RenewalFilter.requested, icon: Icons.notifications_active_rounded),
+                          const ModernFilterTab(label: 'Paid', value: RenewalFilter.paid, icon: Icons.check_circle_rounded),
                         ],
                       ),
                     ),

@@ -43,9 +43,7 @@ class ModernInfoRow extends ConsumerWidget {
         if (icon != null) ...[
           BoxyArtIconBadge(
             icon: icon!,
-            color: Color(config.iconBadgeFillColor), // Always use theme for background unless explicitly overridden outside this row
-            iconColor: iconColor ?? Color(config.iconBadgeIconColor), // Icon override
-            fillOpacity: config.iconBadgeOpacity,
+            iconColor: iconColor,
             showFill: showFill,
           ),
           const SizedBox(width: 14),
@@ -114,13 +112,10 @@ class ModernRuleItem extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
         children: [
-          Container(
-            width: 6,
-            height: 6,
-            decoration: BoxDecoration(
-              color: primary,
-              shape: BoxShape.circle,
-            ),
+          BoxyArtIndicator(
+            label: '',
+            dotColor: primary,
+            hasHorizontalMargin: false,
           ),
           const SizedBox(width: AppSpacing.md),
           Expanded(

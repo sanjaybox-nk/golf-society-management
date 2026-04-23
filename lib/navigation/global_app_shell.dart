@@ -213,8 +213,9 @@ class _ShellLayoutDelegate extends StatelessWidget {
             : navigationShell.currentIndex);
 
     // 2. Hub Detection
-    final bool isUserEventHub = location.startsWith('/events/') && location != '/events';
-    final bool isAdminEventHub = location.startsWith('/admin/events/manage/');
+    final segments = location.split('/');
+    final bool isUserEventHub = segments.length >= 3 && segments[1] == 'events' && segments[2].isNotEmpty;
+    final bool isAdminEventHub = segments.length >= 5 && segments[1] == 'admin' && segments[2] == 'events' && segments[3] == 'manage' && segments[4].isNotEmpty;
     final bool isSurveyView = location.contains('/surveys/') && !location.contains('/admin/node');
     final bool isSpecialForm = location.split('/').any((s) => s == 'new' || s == 'edit' || s == 'create');
 

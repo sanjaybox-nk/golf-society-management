@@ -213,9 +213,9 @@ class RegistrationCard extends ConsumerWidget {
                           ? InkWell(
                               onTap: onBuggyToggle,
                               borderRadius: AppShapes.md,
-                              child: _buildBuggyIcon(context, buggyStatus, size: AppShapes.iconMd),
+                              child: _buildBuggyIcon(context, config, buggyStatus, size: AppShapes.iconMd),
                             )
-                          : _buildBuggyIcon(context, buggyStatus, size: AppShapes.iconMd),
+                          : _buildBuggyIcon(context, config, buggyStatus, size: AppShapes.iconMd),
                     ),
                     // Breakfast
                     _buildLargeIconContainer(
@@ -224,9 +224,9 @@ class RegistrationCard extends ConsumerWidget {
                           ? InkWell(
                               onTap: onBreakfastToggle,
                               borderRadius: AppShapes.md,
-                              child: Icon(Icons.local_cafe_rounded, color: attendingBreakfast && !isWithdrawn ? _getIconActiveColor(context) : _getIconInactiveColor(context), size: AppShapes.iconMd),
+                              child: Icon(Icons.local_cafe_rounded, color: attendingBreakfast && !isWithdrawn ? Color(config.secondaryColor) : _getIconInactiveColor(context), size: AppShapes.iconMd),
                             )
-                          : Icon(Icons.local_cafe_rounded, color: attendingBreakfast && !isWithdrawn ? _getIconActiveColor(context) : _getIconInactiveColor(context), size: AppShapes.iconMd),
+                          : Icon(Icons.local_cafe_rounded, color: attendingBreakfast && !isWithdrawn ? Color(config.secondaryColor) : _getIconInactiveColor(context), size: AppShapes.iconMd),
                     ),
                     // Lunch
                     _buildLargeIconContainer(
@@ -235,9 +235,9 @@ class RegistrationCard extends ConsumerWidget {
                           ? InkWell(
                               onTap: onLunchToggle,
                               borderRadius: AppShapes.md,
-                              child: Icon(Icons.restaurant_menu_rounded, color: attendingLunch && !isWithdrawn ? _getIconActiveColor(context) : _getIconInactiveColor(context), size: AppShapes.iconMd),
+                              child: Icon(Icons.restaurant_menu_rounded, color: attendingLunch && !isWithdrawn ? Color(config.secondaryColor) : _getIconInactiveColor(context), size: AppShapes.iconMd),
                             )
-                          : Icon(Icons.restaurant_menu_rounded, color: attendingLunch && !isWithdrawn ? _getIconActiveColor(context) : _getIconInactiveColor(context), size: AppShapes.iconMd),
+                          : Icon(Icons.restaurant_menu_rounded, color: attendingLunch && !isWithdrawn ? Color(config.secondaryColor) : _getIconInactiveColor(context), size: AppShapes.iconMd),
                     ),
                     // Dinner
                     _buildLargeIconContainer(
@@ -246,14 +246,14 @@ class RegistrationCard extends ConsumerWidget {
                           ? InkWell(
                               onTap: onDinnerToggle,
                               borderRadius: AppShapes.md,
-                              child: Icon(Icons.restaurant_rounded, color: attendingDinner && !isWithdrawn ? _getIconActiveColor(context) : _getIconInactiveColor(context), size: AppShapes.iconMd),
+                              child: Icon(Icons.restaurant_rounded, color: attendingDinner && !isWithdrawn ? Color(config.secondaryColor) : _getIconInactiveColor(context), size: AppShapes.iconMd),
                             )
-                          : Icon(Icons.restaurant_rounded, color: attendingDinner && !isWithdrawn ? _getIconActiveColor(context) : _getIconInactiveColor(context), size: AppShapes.iconMd),
+                          : Icon(Icons.restaurant_rounded, color: attendingDinner && !isWithdrawn ? Color(config.secondaryColor) : _getIconInactiveColor(context), size: AppShapes.iconMd),
                     ),
                     // Guest (Always there now)
                     _buildLargeIconContainer(
                       isActive: hasGuest && !isWithdrawn,
-                      child: Icon(Icons.person_add_alt_1_rounded, color: hasGuest && !isWithdrawn ? _getIconActiveColor(context) : _getIconInactiveColor(context), size: AppShapes.iconMd),
+                      child: Icon(Icons.person_add_alt_1_rounded, color: hasGuest && !isWithdrawn ? Color(config.secondaryColor) : _getIconInactiveColor(context), size: AppShapes.iconMd),
                     ),
 
                     // Payment Check
@@ -265,13 +265,13 @@ class RegistrationCard extends ConsumerWidget {
                               borderRadius: AppShapes.md,
                               child: Icon(
                                 Icons.check_circle_rounded,
-                                color: hasPaid && !isWithdrawn ? _getIconActiveColor(context) : _getIconInactiveColor(context),
+                                color: hasPaid && !isWithdrawn ? Color(config.secondaryColor) : _getIconInactiveColor(context),
                                 size: AppShapes.iconMd,
                               ),
                             )
                           : Icon(
                               Icons.check_circle_rounded,
-                              color: hasPaid && !isWithdrawn ? _getIconActiveColor(context) : _getIconInactiveColor(context),
+                              color: hasPaid && !isWithdrawn ? Color(config.secondaryColor) : _getIconInactiveColor(context),
                               size: AppShapes.iconMd,
                             ),
                     ),
@@ -329,9 +329,9 @@ class RegistrationCard extends ConsumerWidget {
   }
 
 
-  Widget _buildBuggyIcon(BuildContext context, RegistrationStatus status, {double size = 20.0}) {
+  Widget _buildBuggyIcon(BuildContext context, SocietyConfig config, RegistrationStatus status, {double size = 20.0}) {
     final inactiveColor = _getIconInactiveColor(context);
-    final activeColor = _getIconActiveColor(context);
+    final activeColor = Color(config.secondaryColor);
 
     // Always show grey icon if no buggy
     if (status == RegistrationStatus.none) {
@@ -359,9 +359,9 @@ class RegistrationCard extends ConsumerWidget {
     );
   }
 
-  Color _getIconActiveColor(BuildContext context) {
-    // v4.5 Follow primary brand token
-    return Theme.of(context).colorScheme.primary;
+  Color _getIconActiveColor(BuildContext context, SocietyConfig config) {
+    // v4.5 Follow secondary brand token for information-dense rows
+    return Color(config.secondaryColor);
   }
 
   Color _getIconInactiveColor(BuildContext context) {

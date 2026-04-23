@@ -66,9 +66,9 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen> {
             padding: const EdgeInsets.symmetric(horizontal: AppSpacing.standard),
             isExpanded: true,
             tabs: const [
-              ModernFilterTab(label: 'Financials', value: ReportingTab.financials),
-              ModernFilterTab(label: 'Competition', value: ReportingTab.competition),
-              ModernFilterTab(label: 'Pulse', value: ReportingTab.pulse),
+              ModernFilterTab(label: 'Financials', value: ReportingTab.financials, icon: Icons.payments_rounded),
+              ModernFilterTab(label: 'Competition', value: ReportingTab.competition, icon: Icons.emoji_events_rounded),
+              ModernFilterTab(label: 'Pulse', value: ReportingTab.pulse, icon: Icons.analytics_rounded),
             ],
             selectedValue: _activeTab,
             onTabSelected: (tab) => setState(() => _activeTab = tab),

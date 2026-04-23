@@ -36,6 +36,7 @@ class AppTheme {
     ).copyWith(
       surfaceContainer: AppColors.dark900,
       onSurface: AppColors.dark60,
+      onSurfaceVariant: AppColors.dark300, // Secondary/muted text in dark mode
     );
 
     final textTheme = AppTypography.createTextTheme();
@@ -91,7 +92,7 @@ class AppTheme {
         elevation: 0,
         centerTitle: true,
         titleTextStyle: AppTypography.displaySection.copyWith(
-          color: AppColors.dark60,
+          color: colorScheme.onSurface,
           fontWeight: AppTypography.weightBlack,
         ),
         systemOverlayStyle: SystemUiOverlayStyle.light,
@@ -169,17 +170,17 @@ class AppTheme {
         indicatorColor: primaryColor,
         labelTextStyle: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {
-            return AppTypography.caption.copyWith(color: AppColors.dark60);
+            return AppTypography.caption.copyWith(color: colorScheme.onSurface);
           }
-          return AppTypography.caption.copyWith(color: AppColors.dark300);
+          return AppTypography.caption.copyWith(color: colorScheme.onSurfaceVariant);
         }),
       ),
 
       // Components - Tabs
       tabBarTheme: TabBarThemeData(
         indicatorColor: primaryColor,
-        labelColor: AppColors.dark60,
-        unselectedLabelColor: AppColors.dark300,
+        labelColor: colorScheme.onSurface,
+        unselectedLabelColor: colorScheme.onSurfaceVariant,
         labelStyle: AppTypography.label,
         unselectedLabelStyle: AppTypography.label,
         indicatorSize: TabBarIndicatorSize.label,
@@ -241,6 +242,7 @@ class AppTheme {
     ).copyWith(
       surfaceContainer: Color(config.backgroundColor), // Page Background
       onSurface: Color(config.textPrimaryColor),
+      onSurfaceVariant: Color(config.textSecondaryColor), // Secondary/muted text
     );
 
     final textTheme = AppTypography.createTextTheme();
@@ -296,7 +298,7 @@ class AppTheme {
         elevation: 0,
         centerTitle: true,
         titleTextStyle: AppTypography.displaySection.copyWith(
-          color: const Color(0xFF1A1A1A),
+          color: colorScheme.onSurface,
           fontWeight: AppTypography.weightBlack,
         ),
         systemOverlayStyle: SystemUiOverlayStyle.dark,
@@ -350,8 +352,8 @@ class AppTheme {
       // Components - Tabs
       tabBarTheme: TabBarThemeData(
         indicatorColor: primaryColor,
-        labelColor: const Color(0xFF1A1A1A),
-        unselectedLabelColor: const Color(0xFF888880),
+        labelColor: colorScheme.onSurface,
+        unselectedLabelColor: colorScheme.onSurfaceVariant,
         labelStyle: AppTypography.label,
         unselectedLabelStyle: AppTypography.label,
         indicatorSize: TabBarIndicatorSize.label,

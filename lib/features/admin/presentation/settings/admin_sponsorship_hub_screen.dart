@@ -273,8 +273,8 @@ class _AdminSponsorshipHubScreenState extends ConsumerState<AdminSponsorshipHubS
               padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
               isExpanded: true,
               tabs: const [
-                ModernFilterTab(label: 'Sponsorships', value: HubTab.sponsorships),
-                ModernFilterTab(label: 'Donations', value: HubTab.donations),
+                ModernFilterTab(label: 'Sponsorships', value: HubTab.sponsorships, icon: Icons.handshake_rounded),
+                ModernFilterTab(label: 'Donations', value: HubTab.donations, icon: Icons.volunteer_activism_rounded),
               ],
             ),
           ),

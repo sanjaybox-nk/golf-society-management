@@ -28,6 +28,7 @@ import 'seeding/member_seeder.dart';
 import 'seeding/survey_seeder.dart';
 import 'seeding/event_seeder.dart';
 import 'seeding/match_play_seeder.dart';
+import 'seeding/scenario_seeder.dart';
 
 final seedingServiceProvider = Provider((ref) => SeedingService(ref));
 
@@ -48,7 +49,8 @@ class SeedingService {
     try {
       debugPrint('--- STARTING UNIFIED WIPE AND SEED ---');
       
-      final currentConfig = ref.read(themeControllerProvider);
+      // Ensure we have the LATEST config from the stream, not a potentially stale/default controller state
+      final currentConfig = await ref.read(societyConfigStreamProvider.future);
       debugPrint('Backing up society branding: ${currentConfig.societyName}');
 
       await ref.read(persistenceServiceProvider).clear();
@@ -206,7 +208,9 @@ class SeedingService {
       debugPrint('Seeding modernized member surveys...');
       final membersList = await ref.read(membersRepositoryProvider).getMembers();
       await SurveySeeder(ref, _random).seed(membersList);
-      debugPrint('Survey seeding complete.');
+      
+      debugPrint('Injecting Match Play Progression Scenario...');
+      await seedMatchPlayProgression();
       
       debugPrint('--- UNIFIED WIPE AND SEED COMPLETED ---');
     } catch (e, stack) {
@@ -222,6 +226,16 @@ class SeedingService {
       await MatchPlaySeeder(ref, _random).seed(stage);
     } catch (e, stack) {
       debugPrint('MATCH PLAY LAB SEEDER FAILURE: $e');
+      debugPrint(stack.toString());
+      rethrow;
+    }
+  }
+
+  Future<void> seedMatchPlayProgression() async {
+    try {
+      await ScenarioSeeder(ref, _random).seedMatchPlayProgression();
+    } catch (e, stack) {
+      debugPrint('MATCH PLAY PROGRESSION SEEDER FAILURE: $e');
       debugPrint(stack.toString());
       rethrow;
     }
@@ -291,7 +305,8 @@ class SeedingService {
     }
     
     // Reset financial status and seasonal dates without wiping branding
-    final currentConfig = ref.read(themeControllerProvider);
+    // We await the future to ensure we aren't clobbering with a default SocietyConfig()
+    final currentConfig = await ref.read(societyConfigStreamProvider.future);
     final preservedConfig = currentConfig.copyWith(
       isRenewalActive: false,
       ledgerEntries: [],
@@ -312,7 +327,7 @@ class SeedingService {
 
   Future<void> clearDemoData() async {
     final firestore = FirebaseFirestore.instance;
-    final currentConfig = ref.read(themeControllerProvider);
+    final currentConfig = await ref.read(societyConfigStreamProvider.future);
 
     final blankConfig = currentConfig.copyWith(
       isRenewalActive: false,

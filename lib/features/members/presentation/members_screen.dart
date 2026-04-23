@@ -74,9 +74,9 @@ class _MembersScreenState extends ConsumerState<MembersScreen> {
               isExpanded: true,
               padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
               tabs: [
-                ModernFilterTab(label: 'Active ($activeCount)', value: AdminMemberFilter.current),
-                ModernFilterTab(label: 'Committee ($committeeCount)', value: AdminMemberFilter.committee),
-                ModernFilterTab(label: 'Other ($otherCount)', value: AdminMemberFilter.other),
+                ModernFilterTab(label: 'Active ($activeCount)', value: AdminMemberFilter.current, icon: Icons.person_rounded),
+                ModernFilterTab(label: 'Committee ($committeeCount)', value: AdminMemberFilter.committee, icon: Icons.verified_user_rounded),
+                ModernFilterTab(label: 'Other ($otherCount)', value: AdminMemberFilter.other, icon: Icons.more_horiz_rounded),
               ],
             ),
           ),
@@ -110,7 +110,6 @@ class _MembersScreenState extends ConsumerState<MembersScreen> {
                 // Members List
                 membersAsync.when(
                   data: (members) {
-                    final theme = Theme.of(context);
                     final filtered = members.where((m) {
                       final name = '${m.firstName} ${m.lastName} ${m.nickname ?? ''}'.toLowerCase();
                       final matchesSearch = name.contains(searchQuery);

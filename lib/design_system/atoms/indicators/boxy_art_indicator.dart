@@ -50,6 +50,21 @@ class BoxyArtIndicator extends StatelessWidget {
     );
   }
 
+  /// Factory for Tee Color
+  factory BoxyArtIndicator.tee({
+    required String label,
+    required Color teeColor,
+    bool hasHorizontalMargin = true,
+    double? fontSize,
+  }) {
+    return BoxyArtIndicator(
+      label: label,
+      dotColor: teeColor,
+      hasHorizontalMargin: hasHorizontalMargin,
+      fontSize: fontSize ?? 11.0,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -79,7 +94,7 @@ class BoxyArtIndicator extends StatelessWidget {
               label.toUpperCase(),
               style: AppTypography.micro.copyWith(
                 fontSize: fontSize ?? AppTypography.sizeMicro,
-                color: textColor ?? AppColors.textTertiary,
+                color: textColor ?? (theme.brightness == Brightness.dark ? AppColors.dark150 : AppColors.dark600),
                 fontWeight: AppTypography.weightBold,
                 letterSpacing: 1.2,
                 height: 1.0,

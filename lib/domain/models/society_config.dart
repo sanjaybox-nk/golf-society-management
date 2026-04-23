@@ -69,9 +69,9 @@ abstract class SocietyConfig with _$SocietyConfig {
     @Default(16.0) double cardVerticalPadding, // [NEW] Global Card Internal Padding
     @Default(16.0) double cardHorizontalPadding, // [NEW] Global Card Internal Padding
     @Default(16.0) double tabToContentSpacing, // [NEW] Vertical rhythm: Tab to Content
-    @Default(0x264ADE80) int iconBadgeFillColor, // [NEW] Icon Badge BG (15% Emerald)
+    @Default(0xFF4ADE80) int iconBadgeFillColor, // [NEW] Icon Badge BG (Emerald)
     @Default(0xFF4ADE80) int iconBadgeIconColor, // [NEW] Icon Badge Glyph (Emerald)
-    @Default(1.0) double iconBadgeOpacity, // [NEW] Icon Badge background opacity
+    @Default(0.15) double iconBadgeOpacity, // [NEW] Icon Badge background opacity
     @Default(1.0) double iconOpacity, // [NEW] Icon Glyph opacity
     @Default(38.0) double iconBadgeSize, // [NEW] Tokenized Badge Size
     @Default(18.0) double iconBadgeIconSize, // [NEW] Tokenized Badge Glyph Size
@@ -108,6 +108,7 @@ abstract class SocietyConfig with _$SocietyConfig {
     @Default(false) bool societyCutFilterInvitational, // [NEW] Cut triggers for Invitationals
     @Default(0.10) double globalMarkupPercentage, // Default: 10%
     @Default(10.0) double guestMarkupExtra, // Default: £10 extra for guests
+    @Default(true) bool showMatchPlayOverlay, // [NEW] Switch to toggle Match Play overlay visibility
     @OptionalTimestampConverter() DateTime? globalMembershipEndDate, // [NEW] Society-wide expiry date
     @Default(30) int renewalWindowDays, // [NEW] Days before expiry to show home screen alert
     @Default(false) bool isRenewalActive, // [NEW] Admin switch to enable the "Renew Now" button

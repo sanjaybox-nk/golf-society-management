@@ -52,6 +52,7 @@ class GroupingService {
     }
 
     // 1. Get golfers who fit within the capacity (Confirmed or Reserved)
+    final isMatchPlay = rules?.format == CompetitionFormat.matchPlay;
     int takenSlotsCount = 0;
     final List<RegistrationItem> golfers = [];
     final capacity = event.maxParticipants ?? 999;
@@ -68,6 +69,9 @@ class GroupingService {
     for (int i = 0; i < participants.length; i++) {
         final item = participants[i];
         if (!item.registration.attendingGolf) continue;
+        
+        // [BoxyArt v4.x] Match Play Rule: Strictly No Guests allowed in seeding
+        if (isMatchPlay && item.isGuest) continue;
 
         final status = RegistrationLogic.calculateStatus(
             isGuest: item.isGuest,
@@ -89,6 +93,13 @@ class GroupingService {
                 // but golfers list is effectively capped for the field.
             }
         }
+    }
+    
+    if (golfers.isEmpty) return [];
+
+    // [BoxyArt v4.x] Match Play Rule: Ensure even numbers for head-to-head competition
+    if (isMatchPlay && golfers.length % 2 != 0) {
+      golfers.removeLast();
     }
     
     if (golfers.isEmpty) return [];
@@ -174,7 +185,6 @@ class GroupingService {
     int num4Balls = 0;
     int num3Balls = 0;
     
-    final isMatchPlay = rules?.format == CompetitionFormat.matchPlay;
     final is3ManScramble = rules?.format == CompetitionFormat.scramble && rules?.teamSize == 3;
     int num2Balls = 0;
 
@@ -183,16 +193,13 @@ class GroupingService {
        num3Balls = (totalPlayers / 3).ceil(); 
        num4Balls = 0;
     } else if (isMatchPlay) {
-       // Match Play: ONLY 2 or 4 players per group. No 3-balls allowed.
-       num4Balls = (totalPlayers / 4).floor();
-       if (totalPlayers % 4 == 2) {
+       // [BoxyArt v4.x] Match Play: ONLY 2 or 4 players per group. Strictly NO 3-balls.
+       num4Balls = totalPlayers ~/ 4;
+       final remainder = totalPlayers % 4;
+       if (remainder == 2) {
          num2Balls = 1;
-       } else if (totalPlayers % 4 == 1 || totalPlayers % 4 == 3) {
-         // Fallback if totalPlayers is somehow odd (seeder fix should prevent this)
-         // but for safety, we'll use a 3-ball or 1-ball equivalent and let admin handle it
-         num3Balls = 1;
-         num4Balls = (totalPlayers - 3) ~/ 4;
        }
+       num3Balls = 0; 
     } else {
       // Standard Logic to distribute N into groups of 3 and 4
       for (int y = 0; y <= totalPlayers / 3; y++) {

@@ -17,6 +17,8 @@ class BoxyArtIconBadge extends ConsumerWidget {
   final Color? borderColor;
   final double? fillOpacity;
   final bool isTertiary;
+  final bool isPrimary;
+  final bool isSecondary;
   final String? tooltip;
 
   const BoxyArtIconBadge({
@@ -27,6 +29,8 @@ class BoxyArtIconBadge extends ConsumerWidget {
     this.iconSize,
     this.isTinted = true,
     this.isTertiary = false,
+    this.isPrimary = false,
+    this.isSecondary = false,
     this.showFill = true,
     this.showBorder = false,
     this.useCircle = false,
@@ -59,12 +63,20 @@ class BoxyArtIconBadge extends ConsumerWidget {
     final Color effectiveFill = showFill 
       ? (isTertiary 
           ? Theme.of(context).colorScheme.tertiary.withValues(alpha: effectiveOpacity)
-          : (shapeTokens?.iconBadgeFill ?? Color(config.iconBadgeFillColor)).withValues(alpha: effectiveOpacity))
+          : (isPrimary
+              ? Color(config.primaryColor).withValues(alpha: effectiveOpacity)
+              : (isSecondary
+                  ? Color(config.secondaryColor).withValues(alpha: effectiveOpacity)
+                  : (shapeTokens?.iconBadgeFill ?? Color(config.iconBadgeFillColor)).withValues(alpha: effectiveOpacity))))
       : Colors.transparent;
       
     final Color effectiveIconColor = iconColor ?? (isTertiary 
       ? Theme.of(context).colorScheme.tertiary
-      : (shapeTokens?.iconBadgeIcon ?? (color != Colors.transparent ? color : Color(config.iconBadgeIconColor))));
+      : (isPrimary
+          ? Color(config.primaryColor)
+          : (isSecondary
+              ? Color(config.secondaryColor)
+              : (shapeTokens?.iconBadgeIcon ?? (color != Colors.transparent ? color : Color(config.iconBadgeIconColor))))));
 
     final Widget content = Container(
       width: effectiveSize,
@@ -279,6 +291,7 @@ class BoxyArtPill extends ConsumerWidget {
       label: 'HC: $label',
       color: AppColors.dark400, // Design 4.x: Stronger neutral for HC
       icon: icon,
+      isLegend: true,
       hasHorizontalMargin: hasHorizontalMargin,
       fontSize: fontSize ?? AppTypography.sizeMicro,
       fontWeight: AppTypography.weightBold,
@@ -295,8 +308,9 @@ class BoxyArtPill extends ConsumerWidget {
   }) {
     return BoxyArtPill(
       label: 'PHC: $label',
-      color: Theme.of(context).primaryColor,
+      color: AppColors.amber500, // Design 4.x: Standarized PHC Amber
       icon: icon,
+      isLegend: true,
       hasHorizontalMargin: hasHorizontalMargin,
       fontSize: fontSize ?? AppTypography.sizeMicro,
       fontWeight: AppTypography.weightBold,
@@ -367,7 +381,7 @@ class BoxyArtPill extends ConsumerWidget {
 
     final Color effectiveBgColor = backgroundColor ?? (
       isAction 
-        ? (baseColor ?? AppColors.lime500)
+        ? (baseColor ?? Color(config.primaryColor))
         : (showFill ? (baseColor?.withValues(alpha: 0.08) ?? Colors.transparent) : Colors.transparent)
     );
     final Color? effectiveBorderColorActual = showBorder ? baseBorderColor : null;
@@ -569,6 +583,8 @@ class BoxyArtSquareBadge extends StatelessWidget {
   final Color? backgroundColor;
   final double? size;
   final bool isTinted;
+  final bool isPrimary;
+  final bool isSecondary;
 
   const BoxyArtSquareBadge({
     super.key,
@@ -576,6 +592,8 @@ class BoxyArtSquareBadge extends StatelessWidget {
     this.backgroundColor,
     this.size,
     this.isTinted = false,
+    this.isPrimary = false,
+    this.isSecondary = false,
   });
 
   @override
@@ -588,11 +606,16 @@ class BoxyArtSquareBadge extends StatelessWidget {
 
         Color bg = backgroundColor ?? (isDark ? AppColors.dark600 : AppColors.dark50);
         if (isTinted) {
-          bg = (shapeTokens?.iconBadgeFill ?? Color(config.iconBadgeFillColor))
-              .withValues(alpha: shapeTokens?.iconBadgeOpacity ?? config.iconBadgeOpacity);
+          final Color baseColor = isPrimary 
+              ? Color(config.primaryColor) 
+              : (isSecondary ? Color(config.secondaryColor) : (shapeTokens?.iconBadgeFill ?? Color(config.iconBadgeFillColor)));
+          
+          bg = baseColor.withValues(alpha: shapeTokens?.iconBadgeOpacity ?? config.iconBadgeOpacity);
         }
 
-        final Color effectiveIconColor = shapeTokens?.iconBadgeIcon ?? Color(config.iconBadgeIconColor);
+        final Color effectiveIconColor = isPrimary 
+            ? Color(config.primaryColor) 
+            : (isSecondary ? Color(config.secondaryColor) : (shapeTokens?.iconBadgeIcon ?? Color(config.iconBadgeIconColor)));
 
         return Container(
           width: size ?? 28,

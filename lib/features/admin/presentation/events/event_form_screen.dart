@@ -52,43 +52,50 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
             onPressed: () => context.go('/admin/events'),
           ),
         ),
-        actions: [
-          const SizedBox(width: AppSpacing.md),
-          if (state.isSaving)
-            const SizedBox(
-              width: AppSpacing.x4l,
-              height: AppSpacing.x4l,
-              child: Center(
-                child: SizedBox(
-                  width: AppSpacing.xl,
-                  height: AppSpacing.xl,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                ),
-              ),
-            )
-          else
-            BoxyArtGlassIconButton(
-              icon: Icons.check_rounded,
-              iconSize: 22,
-              onPressed: () => ref.read(eventFormNotifierProvider.notifier).save().then((success) {
-                if (success && context.mounted) {
-                  context.pop();
-                }
-              }),
-              tooltip: 'Save',
-            ),
-        ],
+
         slivers: [
           SliverToBoxAdapter(
             child: Padding(
               padding: EdgeInsets.symmetric(horizontal: spacing?.cardHorizontalPadding ?? AppSpacing.lg),
-              child: AnimatedSwitcher(
-                duration: AppAnimations.medium,
-                switchInCurve: Curves.easeOutCubic,
-                switchOutCurve: Curves.easeInCubic,
-                child: state.eventType == EventType.golf 
-                  ? _GolfFormBody(key: const ValueKey('golf'), state: state)
-                  : _SocialFormBody(key: const ValueKey('social'), state: state),
+              child: Column(
+                children: [
+                  AnimatedSwitcher(
+                    duration: AppAnimations.medium,
+                    switchInCurve: Curves.easeOutCubic,
+                    switchOutCurve: Curves.easeInCubic,
+                    child: state.eventType == EventType.golf 
+                      ? _GolfFormBody(key: const ValueKey('golf'), state: state)
+                      : _SocialFormBody(key: const ValueKey('social'), state: state),
+                  ),
+                  const SizedBox(height: AppSpacing.xl),
+                  BoxyArtCard(
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: BoxyArtButton(
+                            title: 'CANCEL',
+                            isGhost: true,
+                            onTap: () => context.go('/admin/events'),
+                          ),
+                        ),
+                        const SizedBox(width: AppSpacing.md),
+                        Expanded(
+                          child: state.isSaving
+                              ? const Center(child: CircularProgressIndicator())
+                              : BoxyArtButton(
+                                  title: 'SAVE',
+                                  onTap: () => ref.read(eventFormNotifierProvider.notifier).save().then((success) {
+                                    if (success && context.mounted) {
+                                      context.pop();
+                                    }
+                                  }),
+                                ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.x4l),
+                ],
               ),
             ),
           ),
@@ -121,7 +128,8 @@ class _GolfFormBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const BoxyArtFormColumn(
+    return const Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         EventTypeSection(isPeeking: true),
         EventLogisticsSection(),
@@ -143,7 +151,8 @@ class _SocialFormBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const BoxyArtFormColumn(
+    return const Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         EventTypeSection(isPeeking: true),
         // Social events often prioritize the concept/info and costs

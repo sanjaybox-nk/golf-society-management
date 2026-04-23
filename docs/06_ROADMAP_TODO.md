@@ -136,12 +136,24 @@ This document tracks the remaining work required to take **Golf Society Manageme
     - [x] **Duplicate Elimination**: Deleted legacy `ModernMemberCard` and feature-specific pills.
     - [x] **Library Standardized**: Cleaned up `metrics.dart` and standardized `BoxyArtPill` as single source of truth.
     - [x] **SDK & Theme Restoration (Apr 2026)**: Successful modernization to Flutter 3.41 / Dart 3.11 and synchronization of Design 4.x badge tokens across all hubs.
-- [x] **Administrative Shell Stabilization (v7.1)** (Completed 2026-04-21):
-    - [x] Corrected `StatefulShellBranch` nesting and bracket alignment in `app_router.dart`.
-    - [x] Standardized `useRootNavigator: true` for administrative modals to resolve shell-based clipping.
-    - [x] Implemented context-aware `eventId` passing for Competition Gallery and Selection flows.
-    - [x] Audited and synchronized global administrative edit menus to minimize navigation friction.
+    - [x] **Administrative Shell Stabilization (v7.1)** (Completed 2026-04-21): 
+        - [x] Corrected `StatefulShellBranch` nesting and bracket alignment in `app_router.dart`.
+        - [x] Standardized `useRootNavigator: true` for administrative modals to resolve shell-based clipping.
+        - [x] Implemented context-aware `eventId` passing for Competition Gallery and Selection flows.
+        - [x] Audited and synchronized global administrative edit menus to minimize navigation friction.
+    - [x] **Administrative UI Refresh (v4.5)** (Completed 2026-04-22):
+    - [x] **Tab Iconography Standardization**: Integrated "Icon + Label" pattern across all navigation hubs (Events, Members, Reports, Renewal, Dashboard, and Match Play).
+    - [x] **Navigation Consistency**: Swapped button-style controls for underlined tabs in `EventTypeSection`.
+    - [x] **UI Component Expansion**: Updated `ModernUnderlinedTabBar` to support iconography.
+    - [x] **Scorecard Stability**: Refactored scorecard rendering to eliminate IIFE-based syntax errors and corrected hole masking logic.
+- [x] **Administrative Seeding Infrastructure Consolidation (v4.x)** (Completed 2026-04-23):
+    - [x] **Unified Master Seed**: Consolidated fragmented seeding processes into a single "Initialize Demo Season" workflow in `SeedingService`.
+    - [x] **Match Play Integration**: Integrated the 36-player Match Play progression scenario directly into the master seeding orchestration.
+    - [x] **Infrastructure Hierarchy**: Implemented a clear 3-tier action system (Clear Activity / Master Seed / Factory Reset) with high-fidelity administrative toggles.
+    - [x] **UI Responsiveness & Layout**: Refactored `BoxyArtDialog` with `OverflowBar` to prevent button truncation. Standardized "Boxy Art" v4.x tokens across the settings hub.
+    - [x] **Typography Hardening**: Applied ALL-CAPS metadata standards and corrected button text fit (e.g. "CLEAR").
 - [x] **Society Cuts Restructure (Apr 2026)**: Moved global configuration to Admin Dashboard and implemented conditional manual workbench in Event Controls.
+- [x] **Matchplay Engine Integration**: Independent knockouts and event-layered hybrid competitions fully integrated into the seeding engine and leaderboard UI.
 
 ## 3. Architecture & Patterns
 #### Society Cuts Access Logic

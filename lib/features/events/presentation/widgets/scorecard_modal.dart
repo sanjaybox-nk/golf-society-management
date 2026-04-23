@@ -312,7 +312,7 @@ class ScorecardModal {
                                       BoxyArtIndicator.phc(context: context, label: '${entry.playingHandicap}'),
                                     ],
                                     const Spacer(),
-                                    BoxyArtPill.tee(label: teeName, teeColor: teeColor),
+                                    BoxyArtIndicator.tee(label: teeName, teeColor: teeColor),
                                   ],
                                 ),
                                 if (entry.thruLabel != null || entry.tieBreakLabel != null) ...[
@@ -343,8 +343,9 @@ class ScorecardModal {
                   padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.lg, AppSpacing.lg, 100.0),
                   child: Builder(
                     builder: (context) {
+                      if (comp == null) return const Center(child: CircularProgressIndicator());
                       // Resolve effective rules/format for modal
-                      final effectiveMaxScore = comp?.rules.maxScoreConfig;
+                      final effectiveMaxScore = comp.rules.maxScoreConfig;
 
                       // [NEW] Logic for Team/Pairs Display
                       List<CourseScoreRow> additionalRows = [];
@@ -364,6 +365,7 @@ class ScorecardModal {
                       // --- [NEW] AUTHORITATIVE MATCH PLAY CALCULATION ---
                       List<String>? matchPlayResults;
                       String? matchPlaySummary;
+                      int? conclusionHole;
                       if (currentFormat == CompetitionFormat.matchPlay) {
                         final myIds = entry.teamMemberIds ?? [entry.entryId];
                         List<String>? myGroupIds;
@@ -441,10 +443,13 @@ class ScorecardModal {
                               holesToPlay: event.courseConfig.holes.length,
                             );
 
+                            conclusionHole = result.isFinal ? result.holesPlayed : null;
+
                             matchPlayResults = result.holeResults.map((r) {
                               if (r == 1) return 'W';
                               if (r == -1) return 'L';
-                              return 'H';
+                              if (r == 0) return 'H';
+                              return ''; 
                             }).toList();
                             
                             if (result.score == 0) {
@@ -494,6 +499,7 @@ class ScorecardModal {
                                holeLimit: holeLimit,
                                overrideTotalPoints: totalPoints,
                                matchPlayResults: matchPlayResults,
+                               conclusionHole: conclusionHole,
                              );
                           })(),
                           const SizedBox(height: AppSpacing.x2l),

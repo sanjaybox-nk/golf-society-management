@@ -1,7 +1,8 @@
 import 'package:golf_society/design_system/design_system.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// Standard branded dialog for Fairway v3.1.
-class BoxyArtDialog extends StatelessWidget {
+class BoxyArtDialog extends ConsumerWidget {
   final String title;
   final Widget? content;
   final String? message;
@@ -26,17 +27,19 @@ class BoxyArtDialog extends StatelessWidget {
   }) : assert(content != null || message != null, 'Either content or message must be provided');
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final config = ref.watch(themeControllerProvider);
     
     // Design 4.x Rhythm & Tokens
     return Dialog(
       backgroundColor: Colors.transparent,
       elevation: 0,
-      insetPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.x3l, vertical: AppSpacing.x2l),
+      insetPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.standard, vertical: AppSpacing.standard),
       child: BoxyArtCard(
-        padding: const EdgeInsets.all(AppSpacing.xl), // 16pt rhythmic padding
+        padding: const EdgeInsets.all(AppSpacing.xl),
+        backgroundColor: isDark ? AppColors.dark700 : Color(config.cardColor),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -63,28 +66,29 @@ class BoxyArtDialog extends StatelessWidget {
               
             const SizedBox(height: AppSpacing.xl), // 16pt Gap to actions
             
-            // Actions - Right Aligned Side-by-Side
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
+            // Actions - Right Aligned or Stacked if overflowing
+            OverflowBar(
+              alignment: MainAxisAlignment.end,
+              overflowAlignment: OverflowBarAlignment.end,
+              spacing: AppSpacing.md,
+              overflowSpacing: AppSpacing.sm,
               children: [
                 if (onCancel != null)
                   BoxyArtButton(
-                    title: cancelText ?? 'Cancel',
+                    title: cancelText ?? 'CANCEL',
                     isGhost: true,
                     onTap: onCancel,
                   ),
-                if (onCancel != null && onConfirm != null)
-                   const SizedBox(width: AppSpacing.md),
                 if (onConfirm != null)
                   BoxyArtButton(
-                    title: confirmText ?? 'Confirm',
+                    title: confirmText ?? 'CONFIRM',
                     isPrimary: !isDangerous,
                     isDangerous: isDangerous,
                     onTap: onConfirm,
                   )
                 else if (onCancel == null && actions == null)
                   BoxyArtButton(
-                    title: 'Close',
+                    title: 'CLOSE',
                     isGhost: true,
                     onTap: () => Navigator.pop(context),
                   ),
@@ -134,9 +138,9 @@ Future<T?> showBoxyArtDialog<T>({
   Widget? content,
   List<Widget>? actions,
   VoidCallback? onConfirm,
-  String confirmText = 'Confirm',
+  String confirmText = 'CONFIRM',
   VoidCallback? onCancel,
-  String cancelText = 'Cancel',
+  String cancelText = 'CANCEL',
   bool isDangerous = false,
 }) {
   return showDialog<T>(
