@@ -33,10 +33,10 @@ class ScoringTypeDistributionChart extends StatelessWidget {
           children: [
             Text(
               'SCORING BREAKDOWN',
-              style: AppTypography.labelStrong.copyWith(
-                color: AppColors.dark900,
-                letterSpacing: 2.0,
-                fontSize: 10,
+              style: AppTypography.label.copyWith(
+                color: Theme.of(context).colorScheme.onSurface,
+                fontWeight: AppTypography.weightHeavy,
+                letterSpacing: 1.0,
               ),
             ),
             const SizedBox(height: AppSpacing.lg),
@@ -72,9 +72,8 @@ class ScoringTypeDistributionChart extends StatelessWidget {
                         child: Text(
                           t,
                           textAlign: TextAlign.center,
-                          style: AppTypography.labelStrong.copyWith(
-                            color: AppColors.dark900,
-                            fontSize: AppTypography.sizeCaption, // Slightly smaller for dense labels
+                          style: AppTypography.micro.copyWith(
+                            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: AppColors.opacityHigh),
                           ),
                         ),
                       ),
@@ -86,9 +85,8 @@ class ScoringTypeDistributionChart extends StatelessWidget {
             const SizedBox(height: AppSpacing.lg),
             Text(
               'A breakdown of every score recorded across the entire field.',
-              style: AppTypography.label.copyWith(
-                color: AppColors.dark900,
-                fontWeight: AppTypography.weightRegular,
+              style: AppTypography.bodySmall.copyWith(
+                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: AppColors.opacitySecondary),
               ),
             ),
           ],
@@ -121,9 +119,9 @@ class StablefordDistributionChart extends StatelessWidget {
             Text(
               'STABLEFORD DISTRIBUTION',
               style: AppTypography.label.copyWith(
-                color: AppColors.dark900,
-                fontWeight: AppTypography.weightSemibold,
-                letterSpacing: 1.2,
+                color: Theme.of(context).colorScheme.onSurface,
+                fontWeight: AppTypography.weightHeavy,
+                letterSpacing: 1.0,
               ),
             ),
             const SizedBox(height: AppSpacing.x2l),
@@ -139,7 +137,9 @@ class StablefordDistributionChart extends StatelessWidget {
                     children: [
                       Text(
                         count.toString(),
-                        style: AppTypography.label,
+                        style: AppTypography.displayLocker.copyWith(
+                          color: Theme.of(context).colorScheme.onSurface,
+                        ),
                       ),
                       const SizedBox(height: AppSpacing.sm),
                       Container(
@@ -157,7 +157,7 @@ class StablefordDistributionChart extends StatelessWidget {
                           b,
                           textAlign: TextAlign.center,
                           style: AppTypography.micro.copyWith(
-                            color: AppColors.dark900,
+                            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: AppColors.opacityHigh),
                           ),
                         ),
                       ),
@@ -169,9 +169,8 @@ class StablefordDistributionChart extends StatelessWidget {
             const SizedBox(height: AppSpacing.lg),
             Text(
               'Counts how many players finished within each point range.',
-              style: AppTypography.label.copyWith(
-                color: AppColors.dark900,
-                fontWeight: AppTypography.weightRegular,
+              style: AppTypography.bodySmall.copyWith(
+                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: AppColors.opacitySecondary),
               ),
             ),
           ],
@@ -212,17 +211,17 @@ class SplitPerformanceCard extends StatelessWidget {
             Text(
               'FRONT vs BACK PERFORMANCE',
               style: AppTypography.label.copyWith(
-                color: AppColors.dark900,
-                fontWeight: AppTypography.weightSemibold,
-                letterSpacing: 1.2,
+                color: Theme.of(context).colorScheme.onSurface,
+                fontWeight: AppTypography.weightHeavy,
+                letterSpacing: 1.0,
               ),
             ),
             const SizedBox(height: AppSpacing.xl),
             Row(
               children: [
-                _buildHalfCard('FRONT 9', front9Avg, AppColors.lime500, label),
+                _buildHalfCard(context, 'FRONT 9', front9Avg, AppColors.lime500, label),
                 const SizedBox(width: AppSpacing.lg),
-                _buildHalfCard('BACK 9', back9Avg, AppColors.coral500, label),
+                _buildHalfCard(context, 'BACK 9', back9Avg, AppColors.coral500, label),
               ],
             ),
             const SizedBox(height: AppSpacing.lg),
@@ -256,9 +255,8 @@ class SplitPerformanceCard extends StatelessWidget {
                 const SizedBox(height: AppSpacing.lg),
                 Text(
                   'Compares total points or strokes between the first and last 9 holes.',
-                  style: AppTypography.label.copyWith(
-                    color: AppColors.dark900,
-                    fontWeight: AppTypography.weightRegular,
+                  style: AppTypography.bodySmall.copyWith(
+                    color: Theme.of(context).colorScheme.onSurface.withValues(alpha: AppColors.opacitySecondary),
                   ),
                 ),
               ],
@@ -267,12 +265,12 @@ class SplitPerformanceCard extends StatelessWidget {
         );
   }
 
-  Widget _buildHalfCard(String title, double val, Color color, String unit) {
+  Widget _buildHalfCard(BuildContext context, String title, double val, Color color, String unit) {
     return Expanded(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Text(title, style: AppTypography.micro.copyWith(color: AppColors.dark900)),
+          Text(title, style: AppTypography.micro.copyWith(color: Theme.of(context).colorScheme.onSurface)),
           const SizedBox(height: AppSpacing.xs),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -281,10 +279,10 @@ class SplitPerformanceCard extends StatelessWidget {
             children: [
               Text(
                 val.toStringAsFixed(1),
-                style: AppTypography.displayLocker.copyWith(color: AppColors.dark900),
+                style: AppTypography.displayLocker.copyWith(color: Theme.of(context).colorScheme.onSurface),
               ),
               const SizedBox(width: AppSpacing.xs),
-              Text(unit, style: AppTypography.label.copyWith(color: AppColors.dark900)),
+              Text(unit, style: AppTypography.label.copyWith(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: AppColors.opacityHigh))),
             ],
           ),
         ],
@@ -313,9 +311,9 @@ class ParTypeBreakdown extends StatelessWidget {
             Text(
               'PERFORMANCE BY HOLE TYPE',
               style: AppTypography.label.copyWith(
-                color: AppColors.dark900,
-                fontWeight: AppTypography.weightSemibold,
-                letterSpacing: 1.2,
+                color: Theme.of(context).colorScheme.onSurface,
+                fontWeight: AppTypography.weightHeavy,
+                letterSpacing: 1.0,
               ),
             ),
             const SizedBox(height: AppSpacing.xl),
@@ -329,9 +327,8 @@ class ParTypeBreakdown extends StatelessWidget {
             const SizedBox(height: AppSpacing.lg),
             Text(
               'Breaks down performance averages against par for different hole lengths.',
-              style: AppTypography.label.copyWith(
-                color: AppColors.dark900,
-                fontWeight: AppTypography.weightRegular,
+              style: AppTypography.bodySmall.copyWith(
+                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: AppColors.opacitySecondary),
               ),
             ),
           ],
@@ -349,9 +346,9 @@ class ParTypeBreakdown extends StatelessWidget {
           Text(
             label,
             style: AppTypography.label.copyWith(
-              color: AppColors.dark900,
-              fontWeight: AppTypography.weightSemibold,
-              letterSpacing: 1.2,
+              color: Theme.of(context).colorScheme.onSurface,
+              fontWeight: AppTypography.weightHeavy,
+              letterSpacing: 1.0,
             ),
           ),
           const SizedBox(height: AppSpacing.sm),
@@ -363,7 +360,7 @@ class ParTypeBreakdown extends StatelessWidget {
             ),
             child: Text(
               '${vsPar ? "+" : ""}${avg.toStringAsFixed(1)}',
-              style: AppTypography.displayLocker.copyWith(color: AppColors.dark900),
+              style: AppTypography.displayLocker.copyWith(color: Theme.of(context).colorScheme.onSurface),
             ),
           ),
           const SizedBox(height: AppSpacing.xs),
@@ -372,7 +369,9 @@ class ParTypeBreakdown extends StatelessWidget {
             child: Text(
               'AVG VS PAR',
               textAlign: TextAlign.center,
-              style: AppTypography.labelStrong.copyWith(color: AppColors.dark900),
+              style: AppTypography.micro.copyWith(
+                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: AppColors.opacityHigh),
+              ),
             ),
           ),
         ],
@@ -402,25 +401,25 @@ class DifficultyHeatmap extends StatelessWidget {
             Text(
               'HOLE-BY-HOLE HEATMAP',
               style: AppTypography.label.copyWith(
-                color: AppColors.dark900,
-                fontWeight: AppTypography.weightSemibold,
-                letterSpacing: 1.2,
+                color: Theme.of(context).colorScheme.onSurface,
+                fontWeight: AppTypography.weightHeavy,
+                letterSpacing: 1.0,
               ),
             ),
             const SizedBox(height: AppSpacing.lg),
-            Row(
-              children: List.generate(9, (i) => Expanded(child: _buildHoleBubble(i))),
-            ),
-            const SizedBox(height: AppSpacing.xs),
-            Row(
-              children: List.generate(9, (i) => Expanded(child: _buildHoleBubble(i + 9))),
+            Wrap(
+              spacing: 4,
+              runSpacing: 4,
+              children: List.generate(18, (i) => SizedBox(
+                width: (MediaQuery.of(context).size.width - (hPadding * 2) - 40) / 6,
+                child: _buildHoleBubble(context, i),
+              )),
             ),
             const SizedBox(height: AppSpacing.lg),
             Text(
               'A visual guide to course difficulty: Red shades indicate harder (over-par) holes, while green indicates easier ones.',
-              style: AppTypography.label.copyWith(
-                color: AppColors.dark900,
-                fontWeight: AppTypography.weightRegular,
+              style: AppTypography.bodySmall.copyWith(
+                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: AppColors.opacitySecondary),
               ),
             ),
           ],
@@ -429,7 +428,7 @@ class DifficultyHeatmap extends StatelessWidget {
     );
   }
 
-  Widget _buildHoleBubble(int i) {
+  Widget _buildHoleBubble(BuildContext context, int i) {
     final avg = holeAverages[i] ?? 4.0;
     final par = holes.length > i ? (holes[i] is Map ? (holes[i]['par'] as int? ?? 4) : holes[i].par).toDouble() : 4.0;
     final diff = avg - par;
@@ -449,22 +448,23 @@ class DifficultyHeatmap extends StatelessWidget {
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 2),
-      height: 45,
+      height: 52,
       decoration: BoxDecoration(
-        color: color,
-        borderRadius: AppShapes.sm,
+        color: color.withValues(alpha: AppColors.opacityHigh),
+        borderRadius: AppShapes.md,
+        border: Border.all(color: color, width: 1.5),
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Text(
             '${i + 1}',
-            style: AppTypography.microSmall.copyWith(color: AppColors.pureWhite),
+            style: AppTypography.microSmall.copyWith(color: Theme.of(context).colorScheme.onSurface),
           ),
           Text(
             '${diff > 0 ? "+" : ""}${diff.toStringAsFixed(1)}',
             style: TextStyle(
-              color: AppColors.pureWhite.withValues(alpha: AppColors.opacityHigh),
+              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: AppColors.opacityHigh),
               fontSize: AppTypography.sizeMicroSmall,
               fontWeight: AppTypography.weightBold,
             ),
@@ -510,9 +510,9 @@ class HoleDifficultyChart extends StatelessWidget {
             Text(
               'TOUGHEST TEST (AVG VS PAR)',
               style: AppTypography.label.copyWith(
-                color: AppColors.dark900,
-                fontWeight: AppTypography.weightSemibold,
-                letterSpacing: 1.2,
+                color: Theme.of(context).colorScheme.onSurface,
+                fontWeight: AppTypography.weightHeavy,
+                letterSpacing: 1.0,
               ),
             ),
             const SizedBox(height: AppSpacing.lg),
@@ -537,8 +537,8 @@ class HoleDifficultyChart extends StatelessWidget {
                         child: Text(
                           '${idx + 1}',
                           style: TextStyle(
-                            color: AppColors.dark900,
-                            fontWeight: AppTypography.weightBold,
+                            color: Theme.of(context).colorScheme.onSurface,
+                            fontWeight: AppTypography.weightHeavy,
                           ),
                         ),
                       ),
@@ -558,7 +558,7 @@ class HoleDifficultyChart extends StatelessWidget {
                               Text(
                                 '${isOverPar ? "+" : ""}${diff.toStringAsFixed(1)}',
                                 style: TextStyle(
-                                  color: AppColors.dark900,
+                                  color: Theme.of(context).colorScheme.onSurface,
                                 ),
                               ),
                             ],
@@ -585,9 +585,8 @@ class HoleDifficultyChart extends StatelessWidget {
             const SizedBox(height: AppSpacing.sm),
             Text(
               'Identifies the most challenging holes based on average relative to par.',
-              style: AppTypography.label.copyWith(
-                color: AppColors.dark900,
-                fontWeight: AppTypography.weightRegular,
+              style: AppTypography.bodySmall.copyWith(
+                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: AppColors.opacitySecondary),
               ),
             ),
           ],
@@ -651,9 +650,9 @@ class AchievementTile extends StatelessWidget {
                     Text(
                       title,
                       style: AppTypography.label.copyWith(
-                        color: AppColors.dark900,
-                        fontWeight: AppTypography.weightSemibold,
-                        letterSpacing: 1.2,
+                        color: Theme.of(context).colorScheme.onSurface,
+                        fontWeight: AppTypography.weightHeavy,
+                        letterSpacing: 1.0,
                       ),
                     ),
                     const SizedBox(height: AppSpacing.xs),
@@ -669,7 +668,7 @@ class AchievementTile extends StatelessWidget {
                     Text(
                       value,
                       style: AppTypography.label.copyWith(
-                        color: AppColors.dark300,
+                        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: AppColors.opacitySecondary),
                       ),
                     ),
                   ],
@@ -825,7 +824,7 @@ class FieldEclecticCard extends StatelessWidget {
           style: AppTypography.caption.copyWith(
             color: AppColors.pureWhite.withValues(alpha: AppColors.opacityHigh),
             fontWeight: AppTypography.weightSemibold,
-            letterSpacing: 1.2,
+            letterSpacing: 1.0,
           ),
         ),
       ],
@@ -851,20 +850,7 @@ class SocietyRecapSummaryCard extends StatelessWidget {
   Widget build(BuildContext context) {
 
     return BoxyArtCard(
-      padding: EdgeInsets.zero,
-      backgroundColor: Colors.transparent, // Let gradient handle it
-      child: Container(
-        width: double.infinity,
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              Theme.of(context).colorScheme.primary,
-              Theme.of(context).colorScheme.primary.withValues(alpha: 0.8),
-            ],
-          ),
-        ),
+      child: Padding(
         padding: const EdgeInsets.symmetric(vertical: AppSpacing.x3l, horizontal: AppSpacing.x2l),
         child: Column(
           children: [
@@ -872,11 +858,11 @@ class SocietyRecapSummaryCard extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(AppSpacing.md),
               decoration: BoxDecoration(
-                color: AppColors.pureWhite.withValues(alpha: AppColors.opacityMedium),
+                color: Theme.of(context).colorScheme.primary.withValues(alpha: AppColors.opacityLow),
                 shape: BoxShape.circle,
                 boxShadow: Theme.of(context).extension<AppShadows>()?.softScale ?? [],
               ),
-              child: const Icon(Icons.flag_rounded, color: AppColors.pureWhite, size: AppShapes.iconXl),
+              child: Icon(Icons.flag_rounded, color: Theme.of(context).colorScheme.primary, size: AppShapes.iconXl),
             ),
             const SizedBox(height: AppSpacing.x2l),
             
@@ -884,8 +870,9 @@ class SocietyRecapSummaryCard extends StatelessWidget {
             Text(
               'SOCIETY RECAP COMPLETE',
               style: AppTypography.label.copyWith(
-                color: AppColors.pureWhite.withValues(alpha: AppColors.opacityHigh),
-                letterSpacing: 3.0,
+                color: Theme.of(context).colorScheme.onSurface,
+                fontWeight: AppTypography.weightHeavy,
+                letterSpacing: 1.0,
               ),
             ),
             const SizedBox(height: AppSpacing.md),
@@ -896,21 +883,21 @@ class SocietyRecapSummaryCard extends StatelessWidget {
               text: TextSpan(
                   style: AppTypography.displaySubPage.copyWith(
                     fontSize: AppTypography.sizeDisplayHeading,
-                    color: AppColors.pureWhite,
+                    color: Theme.of(context).colorScheme.onSurface,
                   ),
                 children: [
                   TextSpan(text: '$totalPlayers'),
                   TextSpan(
                     text: ' PLAYERS  •  ',
                     style: AppTypography.displayLargeBody.copyWith(
-                      color: AppColors.pureWhite.withValues(alpha: AppColors.opacityHigh),
+                      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: AppColors.opacitySecondary),
                     ),
                   ),
                   TextSpan(text: '$totalHolesPlayed'),
                   TextSpan(
                     text: ' HOLES',
                     style: AppTypography.displayLargeBody.copyWith(
-                      color: AppColors.pureWhite.withValues(alpha: AppColors.opacityHigh),
+                      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: AppColors.opacitySecondary),
                     ),
                   ),
                 ],
@@ -922,19 +909,19 @@ class SocietyRecapSummaryCard extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: 10),
               decoration: BoxDecoration(
-                color: Colors.black.withValues(alpha: AppColors.opacityLow),
+                color: Theme.of(context).colorScheme.primary.withValues(alpha: AppColors.opacityLow),
                 borderRadius: AppShapes.pill,
-                border: Border.all(color: AppColors.pureWhite.withValues(alpha: AppColors.opacityMedium)),
+                border: Border.all(color: Theme.of(context).colorScheme.primary.withValues(alpha: AppColors.opacityMedium)),
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(Icons.show_chart_rounded, color: AppColors.pureWhite, size: AppShapes.iconSm),
+                  Icon(Icons.show_chart_rounded, color: Theme.of(context).colorScheme.primary, size: AppShapes.iconSm),
                   const SizedBox(width: AppSpacing.sm),
                   Text(
                     'Toughest Test: $topHoleName (+${topHoleDiff.toStringAsFixed(1)})',
-                    style: const TextStyle(
-                      color: AppColors.pureWhite,
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onSurface,
                       fontWeight: AppTypography.weightBlack,
                       fontSize: AppTypography.sizeBodySmall,
                       letterSpacing: -0.2,
@@ -950,7 +937,7 @@ class SocietyRecapSummaryCard extends StatelessWidget {
               'What a day for the society!',
               textAlign: TextAlign.center,
               style: TextStyle(
-                color: AppColors.pureWhite.withValues(alpha: AppColors.opacityStrong),
+                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: AppColors.opacityStrong),
                 fontSize: AppTypography.sizeButton,
                 fontStyle: FontStyle.italic,
                 fontWeight: AppTypography.weightMedium,
@@ -959,10 +946,10 @@ class SocietyRecapSummaryCard extends StatelessWidget {
             ),
             const SizedBox(height: AppSpacing.xs),
             Text(
-              'See you at the 19th hole. 🍻',
+              'See you at the 19th hole.',
               textAlign: TextAlign.center,
               style: TextStyle(
-                color: AppColors.pureWhite.withValues(alpha: AppColors.opacityStrong),
+                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: AppColors.opacityStrong),
                 fontSize: AppTypography.sizeButton,
                 fontStyle: FontStyle.italic,
                 fontWeight: AppTypography.weightMedium,
@@ -1001,9 +988,9 @@ class PersonalBenchmarkingCard extends StatelessWidget {
             Text(
               'YOU VS THE FIELD',
               style: AppTypography.label.copyWith(
-                color: AppColors.dark900,
-                fontWeight: AppTypography.weightSemibold,
-                letterSpacing: 1.2,
+                color: Theme.of(context).colorScheme.onSurface,
+                fontWeight: AppTypography.weightHeavy,
+                letterSpacing: 1.0,
               ),
             ),
             const SizedBox(height: AppSpacing.xl),
@@ -1017,9 +1004,8 @@ class PersonalBenchmarkingCard extends StatelessWidget {
             const SizedBox(height: AppSpacing.lg),
             Text(
               'Compares your average performance relative to par against the rest of the field.',
-              style: AppTypography.label.copyWith(
-                color: AppColors.dark900,
-                fontWeight: AppTypography.weightRegular,
+              style: AppTypography.bodySmall.copyWith(
+                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: AppColors.opacitySecondary),
               ),
             ),
           ],
@@ -1036,7 +1022,7 @@ class PersonalBenchmarkingCard extends StatelessWidget {
     return Expanded(
       child: Column(
         children: [
-          Text(label, style: AppTypography.micro.copyWith(color: AppColors.dark900)),
+          Text(label, style: AppTypography.micro.copyWith(color: Theme.of(context).colorScheme.onSurface)),
           const SizedBox(height: AppSpacing.sm),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: AppSpacing.sm),
@@ -1102,25 +1088,25 @@ class HoleComparisonHeatmap extends StatelessWidget {
             Text(
               'WHERE YOU BEAT THE FIELD',
               style: AppTypography.label.copyWith(
-                color: AppColors.dark900,
-                fontWeight: AppTypography.weightSemibold,
-                letterSpacing: 1.2,
+                color: Theme.of(context).colorScheme.onSurface,
+                fontWeight: AppTypography.weightHeavy,
+                letterSpacing: 1.0,
               ),
             ),
             const SizedBox(height: AppSpacing.lg),
-            Row(
-              children: List.generate(9, (i) => Expanded(child: _buildComparisonBubble(i))),
-            ),
-            const SizedBox(height: AppSpacing.xs),
-            Row(
-              children: List.generate(9, (i) => Expanded(child: _buildComparisonBubble(i + 9))),
+            Wrap(
+              spacing: 4,
+              runSpacing: 4,
+              children: List.generate(18, (i) => SizedBox(
+                width: (MediaQuery.of(context).size.width - (hPadding * 2) - 40) / 6,
+                child: _buildComparisonBubble(context, i),
+              )),
             ),
             const SizedBox(height: AppSpacing.lg),
             Text(
               'Gold holes are where you personally beat the field average. Grey holes are where the field got the better of you.',
-              style: AppTypography.label.copyWith(
-                color: AppColors.dark900,
-                fontWeight: AppTypography.weightRegular,
+              style: AppTypography.bodySmall.copyWith(
+                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: AppColors.opacitySecondary),
               ),
             ),
           ],
@@ -1129,7 +1115,7 @@ class HoleComparisonHeatmap extends StatelessWidget {
     );
   }
 
-  Widget _buildComparisonBubble(int i) {
+  Widget _buildComparisonBubble(BuildContext context, int i) {
     final myScore = (myHoleScores.length > i ? myHoleScores[i] : null)?.toDouble();
     if (myScore == null) return Container();
 
@@ -1141,21 +1127,22 @@ class HoleComparisonHeatmap extends StatelessWidget {
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 2),
-      height: 45,
+      height: 52,
       decoration: BoxDecoration(
-        color: color,
-        borderRadius: AppShapes.sm,
+        color: color.withValues(alpha: AppColors.opacityHigh),
+        borderRadius: AppShapes.md,
+        border: Border.all(color: color, width: 1.5),
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Text(
             '${i + 1}',
-            style: const TextStyle(color: AppColors.pureWhite, fontWeight: AppTypography.weightBlack, fontSize: AppTypography.sizeCaptionStrong),
+            style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontWeight: AppTypography.weightBlack, fontSize: AppTypography.sizeCaptionStrong),
           ),
           Icon(
             beatField ? Icons.star : Icons.remove,
-            color: AppColors.pureWhite.withValues(alpha: AppColors.opacityHigh),
+            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: AppColors.opacityHigh),
             size: AppShapes.iconXs,
           ),
         ],
@@ -1193,9 +1180,9 @@ class ConsistencyStatCard extends StatelessWidget {
             Text(
               'CONSISTENCY (ROUND VARIANCE)',
               style: AppTypography.label.copyWith(
-                color: AppColors.dark900,
-                fontWeight: AppTypography.weightSemibold,
-                letterSpacing: 1.2,
+                color: Theme.of(context).colorScheme.onSurface,
+                fontWeight: AppTypography.weightHeavy,
+                letterSpacing: 1.0,
               ),
             ),
             const SizedBox(height: AppSpacing.md),
@@ -1211,9 +1198,8 @@ class ConsistencyStatCard extends StatelessWidget {
                       ),
                       Text(
                         'You were ${diff.abs().toStringAsFixed(0)}% ${moreConsistent ? "more" : "less"} consistent than the field.',
-                        style: AppTypography.label.copyWith(
-                          color: AppColors.dark900,
-                          fontWeight: AppTypography.weightRegular,
+                        style: AppTypography.bodySmall.copyWith(
+                          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: AppColors.opacitySecondary),
                         ),
                       ),
                     ],
@@ -1267,9 +1253,9 @@ class NetComparisonCard extends StatelessWidget {
                   Text(
                     'NET VS FIELD AVG',
                     style: AppTypography.label.copyWith(
-                      color: AppColors.dark900,
-                      fontWeight: AppTypography.weightBlack,
-                      letterSpacing: 1.2,
+                      color: Theme.of(context).colorScheme.onSurface,
+                      fontWeight: AppTypography.weightHeavy,
+                      letterSpacing: 1.0,
                     ),
                   ),
                   const SizedBox(height: AppSpacing.xs),
@@ -1282,7 +1268,9 @@ class NetComparisonCard extends StatelessWidget {
                       const SizedBox(width: AppSpacing.sm),
                       Text(
                         'vs ${fieldAvgNet.toStringAsFixed(1)} AVG',
-                        style: AppTypography.caption.copyWith(color: AppColors.dark900),
+                        style: AppTypography.bodySmall.copyWith(
+                          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: AppColors.opacitySecondary),
+                        ),
                       ),
                     ],
                   ),
@@ -1341,9 +1329,9 @@ class HoleNemesisComparison extends StatelessWidget {
             Text(
               'TOUGHEST TEST (NEMESIS)',
               style: AppTypography.label.copyWith(
-                color: AppColors.dark900,
-                fontWeight: AppTypography.weightSemibold,
-                letterSpacing: 1.2,
+                color: Theme.of(context).colorScheme.onSurface,
+                fontWeight: AppTypography.weightHeavy,
+                letterSpacing: 1.0,
               ),
             ),
             const SizedBox(height: AppSpacing.md),
@@ -1384,18 +1372,18 @@ class HoleNemesisComparison extends StatelessWidget {
         Text(
           label,
           style: AppTypography.label.copyWith(
-            color: AppColors.dark900,
-            fontWeight: AppTypography.weightSemibold,
-            letterSpacing: 1.2,
+            color: Theme.of(context).colorScheme.onSurface,
+            fontWeight: AppTypography.weightHeavy,
+            letterSpacing: 1.0,
           ),
         ),
         const SizedBox(height: AppSpacing.xs),
         Text(
           'HOLE ${idx + 1}',
           style: TextStyle(
-            fontWeight: AppTypography.weightBlack,
-            fontSize: AppTypography.sizeLargeBody,
-            color: AppColors.dark900,
+            fontWeight: AppTypography.weightHeavy,
+            fontSize: AppTypography.sizeHeadline,
+            color: Theme.of(context).colorScheme.onSurface,
           ),
         ),
         Text(
@@ -1447,9 +1435,9 @@ class BounceBackStatCard extends StatelessWidget {
                   Text(
                     'BOUNCE BACK RATE',
                     style: AppTypography.label.copyWith(
-                      color: AppColors.dark900,
-                      fontWeight: AppTypography.weightSemibold,
-                      letterSpacing: 1.2,
+                      color: Theme.of(context).colorScheme.onSurface,
+                      fontWeight: AppTypography.weightHeavy,
+                      letterSpacing: 1.0,
                     ),
                   ),
                   const SizedBox(height: AppSpacing.xs),
@@ -1466,13 +1454,13 @@ class BounceBackStatCard extends StatelessWidget {
                 Text(
                   'FIELD AVG',
                   style: AppTypography.micro.copyWith(
-                    color: AppColors.dark900,
+                    color: Theme.of(context).colorScheme.onSurface,
                   ),
                 ),
                 Text(
                   '${(fieldRate * 100).toStringAsFixed(0)}%',
-                  style: AppTypography.labelStrong.copyWith(
-                    color: AppColors.dark900,
+                  style: AppTypography.micro.copyWith(
+                    color: Theme.of(context).colorScheme.onSurface.withValues(alpha: AppColors.opacityHigh),
                   ),
                 ),
               ],

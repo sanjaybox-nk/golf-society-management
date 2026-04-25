@@ -8,6 +8,8 @@ import 'package:golf_society/features/members/presentation/profile_provider.dart
 import 'package:golf_society/domain/grouping/tee_group.dart';
 import 'package:golf_society/utils/string_utils.dart';
 import 'package:golf_society/features/members/presentation/members_provider.dart';
+import 'package:golf_society/domain/models/competition.dart';
+import 'package:golf_society/features/competitions/presentation/competitions_provider.dart';
 import 'package:collection/collection.dart';
 
 class EventHeadlineCard extends ConsumerWidget {
@@ -116,6 +118,7 @@ class EventHeadlineCard extends ConsumerWidget {
     return BoxyArtPill.status(
       label: statusText,
       color: statusColor,
+      isLegend: true,
     );
   }
 }
@@ -159,57 +162,20 @@ class EventRegistrationCard extends ConsumerWidget {
             isHero: true,
             child: Column(
               children: [
-                Text(
-                  event.displayStatus == EventStatus.completed 
-                      ? 'Event Completed' 
-                      : (!event.isRegistrationOpen ? 'Registration Closed' : (isFull ? 'Event Full' : 'Secure your spot')),
-                  style: AppTypography.headline.copyWith(
-                    fontWeight: AppTypography.weightHeavy,
-                    color: AppColors.pureWhite,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                if (event.registrationDeadline != null || !event.isRegistrationOpen) ...[
-                  const SizedBox(height: AppSpacing.xs),
-                  Text(
-                    event.displayStatus == EventStatus.completed
-                        ? 'This event has finished and closed'
-                        : (!event.isRegistrationOpen 
-                            ? 'This event is no longer accepting new entries.'
-                            : (isFull ? 'Register to join the waitlist' : 'CLOSES: ${DateFormat.yMMMd().format(event.registrationDeadline!).toUpperCase()} @ ${DateFormat('h:mm a').format(event.registrationDeadline!).toUpperCase()}')),
-                    style: AppTypography.micro.copyWith(
-                      color: AppColors.pureWhite.withValues(alpha: 0.8),
-                      fontWeight: AppTypography.weightHeavy,
-                      letterSpacing: 1.2,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ] else ...[
-                  const SizedBox(height: AppSpacing.xs),
-                  Text(
-                    isFull ? 'Join the waitlist below' : 'Register below to join the event',
-                    style: AppTypography.label.copyWith(
-                      color: AppColors.pureWhite.withValues(alpha: 0.8),
-                      fontWeight: AppTypography.weightHeavy,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ],
-                const SizedBox(height: AppSpacing.x2l),
                 BoxyArtButton(
                   title: event.displayStatus == EventStatus.completed
-                      ? 'Event Completed'
+                      ? 'EVENT CLOSED'
                       : (!event.isRegistrationOpen 
-                          ? 'Registration Closed' 
-                          : (isFull ? 'Register (Waitlist)' : 'Register Now')),
+                          ? 'REGISTRATION CLOSED' 
+                          : (isFull ? 'JOIN WAITLIST' : 'REGISTER NOW')),
                   fullWidth: true,
-                  backgroundColor: !event.isRegistrationOpen 
+                  backgroundColor: (!event.isRegistrationOpen || event.displayStatus == EventStatus.completed)
                       ? AppColors.pureWhite.withValues(alpha: 0.2) 
                       : AppColors.pureWhite,
-                  textColor: !event.isRegistrationOpen 
+                  textColor: (!event.isRegistrationOpen || event.displayStatus == EventStatus.completed)
                       ? AppColors.pureWhite 
                       : Color(config.primaryColor),
-                  onTap: !event.isRegistrationOpen ? null : () {
+                  onTap: (!event.isRegistrationOpen || event.displayStatus == EventStatus.completed) ? null : () {
                     try {
                       GoRouter.of(context).push('/events/${event.id}/register-form');
                     } catch (_) {}
@@ -497,39 +463,86 @@ class EventPodiumCard extends ConsumerWidget {
                 ...topResults.asMap().entries.map((entry) {
                    final rank = entry.key + 1;
                    final res = entry.value;
-                   final memberId = res['memberId'];
-                   final member = members.firstWhereOrNull((m) => m.id == memberId);
-                   final memberName = member != null ? '${member.firstName} ${member.lastName}' : (res['memberName'] ?? res['playerName'] ?? 'Player');
+                   final playerId = res['playerId'];
+                   final member = members.firstWhereOrNull((m) => m.id == playerId);
+                   final memberName = member != null ? '${member.firstName} ${member.lastName}' : (res['playerName'] ?? 'Player');
                    final photoUrl = member?.avatarUrl ?? res['avatarUrl'] ?? res['photoUrl'];
                    final score = res['totalPoints'] ?? res['score'] ?? res['points'] ?? '-';
 
-                   return ListTile(
-                     contentPadding: EdgeInsets.zero,
-                      leading: SizedBox(
-                        width: 42,
-                        height: 42,
-                        child: Stack(
-                          clipBehavior: Clip.none,
-                          children: [
-                            BoxyArtAvatar(
-                              url: photoUrl,
-                              initials: memberName.isNotEmpty ? memberName[0] : 'P',
-                              radius: 18,
-                              isCircle: true,
-                            ),
-                            Positioned(
-                              right: -2,
-                              bottom: -2,
-                              child: BoxyArtNumberBadge(
-                                number: rank,
-                                size: 18,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      title: Text(memberName, style: AppTypography.body),
-                      trailing: Text('$score pts', style: AppTypography.body.copyWith(fontWeight: AppTypography.weightBold)),
+                    final config = ref.watch(themeControllerProvider);
+                    final compAsync = ref.watch(competitionDetailProvider(event.id));
+                    final isStableford = compAsync.value?.rules.format == CompetitionFormat.stableford;
+
+                    return ListTile(
+                      contentPadding: EdgeInsets.zero,
+                       leading: SizedBox(
+                         width: 42,
+                         height: 42,
+                         child: Stack(
+                           clipBehavior: Clip.none,
+                           children: [
+                             BoxyArtAvatar(
+                               url: photoUrl,
+                               initials: memberName.isNotEmpty ? memberName[0] : 'P',
+                               radius: 21,
+                             ),
+                             Positioned(
+                               bottom: -4,
+                               right: -4,
+                               child: BoxyArtNumberBadge(number: rank, size: 18),
+                             ),
+                           ],
+                         ),
+                       ),
+                       title: Text(
+                         memberName, 
+                         style: AppTypography.body.copyWith(
+                           fontWeight: AppTypography.weightStrong,
+                         ),
+                         maxLines: 1,
+                         overflow: TextOverflow.ellipsis,
+                       ),
+                       trailing: Column(
+                         mainAxisAlignment: MainAxisAlignment.center,
+                         crossAxisAlignment: CrossAxisAlignment.end,
+                         children: [
+                           Row(
+                             mainAxisSize: MainAxisSize.min,
+                             crossAxisAlignment: CrossAxisAlignment.baseline,
+                             textBaseline: TextBaseline.alphabetic,
+                             children: [
+                               Text(
+                                 '$score',
+                                 style: AppTypography.body.copyWith(
+                                   fontFamily: 'Plus Jakarta Sans',
+                                   fontSize: 22,
+                                   fontWeight: AppTypography.weightBlack,
+                                   color: isStableford 
+                                       ? Color(config.effectivePointsColor) 
+                                       : Theme.of(context).colorScheme.onSurface,
+                                 ),
+                               ),
+                               const SizedBox(width: 2),
+                               Text(
+                                 isStableford ? 'PTS' : 'NET',
+                                 style: AppTypography.micro.copyWith(
+                                   color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                   fontWeight: AppTypography.weightExtraBold,
+                                   letterSpacing: 1.0,
+                                 ),
+                               ),
+                             ],
+                           ),
+                           if (res['tieBreakLabel'] != null)
+                             Text(
+                               res['tieBreakLabel'], 
+                               style: AppTypography.micro.copyWith(
+                                 color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                 fontWeight: AppTypography.weightStrong,
+                               ),
+                             ),
+                         ],
+                       ),
                     );
                 }),
               ],

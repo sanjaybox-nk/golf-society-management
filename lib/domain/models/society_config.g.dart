@@ -75,6 +75,8 @@ _SocietyConfig _$SocietyConfigFromJson(Map<String, dynamic> json) =>
           (json['cardHorizontalPadding'] as num?)?.toDouble() ?? 16.0,
       tabToContentSpacing:
           (json['tabToContentSpacing'] as num?)?.toDouble() ?? 16.0,
+      groupFooterToLabelSpacing:
+          (json['groupFooterToLabelSpacing'] as num?)?.toDouble() ?? 16.0,
       iconBadgeFillColor:
           (json['iconBadgeFillColor'] as num?)?.toInt() ?? 0xFF4ADE80,
       iconBadgeIconColor:
@@ -153,6 +155,7 @@ _SocietyConfig _$SocietyConfigFromJson(Map<String, dynamic> json) =>
               ?.map((e) => Sponsor.fromJson(e as Map<String, dynamic>))
               .toList() ??
           const <Sponsor>[],
+      pointsColor: (json['pointsColor'] as num?)?.toInt(),
     );
 
 Map<String, dynamic> _$SocietyConfigToJson(_SocietyConfig instance) =>
@@ -205,6 +208,7 @@ Map<String, dynamic> _$SocietyConfigToJson(_SocietyConfig instance) =>
       'cardVerticalPadding': instance.cardVerticalPadding,
       'cardHorizontalPadding': instance.cardHorizontalPadding,
       'tabToContentSpacing': instance.tabToContentSpacing,
+      'groupFooterToLabelSpacing': instance.groupFooterToLabelSpacing,
       'iconBadgeFillColor': instance.iconBadgeFillColor,
       'iconBadgeIconColor': instance.iconBadgeIconColor,
       'iconBadgeOpacity': instance.iconBadgeOpacity,
@@ -254,6 +258,7 @@ Map<String, dynamic> _$SocietyConfigToJson(_SocietyConfig instance) =>
       'startingBalance': instance.startingBalance,
       'ledgerEntries': instance.ledgerEntries.map((e) => e.toJson()).toList(),
       'sponsors': instance.sponsors.map((e) => e.toJson()).toList(),
+      'pointsColor': instance.pointsColor,
     };
 
 const _$HandicapSystemEnumMap = {

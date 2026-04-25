@@ -41,7 +41,7 @@ class CurrentMatchController extends _$CurrentMatchController {
         var matches = event.matches;
 
         // [NEW] Dynamic Derivation if matches are empty but competition is Match Play
-        if (matches.isEmpty && comp?.rules.format == CompetitionFormat.matchPlay) {
+        if (matches.isEmpty && (comp?.rules.isMatchPlay ?? false)) {
           final groups = event.grouping['groups'] as List?;
           if (groups != null) {
             // Find user's group

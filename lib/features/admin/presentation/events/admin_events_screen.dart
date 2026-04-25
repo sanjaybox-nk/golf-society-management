@@ -296,7 +296,7 @@ class _AdminEventRow extends ConsumerWidget {
                   style: AppTypography.micro.copyWith(
                     fontWeight: isSelected ? AppTypography.weightExtraBold : AppTypography.weightBold,
                     color: isSelected ? Theme.of(context).primaryColor : AppColors.dark600,
-                    letterSpacing: 1.2,
+                    letterSpacing: 1.0,
                   ),
                 ),
                 trailing: isSelected 

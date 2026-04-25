@@ -162,7 +162,13 @@ An admin-level override that allows scoring to be enabled for an event before it
 A security state where an admin freezes all scorecards for an event. Once locked, no further edits can be made by members, ensuring the finality and integrity of the results.
 
 **Matchplay Competition**
-A tournament structure (usually a Knockout Bracket or League) that tracks a series of matchplay matches over time, often independent of specific society events.
+A tournament structure (usually a Knockout Bracket or League) that tracks a series of matchplay matches over time.
+
+**Match Play Overlay**
+A specialized feature that allows Match Play scoring to be enabled on top of a standard competition (e.g., Stableford). This "Format + Feature" model enables dual-scoring leaderboards.
+
+**Tournament Style Grouping**
+A grouping mode for dedicated Match Play events (Ryder Cup, Knockouts) where pairings are determined by a seeded draw or bracket rather than standard society grouping rules.
 
 **Seasonal Standings Hub**
 A centralized feature for long-term competition tracking. Supports multiple formats like OoM and Eclectic.

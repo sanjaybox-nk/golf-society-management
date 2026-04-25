@@ -42,8 +42,8 @@ class AppTypography {
   static const double lsHero = -0.2;
   static const double lsTight = 0.0;
   static const double lsStandard = 0.2;
-  static const double lsLabel = 0.4;
-  static const double lsMicro = 0.8;
+  static const double lsLabel = 1.0;
+  static const double lsMicro = 1.0;
 
   // 1. Core Styles
   static TextStyle get display => TextStyle(

@@ -56,5 +56,20 @@ A **Withdrawal Notification** is sent only if:
 
 ---
 
+---
+
+## 5. Post-Event Persistence & Results
+
+When an event is marked as **Completed**, the system performs a final scoring pass via the `EventAnalysisEngine`.
+
+### Tie-Break Label Persistence
+To ensure long-term clarity on the Event Dashboard and Leaderboards:
+1.  **Metric Calculation**: The engine calculates countback metrics (B9, B6, B3, B1) for all players.
+2.  **Decisive Component**: If players are tied, the system identifies the specific metric that decided the rank (e.g., "B6: 11").
+3.  **Persistence**: This "Winning Component" is saved as a `tieBreakLabel` within the event's `results` list.
+4.  **Display**: The label is rendered beneath the player's total score in the "Top Results" card, providing persistent context for the podium finish.
+
+---
+
 > [!NOTE]
 > This "Pro" workflow ensures that the committee maintains total control during drafting while the system handles the tedious "gap filling" once the field is live.

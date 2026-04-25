@@ -19,7 +19,7 @@ class PairsControl extends BaseCompetitionControl {
 }
 
 class _PairsControlState extends BaseCompetitionControlState<PairsControl> {
-  CompetitionFormat _scoringFormat = CompetitionFormat.matchPlay;
+  CompetitionFormat _scoringFormat = CompetitionFormat.stableford;
   int _handicapCap = 28;
   double _allowance = 1.0;
   TieBreakMethod _tieBreak = TieBreakMethod.playoff;
@@ -36,11 +36,9 @@ class _PairsControlState extends BaseCompetitionControlState<PairsControl> {
       _allowance = widget.competition!.rules.handicapAllowance.clamp(0.0, 1.0);
       _tieBreak = widget.competition!.rules.tieBreak;
       _roundsCount = widget.competition!.rules.roundsCount;
-      if (_scoringFormat == CompetitionFormat.matchPlay && _tieBreak != TieBreakMethod.playoff) {
-        _tieBreak = TieBreakMethod.playoff;
-      }
+      _roundsCount = widget.competition!.rules.roundsCount;
     } else {
-      _scoringFormat = CompetitionFormat.matchPlay;
+      _scoringFormat = CompetitionFormat.stableford;
       _handicapCap = 28;
       _tieBreak = TieBreakMethod.playoff;
       _roundsCount = 1;
@@ -60,9 +58,7 @@ class _PairsControlState extends BaseCompetitionControlState<PairsControl> {
         ? 'MATCH FORMAT'
         : 'TEAM FORMAT';
 
-    final effectiveTieBreak = (_scoringFormat == CompetitionFormat.matchPlay && _tieBreak != TieBreakMethod.playoff)
-        ? TieBreakMethod.playoff
-        : _tieBreak;
+    final effectiveTieBreak = _tieBreak;
 
     return BoxyArtFormColumn(
       children: [
@@ -75,16 +71,15 @@ class _PairsControlState extends BaseCompetitionControlState<PairsControl> {
                 label: 'Scoring Format',
                 value: _scoringFormat,
                 items: const [
-                  DropdownMenuItem(value: CompetitionFormat.matchPlay, child: Text('Match Play')),
-                  DropdownMenuItem(value: CompetitionFormat.stroke, child: Text('Stroke Play (Medal)')),
                   DropdownMenuItem(value: CompetitionFormat.stableford, child: Text('Stableford')),
+                  DropdownMenuItem(value: CompetitionFormat.stroke, child: Text('Stroke Play (Medal)')),
                 ],
                 onChanged: (val) {
                   if (val != null) {
                     setState(() {
                       _scoringFormat = val;
                       _allowance = _getDefaultAllowance(val);
-                      _tieBreak = val == CompetitionFormat.matchPlay ? TieBreakMethod.playoff : TieBreakMethod.back9;
+                      _tieBreak = TieBreakMethod.back9;
                     });
                   }
                 },
@@ -116,7 +111,7 @@ class _PairsControlState extends BaseCompetitionControlState<PairsControl> {
           ),
         ),
 
-        if (_scoringFormat != CompetitionFormat.matchPlay) ...[
+        if (true) ...[
           // ── TIE BREAK & ROUNDS ──────────────────────────────
           const BoxyArtSectionTitle(title: 'TIE BREAK & ROUNDS'),
           BoxyArtCard(
@@ -151,6 +146,9 @@ class _PairsControlState extends BaseCompetitionControlState<PairsControl> {
             ),
           ),
         ],
+        
+        // ── OVERLAYS ──────────────────────────────────────────
+        buildOverlaySection(),
       ],
     );
   }
@@ -158,8 +156,6 @@ class _PairsControlState extends BaseCompetitionControlState<PairsControl> {
   String _getScoringFormatDescription(CompetitionFormat format, CompetitionSubtype subtype) {
     final pairType = subtype == CompetitionSubtype.fourball ? 'Fourball' : 'Foursomes';
     switch (format) {
-      case CompetitionFormat.matchPlay:
-        return '$pairType Match Play: Win more holes than the opposing pair.';
       case CompetitionFormat.stroke:
         return '$pairType Medal: The best/combined score per hole is added for an 18-hole total.';
       case CompetitionFormat.stableford:
@@ -173,7 +169,7 @@ class _PairsControlState extends BaseCompetitionControlState<PairsControl> {
     if (_scoringFormat == CompetitionFormat.stableford) return const SizedBox.shrink();
 
     final isFourball = widget.subtype == CompetitionSubtype.fourball;
-    if (_scoringFormat == CompetitionFormat.matchPlay) {
+    if (false) {
       return buildInfoCard([
         ('Goal', isFourball ? 'Win more holes as a pair against the opposing pair.' : 'Your pair wins more holes playing one ball alternately.'),
         ('Scoring', 'Lowest score on a hole wins it. Halved means both pairs share the hole.'),
@@ -204,7 +200,8 @@ class _PairsControlState extends BaseCompetitionControlState<PairsControl> {
       aggregation: _scoringFormat == CompetitionFormat.stableford
           ? AggregationMethod.stablefordSum
           : AggregationMethod.totalSum,
-      useMixedTeeAdjustment: _scoringFormat != CompetitionFormat.matchPlay,
+      useMixedTeeAdjustment: true,
+      hasMatchPlayOverlay: hasMatchPlayOverlay,
     );
   }
 }

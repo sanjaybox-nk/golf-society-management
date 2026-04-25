@@ -179,7 +179,7 @@ class ScorecardModal {
         builder: (context, setModalState) => DraggableScrollableSheet(
           initialChildSize: dynamicInitialSize,
           minChildSize: 0.60,
-          maxChildSize: 0.92, // Cap below 1.0 so the nav bar is never fully occluded
+          maxChildSize: dynamicInitialSize > 0.92 ? dynamicInitialSize : 0.92, 
           builder: (context, scrollController) => Container(
           decoration: BoxDecoration(
             color: Theme.of(context).scaffoldBackgroundColor,
@@ -236,7 +236,7 @@ class ScorecardModal {
                                           style: AppTypography.display.copyWith(
                                             color: AppColors.dark900,
                                             fontWeight: AppTypography.weightHeavy,
-                                            letterSpacing: 1.2,
+                                            letterSpacing: 1.0,
                                           ),
                                         ),
                                       ),
@@ -321,9 +321,9 @@ class ScorecardModal {
                                     spacing: 8,
                                     children: [
                                       if (entry.thruLabel != null)
-                                        BoxyArtPill.status(label: entry.thruLabel!, color: AppColors.lime500),
+                                        BoxyArtPill.status(label: entry.thruLabel!, color: AppColors.lime500, isLegend: true),
                                       if (entry.tieBreakLabel != null)
-                                        BoxyArtPill.status(label: entry.tieBreakLabel!, color: AppColors.dark400),
+                                        BoxyArtPill.status(label: entry.tieBreakLabel!, color: AppColors.dark400, isLegend: true),
                                     ],
                                   ),
                                 ],
@@ -366,7 +366,7 @@ class ScorecardModal {
                       List<String>? matchPlayResults;
                       String? matchPlaySummary;
                       int? conclusionHole;
-                      if (currentFormat == CompetitionFormat.matchPlay) {
+                      if (comp?.rules.isMatchPlay == true) {
                         final myIds = entry.teamMemberIds ?? [entry.entryId];
                         List<String>? myGroupIds;
                         final groupsData = event.grouping["groups"] as List? ?? [];
@@ -463,6 +463,9 @@ class ScorecardModal {
                         }
                       }
 
+                      final config = ref.watch(themeControllerProvider);
+                      final pointsColor = Color(config.effectivePointsColor);
+
                       return Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -514,6 +517,7 @@ class ScorecardModal {
                             matchPlayResults: matchPlayResults,
                             matchPlaySummary: matchPlaySummary,
                             mode: comp?.rules.mode,
+                            pointsColor: pointsColor,
                           ),
                         ],
                       );
@@ -534,6 +538,7 @@ class ScorecardModal {
     required GolfEvent event,
     required List<Member> membersList,
     required bool isScramble,
+    required Color pointsColor,
     Scorecard? scorecard,
     List<int?>? teamPoints,
     String? playerName,
@@ -566,7 +571,7 @@ class ScorecardModal {
             style: AppTypography.micro.copyWith(
               fontWeight: AppTypography.weightBold,
               color: Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha: AppColors.opacityHigh),
-              letterSpacing: 1.2,
+              letterSpacing: 1.0,
             ),
           ),
         ),
@@ -625,7 +630,7 @@ class ScorecardModal {
                     style: TextStyle(
                       fontSize: AppTypography.sizeCaption,
                       fontWeight: AppTypography.weightBlack,
-                      color: AppColors.lime500,
+                      color: pointsColor,
                     ),
                   ),
                   const Spacer(),
@@ -633,16 +638,20 @@ class ScorecardModal {
                     matchPlayResults != null 
                         ? "Total: ${matchPlaySummary ?? 'AS'}"
                         : "Total: ${scores.where((s) => s != null).fold<int>(0, (sum, s) => sum + (s as int))}",
-                    style: const TextStyle(fontSize: AppTypography.sizeCaption, fontWeight: AppTypography.weightBold, color: AppColors.textSecondary),
+                    style: TextStyle(
+                      fontSize: AppTypography.sizeLabel, 
+                      fontWeight: AppTypography.weightBlack, 
+                      color: matchPlayResults != null ? AppColors.textSecondary : pointsColor,
+                    ),
                   ),
                 ],
               ),
               const SizedBox(height: 6),
               Column(
                 children: [
-                  _buildNineHoleRow(context, event, membersList, scores, 0, matchPlayResults: matchPlayResults),
+                  _buildNineHoleRow(context, event, membersList, scores, 0, pointsColor, matchPlayResults: matchPlayResults),
                   const SizedBox(height: AppSpacing.xs),
-                  _buildNineHoleRow(context, event, membersList, scores, 9, matchPlayResults: matchPlayResults),
+                  _buildNineHoleRow(context, event, membersList, scores, 9, pointsColor, matchPlayResults: matchPlayResults),
                 ],
               ),
             ],
@@ -657,7 +666,8 @@ class ScorecardModal {
     GolfEvent event, 
     List<Member> membersList, 
     List<int?> scores, 
-    int startIdx, {
+    int startIdx, 
+    Color pointsColor, {
     List<String>? matchPlayResults,
   }) {
     // We use the event course config by default for the UNIFIED view
@@ -739,7 +749,7 @@ class ScorecardModal {
                 style: TextStyle(
                   fontSize: AppTypography.sizeCaptionStrong,
                   fontWeight: points != null ? AppTypography.weightBlack : AppTypography.weightBold,
-                  color: points != null ? AppColors.lime500 : AppColors.dark400,
+                  color: points != null ? pointsColor : AppColors.dark400,
                 ),
               ),
             ),
@@ -773,7 +783,7 @@ class ScorecardModal {
           style: AppTypography.micro.copyWith(
             fontWeight: isSelected ? AppTypography.weightBold : AppTypography.weightStrong,
             color: isSelected ? AppColors.lime500 : AppColors.dark300,
-            letterSpacing: 1.2,
+            letterSpacing: 1.0,
           ),
         ),
       ),

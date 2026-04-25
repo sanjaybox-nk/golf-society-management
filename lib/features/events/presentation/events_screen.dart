@@ -192,6 +192,7 @@ class _EventRow extends ConsumerWidget {
         label: 'Confirmed',
         color: AppColors.lime600,
         hasHorizontalMargin: false,
+        isLegend: true,
       );
     } else if (event.isRegistrationOpen) {
       final isFull = event.maxParticipants != null && 
@@ -209,6 +210,7 @@ class _EventRow extends ConsumerWidget {
           label: 'Registration Closed',
           color: AppColors.dark400,
           hasHorizontalMargin: false,
+          isLegend: true,
         );
       }
     }

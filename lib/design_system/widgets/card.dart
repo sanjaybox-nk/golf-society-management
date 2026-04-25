@@ -137,10 +137,8 @@ class BoxyArtSettingsCard extends ConsumerWidget {
           padding: const EdgeInsets.only(left: AppSpacing.md, bottom: AppSpacing.md),
           child: Text(
             title.toUpperCase(),
-            style: AppTypography.micro.copyWith(
+            style: AppTypography.labelStrong.copyWith(
               color: Theme.of(context).primaryColor,
-              fontWeight: AppTypography.weightBold,
-              letterSpacing: 1.2,
             ),
           ),
         ),
@@ -188,10 +186,8 @@ class ModernNoteCard extends ConsumerWidget {
           if (title != null && title!.isNotEmpty) ...[
             Text(
               title!.toUpperCase(),
-              style: AppTypography.micro.copyWith(
-                fontWeight: AppTypography.weightBold,
-                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: AppColors.opacityHigh),
-                letterSpacing: 1.2,
+              style: AppTypography.labelStrong.copyWith(
+                color: Theme.of(context).colorScheme.onSurface,
               ),
             ),
             const SizedBox(height: AppSpacing.sm),

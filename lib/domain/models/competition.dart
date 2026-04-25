@@ -9,7 +9,7 @@ enum CompetitionType { game, event }
 
 enum CompetitionStatus { draft, open, scoring, review, published, closed }
 
-enum CompetitionFormat { stroke, stableford, maxScore, matchPlay, scramble }
+enum CompetitionFormat { stroke, stableford, maxScore, scramble }
 
 enum CompetitionSubtype { 
   none, 
@@ -81,6 +81,7 @@ abstract class CompetitionRules with _$CompetitionRules {
     @Default(TournamentFormat.knockout) TournamentFormat tournamentFormat,
     @Default(SeedingLogic.random) SeedingLogic seedingLogic,
     @Default(MatchPlayProgression.bracketed) MatchPlayProgression progressionMode,
+    @Default(false) bool hasMatchPlayOverlay, // [NEW] Treat Match Play as an overlay feature
   }) = _CompetitionRules;
 
   factory CompetitionRules.fromJson(Map<String, dynamic> json) =>
@@ -127,13 +128,18 @@ extension CompetitionRulesX on CompetitionRules {
       };
     }
     
-    return switch (format) {
+    String baseName = switch (format) {
       CompetitionFormat.stableford => 'Stableford',
       CompetitionFormat.stroke     => 'Stroke Play',
       CompetitionFormat.maxScore   => 'Max Score',
-      CompetitionFormat.matchPlay  => 'Match Play',
       CompetitionFormat.scramble   => 'Scramble',
     };
+
+    if ((hasMatchPlayOverlay == true)) {
+      return '$baseName + Match Play';
+    }
+    
+    return baseName;
   }
 
   String get scoringType {
@@ -144,9 +150,18 @@ extension CompetitionRulesX on CompetitionRules {
 
   String get defaultAllowanceLabel {
     final allowancePercent = (handicapAllowance * 100).round();
-    if (format == CompetitionFormat.matchPlay) return '$allowancePercent% DIFF';
-    if (format == CompetitionFormat.scramble && useWHSScrambleAllowance) return 'WHS HCP';
+    if ((hasMatchPlayOverlay == true)) return '$allowancePercent% DIFF';
+    if (format == CompetitionFormat.scramble && (useWHSScrambleAllowance == true)) return 'WHS HCP';
     return '$allowancePercent% HCP';
+  }
+
+  bool get isUnifiedTeamFormat {
+    if (format == CompetitionFormat.scramble) return true;
+    if (subtype == CompetitionSubtype.fourball) return true;
+    if (subtype == CompetitionSubtype.foursomes) return true;
+    if (subtype == CompetitionSubtype.ryderCup) return true;
+    if (subtype == CompetitionSubtype.teamMatchPlay) return true;
+    return false;
   }
 
   CompetitionMode get effectiveMode {
@@ -188,8 +203,19 @@ extension CompetitionRulesX on CompetitionRules {
       CompetitionFormat.stableford => Icons.format_list_numbered_rounded,
       CompetitionFormat.stroke     => Icons.golf_course_rounded,
       CompetitionFormat.maxScore   => Icons.vertical_align_top_rounded,
-      CompetitionFormat.matchPlay  => Icons.compare_arrows_rounded,
       CompetitionFormat.scramble   => Icons.group_work_rounded,
     };
   }
+
+  bool get isMatchPlay => (hasMatchPlayOverlay == true) || 
+      subtype == CompetitionSubtype.ryderCup || 
+      subtype == CompetitionSubtype.teamMatchPlay || 
+      subtype == CompetitionSubtype.matchPlaySeason;
+
+  /// Returns true if this competition requires a seeded draw/match definitions 
+  /// before grouping can be finalized.
+  bool get isTournamentStyleGrouping => 
+      subtype == CompetitionSubtype.ryderCup || 
+      subtype == CompetitionSubtype.teamMatchPlay || 
+      subtype == CompetitionSubtype.matchPlaySeason;
 }

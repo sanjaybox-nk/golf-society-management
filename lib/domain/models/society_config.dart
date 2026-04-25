@@ -69,6 +69,7 @@ abstract class SocietyConfig with _$SocietyConfig {
     @Default(16.0) double cardVerticalPadding, // [NEW] Global Card Internal Padding
     @Default(16.0) double cardHorizontalPadding, // [NEW] Global Card Internal Padding
     @Default(16.0) double tabToContentSpacing, // [NEW] Vertical rhythm: Tab to Content
+    @Default(16.0) double groupFooterToLabelSpacing, // [NEW] Vertical rhythm: Group Footer to Next Label
     @Default(0xFF4ADE80) int iconBadgeFillColor, // [NEW] Icon Badge BG (Emerald)
     @Default(0xFF4ADE80) int iconBadgeIconColor, // [NEW] Icon Badge Glyph (Emerald)
     @Default(0.15) double iconBadgeOpacity, // [NEW] Icon Badge background opacity
@@ -118,10 +119,15 @@ abstract class SocietyConfig with _$SocietyConfig {
     @Default(0.0) double startingBalance, // [NEW] Opening bank balance for the season
     @Default(<FinancialEntry>[]) List<FinancialEntry> ledgerEntries, // [NEW] Society-level sponsorships & donations
     @Default(<Sponsor>[]) List<Sponsor> sponsors, // [NEW] Central sponsorship hub
+    int? pointsColor, // [NEW] Stableford points emphasis color
   }) = _SocietyConfig;
+
+  const SocietyConfig._();
 
   factory SocietyConfig.fromJson(Map<String, dynamic> json) =>
       _$SocietyConfigFromJson(json);
+
+  int get effectivePointsColor => pointsColor ?? 0xFF4ADE80;
 }
 
 @freezed

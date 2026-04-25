@@ -158,6 +158,9 @@ class _ScrambleControlState extends BaseCompetitionControlState<ScrambleControl>
             onChanged: (val) => setState(() => _trackShotAttributions = val),
           ),
         ),
+        
+        // ── OVERLAYS ──────────────────────────────────────────
+        buildOverlaySection(),
       ],
     );
   }
@@ -210,6 +213,7 @@ class _ScrambleControlState extends BaseCompetitionControlState<ScrambleControl>
       underlyingFormat: _underlyingFormat,
       teamHandicapCap: _teamCap == 0 ? null : _teamCap,
       trackShotAttributions: _trackShotAttributions,
+      hasMatchPlayOverlay: hasMatchPlayOverlay,
     );
   }
 }

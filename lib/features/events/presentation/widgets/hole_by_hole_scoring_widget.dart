@@ -53,6 +53,7 @@ class _HoleByHoleScoringWidgetState extends ConsumerState<HoleByHoleScoringWidge
   Scorecard? _activeScorecard; // [NEW] Local cache if switching
   Scorecard? _localVerifierCard; // [NEW] Local cache for verifier card to prevent duplicates
   int _currentHoleIndex = 0; // [NEW] Track current hole across swiping/ribbon
+  bool _isMatchView = false; // [NEW] Dual scoring mode for match play
 
   @override
   void initState() {
@@ -271,6 +272,7 @@ class _HoleByHoleScoringWidgetState extends ConsumerState<HoleByHoleScoringWidge
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final comp = ref.watch(competitionDetailProvider(widget.event.id)).asData?.value;
     final isDark = theme.brightness == Brightness.dark;
     // [NEW] Resolve correct holes list based on the player being marked
     final membersAsync = ref.watch(allMembersProvider);
@@ -345,34 +347,46 @@ class _HoleByHoleScoringWidgetState extends ConsumerState<HoleByHoleScoringWidge
                     Row(
                       children: [
                         Expanded(
-                          child: IntrinsicHeight(
-                            child: Row(
-                              children: [
-                                  _buildTab(
-                                    context, 
-                                    'Player', 
-                                    null, 
-                                    widget.selectedTab == MarkerTab.player, 
-                                    () => widget.onTabChanged(MarkerTab.player),
-                                    isDisabled: widget.isSelfMarking, 
-                                    activeColor: theme.colorScheme.primary,
-                                  ),
-                                
-                                // Hole Info in middle
+                          child: Row(
+                            children: [
+                              if (!_isMatchView)
+                                _buildTab(
+                                  context, 
+                                  'Player', 
+                                  null, 
+                                  widget.selectedTab == MarkerTab.player, 
+                                  () => widget.onTabChanged(MarkerTab.player),
+                                  isDisabled: widget.isSelfMarking, 
+                                  activeColor: theme.colorScheme.primary,
+                                ),
+                              
+                              if (matchResult != null)
                                 Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
-                                  child: Center(
-                                    child: Text(
-                                      'Par $par${si != null ? ' • SI $si' : ''}',
-                                      style: AppTypography.label.copyWith(
-                                        color: theme.colorScheme.onSurface.withValues(alpha: AppColors.opacitySecondary),
-                                        fontWeight: AppTypography.weightStrong,
-                                        letterSpacing: AppTypography.lsLabel,
-                                      ),
-                                    ),
+                                  padding: const EdgeInsets.only(right: AppSpacing.xs),
+                                  child: _buildTab(
+                                    context, 
+                                    'Duel', 
+                                    null, 
+                                    _isMatchView, 
+                                    () => setState(() => _isMatchView = !_isMatchView),
+                                    activeColor: AppColors.lime500,
                                   ),
                                 ),
 
+                              // Hole Info in middle
+                              Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
+                                child: Text(
+                                  'Par $par${si != null ? ' • SI $si' : ''}',
+                                  style: AppTypography.label.copyWith(
+                                    color: theme.colorScheme.onSurface.withValues(alpha: AppColors.opacitySecondary),
+                                    fontWeight: AppTypography.weightStrong,
+                                    letterSpacing: AppTypography.lsLabel,
+                                  ),
+                                ),
+                              ),
+
+                              if (!_isMatchView)
                                 _buildTab(
                                   context, 
                                   'Me', 
@@ -381,109 +395,27 @@ class _HoleByHoleScoringWidgetState extends ConsumerState<HoleByHoleScoringWidge
                                   () => widget.onTabChanged(MarkerTab.verifier),
                                   activeColor: theme.colorScheme.primary,
                                 ),
-                              ],
-                            ),
+                            ],
                           ),
                         ),
                       ],
                     ),
                     const SizedBox(height: AppSpacing.xl),
                         
-                        // Row 3: Mini Keypad + Navigation
-                        Row(
-                          children: [
-                            // Left Column: Fixed-width container for symmetry
-                            SizedBox(
-                              width: 80,
-                              child: Align(
-                                alignment: Alignment.centerLeft,
-                                child: BoxyArtButton(
-                                  title: 'Prev',
-                                  isGhost: true,
-                                  isSmall: true,
-                                  onTap: _currentHoleIndex <= 0 ? null : () => setState(() => _currentHoleIndex--),
-                                ),
-                              ),
-                            ),
-                            
-                            // Flexible Spacer to push keypad to center
-                            const Expanded(child: SizedBox.shrink()),
-                            
-                            // Center Column: Keypad (Exact physical center)
-                            Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                _buildMiniCircleButton(
-                                  context, 
-                                  Icons.remove, 
-                                  () => _setScore(currentHoleNum, currentScore - 1, isVerifier: widget.selectedTab == MarkerTab.verifier, isReadOnly: isReadOnly),
-                                  isDisabled: isReadOnly || currentScore <= 1,
-                                ),
-                                Container(
-                                  width: 44,
-                                  alignment: Alignment.center,
-                                  child: Text(
-                                    '$currentScore',
-                                    style: AppTypography.displayPage.copyWith(
-                                      color: Theme.of(context).colorScheme.onSurface,
-                                    ),
-                                  ),
-                                ),
-                                _buildMiniCircleButton(
-                                  context, 
-                                  Icons.add, 
-                                  () => _setScore(currentHoleNum, currentScore + 1, isVerifier: widget.selectedTab == MarkerTab.verifier, isReadOnly: isReadOnly),
-                                  isDisabled: isReadOnly,
-                                ),
-                              ],
-                            ),
-                            
-                            // Flexible Spacer to push keypad to center
-                            const Expanded(child: SizedBox.shrink()),
-                            
-                            // Right Column: Fixed-width container for symmetry
-                            SizedBox(
-                              width: 80,
-                              child: Align(
-                                alignment: Alignment.centerRight,
-                                child: BoxyArtButton(
-                                  title: 'Next',
-                                  isPrimary: true,
-                                  isSmall: true,
-                                  onTap: currentHoleNum >= 18 ? null : () => setState(() => _currentHoleIndex++),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-              ],
-            ),
-          ),
-        ],
-      );
-  }
-
-  Widget _buildSubtleNavButton(BuildContext context, String label, VoidCallback? onTap, {bool isDisabled = false, bool isPrimary = false}) {
-    final theme = Theme.of(context);
-
-    return InkWell(
-      onTap: isDisabled ? null : onTap,
-      borderRadius: BorderRadius.circular(8),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.md),
-        child: Text(
-          label,
-          style: AppTypography.labelStrong.copyWith(
-            fontSize: 14,
-            fontWeight: AppTypography.weightBold,
-            color: isDisabled ? AppColors.textSecondary : theme.colorScheme.onSurface,
-            letterSpacing: 0.5,
+                    // Row 3: Mini Keypad + Navigation
+                    if (_isMatchView && matchResult != null)
+                      _buildMatchDualRow(context, currentHoleNum, par, isReadOnly)
+                    else
+                      _buildStandardScoringRow(context, currentHoleNum, currentScore, par, isReadOnly),
+                    if (comp?.rules.format == CompetitionFormat.scramble && widget.selectedTab == MarkerTab.player)
+                      _buildDriveAttributionPicker(comp!.rules),
+                  ],
+                ),
+              ),
+            ],
           ),
         ),
-      ),
+      ],
     );
   }
 
@@ -596,6 +528,241 @@ class _HoleByHoleScoringWidgetState extends ConsumerState<HoleByHoleScoringWidge
       map[holeNum] = score.clamp(1, cap ?? 15);
     });
     _persistScores(isVerifier: isVerifier);
+  }
+
+  Widget _buildDriveAttributionPicker(CompetitionRules rules) {
+    final currentUser = ref.watch(effectiveUserProvider);
+    final groupData = widget.event.grouping['groups'] as List?;
+    final myGroup = groupData?.firstWhereOrNull((g) => (g['players'] as List).any((p) => p['registrationMemberId'] == currentUser.id));
+    if (myGroup == null) return const SizedBox.shrink();
+    
+    final players = myGroup['players'] as List;
+    final teamSize = rules.teamSize;
+    int playerIdx = players.indexWhere((p) => p['registrationMemberId'] == currentUser.id);
+    int teamIdx = playerIdx ~/ teamSize;
+    final teamPlayers = players.skip(teamIdx * teamSize).take(teamSize).toList();
+    
+    final currentHoleNum = _currentHoleIndex + 1;
+    final selectedPlayerId = _shotAttributions[currentHoleNum - 1];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: AppSpacing.xl),
+        Text(
+          'CHOSEN DRIVE',
+          style: AppTypography.micro.copyWith(
+            color: AppColors.textSecondary,
+            letterSpacing: 1.0,
+            fontWeight: AppTypography.weightBlack,
+          ),
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: teamPlayers.map((p) {
+            final id = p['registrationMemberId'];
+            final isSelected = selectedPlayerId == id;
+            return _buildDrivePill(
+              label: p['name'].toString().split(' ').first,
+              isSelected: isSelected,
+              onTap: () {
+                setState(() {
+                  _shotAttributions[currentHoleNum - 1] = id;
+                });
+                _persistScores();
+              },
+            );
+          }).toList(),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDrivePill({
+    required String label,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: AppAnimations.fast,
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: isSelected ? AppColors.lime500.withValues(alpha: AppColors.opacityLow) : Colors.transparent,
+          borderRadius: AppShapes.pill,
+          border: Border.all(
+            color: isSelected ? AppColors.lime500 : AppColors.dark400,
+            width: isSelected ? 1.5 : 1.0,
+          ),
+        ),
+        child: Text(
+          label.toUpperCase(),
+          style: AppTypography.micro.copyWith(
+            fontWeight: isSelected ? AppTypography.weightBlack : AppTypography.weightBold,
+            color: isSelected ? AppColors.lime500 : AppColors.textSecondary,
+            letterSpacing: 0.5,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStandardScoringRow(BuildContext context, int currentHoleNum, int currentScore, int par, bool isReadOnly) {
+    return Row(
+      children: [
+        Flexible(
+          child: Align(
+            alignment: Alignment.centerLeft,
+            child: BoxyArtButton(
+              title: 'Prev',
+              isGhost: true,
+              isSmall: true,
+              onTap: _currentHoleIndex <= 0 ? null : () => setState(() => _currentHoleIndex--),
+            ),
+          ),
+        ),
+        const SizedBox(width: AppSpacing.sm),
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _buildMiniCircleButton(
+              context, 
+              Icons.remove, 
+              () => _setScore(currentHoleNum, currentScore - 1, isVerifier: widget.selectedTab == MarkerTab.verifier, isReadOnly: isReadOnly),
+              isDisabled: isReadOnly || currentScore <= 1,
+            ),
+            Container(
+              width: 40,
+              alignment: Alignment.center,
+              child: Text(
+                '$currentScore',
+                style: AppTypography.displayPage.copyWith(
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
+              ),
+            ),
+            _buildMiniCircleButton(
+              context, 
+              Icons.add, 
+              () => _setScore(currentHoleNum, currentScore + 1, isVerifier: widget.selectedTab == MarkerTab.verifier, isReadOnly: isReadOnly),
+              isDisabled: isReadOnly,
+            ),
+          ],
+        ),
+        const SizedBox(width: AppSpacing.sm),
+        Flexible(
+          child: Align(
+            alignment: Alignment.centerRight,
+            child: BoxyArtButton(
+              title: 'Next',
+              isPrimary: true,
+              isSmall: true,
+              onTap: currentHoleNum >= 18 ? null : () => setState(() => _currentHoleIndex++),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMatchDualRow(BuildContext context, int currentHoleNum, int par, bool isReadOnly) {
+    final playerAScore = _localScores[currentHoleNum] ?? par;
+    final playerBScore = _verifierScores[currentHoleNum] ?? par;
+
+    return Column(
+      children: [
+        _buildDualParticipantRow(
+          context, 
+          'Player', 
+          playerAScore, 
+          (s) => _setScore(currentHoleNum, s, isVerifier: false, isReadOnly: isReadOnly),
+          isReadOnly,
+          isPrimary: true,
+        ),
+        const SizedBox(height: AppSpacing.md),
+        _buildDualParticipantRow(
+          context, 
+          'Me', 
+          playerBScore, 
+          (s) => _setScore(currentHoleNum, s, isVerifier: true, isReadOnly: isReadOnly),
+          isReadOnly,
+          isPrimary: false,
+        ),
+        const SizedBox(height: AppSpacing.lg),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            BoxyArtButton(
+              title: 'Prev Hole',
+              isGhost: true,
+              isSmall: true,
+              onTap: _currentHoleIndex <= 0 ? null : () => setState(() => _currentHoleIndex--),
+            ),
+            BoxyArtButton(
+              title: 'Next Hole',
+              isPrimary: true,
+              isSmall: true,
+              onTap: currentHoleNum >= 18 ? null : () => setState(() => _currentHoleIndex++),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDualParticipantRow(BuildContext context, String label, int score, Function(int) onChanged, bool isReadOnly, {bool isPrimary = false}) {
+    final theme = Theme.of(context);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
+        borderRadius: AppShapes.md,
+        border: Border.all(color: theme.dividerColor.withValues(alpha: 0.1)),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              label.toUpperCase(),
+              style: AppTypography.micro.copyWith(
+                color: isPrimary ? theme.colorScheme.primary : AppColors.textSecondary,
+                fontWeight: AppTypography.weightBlack,
+              ),
+            ),
+          ),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _buildMiniCircleButton(
+                context, 
+                Icons.remove, 
+                () => onChanged(score - 1),
+                isDisabled: isReadOnly || score <= 1,
+              ),
+              Container(
+                width: 40,
+                alignment: Alignment.center,
+                child: Text(
+                  '$score',
+                  style: AppTypography.displaySection.copyWith(
+                    color: Theme.of(context).colorScheme.onSurface,
+                  ),
+                ),
+              ),
+              _buildMiniCircleButton(
+                context, 
+                Icons.add, 
+                () => onChanged(score + 1),
+                isDisabled: isReadOnly,
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
   }
 }
 

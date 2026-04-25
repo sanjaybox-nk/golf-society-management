@@ -47,7 +47,7 @@ class HomeWelcomeHero extends ConsumerWidget {
                       'Welcome to',
                       style: AppTypography.labelStrong.copyWith(
                         color: AppColors.pureWhite.withValues(alpha: 0.8),
-                        letterSpacing: 1.2,
+                        letterSpacing: 1.0,
                         fontSize: 10,
                       ),
                     ),

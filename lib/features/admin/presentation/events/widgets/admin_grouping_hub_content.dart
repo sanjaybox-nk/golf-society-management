@@ -76,11 +76,13 @@ class _AdminGroupingHubContentState extends ConsumerState<AdminGroupingHubConten
         
         // Use providers for state
         var localGroups = ref.watch(groupingLocalGroupsProvider);
-        var isLocked = ref.watch(groupingIsLockedProvider) ?? (event.grouping['locked'] ?? false);
+        final bool statusLocked = event.status == EventStatus.inPlay || event.status == EventStatus.completed;
+        var isLocked = (ref.watch(groupingIsLockedProvider) ?? (event.grouping['locked'] ?? false)) || statusLocked;
         var selectedForSwap = ref.watch(groupingSelectedForSwapProvider);
 
         // Derive Matchplay Mode from Competition Rules
-        final bool matchPlayMode = comp?.rules.format == CompetitionFormat.matchPlay;
+        final bool isMatchPlay = comp?.rules.isMatchPlay ?? false;
+        final bool isTournamentGrouping = comp?.rules.isTournamentStyleGrouping ?? false;
 
         // Initialize grouping strategy and existing groups if needed
         final currentStrategy = ref.watch(groupingStrategyProvider);
@@ -113,12 +115,21 @@ class _AdminGroupingHubContentState extends ConsumerState<AdminGroupingHubConten
             ),
             child: BoxyArtFormColumn(
               children: [
-                if (!matchPlayMode)
+                if (!event.isRegistrationClosed && !event.occursToday)
+                  const Padding(
+                    padding: EdgeInsets.symmetric(vertical: AppSpacing.hero),
+                    child: BoxyArtEmptyCard(
+                      title: 'Registration Not Completed',
+                      message: 'Groupings can be generated once the registration deadline has passed.',
+                      icon: Icons.lock_clock_outlined,
+                    ),
+                  )
+                else if (!isTournamentGrouping && event.status != EventStatus.inPlay && event.status != EventStatus.completed)
                   AdminGroupingHubCard(
                     event: event,
                     onGenerate: () => _handleAutoGenerate(context, ref, event, handicapMap, events),
                   )
-                else if (event.matches.isEmpty)
+                else if (isTournamentGrouping && event.matches.isEmpty)
                   const Padding(
                     padding: EdgeInsets.symmetric(vertical: AppSpacing.hero),
                     child: BoxyArtEmptyCard(
@@ -130,7 +141,7 @@ class _AdminGroupingHubContentState extends ConsumerState<AdminGroupingHubConten
 
                 // Only show the grouping list for Match Play if matches have been finalized/saved
                 // This prevents "Group 1" from appearing with members before the Draw is built
-                if (localGroups != null && (!matchPlayMode || event.matches.isNotEmpty)) ...[
+                if (localGroups != null && (!isTournamentGrouping || event.matches.isNotEmpty)) ...[
                   _buildGroupingListLayout(
                     context, 
                     ref, 
@@ -142,7 +153,7 @@ class _AdminGroupingHubContentState extends ConsumerState<AdminGroupingHubConten
                     rules: comp?.rules, 
                     useWhs: config.useWhsHandicaps, 
                     isLocked: isLocked, 
-                    matchPlayMode: matchPlayMode, 
+                    matchPlayMode: isMatchPlay, 
                     selectedForSwap: selectedForSwap, 
                     computedEntries: computedEntries,
                     computedGroupResults: computedGroupResults,
@@ -210,32 +221,32 @@ class _AdminGroupingHubContentState extends ConsumerState<AdminGroupingHubConten
       padding: const EdgeInsets.only(bottom: 100),
       child: BoxyArtFormColumn(
         children: localGroups.mapIndexed((index, group) {
-          return GroupingCard(
-            group: group,
-            memberMap: memberMap,
-            history: history,
-            totalGroups: localGroups.length,
-            rules: rules,
-            courseConfig: event.courseConfig,
-            useWhs: useWhs,
-            isAdmin: true,
-            isLocked: isLocked,
-            onMove: (sp, sg, tg, tp) => _handleMove(ref, localGroups, isLocked, sp, sg, tg, tp),
-            onAction: (action, p, g) => _handlePlayerAction(ref, localGroups, action, p, g),
-            onTapParticipant: (p, g) => _handleParticipantTap(ref, localGroups, isLocked, p, g),
-            isSelected: (p) => p == selectedForSwap,
-            matchPlayMode: matchPlayMode,
-            matches: event.matches,
-            groupIndex: index,
-            hcMap: {for (var p in localGroups.expand((g) => g.players)) (p.isGuest ? '${p.registrationMemberId}_guest' : p.registrationMemberId): p.handicapIndex},
-             scorecardMap: scorecardsAsync.asData?.value != null 
-                 ? {for (var s in scorecardsAsync.asData!.value) s.entryId: s}
-                 : null,
-            isScoreMode: false, 
-            showScoring: false, 
-            computedEntries: computedEntries,
-            computedGroupResults: computedGroupResults,
-          );
+                  return GroupingCard(
+                    group: group,
+                    memberMap: memberMap,
+                    history: history,
+                    totalGroups: localGroups.length,
+                    rules: rules,
+                    courseConfig: event.courseConfig,
+                    useWhs: useWhs,
+                    isAdmin: true,
+                    isLocked: isLocked,
+                    onMove: (sp, sg, tg, tp) => _handleMove(ref, localGroups, isLocked, sp, sg, tg, tp),
+                    onAction: (action, p, g) => _handlePlayerAction(ref, localGroups, action, p, g),
+                    onTapParticipant: (p, g) => _handleParticipantTap(ref, localGroups, isLocked, p, g),
+                    isSelected: (p) => p == selectedForSwap,
+                    matchPlayMode: matchPlayMode,
+                    matches: event.matches,
+                    groupIndex: index,
+                    hcMap: {for (var p in localGroups.expand((g) => g.players)) (p.isGuest ? '${p.registrationMemberId}_guest' : p.registrationMemberId): p.handicapIndex},
+                     scorecardMap: scorecardsAsync.asData?.value != null 
+                         ? {for (var s in scorecardsAsync.asData!.value) s.entryId: s}
+                         : null,
+                    isScoreMode: false, 
+                    showScoring: false, 
+                    computedEntries: computedEntries,
+                    computedGroupResults: computedGroupResults,
+                  );
         }).toList(),
       ),
     );

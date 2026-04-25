@@ -22,6 +22,7 @@ class LeaderboardBadgeRow extends StatelessWidget {
       BoxyArtPill.format(
         label: LeaderboardRuleTranslator.getBasisLabel(config),
         icon: Icons.calculate_rounded,
+        isLegend: true,
       ),
     );
 
@@ -37,6 +38,7 @@ class LeaderboardBadgeRow extends StatelessWidget {
         BoxyArtPill.format(
           label: 'Best $bestN',
           icon: Icons.filter_list_rounded,
+          isLegend: true,
         ),
       );
     } else if (config is! EclecticConfig) {
@@ -44,6 +46,7 @@ class LeaderboardBadgeRow extends StatelessWidget {
         BoxyArtPill.format(
           label: 'All Rounds',
           icon: Icons.all_inclusive_rounded,
+          isLegend: true,
         ),
       );
     }
@@ -56,6 +59,7 @@ class LeaderboardBadgeRow extends StatelessWidget {
           BoxyArtPill.format(
             label: '${c.handicapPercentage}% Hcp',
             icon: Icons.percent_rounded,
+            isLegend: true,
           ),
         );
       } else {
@@ -63,6 +67,7 @@ class LeaderboardBadgeRow extends StatelessWidget {
           BoxyArtPill.format(
             label: 'Scratch',
             icon: Icons.shutter_speed_rounded,
+            isLegend: true,
           ),
         );
       }

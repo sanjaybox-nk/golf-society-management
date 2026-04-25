@@ -158,7 +158,7 @@ class _StrategyOption extends StatelessWidget {
                   style: AppTypography.micro.copyWith(
                     fontWeight: AppTypography.weightExtraBold,
                     color: isSelected ? Theme.of(context).colorScheme.primary : AppColors.dark600,
-                    letterSpacing: 1.2,
+                    letterSpacing: 1.0,
                   ),
                 ),
                 const SizedBox(height: 2),

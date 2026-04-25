@@ -57,7 +57,6 @@ class ModernInfoRow extends ConsumerWidget {
                 style: AppTypography.micro.copyWith(
                   fontWeight: AppTypography.weightBold,
                   color: labelColor ?? textSecondary?.withValues(alpha: AppColors.opacityHigh),
-                  letterSpacing: 1.2,
                 ),
               ),
               if (subtitle != null) ...[
@@ -167,7 +166,6 @@ class ModernCostRow extends StatelessWidget {
               style: (isTotal ? AppTypography.label : AppTypography.micro).copyWith(
                 color: color ?? (isTotal ? textPrimary : textSecondary),
                 fontWeight: AppTypography.weightBold,
-                letterSpacing: 1.2,
               ),
             ),
           ),

@@ -177,7 +177,7 @@ class _SlidingCourseInfoCardState extends State<SlidingCourseInfoCard> {
                     fontSize: 15,
                     fontWeight: AppTypography.weightHeavy,
                     color: isDark ? AppColors.dark60 : AppColors.dark900,
-                    letterSpacing: 1.2,
+                    letterSpacing: 1.0,
                   ),
                 ),
                 GestureDetector(
@@ -582,7 +582,7 @@ class _SlidingCourseInfoCardState extends State<SlidingCourseInfoCard> {
       children: [
         Text(
           label,
-          style: AppTypography.nano.copyWith(color: AppColors.dark900, fontWeight: FontWeight.bold, letterSpacing: 1.2),
+          style: AppTypography.nano.copyWith(color: AppColors.dark900, fontWeight: FontWeight.bold, letterSpacing: 1.0),
         ),
         Row(
           crossAxisAlignment: CrossAxisAlignment.baseline,

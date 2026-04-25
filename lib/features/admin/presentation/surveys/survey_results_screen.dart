@@ -100,7 +100,7 @@ class SurveyResultsScreen extends ConsumerWidget {
           style: AppTypography.micro.copyWith(
             fontWeight: AppTypography.weightHeavy,
             color: AppColors.pureWhite.withValues(alpha: AppColors.opacityStrong),
-            letterSpacing: 1.2,
+            letterSpacing: 1.0,
           ),
         ),
       ],
@@ -120,7 +120,7 @@ class SurveyResultsScreen extends ConsumerWidget {
             style: AppTypography.micro.copyWith(
               fontWeight: AppTypography.weightBold,
               color: isDark ? AppColors.dark300 : AppColors.dark400,
-              letterSpacing: 1.2,
+              letterSpacing: 1.0,
             ),
           ),
         ),

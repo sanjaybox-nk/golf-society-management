@@ -18,7 +18,7 @@ import '../../../events/presentation/widgets/grouping_widgets.dart';
 import '../../../matchplay/domain/match_definition.dart';
 import '../../../matchplay/domain/golf_event_match_extensions.dart';
 import '../../logic/society_cuts_engine.dart';
-import '../../logic/event_scoring_controller.dart';
+import '../../../events/logic/event_scoring_controller.dart';
 import '../../../events/domain/models/processed_event_data.dart';
 
 class EventAdminGroupingScreen extends ConsumerStatefulWidget {
@@ -354,7 +354,7 @@ class _EventAdminGroupingScreenState extends ConsumerState<EventAdminGroupingScr
   Widget _buildGroupingList(GolfEvent event, Map<String, Member> memberMap, List<GolfEvent> history, AsyncValue<List<Scorecard>> scorecardsAsync, {CompetitionRules? rules, bool useWhs = true}) {
         // Fetch Centralized Computed Data
         final scoringData = ref.watch(eventScoringControllerProvider(widget.eventId));
-        final computedEntries = { for (var e in scoringData.leaderboard) e.entryId: e };
+        final Map<String, ProcessedLeaderboardEntry> computedEntries = { for (var e in scoringData.leaderboard) e.entryId: e };
 
         return ReorderableListView.builder(
           onReorder: (oldIndex, newIndex) {
@@ -451,7 +451,7 @@ class _EventAdminGroupingScreenState extends ConsumerState<EventAdminGroupingScr
                         color: isOver ? primary : primary.withValues(alpha: 0.4),
                         fontSize: AppTypography.sizeCaptionStrong,
                         fontWeight: AppTypography.weightExtraBold,
-                        letterSpacing: 1.2,
+                        letterSpacing: 1.0,
                       ),
                     ),
                   ],

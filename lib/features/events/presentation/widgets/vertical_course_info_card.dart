@@ -156,7 +156,7 @@ class VerticalCourseInfoCard extends StatelessWidget {
       style: AppTypography.label.copyWith(
         fontSize: AppTypography.sizeCaption,
         color: Theme.of(context).colorScheme.onSurface.withValues(alpha: AppColors.opacityMedium),
-        letterSpacing: 1.2,
+        letterSpacing: 1.0,
       ),
     );
   }

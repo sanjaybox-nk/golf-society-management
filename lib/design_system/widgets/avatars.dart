@@ -17,7 +17,7 @@ class BoxyArtAvatar extends StatelessWidget {
     required this.initials,
     this.radius = 20,
     this.color,
-    this.isCircle = false,
+    this.isCircle = true,
     this.borderColor,
     this.borderWidth,
   });

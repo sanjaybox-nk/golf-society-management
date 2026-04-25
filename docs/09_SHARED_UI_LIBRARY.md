@@ -40,6 +40,7 @@ The foundational container for all UI blocks.
 - **Dynamic Shadows**: Auto-scales with `config.shadowIntensity`.
 - **Clipping**: Internal `ClipRRect` forces all children to respect the dynamic curve.
 - **Key Parameters**: `onTap`, `padding`, `backgroundColor`, `gradient`, `border`, `showShadow`.
+- **Single-Card Architecture**: (v4.x) Recommended for grouping lists. Use a single `BoxyArtCard` to wrap multiple `BoxyArtMemberRow(useCard: false)` items, separated by horizontal dividers.
 
 ### `ModernNoteCard`
 A premium card for displaying broadcasted notes, announcements, or event updates.
@@ -179,6 +180,15 @@ Square icon badge with optional tint fill.
 - **Variants**: Supports `isPrimary` (Lime), `isSecondary` (Green), and `isTertiary` (Slate/Foundation).
 - **Synchronized**: Size and inner icon scale are controlled via the `AppShapeTokens` extension.
 - **Usage**: Standardized for empty states (`BoxyArtEmptyCard`) and feature identity headers.
+
+### `BoxyArtMemberRow`
+The unified row for displaying members across the application.
+- **`name`**: Primary member name.
+- **`teamNames`**: (List<String>) Optional list of names for multi-line display (e.g. Scramble teams). If provided, `name` is ignored in the primary content area.
+- **`isCaptain`**: Triggers the amber shield badge and background identity on the avatar.
+- **`initials`**: Explicit initials for the avatar (overrides name-derived initials).
+- **`useCard`**: Whether to wrap in a `BoxyArtCard` (default: true). Set to `false` for internal list items.
+- **`showChevron`**: Toggle the right-aligned interaction chevron.
 
 ### `BoxyArtIndicator` (Modern Handicap Standards)
 The authoritative component for handicap display. Replaces `BoxyArtPill.hc` and `.phc` patterns for a lighter, premium dashboard feel.

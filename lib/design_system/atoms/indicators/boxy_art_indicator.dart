@@ -93,11 +93,8 @@ class BoxyArtIndicator extends StatelessWidget {
             child: Text(
               label.toUpperCase(),
               style: AppTypography.micro.copyWith(
-                fontSize: fontSize ?? AppTypography.sizeMicro,
+                fontSize: fontSize,
                 color: textColor ?? (theme.brightness == Brightness.dark ? AppColors.dark150 : AppColors.dark600),
-                fontWeight: AppTypography.weightBold,
-                letterSpacing: 1.2,
-                height: 1.0,
               ),
               overflow: TextOverflow.ellipsis,
               maxLines: 1,

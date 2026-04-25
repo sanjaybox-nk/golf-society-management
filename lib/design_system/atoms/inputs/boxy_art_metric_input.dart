@@ -81,7 +81,7 @@ class _BoxyArtMetricInputState extends ConsumerState<BoxyArtMetricInput> {
                 style: AppTypography.micro.copyWith(
                   fontWeight: AppTypography.weightBold,
                   color: theme.textTheme.bodySmall?.color?.withValues(alpha: AppColors.opacityHigh),
-                  letterSpacing: 1.2,
+                  letterSpacing: 1.0,
                 ),
               ),
               if (widget.subtitle != null) ...[

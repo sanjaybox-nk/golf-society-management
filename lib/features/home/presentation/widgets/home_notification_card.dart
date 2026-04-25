@@ -55,7 +55,7 @@ class _HomeNotificationCardState extends ConsumerState<HomeNotificationCard> {
                   color: AppColors.pureWhite,
                   fontSize: AppTypography.sizeCaption,
                   fontWeight: AppTypography.weightBold,
-                  letterSpacing: 1.2,
+                  letterSpacing: 1.0,
                 ),
               ),
             ],

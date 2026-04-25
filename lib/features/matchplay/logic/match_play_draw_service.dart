@@ -155,6 +155,44 @@ class MatchPlayDrawService {
     }
   }
 
+  /// Propagates winners from completed matches to the next round slots
+  static List<MatchDefinition> propagateWinners(List<MatchDefinition> matches) {
+    final List<MatchDefinition> updatedMatches = List.from(matches);
+    
+    // Group matches by round
+    for (final match in matches) {
+      final result = match.manualResult;
+      if (result == null || !result.isFinal || match.round == MatchRoundType.finalRound) continue;
+      if (match.bracketOrder == null) continue;
+      
+      final nextRound = _getNextRound(match.round);
+      if (nextRound == match.round) continue;
+
+      // Determine target slot in next round
+      final int nextBracketOrder = match.bracketOrder! ~/ 2;
+      final bool isTeam1InNext = match.bracketOrder! % 2 == 0;
+
+      final targetIdx = updatedMatches.indexWhere((m) => 
+        m.round == nextRound && m.bracketOrder == nextBracketOrder
+      );
+
+      if (targetIdx != -1) {
+        final targetMatch = updatedMatches[targetIdx];
+        
+        // Find the winner's team details from the completed match
+        final bool isTeam1Winner = result.winningTeamIndex == 0;
+        final List<String> winnerIds = isTeam1Winner ? match.team1Ids : match.team2Ids;
+        final String? winnerName = isTeam1Winner ? match.team1Name : match.team2Name;
+
+        updatedMatches[targetIdx] = isTeam1InNext
+            ? targetMatch.copyWith(team1Ids: winnerIds, team1Name: winnerName)
+            : targetMatch.copyWith(team2Ids: winnerIds, team2Name: winnerName);
+      }
+    }
+
+    return updatedMatches;
+  }
+
   /// Calculate strokes received for all matches in a tournament
   static List<MatchDefinition> calculateAllMatchStrokes({
     required List<MatchDefinition> matches,

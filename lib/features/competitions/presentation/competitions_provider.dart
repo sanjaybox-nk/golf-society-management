@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter/foundation.dart';
 import 'package:golf_society/domain/models/competition.dart';
 import '../data/competitions_repository.dart';
 import '../data/firestore_competitions_repository.dart';
@@ -24,7 +25,17 @@ final templatesListProvider = StreamProvider<List<Competition>>((ref) {
 });
 
 final competitionDetailProvider = StreamProvider.family<Competition?, String>((ref, id) {
-  return ref.watch(competitionsRepositoryProvider).watchCompetition(id);
+  if (id.isEmpty) {
+    debugPrint('DEBUG_PROVIDER: competitionDetailProvider called with EMPTY ID');
+    return Stream.value(null);
+  }
+  debugPrint('DEBUG_PROVIDER: competitionDetailProvider(id=$id)');
+  return ref.watch(competitionsRepositoryProvider).watchCompetition(id).map((comp) {
+    if (comp == null) {
+      debugPrint('DEBUG_PROVIDER: Competition $id NOT FOUND in Firestore');
+    }
+    return comp;
+  });
 });
 
 final scorecardsListProvider = StreamProvider.family<List<Scorecard>, String>((ref, competitionId) {

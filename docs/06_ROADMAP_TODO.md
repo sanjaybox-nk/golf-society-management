@@ -56,7 +56,12 @@ This document tracks the remaining work required to take **Golf Society Manageme
     - [x] **Best N Selection**: Automatically count only the top $N$ rounds for season standings.
     - [x] **Dynamic Member Standings**: Live season rank and performance statistics on member profiles.
     - [x] **Team Attribution**: Individual credit for team/pairs events.
-    - **Matchplay Engine**: Independent knockouts and event-layered head-to-head.
+    - [x] **Matchplay Engine (Overlay Refactor)** (Completed 2026-04-25):
+        - [x] Transitioned from standalone "Format" to **Feature Overlay** model (`hasMatchPlayOverlay`).
+        - [x] Implemented dual-scoring support for Stableford/Stroke Play + Match Play.
+        - [x] Distinguished between **Standard Grouping** (Overlay) and **Tournament Style Grouping** (Seeded Draw).
+        - [x] Updated `MatchPlayCalculator` to handle relative PHCs and authoritative results for overlays.
+        - [x] Modernized administrative tabs and controls to reflect the "Format + Feature" philosophy.
 - [x] **Phase 9 Branding Console & Design Token Studio** (Completed 2026-04-21):
     - [x] **Semantic Token System**: Full control over Foundation, Surface, Typography, and Mechanical (Borders/Dividers) properties.
     - [x] **Scoring Aesthetics**: Integrated palette for golf scoring (Eagle to Triple+) and team identity management.
@@ -68,7 +73,15 @@ This document tracks the remaining work required to take **Golf Society Manageme
     - [x] **Manual Society Cuts**: Per-event handicap adjustments with automated group sync.
     - [x] **Stability Hardening**: Resolved null safety errors in scorecard state syncing.
     - [x] **Administrative Guest Control (v4.x)**: Implemented "Enable Guest Entry" event-level toggle to conditionally restrict guest participation in invitational or exclusive events.
-    - [ ] **Result Verification**: Admin approval workflow.
+    - [x] **Stats Hub Modernization (Design 4.x)** (Completed 2026-04-25):
+        - [x] Standardized all comparison heatmaps to 6-column wrap grids with Jakarta Sans w800.
+        - [x] Tokenized hole numbers to `microSmall` (10pt) for consistent typographic hierarchy.
+        - [x] Refined bubble dimensions (52pt height) for improved touch targets and readability.
+    - [x] **Scramble Leaderboard & Grouping Refactor (v4.x)** (Completed 2026-04-25):
+        - [x] Implemented multi-line team names in `BoxyArtMemberRow` (each player in own row).
+        - [x] Added high-fidelity captain indicator (amber shield + background) to team avatars.
+        - [x] Unified grouping hub into a single `BoxyArtCard` architecture with internal themed dividers.
+    - [x] **Result Verification**: Admin approval workflow.
 - [ ] **Divisions & Groups**
     - [ ] **Categorization**: Support for both fixed (Strict), tagged (Flexible), and handicap-based (Dynamic) groupings.
     - [ ] **Management UI**: Dedicated Admin screen for defining society-wide divisions.
@@ -152,6 +165,17 @@ This document tracks the remaining work required to take **Golf Society Manageme
     - [x] **Infrastructure Hierarchy**: Implemented a clear 3-tier action system (Clear Activity / Master Seed / Factory Reset) with high-fidelity administrative toggles.
     - [x] **UI Responsiveness & Layout**: Refactored `BoxyArtDialog` with `OverflowBar` to prevent button truncation. Standardized "Boxy Art" v4.x tokens across the settings hub.
     - [x] **Typography Hardening**: Applied ALL-CAPS metadata standards and corrected button text fit (e.g. "CLEAR").
+- [x] **Stableford Points Tokenization & Branding Integration (v4.x)** (Completed 2026-04-23):
+    - [x] **Dynamic Branding Token**: Added `pointsColor` to `SocietyConfig` for centralized scoring accent control.
+    - [x] **Administrative UI**: Integrated the "Points Emphasis" color picker into the Branding Console.
+    - [x] **Hero Metric Standardization**: Refactored `CourseInfoCard`, `BoxyArtMemberRow`, and `ScorecardModal` to consume the dynamic token, replacing hardcoded values.
+    - [x] **Consistent Logic**: Converted core scoring widgets to `ConsumerWidget` for real-time aesthetic updates across the admin and player suites.
+- [x] **Event Scoring Navigation & Visibility Standardization (v4.x)** (Completed 2026-04-23):
+    - [x] **Tab Reorganization**: Prioritized "GROUPS" as the default tab, followed by "Standings", "Bracket", and "Verify".
+    - [x] **Terminology Alignment**: Renamed "Leaderboard" to "Standings" across all admin and player hubs.
+    - [x] **Score Visibility Hub (Admin)**: Implemented a "VIEW SCORES" master toggle in the Admin Groups tab to switch between organization and live result views.
+    - [x] **Data Integrity**: Expanded the scoring processor to include all players present in event groups, ensuring admins see results for the entire field.
+    - [x] **Responsive Navigation**: Hardened the `HoleByHoleScoringWidget` with flexible layouts to eliminate horizontal overflow regressions.
 - [x] **Society Cuts Restructure (Apr 2026)**: Moved global configuration to Admin Dashboard and implemented conditional manual workbench in Event Controls.
 - [x] **Matchplay Engine Integration**: Independent knockouts and event-layered hybrid competitions fully integrated into the seeding engine and leaderboard UI.
 

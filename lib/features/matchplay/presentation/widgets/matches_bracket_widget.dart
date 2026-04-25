@@ -241,7 +241,7 @@ class _RoundColumn extends StatelessWidget {
               style: const TextStyle(
                 fontWeight: AppTypography.weightBlack,
                 fontSize: AppTypography.sizeLabel,
-                letterSpacing: 1.2,
+                letterSpacing: 1.0,
                 color: AppColors.textSecondary,
               ),
             ),

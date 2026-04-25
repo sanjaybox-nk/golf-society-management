@@ -152,7 +152,7 @@ class BoxyArtEventCard extends ConsumerWidget {
                       ),
                     ),
                     TextSpan(
-                      text: DateFormat('h:mm a').format(event.regTime ?? event.date),
+                      text: DateFormat.Hm().format(event.regTime ?? event.date),
                       style: TextStyle(
                         color: subtextColor,
                         fontWeight: AppTypography.weightBold,
@@ -230,7 +230,7 @@ class BoxyArtEventCard extends ConsumerWidget {
             color: color,
             fontWeight: AppTypography.weightBlack,
             fontSize: 10,
-            letterSpacing: 1.2,
+            letterSpacing: 1.0,
           ),
         ),
       ],

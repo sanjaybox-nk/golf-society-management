@@ -176,14 +176,18 @@ class BoxyArtButton extends ConsumerWidget {
           Icon(icon, color: color, size: isSmall ? AppShapes.iconXs : AppShapes.iconSm),
           const SizedBox(width: AppSpacing.sm),
         ],
-        Text(
-          title.toUpperCase(),
-          textAlign: TextAlign.center,
-          style: (isSmall ? AppTypography.label : AppTypography.body).copyWith(
-            color: color,
-            fontWeight: AppTypography.weightBold,
-            fontSize: isSmall ? 13 : 16,
-            height: 1.1,
+        Flexible(
+          child: Text(
+            title.toUpperCase(),
+            textAlign: TextAlign.center,
+            overflow: TextOverflow.ellipsis,
+            maxLines: 1,
+            style: (isSmall ? AppTypography.label : AppTypography.body).copyWith(
+              color: color,
+              fontWeight: AppTypography.weightBold,
+              fontSize: isSmall ? 13 : 16,
+              height: 1.1,
+            ),
           ),
         ),
       ],

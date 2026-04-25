@@ -59,12 +59,30 @@ class EventUserDetailsTab extends ConsumerWidget {
           } : null,
         );
       },
-      loading: () => useScaffold 
-          ? Scaffold(body: Center(child: CircularProgressIndicator()))
-          : Center(child: CircularProgressIndicator()),
-      error: (err, stack) => useScaffold
-          ? Scaffold(body: Center(child: Text('Error: $err')))
-          : Center(child: Text('Error: $err')),
+      loading: () => HeadlessScaffold(
+        title: 'Loading Event...',
+        showBack: true,
+        onBack: () => context.go('/events'),
+        slivers: const [
+          SliverFillRemaining(
+            child: Center(child: CircularProgressIndicator()),
+          ),
+        ],
+      ),
+      error: (err, stack) => HeadlessScaffold(
+        title: 'Event Error',
+        showBack: true,
+        onBack: () => context.go('/events'),
+        slivers: [
+          SliverFillRemaining(
+            child: BoxyArtEmptyState(
+              title: 'Could not load event',
+              message: err.toString(),
+              icon: Icons.error_outline_rounded,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -575,7 +593,7 @@ class _EventDetailsContentState extends ConsumerState<EventDetailsContent> {
           ModernInfoRow(
             label: event.eventType == EventType.social ? 'EVENT TIME' : 'REGISTRATION',
             value: event.regTime != null 
-                ? DateFormat('h:mm a').format(event.regTime!)
+                ? DateFormat.Hm().format(event.regTime!)
                 : 'TBA',
             icon: Icons.app_registration_rounded,
             labelColor: AppColors.pureWhite.withValues(alpha: AppColors.opacityHigh),
@@ -586,7 +604,7 @@ class _EventDetailsContentState extends ConsumerState<EventDetailsContent> {
           if (event.eventType == EventType.golf) ...[
             ModernInfoRow(
               label: 'TEE-OFF',
-              value: DateFormat('h:mm a').format(event.teeOffTime ?? event.date),
+              value: DateFormat.Hm().format(event.teeOffTime ?? event.date),
               icon: Icons.schedule_rounded,
               labelColor: AppColors.pureWhite.withValues(alpha: AppColors.opacityHigh),
               valueColor: AppColors.pureWhite,
@@ -597,7 +615,7 @@ class _EventDetailsContentState extends ConsumerState<EventDetailsContent> {
           if (event.registrationDeadline != null) ...[
             ModernInfoRow(
               label: 'REGISTRATION CLOSES',
-              value: '${DateFormat('d MMM').format(event.registrationDeadline!)} @ ${DateFormat('h:mm a').format(event.registrationDeadline!)}',
+              value: '${DateFormat('d MMM').format(event.registrationDeadline!)} @ ${DateFormat.Hm().format(event.registrationDeadline!)}',
               icon: Icons.timer_outlined,
               iconColor: AppColors.pureWhite,
               labelColor: AppColors.pureWhite.withValues(alpha: AppColors.opacityHigh),

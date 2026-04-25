@@ -28,8 +28,13 @@ import '../../../notifications/domain/notification_broadcast_service.dart';
 
 class MatchPlayDrawManagerScreen extends ConsumerStatefulWidget {
   final String? eventId;
+  final bool checkRoundProgression;
 
-  const MatchPlayDrawManagerScreen({super.key, this.eventId});
+  const MatchPlayDrawManagerScreen({
+    super.key, 
+    this.eventId, 
+    this.checkRoundProgression = false,
+  });
 
   @override
   ConsumerState<MatchPlayDrawManagerScreen> createState() => _MatchPlayDrawManagerScreenState();
@@ -350,6 +355,16 @@ class _MatchPlayDrawManagerScreenState extends ConsumerState<MatchPlayDrawManage
         notes: existing?.notes,
         isPublished: existing?.isPublished ?? false,
       );
+
+      // [Design 4.x Progression] If we entered from a finalized event, we automatically
+      // calculate the next round draft for the admin to review.
+      if (widget.checkRoundProgression && existing != null && existing.matches.isNotEmpty) {
+        notifier.propagateWinners(existing.matches);
+        // Force the draw back to "Draft" state so the admin must explicitly Publish the next round.
+        notifier.setPublished(false);
+        // Switch to Draw tab automatically so admin sees the result
+        setState(() => _selectedTab = 1);
+      }
     });
   }
 
@@ -654,7 +669,7 @@ class _ManualResultSheet extends StatelessWidget {
             style: AppTypography.label.copyWith(
               color: AppColors.amber500,
               fontWeight: AppTypography.weightBlack,
-              letterSpacing: 1.2,
+              letterSpacing: 1.0,
             ),
           ),
           const SizedBox(height: AppSpacing.md),
@@ -809,7 +824,15 @@ class _OverrideOption extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: AppTypography.labelStrong.copyWith(color: AppColors.pureWhite)),
+                Text(
+                  title.toUpperCase(), 
+                  style: AppTypography.labelStrong.copyWith(
+                    color: AppColors.pureWhite,
+                    fontWeight: AppTypography.weightBold,
+                    fontSize: AppTypography.sizeLabel,
+                    letterSpacing: 1.0,
+                  ),
+                ),
                 Text(subtitle, style: AppTypography.micro.copyWith(color: AppColors.textSecondary)),
               ],
             ),

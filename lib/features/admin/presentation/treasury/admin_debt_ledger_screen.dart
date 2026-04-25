@@ -146,7 +146,7 @@ class _AdminDebtLedgerScreenState extends ConsumerState<AdminDebtLedgerScreen> {
                 style: AppTypography.micro.copyWith(
                   color: isDark ? AppColors.dark300 : AppColors.dark400,
                   fontWeight: AppTypography.weightBold,
-                  letterSpacing: 1.2,
+                  letterSpacing: 1.0,
                 ),
               ),
               const SizedBox(height: AppSpacing.sm),

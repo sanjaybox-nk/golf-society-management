@@ -224,7 +224,10 @@ class ScenarioSeeder {
       id: eventId,
       name: title,
       type: CompetitionType.event,
-      rules: const CompetitionRules(format: CompetitionFormat.stableford),
+      rules: const CompetitionRules(
+        format: CompetitionFormat.stableford,
+        hasMatchPlayOverlay: true,
+      ),
       startDate: date,
       endDate: date,
     ));

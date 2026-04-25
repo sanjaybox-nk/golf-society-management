@@ -97,7 +97,7 @@ class MemberHomeScreen extends ConsumerWidget {
                             style: TextStyle(
                               fontSize: 10,
                               fontWeight: AppTypography.weightExtraBold,
-                              letterSpacing: 1.2,
+                              letterSpacing: 1.0,
                               color: AppColors.actionMidnight,
                             ),
                           ),
@@ -503,7 +503,7 @@ class MemberHomeScreen extends ConsumerWidget {
                                 style: AppTypography.micro.copyWith(
                                   color: AppColors.dark300,
                                   fontWeight: AppTypography.weightHeavy,
-                                  letterSpacing: 1.2,
+                                  letterSpacing: 1.0,
                                   fontSize: 10,
                                 ),
                               ),
@@ -734,7 +734,7 @@ class _NextMatchCard extends ConsumerWidget {
                 const SizedBox(height: AppSpacing.md),
                 ModernInfoRow(
                   label: 'Tee Off',
-                  value: DateFormat('h:mm a').format(event.teeOffTime ?? event.date),
+                  value: DateFormat.Hm().format(event.teeOffTime ?? event.date),
                   icon: Icons.schedule_rounded,
                   iconColor: AppColors.pureWhite,
                   labelColor: AppColors.pureWhite.withValues(alpha: 0.7),
@@ -999,7 +999,7 @@ class _GlobalPollCard extends ConsumerWidget {
                         style: AppTypography.micro.copyWith(
                           color: AppColors.lime500,
                           fontWeight: AppTypography.weightHeavy,
-                          letterSpacing: 1.2,
+                          letterSpacing: 1.0,
                         ),
                       ),
                     ),
@@ -1206,6 +1206,7 @@ class _MatchPlayMatchupCard extends ConsumerWidget {
               BoxyArtPill.status(
                 label: 'MATCH PLAY',
                 color: AppColors.lime500,
+                isLegend: true,
               ),
               const Spacer(),
               if (deadline != null)
@@ -1214,7 +1215,7 @@ class _MatchPlayMatchupCard extends ConsumerWidget {
                   style: AppTypography.micro.copyWith(
                     color: AppColors.pureWhite.withValues(alpha: AppColors.opacityHigh),
                     fontWeight: AppTypography.weightBlack,
-                    letterSpacing: 1.2,
+                    letterSpacing: 1.0,
                   ),
                 ),
             ],

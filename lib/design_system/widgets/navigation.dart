@@ -279,7 +279,7 @@ class _UnderlinedTabItem extends StatelessWidget {
                         fontSize: 12,
                         fontWeight: isSelected ? AppTypography.weightExtraBold : AppTypography.weightBold,
                         color: isSelected ? activeTextColor : inactiveTextColor,
-                        letterSpacing: 1.2,
+                        letterSpacing: 1.0,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,

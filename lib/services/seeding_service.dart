@@ -61,6 +61,7 @@ class SeedingService {
 
       debugPrint('Seeding new demo season foundation...');
       await _seedGlobalLeaderboardTemplates();
+      await _seedCompetitionTemplates();
       await _seedDemoSeason();
 
       debugPrint('Restoring society branding and setting renewal defaults + sponsors...');
@@ -343,6 +344,7 @@ class SeedingService {
     final collections = [
       'scorecards', 'events', 'competitions', 'seasons', 'members',
       'notifications', 'campaigns', 'global_expenses', 'surveys', 'activities',
+      'templates', 'leaderboard_templates',
     ];
 
     for (var collection in collections) {
@@ -457,14 +459,14 @@ class SeedingService {
       (title: 'The Season Finale', format: CompetitionFormat.stableford, isInvitational: false, isSeasonEvent: true, subtype: CompetitionSubtype.none, date: DateTime(2025, 10, 10), status: EventStatus.completed, isMultiDay: true, endDate: DateTime(2025, 10, 11), eventType: EventType.golf),
       
       (title: 'ALGARVE TOUR 2026', format: CompetitionFormat.stableford, isInvitational: true, isSeasonEvent: false, subtype: CompetitionSubtype.none, date: DateTime(2025, 10, 20), status: EventStatus.completed, isMultiDay: true, endDate: DateTime(2025, 10, 22), eventType: EventType.golf),
-      (title: 'President\'s Cup', format: CompetitionFormat.matchPlay, isInvitational: true, isSeasonEvent: false, subtype: CompetitionSubtype.none, date: DateTime(2026, 3, 20), status: EventStatus.completed, isMultiDay: false, endDate: null, eventType: EventType.golf),
+      (title: 'President\'s Cup', format: CompetitionFormat.stableford, isInvitational: true, isSeasonEvent: false, subtype: CompetitionSubtype.none, date: DateTime(2026, 3, 20), status: EventStatus.completed, isMultiDay: false, endDate: null, eventType: EventType.golf),
       (title: 'Texas Scramble Away Day', format: CompetitionFormat.scramble, isInvitational: true, isSeasonEvent: false, subtype: CompetitionSubtype.none, date: DateTime(2025, 7, 25), status: EventStatus.completed, isMultiDay: false, endDate: null, eventType: EventType.golf),
       (title: 'Charity Scramble', format: CompetitionFormat.scramble, isInvitational: true, isSeasonEvent: false, subtype: CompetitionSubtype.none, date: DateTime(2025, 3, 25), status: EventStatus.completed, isMultiDay: false, endDate: null, eventType: EventType.golf),
 
       (title: 'Society Summer BBQ', format: CompetitionFormat.stableford, isInvitational: false, isSeasonEvent: false, subtype: CompetitionSubtype.none, date: DateTime(2025, 7, 19), status: EventStatus.completed, isMultiDay: false, endDate: null, eventType: EventType.social),
       (title: 'Annual Awards Dinner', format: CompetitionFormat.stableford, isInvitational: false, isSeasonEvent: false, subtype: CompetitionSubtype.none, date: DateTime(2026, 3, 11), status: EventStatus.completed, isMultiDay: false, endDate: null, eventType: EventType.social),
 
-      (title: 'Invitational Match Play', format: CompetitionFormat.matchPlay, isInvitational: true, isSeasonEvent: false, subtype: CompetitionSubtype.none, date: now, status: EventStatus.inPlay, isMultiDay: false, endDate: null, eventType: EventType.golf),
+      (title: 'Invitational Match Play', format: CompetitionFormat.stableford, isInvitational: true, isSeasonEvent: false, subtype: CompetitionSubtype.none, date: now, status: EventStatus.inPlay, isMultiDay: false, endDate: null, eventType: EventType.golf),
       (title: 'Spring Social Night', format: CompetitionFormat.stableford, isInvitational: false, isSeasonEvent: false, subtype: CompetitionSubtype.none, date: now.add(const Duration(days: 7)), status: EventStatus.published, isMultiDay: false, endDate: null, eventType: EventType.social),
       (title: 'May Spring Medal', format: CompetitionFormat.stableford, isInvitational: false, isSeasonEvent: true, subtype: CompetitionSubtype.none, date: now.add(const Duration(days: 14)), status: EventStatus.published, isMultiDay: false, endDate: null, eventType: EventType.golf),
     ];
@@ -504,6 +506,7 @@ class SeedingService {
           eventIndex: i,
           eventType: config.eventType,
           charityPot: i == 0 ? 25.0 : (i == 12 ? 40.0 : 0.0),
+          hasMatchPlayOverlay: config.title.contains('Match Play') || config.title.contains('President\'s Cup'),
         );
 
         if (!config.isInvitational && results.isNotEmpty) {
@@ -579,6 +582,84 @@ class SeedingService {
 
     for (final template in templates) {
       // Update if exists (blueprint matches), otherwise add
+      await repo.updateTemplate(template).catchError((_) => repo.addTemplate(template));
+    }
+  }
+  
+  Future<void> _seedCompetitionTemplates() async {
+    final repo = ref.read(competitionsRepositoryProvider);
+    
+    final templates = [
+      Competition(
+        id: 'tmpl_stableford_solo',
+        name: 'Stableford Solo',
+        type: CompetitionType.game,
+        rules: const CompetitionRules(
+          format: CompetitionFormat.stableford,
+          mode: CompetitionMode.singles,
+          handicapAllowance: 0.95,
+        ),
+        startDate: DateTime.now(),
+        endDate: DateTime.now(),
+      ),
+      Competition(
+        id: 'tmpl_texas_scramble',
+        name: 'Texas Scramble',
+        type: CompetitionType.game,
+        rules: const CompetitionRules(
+          format: CompetitionFormat.scramble,
+          subtype: CompetitionSubtype.texas,
+          mode: CompetitionMode.teams,
+          teamSize: 4,
+          handicapAllowance: 1.0,
+          useWHSScrambleAllowance: true,
+        ),
+        startDate: DateTime.now(),
+        endDate: DateTime.now(),
+      ),
+      Competition(
+        id: 'tmpl_singles_match_play_event',
+        name: 'Singles Match Play (Event)',
+        type: CompetitionType.game,
+        rules: const CompetitionRules(
+          format: CompetitionFormat.stableford,
+          mode: CompetitionMode.singles,
+          handicapAllowance: 1.0,
+          hasMatchPlayOverlay: true,
+        ),
+        startDate: DateTime.now(),
+        endDate: DateTime.now(),
+      ),
+      Competition(
+        id: 'tmpl_match_play_season_overlay',
+        name: 'Match Play Season Overlay',
+        type: CompetitionType.game,
+        rules: const CompetitionRules(
+          format: CompetitionFormat.stableford,
+          subtype: CompetitionSubtype.matchPlaySeason,
+          mode: CompetitionMode.singles,
+          handicapAllowance: 1.0,
+          hasMatchPlayOverlay: true,
+        ),
+        startDate: DateTime.now(),
+        endDate: DateTime.now(),
+      ),
+      Competition(
+        id: 'tmpl_ryder_cup',
+        name: 'Ryder Cup (Team Match Play)',
+        type: CompetitionType.game,
+        rules: const CompetitionRules(
+          format: CompetitionFormat.stableford,
+          mode: CompetitionMode.teams,
+          handicapAllowance: 1.0,
+          hasMatchPlayOverlay: true,
+        ),
+        startDate: DateTime.now(),
+        endDate: DateTime.now(),
+      ),
+    ];
+
+    for (final template in templates) {
       await repo.updateTemplate(template).catchError((_) => repo.addTemplate(template));
     }
   }

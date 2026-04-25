@@ -188,7 +188,7 @@ class _ShellLayoutDelegate extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // This is the ONLY place where we watch the location.
-    final location = GoRouter.of(context).routeInformationProvider.value.uri.path;
+    final location = GoRouterState.of(context).uri.path;
     final bool isAdmin = navigationShell.currentIndex >= 5;
 
     // 1. Calculate base items
@@ -214,8 +214,21 @@ class _ShellLayoutDelegate extends StatelessWidget {
 
     // 2. Hub Detection
     final segments = location.split('/');
-    final bool isUserEventHub = segments.length >= 3 && segments[1] == 'events' && segments[2].isNotEmpty;
-    final bool isAdminEventHub = segments.length >= 5 && segments[1] == 'admin' && segments[2] == 'events' && segments[3] == 'manage' && segments[4].isNotEmpty;
+    // Hardened detection using list operations instead of brittle index checks
+    final int eventsIdx = segments.indexOf('events');
+    final bool isUserEventHub = eventsIdx != -1 && 
+                                eventsIdx + 1 < segments.length && 
+                                !location.contains('/admin/') &&
+                                // Ensure we are actually IN a sub-page of the event hub
+                                (location.endsWith('details') || location.endsWith('field') || location.endsWith('live') || location.endsWith('scores') || location.endsWith('stats'));
+
+    final int manageIdx = segments.indexOf('manage');
+    final bool isAdminEventHub = manageIdx != -1 && manageIdx + 1 < segments.length;
+
+    final String hubId = isUserEventHub 
+        ? segments[eventsIdx + 1] 
+        : (isAdminEventHub ? segments[manageIdx + 1] : '');
+
     final bool isSurveyView = location.contains('/surveys/') && !location.contains('/admin/node');
     final bool isSpecialForm = location.split('/').any((s) => s == 'new' || s == 'edit' || s == 'create');
 
@@ -238,10 +251,17 @@ class _ShellLayoutDelegate extends StatelessWidget {
     }
 
     int finalIndex = baseIndex;
-    if (isUserEventHub || isAdminEventHub) {
+    if (isUserEventHub) {
       if (location.endsWith('details')) finalIndex = 0;
-      else if (location.endsWith('field') || location.endsWith('gallery')) finalIndex = 1;
-      else if (location.endsWith('live') || location.endsWith('scores')) finalIndex = 2;
+      else if (location.endsWith('field')) finalIndex = 1;
+      else if (location.endsWith('live')) finalIndex = 2;
+      else if (location.endsWith('scores')) finalIndex = 3;
+      else if (location.endsWith('stats')) finalIndex = 4;
+      else finalIndex = 0;
+    } else if (isAdminEventHub) {
+      if (location.endsWith('details')) finalIndex = 0;
+      else if (location.endsWith('gallery')) finalIndex = 1;
+      else if (location.endsWith('scores')) finalIndex = 2;
       else if (location.endsWith('stats')) finalIndex = 3;
       else if (location.endsWith('controls')) finalIndex = 4;
       else finalIndex = 0;
@@ -292,17 +312,33 @@ class _ShellProperties {
 }
 
 void _onTap(BuildContext context, int index, _ShellProperties props) {
+  final segments = props.location.split('/');
+  
   if (props.isUserHub) {
-    final String id = props.location.split('/')[2];
-    final List<String> paths = ['/events/$id/details', '/events/$id/field', '/events/$id/live', '/events/$id/scores', '/events/$id/stats'];
+    final int eventsIdx = segments.indexOf('events');
+    final String id = segments[eventsIdx + 1];
+    final List<String> paths = [
+      '/events/$id/details', 
+      '/events/$id/field', 
+      '/events/$id/live', 
+      '/events/$id/scores', 
+      '/events/$id/stats'
+    ];
     context.go(paths[index]);
     return;
   }
 
   if (props.isAdminHub) {
-    final String id = props.location.split('/')[4];
+    final int manageIdx = segments.indexOf('manage');
+    final String id = segments[manageIdx + 1];
     final String prefix = '/admin/events/manage/$id';
-    final List<String> paths = ['$prefix/details', '$prefix/gallery', '$prefix/scores', '$prefix/stats', '$prefix/controls'];
+    final List<String> paths = [
+      '$prefix/details', 
+      '$prefix/gallery', 
+      '$prefix/scores', 
+      '$prefix/stats', 
+      '$prefix/controls'
+    ];
     context.go(paths[index]);
     return;
   }

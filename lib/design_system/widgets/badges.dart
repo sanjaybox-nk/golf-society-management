@@ -222,12 +222,13 @@ class BoxyArtPill extends ConsumerWidget {
     IconData? icon,
     Color? color,
     double? fontSize,
+    bool isLegend = false,
   }) {
     return BoxyArtPill(
       label: label,
       color: color, 
       icon: icon,
-      isLegend: false,
+      isLegend: isLegend,
       isFormat: true,
       fontSize: fontSize,
     );
@@ -239,11 +240,12 @@ class BoxyArtPill extends ConsumerWidget {
     required String label,
     IconData? icon,
     double? fontSize,
+    bool isLegend = false,
   }) {
     return BoxyArtPill(
       label: label,
       icon: icon,
-      isLegend: true,
+      isLegend: isLegend,
       isType: true,
       fontSize: fontSize,
     );
@@ -435,10 +437,10 @@ class BoxyArtPill extends ConsumerWidget {
             child: Text(
               label.toUpperCase(),
               style: AppTypography.micro.copyWith(
-                fontSize: fontSize ?? AppTypography.sizeMicro,
+                fontSize: fontSize,
                 color: effectiveTextColor,
-                fontWeight: fontWeight ?? AppTypography.weightBold,
-                letterSpacing: letterSpacing ?? 1.2,
+                fontWeight: fontWeight,
+                letterSpacing: letterSpacing,
               ),
               overflow: TextOverflow.ellipsis,
               maxLines: 1,

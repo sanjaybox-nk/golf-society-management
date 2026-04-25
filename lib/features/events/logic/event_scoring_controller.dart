@@ -15,9 +15,11 @@ class EventScoringController extends _$EventScoringController {
   @override
   ProcessedEventData build(String eventId) {
     // 1. Watch inputs
-    final events = ref.watch(eventsProvider).value ?? [];
-    final event = events.firstWhereOrNull((e) => e.id == eventId);
-    final comp = ref.watch(competitionDetailProvider(eventId)).value;
+    final eventAsync = ref.watch(eventProvider(eventId));
+    final event = eventAsync.value;
+    
+    final compAsync = ref.watch(competitionDetailProvider(eventId));
+    final comp = compAsync.value;
     final liveScorecards = ref.watch(scorecardsListProvider(eventId)).value ?? [];
     final members = ref.watch(allMembersProvider).value ?? [];
     final markerSelection = ref.watch(markerSelectionProvider);

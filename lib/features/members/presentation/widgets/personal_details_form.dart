@@ -222,7 +222,7 @@ class _PersonalDetailsFormState extends State<PersonalDetailsForm> {
             style: AppTypography.micro.copyWith(
               color: Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha: AppColors.opacityHigh),
               fontWeight: AppTypography.weightBold,
-              letterSpacing: 1.2,
+              letterSpacing: 1.0,
             ),
           ),
         ),

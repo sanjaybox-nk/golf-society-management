@@ -147,6 +147,9 @@ class _StablefordControlState extends BaseCompetitionControlState<StablefordCont
             onChanged: (val) { if (val != null) setState(() => _teamBestXCount = val); },
           ),
         ),
+        
+        // ── OVERLAYS ──────────────────────────────────────────
+        buildOverlaySection(),
       ],
     );
   }
@@ -166,6 +169,7 @@ class _StablefordControlState extends BaseCompetitionControlState<StablefordCont
       applyCapToIndex: _applyCapToIndex,
       teamBestXCount: _teamBestXCount,
       useMixedTeeAdjustment: _useMixedTeeAdjustment,
+      hasMatchPlayOverlay: hasMatchPlayOverlay,
     );
   }
 }

@@ -60,7 +60,7 @@ class BoxyArtInputField extends ConsumerWidget {
               style: AppTypography.micro.copyWith(
                 fontWeight: AppTypography.weightBold,
                 color: labelColor ?? theme.textTheme.bodySmall?.color?.withValues(alpha: AppColors.opacityHigh),
-                letterSpacing: 1.2,
+                letterSpacing: 1.0,
               ),
             ),
           ),
@@ -315,7 +315,7 @@ class BoxyArtDatePickerField extends ConsumerWidget {
             style: AppTypography.micro.copyWith(
               fontWeight: AppTypography.weightBold,
               color: labelColor ?? theme.colorScheme.onSurfaceVariant,
-              letterSpacing: 1.2,
+              letterSpacing: 1.0,
             ),
           ),
         ),
@@ -398,7 +398,7 @@ class BoxyArtSwitchField extends StatelessWidget {
                   style: AppTypography.micro.copyWith(
                     color: labelColor ?? theme.textTheme.bodySmall?.color?.withValues(alpha: AppColors.opacityHigh),
                     fontWeight: AppTypography.weightBold,
-                    letterSpacing: 1.2,
+                    letterSpacing: 1.0,
                   ),
                 ),
                 if (subtitle != null) ...[
@@ -543,10 +543,11 @@ class BoxyArtSwitchTile extends ConsumerWidget {
                 ...[
                   Text(
                     label.toUpperCase(),
-                    style: AppTypography.micro.copyWith(
+                    style: AppTypography.labelStrong.copyWith(
+                      color: theme.colorScheme.onSurface,
                       fontWeight: AppTypography.weightBold,
-                      color: theme.textTheme.bodySmall?.color?.withValues(alpha: AppColors.opacityHigh),
-                      letterSpacing: 1.2,
+                      fontSize: AppTypography.sizeLabel,
+                      letterSpacing: 1.0,
                     ),
                   ),
                   if (subtitle != null) ...[
@@ -631,10 +632,11 @@ class BoxyArtNavTile extends ConsumerWidget {
                 children: [
                   Text(
                     title.toUpperCase(),
-                    style: AppTypography.micro.copyWith(
+                    style: AppTypography.labelStrong.copyWith(
                       color: theme.colorScheme.onSurface,
                       fontWeight: AppTypography.weightBold,
-                      letterSpacing: 1.2,
+                      fontSize: AppTypography.sizeLabel,
+                      letterSpacing: 1.0,
                     ),
                   ),
                   const SizedBox(height: 2),
@@ -744,7 +746,7 @@ class BoxyArtDropdownField<T> extends ConsumerWidget {
               style: AppTypography.micro.copyWith(
                 fontWeight: AppTypography.weightBold,
                 color: theme.textTheme.bodySmall?.color?.withValues(alpha: AppColors.opacityHigh),
-                letterSpacing: 1.2,
+                letterSpacing: 1.0,
               ),
             ),
           ),

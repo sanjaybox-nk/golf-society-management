@@ -52,7 +52,7 @@ mixin BaseLeaderboardControlMixin<T extends StatefulWidget> on State<T> {
               style: AppTypography.micro.copyWith(
                 fontWeight: AppTypography.weightBlack,
                 color: theme.colorScheme.primary,
-                letterSpacing: 1.2,
+                letterSpacing: 1.0,
               ),
             ),
           ),

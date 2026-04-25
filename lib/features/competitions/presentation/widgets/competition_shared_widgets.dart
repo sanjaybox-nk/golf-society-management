@@ -24,18 +24,27 @@ class CompetitionBadgeRow extends StatelessWidget {
     // 1. Format Pill (Stroke Play, Match Play, etc.)
     pills.add(
       BoxyArtPill.format(
-        label: rules.format == CompetitionFormat.matchPlay 
-            ? rules.gameName 
-            : rules.format.name,
-        icon: Icons.emoji_events_rounded,
+        label: rules.isMatchPlay ? rules.gameName : rules.format.name,
+        isLegend: true,
       ),
     );
+
+    // 1.5. Match Play Overlay Pill
+    if (rules.hasMatchPlayOverlay) {
+      pills.add(
+        BoxyArtPill.status(
+          label: 'MATCH PLAY ENABLED',
+          color: AppColors.lime500,
+          isLegend: true,
+        ),
+      );
+    }
 
     // 2. Scoring Pill (Net or Gross)
     pills.add(
       BoxyArtPill.format(
         label: rules.scoringType,
-        icon: Icons.calculate_rounded,
+        isLegend: true,
       ),
     );
 
@@ -43,7 +52,7 @@ class CompetitionBadgeRow extends StatelessWidget {
     pills.add(
       BoxyArtPill.format(
         label: rules.defaultAllowanceLabel,
-        icon: Icons.percent_rounded,
+        isLegend: true,
       ),
     );
 
@@ -51,7 +60,7 @@ class CompetitionBadgeRow extends StatelessWidget {
     pills.add(
       BoxyArtPill.format(
         label: rules.modeLabel,
-        icon: Icons.person_rounded,
+        isLegend: true,
       ),
     );
 
@@ -64,6 +73,7 @@ class CompetitionBadgeRow extends StatelessWidget {
         BoxyArtPill.status(
           label: 'Capped @ ${rules.handicapCap.toInt()} HCP',
           color: AppColors.coral400,
+          isLegend: true,
         ),
       );
     }

@@ -65,32 +65,55 @@ The system prioritizes "To-Par" scoring for clarity. A team's net score is calcu
 -   **Net Score**: (Raw strokes - Handicap) - Par.
 -   **Display Example**: `Gross: 67 (-5)` | `Net: 53 (-19)` (assuming a par 72 course and 14 stroke team handicap).
 
+### 2.6 Dual-Scoring (Match Play Overlay)
+As of April 2026, the system supports simultaneous scoring for multiple formats.
+- **Stableford + Match Play**: The engine calculates Stableford points for the leaderboard while simultaneously deriving a head-to-head match result (e.g., 2 UP) for the match overlay.
+- **Shared Logic**: Both scoring streams consume the same hole-by-hole gross strokes, ensuring absolute data parity.
+
 ---
 
 ## 3. UI Presentation Standards
-
 ### 3.1 Leaderboard (`EventLeaderboard`)
--   **Consolidated Entries**: Teams appear as a single row.
+-   **Consolidated Entries**: Teams appear as a single row, but each player's name is rendered in its own sub-row within the card for maximum readability.
+-   **Captain Indicator**: The team avatar (linked to the captain) is explicitly identified with an **amber shield badge** and background color.
 -   **PHC Labeling**: The handicap column explicitly uses the "Team PHC" calculated via the weighted method.
--   **Member Visibility**: Tapping the entry lists all names (Player A, Player B, etc.).
+-   **Member Visibility**: The main leaderboard view provides immediate visibility of all team members without needing to tap the entry.
+-   **Team Mapping**: In unified formats, the leaderboard bypasses guest separation, ensuring teams stay together in the standings regardless of individual member/guest status.
 
 ### 3.2 Scorecard Modal (`ScorecardModal`)
 -   **Multi-Player Header**: Displays all team members at the top.
 -   **Handicap Context**: Labels stats as `team hc` and `team phc` to differentiate from individual baseline handicaps.
 -   **Absolute Stats**: The summary row (`CourseInfoCard`) displays both the raw strokes and the relative-to-par value for maximum clarity.
+-   **Drive Attribution Footer**: For Scrambles, the modal footer displays the "DRIVE ATTRIBUTIONS" summary (e.g., "H1: Player A"), allowing for quick verification of drive quotas.
 
 ### 3.3 Group Hub (`GroupingCard`)
--   **Scramble/Team Scores**: All members of a team in the group hub show the identical "Live" net score.
--   **Fourball Individual Scores**: In Fourball (Pairs), each player shows their **own individual** Stableford/Stroke score, not the shared team score.
--   **Better-Ball Footer**: The footer displays pre-computed better-ball (BB) aggregate scores per pair as colored pills. These use the society's **Team A** and **Team B** colors (configured in the Design Token Studio) to match the match-play identity standards.
--   **Side Labeling**: Side A and Side B labels in the group hub utilize dynamic branding tokens, ensuring visual consistency across all team formats.
--   **PHC Overrides**: Individual player tiles in a team game display the **Team PHC** rather than their personal index, reflecting the collective nature of the format.
+-   **Unified Team Containers**: In Scramble/Team formats, all members of a team are rendered within a single **BoxyArtCard** wrapper.
+-   **Internal Dividers**: Participants are separated by subtle, theme-aware horizontal dividers with standardized 0.8x card padding indents.
+-   **High-Density Participant Rows**: Team members are listed using the high-density `GroupingPlayerTile` pattern (`useCard: false`), significantly reducing vertical scroll for large fields while maintaining premium aesthetics.
+-   **Team Identity**: Each unified team block is visually grouped to emphasize that the team is the primary competitive unit.
+-   **Better-Ball Footer**: In Pairs/Fourball, the footer displays pre-computed better-ball (BB) aggregate scores per pair using the configured society brand colors.
 
-### 3.4 Florida Scramble & Shot Attributions
-For **Florida Scramble**, where the player whose shot was chosen must "step aside" for the next stroke, the system provides integrated UI support:
-- **Shot Selector**: Markers can select which player's shot was chosen for the drive (and subsequent shots if needed).
-- **Step-Aside Visuals**: The UI automatically applies a "Step-Aside" indicator to the player who hit the chosen shot on the previous hole/stroke, guiding players through the complex rotation.
-- **Minimum Drives**: The `shotAttributions` map (`Hole Index -> Member ID`) is persisted in the `Scorecard` model, allowing admins to verify that each player has met the required number of drives (e.g., "Minimum 4 drives per player").
+### 3.4 Shared Team Dashboard (My Card)
+For unified team formats, the **My Card** tab transforms into a shared team dashboard:
+- **Unified Scorecard**: All team members "see" and edit the same authoritative scorecard (attributed to the Team Leader).
+- **Team Identity Header**: The tab title is updated to "TEAM SCORECARD" and displays a persistent "TEAM MEMBERS" row at the top of the hub.
+- **Member Status**: The team row provides quick-look avatars and names of all teammates, reinforcing the collaborative nature of the format.
+
+### 3.5 Scramble Drive Tracking
+In Scramble and Florida Scramble formats, the system includes integrated drive attribution tracking:
+- **Chosen Drive Picker**: The `HoleByHoleScoringWidget` displays a "CHOSEN DRIVE" picker below the score keypad.
+- **Attribute per Hole**: Markers select which player's drive was used for the hole.
+- **Persistence**: Attributions are saved in the `shotAttributions` map within the `Scorecard` model.
+- **Compliance Tracking**: This data ensures teams comply with society rules regarding minimum/maximum drive usage per player.
+
+### 3.6 Match View Toggle (Duel Mode)
+For all Match Play formats (Singles or Pairs), the scoring widget includes a **"DUEL"** toggle:
+- **Solo Mode:** Focuses on the player's own strokes and details.
+- **Duel Mode:** Provides a side-by-side view of both match participants on a single screen. This allows for real-time comparison of scores, handicaps, and the calculated match status (e.g., *1 UP*).
+- **Conflict Prevention:** By showing both cards on one dashboard, players can instantly identify and resolve scoring discrepancies before moving to the next hole.
+
+---
+*Last Updated: April 25, 2026*
 
 ---
 
@@ -120,8 +143,9 @@ To minimize confusion between Match Play and Stableford variants:
 - **Individual PHCs**: Each player displays their **Full PHC** (calculated with mandated 90% allowance).
 - **Reasoning**: Stableford points are absolute. Zeroing a player would produce incorrect point totals.
 
-#### B. Match Play
-- **Relative PHCs**: Players display PHCs **relative to the lowest player** in the group (who is zeroed).
+#### B. Match Play Overlay & Tournament Style
+- **Relative PHCs**: In head-to-head match views, players display PHCs **relative to the lowest player** in the match (who is zeroed).
+- **Dual Metadata**: On the main leaderboard, players retain their full PHC for the base format (e.g. Stableford), but the "Match Result" column reflects the relative lead.
 - **v4.5 Metadata Standards**: To ensure administrative distinction, all handicap labels ("HC", "PHC") and team identifiers are rendered in **ALL-CAPS** with 1.2 letter spacing.
 - **Themed Display**: Handicaps are displayed using the premium `BoxyArtPill.hc()` and `BoxyArtPill.phc()` components. These pills ensure the index is always formatted to one decimal place (e.g., `8.4`). PHC is rendered using the society-level primary accent or team-specific color as appropriate.
 - **Reasoning**: In Match Play, only the *difference* in strokes matters. This simplifies on-course tracking.
@@ -179,7 +203,29 @@ The system supports multiple tie-break methods (Back 9, Back 6, etc.), but now a
 -   **Standard**: Automatically sorts tied players using a progressive countback (B9, then B6, then B3, then B1). The leaderboard displays these values (B9 • B6 • B3) to provide transparency on tied rankings.
 -   **Playoff (Manual)**: Disables automatic sorting. Tied players remain in their original order (or entry order) until an admin manually adjusts the result or enters a playoff score.
 
-### 6.3 Scoring Aesthetic Standards (Phase 9)
+#### 6.3 Scoring Aesthetic Standards (Phase 9)
 All scoring visualizations (Scorecards, Leaderboards, Results) now utilize the dynamic **Scoring Aesthetics** palette from the `SocietyConfig`.
 - **Identity Lock**: Eagle (-2), Birdie (-1), Par (E), Bogey (+1), Double (+2), and Triple+ (+3) indicators use the whitelabel colors defined in the Branding Console.
 - **Team Registry**: Team A and Team B color tokens provide a stable identity for Match Play pairings across all hubs.
+- **Points Emphasis**: Stableford point totals across the administrative suite and player hubs utilize the `pointsColor` token. This "Hero Metric" standard ensures that the primary score in Stableford formats is visually dominant and customizable for whitelabel parity.
+- **Hero Consistency**: The `CourseInfoCard` and `BoxyArtMemberRow` components are the authoritative implementations of this standard, ensuring that point scores are always rendered with the society-specific accent color.
+- **Whitelabel Integrity**: By tokenizing the points color, societies can differentiate their scoring aesthetics from standard "Fairway" greens, supporting custom branding for elite or corporate society deployments.
+
+---
+
+## 8. Administrative Navigation & Visibility Standards (v4.x)
+
+### 8.1 "Groups First" Navigation
+To prioritize on-day coordination, all Administrative Scoring hubs utilize a **Groups First** navigation pattern.
+- **Default Tab**: The **GROUPS** tab (Index 3) is the landing state for administrators, allowing immediate access to pairings and group-level coordination.
+- **Standardized Order**: Navigation follows the operational lifecycle: **Groups** -> **Standings** -> **Bracket** -> **Verify**.
+
+### 8.2 "VIEW SCORES" Master Toggle
+In the **GROUPS** hub, administrators have access to a persistent visibility toggle to manage high-density data.
+- **Organization Mode (OFF)**: Displays players with their Playing Handicaps (PHC) and tee times, optimized for flight management and check-in.
+- **Scoring Mode (ON)**: Swaps the trailing metadata with live scores (Stableford Pts or To-Par). 
+- **Admin Default**: This toggle defaults to **ON** for administrators to provide an immediate "Live Hub" experience while maintaining the ability to simplify the view for organizational tasks.
+- **Visibility Integrity**: The scoring data in the Groups hub is processed for the entire field (all players in groups/scorecards), ensuring admins see results even for participants whose registration status is not yet finalized.
+
+---
+*Last Updated: April 23, 2026*

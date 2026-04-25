@@ -484,7 +484,7 @@ class _HistoryCard extends StatelessWidget {
             style: AppTypography.label.copyWith(
               fontSize: AppTypography.sizeCaption, 
               color: isDark ? AppColors.dark300 : AppColors.dark400,
-              letterSpacing: 1.2,
+              letterSpacing: 1.0,
             ),
           ),
           const SizedBox(height: AppSpacing.md),

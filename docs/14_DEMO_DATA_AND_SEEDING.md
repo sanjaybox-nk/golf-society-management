@@ -26,7 +26,27 @@ Wipes all dynamic "Activity" while preserving the "Society Foundation."
 - **Preserved**: Society name/logo (Branding), Course Libraries, and Competition Templates.
 - **Usage**: Use this when you want to start a new season from scratch using existing rules and branding.
 
-### 3. System Factory Reset (The "Deep Wipe")
+### 3. Competition Template Gallery
+The master seed populates the administrative template library with authoritative, modular blueprints:
+- **Stableford Solo**: Standard singles format (95% allowance).
+- **Texas Scramble**: 4-man team format with WHS allowance.
+- **Singles Match Play (Event)**: One-off match play format for dedicated tournament days.
+- **Match Play Season Overlay**: The "Side Game" blueprint used to layer a season-long bracket over a standard Stableford event.
+- **Ryder Cup (Team Match Play)**: Unified two-team aggregate format (e.g. Committee vs. Members).
+
+### 4. Round Progression & Checkpoints
+The system enforces a strict "Review and Publish" workflow for Match Play:
+- **Event Finalization**: When a society event is closed, the system detects any active Match Play overlays.
+- **The Progression Wizard**: Admins are prompted to "Generate Next Round" which advances winners into a **DRAFT** state.
+- **Manual Overrides**: Admins can manually enter private match results (e.g. Tuesday matches) or award walkovers via the Match Play Hub.
+- **Draft Publication**: Pairings remain in a "Draft" state, allowing for player swaps before the admin explicitly publishes the next round to the membership.
+
+### 4. Society Branding & Atmosphere
+- **Global Identity**: Restores the society name, logo, and theme mode.
+- **Sponsorship Hub**: Re-establishes Gold/Silver/Bronze season partners (e.g., Rafiki Golf, Titleist, PING).
+- **Financial Ledger**: Injects sponsorship revenue and society overheads.
+
+### 5. System Factory Reset (The "Deep Wipe")
 A total, unrecoverable deletion of all data in the current society context. This returns the app to an unconfigured "Day Zero" state.
 
 ---

@@ -72,7 +72,7 @@ class _EventDetailsContent extends ConsumerWidget {
                           children: [
                             const Text(
                               'EVENT CANCELLED',
-                              style: TextStyle(color: AppColors.coral500, fontWeight: AppTypography.weightBlack, letterSpacing: 1.2),
+                              style: TextStyle(color: AppColors.coral500, fontWeight: AppTypography.weightBlack, letterSpacing: 1.0),
                             ),
                             Text(
                               'This event has been cancelled by the administrative team.',
@@ -215,6 +215,7 @@ class _EventDetailsContent extends ConsumerWidget {
         BoxyArtPill.status(
           label: statusText,
           color: statusColor,
+          isLegend: true,
         ),
         if (event.isInvitational)
           Row(
@@ -228,7 +229,7 @@ class _EventDetailsContent extends ConsumerWidget {
                   color: AppColors.amber500,
                   fontWeight: AppTypography.weightBlack,
                   fontSize: 11,
-                  letterSpacing: 1.2,
+                  letterSpacing: 1.0,
                 ),
               ),
             ],
@@ -245,7 +246,7 @@ class _EventDetailsContent extends ConsumerWidget {
                   color: AppColors.coral500,
                   fontWeight: AppTypography.weightBlack,
                   fontSize: 11,
-                  letterSpacing: 1.2,
+                  letterSpacing: 1.0,
                 ),
               ),
             ],
@@ -356,7 +357,7 @@ class _EventDetailsContent extends ConsumerWidget {
           ] else if (event.registrationDeadline != null) ...[
             ModernRuleItem(
               label: 'Deadline',
-              value: '${DateFormat.yMMMd().format(event.registrationDeadline!)} @ ${DateFormat('h:mm a').format(event.registrationDeadline!)}',
+            value: '${DateFormat.yMMMd().format(event.registrationDeadline!)} @ ${DateFormat.Hm().format(event.registrationDeadline!)}',
             ),
             const SizedBox(height: AppSpacing.md),
           ],
@@ -384,7 +385,7 @@ class _EventDetailsContent extends ConsumerWidget {
           const SizedBox(height: AppSpacing.lg),
           ModernInfoRow(
             label: 'Tee Times',
-            value: DateFormat('h:mm a').format(event.teeOffTime ?? event.date),
+            value: DateFormat.Hm().format(event.teeOffTime ?? event.date),
             icon: Icons.schedule_rounded,
           ),
           const BoxyArtDivider(verticalPadding: AppSpacing.md),

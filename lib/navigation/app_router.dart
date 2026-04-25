@@ -736,6 +736,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                       hubId: state.pathParameters['id']!,
                       child: MatchPlayDrawManagerScreen(
                         eventId: state.pathParameters['id'],
+                        checkRoundProgression: state.uri.queryParameters['progress'] == 'true',
                       ),
                     ),
                   ),

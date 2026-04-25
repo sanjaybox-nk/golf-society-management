@@ -72,20 +72,6 @@ class CompetitionTypeSelectionScreen extends StatelessWidget {
                 ),
               ],
 
-              // 2. Head-to-head
-              if (formatFilter == null) ...[
-                const BoxyArtSectionTitle(title: 'HEAD-TO-HEAD'),
-                BoxyArtCard(
-                  padding: EdgeInsets.zero,
-                  child: _ModernTypeTile(
-                    title: 'Match Play',
-                    subtitle: 'Hole-by-hole knockout battles.',
-                    icon: Icons.compare_arrows_rounded,
-                    onTap: () => _navigateToBuilder(context, CompetitionFormat.matchPlay),
-                    showDivider: false,
-                  ),
-                ),
-              ],
 
               // 3. Pairs Formats
               if (formatFilter == null) ...[
@@ -113,7 +99,22 @@ class CompetitionTypeSelectionScreen extends StatelessWidget {
                 ),
               ],
 
-              // 4. Team Formats
+              // 4. Season Tournaments
+              if (formatFilter == null) ...[
+                const BoxyArtSectionTitle(title: 'SEASON TOURNAMENTS'),
+                BoxyArtCard(
+                  padding: EdgeInsets.zero,
+                  child: _ModernTypeTile(
+                    title: 'Season Match Play',
+                    subtitle: 'Knockout brackets and season-long draws.',
+                    icon: Icons.emoji_events_rounded,
+                    onTap: () => _navigateToBuilder(context, CompetitionSubtype.matchPlaySeason),
+                    showDivider: false,
+                  ),
+                ),
+              ],
+              
+              // 5. Team Formats
               if (formatFilter == null) ...[
                 const BoxyArtSectionTitle(title: 'TEAM FORMATS'),
                 BoxyArtCard(

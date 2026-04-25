@@ -213,7 +213,7 @@ class EventHomeContent extends ConsumerWidget {
                           style: TextStyle(
                             fontSize: AppTypography.sizeCaptionStrong,
                             fontWeight: AppTypography.weightBlack,
-                            letterSpacing: 1.2,
+                            letterSpacing: 1.0,
                             color: Theme.of(context).primaryColor,
                           ),
                         ),
@@ -294,7 +294,7 @@ class EventHomeContent extends ConsumerWidget {
                       style: AppTypography.micro.copyWith(
                         color: Theme.of(context).primaryColor,
                         fontWeight: AppTypography.weightHeavy,
-                        letterSpacing: 1.2,
+                        letterSpacing: 1.0,
                       ),
                     ),
                     const SizedBox(height: AppSpacing.atomic),

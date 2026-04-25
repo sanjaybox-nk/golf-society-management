@@ -89,7 +89,7 @@ class _AdminMemberRenewalScreenState extends ConsumerState<AdminMemberRenewalScr
                       style: AppTypography.micro.copyWith(
                         color: isDark ? AppColors.dark300 : AppColors.dark400,
                         fontWeight: AppTypography.weightBold,
-                        letterSpacing: 1.2,
+                        letterSpacing: 1.0,
                       ),
                     ),
                     const SizedBox(height: AppSpacing.lg),
@@ -578,7 +578,7 @@ class _DatePickerTile extends StatelessWidget {
             style: AppTypography.micro.copyWith(
               color: isDark ? AppColors.dark300 : AppColors.dark400,
               fontWeight: AppTypography.weightBold,
-              letterSpacing: 1.2,
+              letterSpacing: 1.0,
             ),
           ),
           const SizedBox(height: AppSpacing.sm),

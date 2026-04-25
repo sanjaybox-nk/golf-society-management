@@ -18,10 +18,11 @@ The system favors **4-balls** but supports **3-balls** when the total player cou
 - The algorithm calculates the combination of 3 and 4 player groups that uses all players while maximizing 4-balls.
 - **3-balls are placed at the front** of the tee sheet to maintain a good pace of play.
 
-### 4. Greedy Distribution
-Initial groups are filled using a greedy approach:
-- Slots (individuals or host-guest pairs) are sorted by size.
-- Slots are placed into the first available group with enough capacity.
+### 4. Grouping Modes: Standard vs Tournament (April 2026)
+The system now distinguishes between two grouping philosophies based on the competition rules:
+
+- **Standard Grouping (Overlay Mode)**: Used when `hasMatchPlayOverlay` is true. The admin uses standard society tools (random/balanced) to create groups. Matches are then automatically formed within those groups.
+- **Tournament Style Grouping (Seeded Draw)**: Used for Ryder Cup, Season Match Play, etc. (`isTournamentStyleGrouping` is true). The grouping is determined by a **Seeded Draw** or **Knockout Bracket**. Standard auto-generation tools are disabled.
 
 ---
 
@@ -81,20 +82,14 @@ The grouping system is dynamic. If the field changes after groupings are generat
 
 ---
 
-## 8. Match Play Mode & Tap-to-Swap
-When an event includes a Match Play overlay, the Admin Grouping Screen provides specialized tools for match pairings.
+## 8. Match Play Overlay & Interactive Pairing
+When a standard event (e.g. Stableford) includes a Match Play overlay, the Admin Grouping Screen provides specialized tools for pairing players within their assigned groups.
 
-### Match Play Mode Toggle
-Administrators can toggle **Match Play Mode** on the grouping screen.
-- **Visual Feedback**: Grouping cards reflect the current pairing status (Side A vs Side B).
-- **Auto-Sync**: When enabled, the system automatically checks if players in a group satisfy the match requirements (e.g., 2 players for singles, 4 for pairs).
-
-### Tap-to-Swap (Interactive Pairing)
-While in Match Play Mode, the grouping tiles become interactive for pairing:
-- **Selection**: Tapping a player selects them as the "Swap Source".
-- **Swapping**: Tapping another player within the same group (or an empty slot) swaps their positions.
-- **Side Assignment**: Using the interactive grid, admins can quickly decide which players are on "Side A" vs "Side B" for the match without manually editing IDs in a text field.
-- **Persistence**: Match definitions (`event.grouping['matches']`) are updated and persisted automatically upon saving the grouping.
+### Interactive Pairing (Overlay Only)
+While in Match Play Mode on standard events:
+- **VS-Style Pairing**: Grouping cards reflect the current pairing status (Side A vs Side B).
+- **Interactive Grid**: Admins can tap players within a group to swap their side (A or B), determining who plays whom.
+- **Persistence**: These pairings are saved as `MatchDefinition` objects within the event's grouping metadata.
 
 ### 9. Authoritative Tee Resolution via Marker Selection
 The grouping UI reflects the authoritative tee resolved for each player.
@@ -120,8 +115,10 @@ The grouping screen features a unified **Grouping Hub Card** for managing the fi
 
 ### UI Consistency & Stability
 The grouping interface follows the **BoxyArt Design 4.1 (True Minimal)** standards for a premium, editorial feel:
-- **Vertical Rhythm**: Uses standardized `AppSpacingTokens` (e.g., `spacing?.cardToLabel` for tab-to-list gaps, `spacing?.cardToCard` for list item spacing).
-- **Card Styling**: Grouping cards use a clean **Surface background** (`AppColors.surface`) with high corner radii and soft shadows.
+-   **Single Card Architecture**: Every tee time group is encapsulated within a single **BoxyArtCard** wrapper. This provides a clear visual container for the entire flight.
+-   **Themed Internal Dividers**: Individual player rows inside the group card are separated by subtle, theme-aware horizontal dividers. These dividers include a standardized **0.8x card padding indent** to maintain vertical rhythm while maximizing space.
+-   **Vertical Rhythm**: Uses standardized `AppSpacingTokens` (e.g., `spacing?.cardToLabel` for tab-to-list gaps, `spacing?.cardToCard` for list item spacing).
+-   **Card Styling**: Grouping cards use a clean **Surface background** (`AppColors.surface`) with high corner radii and soft shadows.
 - **Full-Width Actions**: Buttons like **Generate** and **Reset** are standardized to full-width for better touch targets and visual balance within the Hub.
 
 ---

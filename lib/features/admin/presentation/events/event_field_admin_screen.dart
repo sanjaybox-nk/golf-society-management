@@ -51,7 +51,8 @@ class EventFieldAdminScreen extends ConsumerWidget {
         final competitionAsync = ref.watch(competitionDetailProvider(eventId));
         final selectedTab = ref.watch(eventFieldTabProvider);
 
-        final isMatchPlay = competitionAsync.value?.rules.format == CompetitionFormat.matchPlay;
+        final isMatchPlay = competitionAsync.value?.rules.isMatchPlay ?? false;
+        final isTournamentGrouping = competitionAsync.value?.rules.isTournamentStyleGrouping ?? false;
 
         return HeadlessScaffold(
           title: event.title,
@@ -71,9 +72,9 @@ class EventFieldAdminScreen extends ConsumerWidget {
                 tabs: [
                   const ModernFilterTab(label: 'Entries', value: 0, icon: Icons.people_rounded),
                   ModernFilterTab(
-                    label: isMatchPlay ? 'The Draw' : 'Tee Time', 
+                    label: isTournamentGrouping ? 'The Draw' : 'Tee Time', 
                     value: 1,
-                    icon: isMatchPlay ? Icons.account_tree_rounded : Icons.access_time_rounded,
+                    icon: isTournamentGrouping ? Icons.account_tree_rounded : Icons.access_time_rounded,
                   ),
                 ],
               ),

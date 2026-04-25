@@ -108,7 +108,7 @@ class BoxyArtMemberHeaderCard extends ConsumerWidget {
                         style: AppTypography.micro.copyWith(
                           color: textColor.withValues(alpha: 0.6),
                           fontWeight: AppTypography.weightBold,
-                          letterSpacing: 1.2,
+                          letterSpacing: 1.0,
                         ),
                       ),
                     ],

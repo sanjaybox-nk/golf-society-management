@@ -105,7 +105,7 @@ class BoxyArtBottomSheet extends StatelessWidget {
       builder: (context) => DraggableScrollableSheet(
         initialChildSize: initialChildSize,
         minChildSize: minChildSize,
-        maxChildSize: maxChildSize,
+        maxChildSize: maxChildSize < initialChildSize ? initialChildSize : maxChildSize,
         expand: false,
         builder: (context, scrollController) => BoxyArtBottomSheet(
           title: title,

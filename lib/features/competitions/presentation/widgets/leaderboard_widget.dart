@@ -7,6 +7,7 @@ import 'package:golf_society/features/matchplay/domain/match_play_calculator.dar
 class LeaderboardWidget extends StatelessWidget {
   final List<LeaderboardEntry> entries;
   final CompetitionFormat format;
+  final bool isMatchPlay;
   final Function(LeaderboardEntry)? onPlayerTap;
 
   final String? highlightEntryId;
@@ -15,6 +16,7 @@ class LeaderboardWidget extends StatelessWidget {
     super.key, 
     required this.entries, 
     required this.format,
+    this.isMatchPlay = false,
     this.onPlayerTap,
     this.highlightEntryId,
   });
@@ -91,17 +93,23 @@ class LeaderboardWidget extends StatelessWidget {
           padding: EdgeInsets.only(bottom: spacing?.cardToCard ?? AppSpacing.md),
           child: BoxyArtMemberRow(
             name: entry.playerName,
-            secondaryName: (entry.isGuest && entry.hostName != null) ? 'Guest of ${entry.hostName}' : null,
-            initials: entry.playerName,
+            teamNames: (entry.teamMemberNames != null && entry.teamMemberNames!.length > 1) 
+                ? entry.teamMemberNames 
+                : null,
+            secondaryName: (entry.teamMemberNames != null && entry.teamMemberNames!.length > 1)
+                ? null // Handled by teamNames
+                : ((entry.isGuest && entry.hostName != null) ? 'Guest of ${entry.hostName}' : null),
+            initials: entry.initials ?? entry.playerName,
             avatarUrl: entry.avatarUrl,
             handicapIndex: entry.handicapIndex,
             playingHandicap: entry.playingHandicap,
             score: rawScore,
             scoreColor: null,
-            tieBreakLabel: format == CompetitionFormat.matchPlay ? null : differentiatorChain,
+            tieBreakLabel: isMatchPlay ? null : differentiatorChain,
             thruLabel: entry.thruLabel,
             ranking: entry.position,
             isGuest: entry.isGuest,
+            isCaptain: entry.isCaptain,
             hasMemberGuest: entry.hasGuest,
             isStableford: isStableford,
             useCard: true,
@@ -118,6 +126,7 @@ class LeaderboardWidget extends StatelessWidget {
 class LeaderboardEntry {
   final String entryId;
   final String playerName;
+  final String? initials; // [NEW] For avatar display
   final int score;
   final String? scoreLabel; // [NEW] For Matchplay like "2 & 1"
   final int handicap;
@@ -149,11 +158,13 @@ class LeaderboardEntry {
   final List<List<int?>>? individualHoleNetScores; // [NEW]
   final List<List<int?>>? individualHolePoints; // [NEW]
   final bool hasSocietyCut; // [NEW] Track for display notation (*)
+  final bool isCaptain; // [NEW] For captain indicator
   final int position;
 
   LeaderboardEntry({
     required this.entryId,
     required this.playerName, 
+    this.initials,
     required this.score, 
     this.scoreLabel,
     required this.handicap,
@@ -184,6 +195,7 @@ class LeaderboardEntry {
     this.individualHoleNetScores,
     this.individualHolePoints,
     this.hasSocietyCut = false,
+    this.isCaptain = false,
     this.position = 0,
     this.scoringStatus = ScoringStatus.ok,
   });
@@ -191,6 +203,7 @@ class LeaderboardEntry {
   LeaderboardEntry copyWith({
     String? entryId,
     String? playerName,
+    String? initials,
     int? score,
     String? scoreLabel,
     int? handicap,
@@ -223,10 +236,12 @@ class LeaderboardEntry {
     List<List<int?>>? individualHoleScores,
     List<List<int?>>? individualHoleNetScores,
     List<List<int?>>? individualHolePoints,
+    bool? isCaptain,
   }) {
     return LeaderboardEntry(
       entryId: entryId ?? this.entryId,
       playerName: playerName ?? this.playerName,
+      initials: initials ?? this.initials,
       score: score ?? this.score,
       scoreLabel: scoreLabel ?? this.scoreLabel,
       handicap: handicap ?? this.handicap,
@@ -259,6 +274,7 @@ class LeaderboardEntry {
       individualHoleScores: individualHoleScores ?? this.individualHoleScores,
       individualHoleNetScores: individualHoleNetScores ?? this.individualHoleNetScores,
       individualHolePoints: individualHolePoints ?? this.individualHolePoints,
+      isCaptain: isCaptain ?? this.isCaptain,
     );
   }
 }

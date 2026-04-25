@@ -14,14 +14,13 @@ class _MatchPlayControlState extends BaseCompetitionControlState<MatchPlayContro
   CompetitionSubtype _subtype = CompetitionSubtype.none;
   double _allowance = 1.0;
   int _handicapCap = 28;
-  TieBreakMethod _tieBreak = TieBreakMethod.playoff;
   TournamentFormat _tournamentFormat = TournamentFormat.knockout;
   SeedingLogic _seedingLogic = SeedingLogic.random;
   MatchPlayProgression _progression = MatchPlayProgression.bracketed;
   CompetitionMode _seasonMode = CompetitionMode.singles;
 
   @override
-  CompetitionFormat get format => CompetitionFormat.matchPlay;
+  CompetitionFormat get format => CompetitionFormat.stableford;
 
   @override
   void initState() {
@@ -31,7 +30,6 @@ class _MatchPlayControlState extends BaseCompetitionControlState<MatchPlayContro
       _subtype = rules.subtype;
       _allowance = rules.handicapAllowance;
       _handicapCap = rules.handicapCap;
-      _tieBreak = rules.tieBreak;
       _tournamentFormat = rules.tournamentFormat;
       _seedingLogic = rules.seedingLogic;
       _progression = rules.progressionMode;
@@ -164,25 +162,6 @@ class _MatchPlayControlState extends BaseCompetitionControlState<MatchPlayContro
             ],
           ),
         ),
-
-        // ── TIE BREAK ─────────────────────────────────────────
-        const BoxyArtSectionTitle(title: 'TIE BREAK'),
-        BoxyArtCard(
-          child: BoxyArtFormColumn(
-            children: [
-              BoxyArtDropdownField<TieBreakMethod>(
-                label: 'Tie Break Method',
-                value: _tieBreak,
-                items: const [
-                  DropdownMenuItem(value: TieBreakMethod.playoff, child: Text('Manual Playoff (Sudden Death)')),
-                  DropdownMenuItem(value: TieBreakMethod.back9, child: Text('Standard (Back 9-6-3-1)')),
-                ],
-                onChanged: (val) { if (val != null) setState(() => _tieBreak = val); },
-              ),
-              buildInfoBubble('Standard results use reverse hole comparison. Playoff is sudden-death.'),
-            ],
-          ),
-        ),
       ],
     );
   }
@@ -231,16 +210,17 @@ class _MatchPlayControlState extends BaseCompetitionControlState<MatchPlayContro
     }
 
     return CompetitionRules(
-      format: CompetitionFormat.matchPlay,
+      format: CompetitionFormat.stableford, // Season matches use stableford for underlying score
       subtype: _subtype,
       mode: mode,
       handicapAllowance: _allowance,
       handicapCap: _handicapCap,
-      tieBreak: _tieBreak,
+      tieBreak: TieBreakMethod.playoff,
       holeByHoleRequired: true,
       tournamentFormat: _tournamentFormat,
       seedingLogic: _seedingLogic,
       progressionMode: _progression,
+      hasMatchPlayOverlay: true,
     );
   }
 

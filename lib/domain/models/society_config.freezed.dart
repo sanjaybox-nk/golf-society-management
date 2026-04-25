@@ -64,6 +64,8 @@ mixin _$SocietyConfig {
   double get cardVerticalPadding; // [NEW] Global Card Internal Padding
   double get cardHorizontalPadding; // [NEW] Global Card Internal Padding
   double get tabToContentSpacing; // [NEW] Vertical rhythm: Tab to Content
+  double
+      get groupFooterToLabelSpacing; // [NEW] Vertical rhythm: Group Footer to Next Label
   int get iconBadgeFillColor; // [NEW] Icon Badge BG (Emerald)
   int get iconBadgeIconColor; // [NEW] Icon Badge Glyph (Emerald)
   double get iconBadgeOpacity; // [NEW] Icon Badge background opacity
@@ -118,7 +120,8 @@ mixin _$SocietyConfig {
   double get startingBalance; // [NEW] Opening bank balance for the season
   List<FinancialEntry>
       get ledgerEntries; // [NEW] Society-level sponsorships & donations
-  List<Sponsor> get sponsors;
+  List<Sponsor> get sponsors; // [NEW] Central sponsorship hub
+  int? get pointsColor;
 
   /// Create a copy of SocietyConfig
   /// with the given fields replaced by the non-null parameter values.
@@ -227,6 +230,7 @@ mixin _$SocietyConfig {
             (identical(other.cardVerticalPadding, cardVerticalPadding) || other.cardVerticalPadding == cardVerticalPadding) &&
             (identical(other.cardHorizontalPadding, cardHorizontalPadding) || other.cardHorizontalPadding == cardHorizontalPadding) &&
             (identical(other.tabToContentSpacing, tabToContentSpacing) || other.tabToContentSpacing == tabToContentSpacing) &&
+            (identical(other.groupFooterToLabelSpacing, groupFooterToLabelSpacing) || other.groupFooterToLabelSpacing == groupFooterToLabelSpacing) &&
             (identical(other.iconBadgeFillColor, iconBadgeFillColor) || other.iconBadgeFillColor == iconBadgeFillColor) &&
             (identical(other.iconBadgeIconColor, iconBadgeIconColor) || other.iconBadgeIconColor == iconBadgeIconColor) &&
             (identical(other.iconBadgeOpacity, iconBadgeOpacity) || other.iconBadgeOpacity == iconBadgeOpacity) &&
@@ -271,7 +275,8 @@ mixin _$SocietyConfig {
             (identical(other.renewalPaymentDeadline, renewalPaymentDeadline) || other.renewalPaymentDeadline == renewalPaymentDeadline) &&
             (identical(other.startingBalance, startingBalance) || other.startingBalance == startingBalance) &&
             const DeepCollectionEquality().equals(other.ledgerEntries, ledgerEntries) &&
-            const DeepCollectionEquality().equals(other.sponsors, sponsors));
+            const DeepCollectionEquality().equals(other.sponsors, sponsors) &&
+            (identical(other.pointsColor, pointsColor) || other.pointsColor == pointsColor));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -326,6 +331,7 @@ mixin _$SocietyConfig {
         cardVerticalPadding,
         cardHorizontalPadding,
         tabToContentSpacing,
+        groupFooterToLabelSpacing,
         iconBadgeFillColor,
         iconBadgeIconColor,
         iconBadgeOpacity,
@@ -370,12 +376,13 @@ mixin _$SocietyConfig {
         renewalPaymentDeadline,
         startingBalance,
         const DeepCollectionEquality().hash(ledgerEntries),
-        const DeepCollectionEquality().hash(sponsors)
+        const DeepCollectionEquality().hash(sponsors),
+        pointsColor
       ]);
 
   @override
   String toString() {
-    return 'SocietyConfig(societyName: $societyName, logoUrl: $logoUrl, primaryColor: $primaryColor, secondaryColor: $secondaryColor, tertiaryColor: $tertiaryColor, dangerousColor: $dangerousColor, backgroundColor: $backgroundColor, cardColor: $cardColor, surfaceElevatedColor: $surfaceElevatedColor, textPrimaryColor: $textPrimaryColor, textSecondaryColor: $textSecondaryColor, textMutedColor: $textMutedColor, scoreEagleColor: $scoreEagleColor, scoreBirdieColor: $scoreBirdieColor, scoreParColor: $scoreParColor, scoreBogeyColor: $scoreBogeyColor, scoreDoubleColor: $scoreDoubleColor, scoreTriplePlusColor: $scoreTriplePlusColor, teamAColor: $teamAColor, teamBColor: $teamBColor, statusPublishedColor: $statusPublishedColor, statusConfirmedColor: $statusConfirmedColor, statusReservedColor: $statusReservedColor, statusWaitlistColor: $statusWaitlistColor, statusWithdrawnColor: $statusWithdrawnColor, statusDinnerColor: $statusDinnerColor, cardRadius: $cardRadius, inputRadius: $inputRadius, useShadows: $useShadows, shadowIntensity: $shadowIntensity, useBorders: $useBorders, borderWidth: $borderWidth, pillRadius: $pillRadius, buttonRadius: $buttonRadius, borderColor: $borderColor, dividerColor: $dividerColor, heroRadius: $heroRadius, accentRadius: $accentRadius, accentOpacity: $accentOpacity, shadowSpread: $shadowSpread, shadowOpacity: $shadowOpacity, labelToCardSpacing: $labelToCardSpacing, cardToLabelSpacing: $cardToLabelSpacing, fieldToFieldSpacing: $fieldToFieldSpacing, cardToCardSpacing: $cardToCardSpacing, cardVerticalPadding: $cardVerticalPadding, cardHorizontalPadding: $cardHorizontalPadding, tabToContentSpacing: $tabToContentSpacing, iconBadgeFillColor: $iconBadgeFillColor, iconBadgeIconColor: $iconBadgeIconColor, iconBadgeOpacity: $iconBadgeOpacity, iconOpacity: $iconOpacity, iconBadgeSize: $iconBadgeSize, iconBadgeIconSize: $iconBadgeIconSize, buttonHeight: $buttonHeight, buttonSmallHeight: $buttonSmallHeight, buttonHorizontalPadding: $buttonHorizontalPadding, sliderTrackHeight: $sliderTrackHeight, sliderThumbRadius: $sliderThumbRadius, dividerThickness: $dividerThickness, surfaceHeightLarge: $surfaceHeightLarge, surfaceHeightMedium: $surfaceHeightMedium, fontFamily: $fontFamily, themeMode: $themeMode, customColors: $customColors, cardTintIntensity: $cardTintIntensity, useCardGradient: $useCardGradient, currencySymbol: $currencySymbol, currencyCode: $currencyCode, groupingStrategy: $groupingStrategy, useWhsHandicaps: $useWhsHandicaps, distanceUnit: $distanceUnit, handicapSystem: $handicapSystem, selectedPaletteName: $selectedPaletteName, separateGuestLeaderboard: $separateGuestLeaderboard, societyCutMode: $societyCutMode, societyCutRules: $societyCutRules, societyCutEventLimit: $societyCutEventLimit, societyCutCountPlayedOnly: $societyCutCountPlayedOnly, societyCutFilterSeason: $societyCutFilterSeason, societyCutFilterInvitational: $societyCutFilterInvitational, globalMarkupPercentage: $globalMarkupPercentage, guestMarkupExtra: $guestMarkupExtra, showMatchPlayOverlay: $showMatchPlayOverlay, globalMembershipEndDate: $globalMembershipEndDate, renewalWindowDays: $renewalWindowDays, isRenewalActive: $isRenewalActive, renewalLaunchDate: $renewalLaunchDate, renewalDeadline: $renewalDeadline, renewalPaymentDeadline: $renewalPaymentDeadline, startingBalance: $startingBalance, ledgerEntries: $ledgerEntries, sponsors: $sponsors)';
+    return 'SocietyConfig(societyName: $societyName, logoUrl: $logoUrl, primaryColor: $primaryColor, secondaryColor: $secondaryColor, tertiaryColor: $tertiaryColor, dangerousColor: $dangerousColor, backgroundColor: $backgroundColor, cardColor: $cardColor, surfaceElevatedColor: $surfaceElevatedColor, textPrimaryColor: $textPrimaryColor, textSecondaryColor: $textSecondaryColor, textMutedColor: $textMutedColor, scoreEagleColor: $scoreEagleColor, scoreBirdieColor: $scoreBirdieColor, scoreParColor: $scoreParColor, scoreBogeyColor: $scoreBogeyColor, scoreDoubleColor: $scoreDoubleColor, scoreTriplePlusColor: $scoreTriplePlusColor, teamAColor: $teamAColor, teamBColor: $teamBColor, statusPublishedColor: $statusPublishedColor, statusConfirmedColor: $statusConfirmedColor, statusReservedColor: $statusReservedColor, statusWaitlistColor: $statusWaitlistColor, statusWithdrawnColor: $statusWithdrawnColor, statusDinnerColor: $statusDinnerColor, cardRadius: $cardRadius, inputRadius: $inputRadius, useShadows: $useShadows, shadowIntensity: $shadowIntensity, useBorders: $useBorders, borderWidth: $borderWidth, pillRadius: $pillRadius, buttonRadius: $buttonRadius, borderColor: $borderColor, dividerColor: $dividerColor, heroRadius: $heroRadius, accentRadius: $accentRadius, accentOpacity: $accentOpacity, shadowSpread: $shadowSpread, shadowOpacity: $shadowOpacity, labelToCardSpacing: $labelToCardSpacing, cardToLabelSpacing: $cardToLabelSpacing, fieldToFieldSpacing: $fieldToFieldSpacing, cardToCardSpacing: $cardToCardSpacing, cardVerticalPadding: $cardVerticalPadding, cardHorizontalPadding: $cardHorizontalPadding, tabToContentSpacing: $tabToContentSpacing, groupFooterToLabelSpacing: $groupFooterToLabelSpacing, iconBadgeFillColor: $iconBadgeFillColor, iconBadgeIconColor: $iconBadgeIconColor, iconBadgeOpacity: $iconBadgeOpacity, iconOpacity: $iconOpacity, iconBadgeSize: $iconBadgeSize, iconBadgeIconSize: $iconBadgeIconSize, buttonHeight: $buttonHeight, buttonSmallHeight: $buttonSmallHeight, buttonHorizontalPadding: $buttonHorizontalPadding, sliderTrackHeight: $sliderTrackHeight, sliderThumbRadius: $sliderThumbRadius, dividerThickness: $dividerThickness, surfaceHeightLarge: $surfaceHeightLarge, surfaceHeightMedium: $surfaceHeightMedium, fontFamily: $fontFamily, themeMode: $themeMode, customColors: $customColors, cardTintIntensity: $cardTintIntensity, useCardGradient: $useCardGradient, currencySymbol: $currencySymbol, currencyCode: $currencyCode, groupingStrategy: $groupingStrategy, useWhsHandicaps: $useWhsHandicaps, distanceUnit: $distanceUnit, handicapSystem: $handicapSystem, selectedPaletteName: $selectedPaletteName, separateGuestLeaderboard: $separateGuestLeaderboard, societyCutMode: $societyCutMode, societyCutRules: $societyCutRules, societyCutEventLimit: $societyCutEventLimit, societyCutCountPlayedOnly: $societyCutCountPlayedOnly, societyCutFilterSeason: $societyCutFilterSeason, societyCutFilterInvitational: $societyCutFilterInvitational, globalMarkupPercentage: $globalMarkupPercentage, guestMarkupExtra: $guestMarkupExtra, showMatchPlayOverlay: $showMatchPlayOverlay, globalMembershipEndDate: $globalMembershipEndDate, renewalWindowDays: $renewalWindowDays, isRenewalActive: $isRenewalActive, renewalLaunchDate: $renewalLaunchDate, renewalDeadline: $renewalDeadline, renewalPaymentDeadline: $renewalPaymentDeadline, startingBalance: $startingBalance, ledgerEntries: $ledgerEntries, sponsors: $sponsors, pointsColor: $pointsColor)';
   }
 }
 
@@ -434,6 +441,7 @@ abstract mixin class $SocietyConfigCopyWith<$Res> {
       double cardVerticalPadding,
       double cardHorizontalPadding,
       double tabToContentSpacing,
+      double groupFooterToLabelSpacing,
       int iconBadgeFillColor,
       int iconBadgeIconColor,
       double iconBadgeOpacity,
@@ -478,7 +486,8 @@ abstract mixin class $SocietyConfigCopyWith<$Res> {
       @OptionalTimestampConverter() DateTime? renewalPaymentDeadline,
       double startingBalance,
       List<FinancialEntry> ledgerEntries,
-      List<Sponsor> sponsors});
+      List<Sponsor> sponsors,
+      int? pointsColor});
 }
 
 /// @nodoc
@@ -542,6 +551,7 @@ class _$SocietyConfigCopyWithImpl<$Res>
     Object? cardVerticalPadding = null,
     Object? cardHorizontalPadding = null,
     Object? tabToContentSpacing = null,
+    Object? groupFooterToLabelSpacing = null,
     Object? iconBadgeFillColor = null,
     Object? iconBadgeIconColor = null,
     Object? iconBadgeOpacity = null,
@@ -587,6 +597,7 @@ class _$SocietyConfigCopyWithImpl<$Res>
     Object? startingBalance = null,
     Object? ledgerEntries = null,
     Object? sponsors = null,
+    Object? pointsColor = freezed,
   }) {
     return _then(_self.copyWith(
       societyName: null == societyName
@@ -781,6 +792,10 @@ class _$SocietyConfigCopyWithImpl<$Res>
           ? _self.tabToContentSpacing
           : tabToContentSpacing // ignore: cast_nullable_to_non_nullable
               as double,
+      groupFooterToLabelSpacing: null == groupFooterToLabelSpacing
+          ? _self.groupFooterToLabelSpacing
+          : groupFooterToLabelSpacing // ignore: cast_nullable_to_non_nullable
+              as double,
       iconBadgeFillColor: null == iconBadgeFillColor
           ? _self.iconBadgeFillColor
           : iconBadgeFillColor // ignore: cast_nullable_to_non_nullable
@@ -961,6 +976,10 @@ class _$SocietyConfigCopyWithImpl<$Res>
           ? _self.sponsors
           : sponsors // ignore: cast_nullable_to_non_nullable
               as List<Sponsor>,
+      pointsColor: freezed == pointsColor
+          ? _self.pointsColor
+          : pointsColor // ignore: cast_nullable_to_non_nullable
+              as int?,
     ));
   }
 }
@@ -1107,6 +1126,7 @@ extension SocietyConfigPatterns on SocietyConfig {
             double cardVerticalPadding,
             double cardHorizontalPadding,
             double tabToContentSpacing,
+            double groupFooterToLabelSpacing,
             int iconBadgeFillColor,
             int iconBadgeIconColor,
             double iconBadgeOpacity,
@@ -1151,7 +1171,8 @@ extension SocietyConfigPatterns on SocietyConfig {
             @OptionalTimestampConverter() DateTime? renewalPaymentDeadline,
             double startingBalance,
             List<FinancialEntry> ledgerEntries,
-            List<Sponsor> sponsors)?
+            List<Sponsor> sponsors,
+            int? pointsColor)?
         $default, {
     required TResult orElse(),
   }) {
@@ -1207,6 +1228,7 @@ extension SocietyConfigPatterns on SocietyConfig {
             _that.cardVerticalPadding,
             _that.cardHorizontalPadding,
             _that.tabToContentSpacing,
+            _that.groupFooterToLabelSpacing,
             _that.iconBadgeFillColor,
             _that.iconBadgeIconColor,
             _that.iconBadgeOpacity,
@@ -1251,7 +1273,8 @@ extension SocietyConfigPatterns on SocietyConfig {
             _that.renewalPaymentDeadline,
             _that.startingBalance,
             _that.ledgerEntries,
-            _that.sponsors);
+            _that.sponsors,
+            _that.pointsColor);
       case _:
         return orElse();
     }
@@ -1321,6 +1344,7 @@ extension SocietyConfigPatterns on SocietyConfig {
             double cardVerticalPadding,
             double cardHorizontalPadding,
             double tabToContentSpacing,
+            double groupFooterToLabelSpacing,
             int iconBadgeFillColor,
             int iconBadgeIconColor,
             double iconBadgeOpacity,
@@ -1365,7 +1389,8 @@ extension SocietyConfigPatterns on SocietyConfig {
             @OptionalTimestampConverter() DateTime? renewalPaymentDeadline,
             double startingBalance,
             List<FinancialEntry> ledgerEntries,
-            List<Sponsor> sponsors)
+            List<Sponsor> sponsors,
+            int? pointsColor)
         $default,
   ) {
     final _that = this;
@@ -1420,6 +1445,7 @@ extension SocietyConfigPatterns on SocietyConfig {
             _that.cardVerticalPadding,
             _that.cardHorizontalPadding,
             _that.tabToContentSpacing,
+            _that.groupFooterToLabelSpacing,
             _that.iconBadgeFillColor,
             _that.iconBadgeIconColor,
             _that.iconBadgeOpacity,
@@ -1464,7 +1490,8 @@ extension SocietyConfigPatterns on SocietyConfig {
             _that.renewalPaymentDeadline,
             _that.startingBalance,
             _that.ledgerEntries,
-            _that.sponsors);
+            _that.sponsors,
+            _that.pointsColor);
       case _:
         throw StateError('Unexpected subclass');
     }
@@ -1533,6 +1560,7 @@ extension SocietyConfigPatterns on SocietyConfig {
             double cardVerticalPadding,
             double cardHorizontalPadding,
             double tabToContentSpacing,
+            double groupFooterToLabelSpacing,
             int iconBadgeFillColor,
             int iconBadgeIconColor,
             double iconBadgeOpacity,
@@ -1577,7 +1605,8 @@ extension SocietyConfigPatterns on SocietyConfig {
             @OptionalTimestampConverter() DateTime? renewalPaymentDeadline,
             double startingBalance,
             List<FinancialEntry> ledgerEntries,
-            List<Sponsor> sponsors)?
+            List<Sponsor> sponsors,
+            int? pointsColor)?
         $default,
   ) {
     final _that = this;
@@ -1632,6 +1661,7 @@ extension SocietyConfigPatterns on SocietyConfig {
             _that.cardVerticalPadding,
             _that.cardHorizontalPadding,
             _that.tabToContentSpacing,
+            _that.groupFooterToLabelSpacing,
             _that.iconBadgeFillColor,
             _that.iconBadgeIconColor,
             _that.iconBadgeOpacity,
@@ -1676,7 +1706,8 @@ extension SocietyConfigPatterns on SocietyConfig {
             _that.renewalPaymentDeadline,
             _that.startingBalance,
             _that.ledgerEntries,
-            _that.sponsors);
+            _that.sponsors,
+            _that.pointsColor);
       case _:
         return null;
     }
@@ -1685,7 +1716,7 @@ extension SocietyConfigPatterns on SocietyConfig {
 
 /// @nodoc
 @JsonSerializable()
-class _SocietyConfig implements SocietyConfig {
+class _SocietyConfig extends SocietyConfig {
   const _SocietyConfig(
       {this.societyName = 'Golf Society',
       this.logoUrl,
@@ -1735,6 +1766,7 @@ class _SocietyConfig implements SocietyConfig {
       this.cardVerticalPadding = 16.0,
       this.cardHorizontalPadding = 16.0,
       this.tabToContentSpacing = 16.0,
+      this.groupFooterToLabelSpacing = 16.0,
       this.iconBadgeFillColor = 0xFF4ADE80,
       this.iconBadgeIconColor = 0xFF4ADE80,
       this.iconBadgeOpacity = 0.15,
@@ -1783,11 +1815,13 @@ class _SocietyConfig implements SocietyConfig {
       @OptionalTimestampConverter() this.renewalPaymentDeadline,
       this.startingBalance = 0.0,
       final List<FinancialEntry> ledgerEntries = const <FinancialEntry>[],
-      final List<Sponsor> sponsors = const <Sponsor>[]})
+      final List<Sponsor> sponsors = const <Sponsor>[],
+      this.pointsColor})
       : _customColors = customColors,
         _societyCutRules = societyCutRules,
         _ledgerEntries = ledgerEntries,
-        _sponsors = sponsors;
+        _sponsors = sponsors,
+        super._();
   factory _SocietyConfig.fromJson(Map<String, dynamic> json) =>
       _$SocietyConfigFromJson(json);
 
@@ -1974,6 +2008,10 @@ class _SocietyConfig implements SocietyConfig {
   @JsonKey()
   final double tabToContentSpacing;
 // [NEW] Vertical rhythm: Tab to Content
+  @override
+  @JsonKey()
+  final double groupFooterToLabelSpacing;
+// [NEW] Vertical rhythm: Group Footer to Next Label
   @override
   @JsonKey()
   final int iconBadgeFillColor;
@@ -2175,6 +2213,10 @@ class _SocietyConfig implements SocietyConfig {
     return EqualUnmodifiableListView(_sponsors);
   }
 
+// [NEW] Central sponsorship hub
+  @override
+  final int? pointsColor;
+
   /// Create a copy of SocietyConfig
   /// with the given fields replaced by the non-null parameter values.
   @override
@@ -2286,6 +2328,7 @@ class _SocietyConfig implements SocietyConfig {
             (identical(other.cardVerticalPadding, cardVerticalPadding) || other.cardVerticalPadding == cardVerticalPadding) &&
             (identical(other.cardHorizontalPadding, cardHorizontalPadding) || other.cardHorizontalPadding == cardHorizontalPadding) &&
             (identical(other.tabToContentSpacing, tabToContentSpacing) || other.tabToContentSpacing == tabToContentSpacing) &&
+            (identical(other.groupFooterToLabelSpacing, groupFooterToLabelSpacing) || other.groupFooterToLabelSpacing == groupFooterToLabelSpacing) &&
             (identical(other.iconBadgeFillColor, iconBadgeFillColor) || other.iconBadgeFillColor == iconBadgeFillColor) &&
             (identical(other.iconBadgeIconColor, iconBadgeIconColor) || other.iconBadgeIconColor == iconBadgeIconColor) &&
             (identical(other.iconBadgeOpacity, iconBadgeOpacity) || other.iconBadgeOpacity == iconBadgeOpacity) &&
@@ -2330,7 +2373,8 @@ class _SocietyConfig implements SocietyConfig {
             (identical(other.renewalPaymentDeadline, renewalPaymentDeadline) || other.renewalPaymentDeadline == renewalPaymentDeadline) &&
             (identical(other.startingBalance, startingBalance) || other.startingBalance == startingBalance) &&
             const DeepCollectionEquality().equals(other._ledgerEntries, _ledgerEntries) &&
-            const DeepCollectionEquality().equals(other._sponsors, _sponsors));
+            const DeepCollectionEquality().equals(other._sponsors, _sponsors) &&
+            (identical(other.pointsColor, pointsColor) || other.pointsColor == pointsColor));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -2385,6 +2429,7 @@ class _SocietyConfig implements SocietyConfig {
         cardVerticalPadding,
         cardHorizontalPadding,
         tabToContentSpacing,
+        groupFooterToLabelSpacing,
         iconBadgeFillColor,
         iconBadgeIconColor,
         iconBadgeOpacity,
@@ -2429,12 +2474,13 @@ class _SocietyConfig implements SocietyConfig {
         renewalPaymentDeadline,
         startingBalance,
         const DeepCollectionEquality().hash(_ledgerEntries),
-        const DeepCollectionEquality().hash(_sponsors)
+        const DeepCollectionEquality().hash(_sponsors),
+        pointsColor
       ]);
 
   @override
   String toString() {
-    return 'SocietyConfig(societyName: $societyName, logoUrl: $logoUrl, primaryColor: $primaryColor, secondaryColor: $secondaryColor, tertiaryColor: $tertiaryColor, dangerousColor: $dangerousColor, backgroundColor: $backgroundColor, cardColor: $cardColor, surfaceElevatedColor: $surfaceElevatedColor, textPrimaryColor: $textPrimaryColor, textSecondaryColor: $textSecondaryColor, textMutedColor: $textMutedColor, scoreEagleColor: $scoreEagleColor, scoreBirdieColor: $scoreBirdieColor, scoreParColor: $scoreParColor, scoreBogeyColor: $scoreBogeyColor, scoreDoubleColor: $scoreDoubleColor, scoreTriplePlusColor: $scoreTriplePlusColor, teamAColor: $teamAColor, teamBColor: $teamBColor, statusPublishedColor: $statusPublishedColor, statusConfirmedColor: $statusConfirmedColor, statusReservedColor: $statusReservedColor, statusWaitlistColor: $statusWaitlistColor, statusWithdrawnColor: $statusWithdrawnColor, statusDinnerColor: $statusDinnerColor, cardRadius: $cardRadius, inputRadius: $inputRadius, useShadows: $useShadows, shadowIntensity: $shadowIntensity, useBorders: $useBorders, borderWidth: $borderWidth, pillRadius: $pillRadius, buttonRadius: $buttonRadius, borderColor: $borderColor, dividerColor: $dividerColor, heroRadius: $heroRadius, accentRadius: $accentRadius, accentOpacity: $accentOpacity, shadowSpread: $shadowSpread, shadowOpacity: $shadowOpacity, labelToCardSpacing: $labelToCardSpacing, cardToLabelSpacing: $cardToLabelSpacing, fieldToFieldSpacing: $fieldToFieldSpacing, cardToCardSpacing: $cardToCardSpacing, cardVerticalPadding: $cardVerticalPadding, cardHorizontalPadding: $cardHorizontalPadding, tabToContentSpacing: $tabToContentSpacing, iconBadgeFillColor: $iconBadgeFillColor, iconBadgeIconColor: $iconBadgeIconColor, iconBadgeOpacity: $iconBadgeOpacity, iconOpacity: $iconOpacity, iconBadgeSize: $iconBadgeSize, iconBadgeIconSize: $iconBadgeIconSize, buttonHeight: $buttonHeight, buttonSmallHeight: $buttonSmallHeight, buttonHorizontalPadding: $buttonHorizontalPadding, sliderTrackHeight: $sliderTrackHeight, sliderThumbRadius: $sliderThumbRadius, dividerThickness: $dividerThickness, surfaceHeightLarge: $surfaceHeightLarge, surfaceHeightMedium: $surfaceHeightMedium, fontFamily: $fontFamily, themeMode: $themeMode, customColors: $customColors, cardTintIntensity: $cardTintIntensity, useCardGradient: $useCardGradient, currencySymbol: $currencySymbol, currencyCode: $currencyCode, groupingStrategy: $groupingStrategy, useWhsHandicaps: $useWhsHandicaps, distanceUnit: $distanceUnit, handicapSystem: $handicapSystem, selectedPaletteName: $selectedPaletteName, separateGuestLeaderboard: $separateGuestLeaderboard, societyCutMode: $societyCutMode, societyCutRules: $societyCutRules, societyCutEventLimit: $societyCutEventLimit, societyCutCountPlayedOnly: $societyCutCountPlayedOnly, societyCutFilterSeason: $societyCutFilterSeason, societyCutFilterInvitational: $societyCutFilterInvitational, globalMarkupPercentage: $globalMarkupPercentage, guestMarkupExtra: $guestMarkupExtra, showMatchPlayOverlay: $showMatchPlayOverlay, globalMembershipEndDate: $globalMembershipEndDate, renewalWindowDays: $renewalWindowDays, isRenewalActive: $isRenewalActive, renewalLaunchDate: $renewalLaunchDate, renewalDeadline: $renewalDeadline, renewalPaymentDeadline: $renewalPaymentDeadline, startingBalance: $startingBalance, ledgerEntries: $ledgerEntries, sponsors: $sponsors)';
+    return 'SocietyConfig(societyName: $societyName, logoUrl: $logoUrl, primaryColor: $primaryColor, secondaryColor: $secondaryColor, tertiaryColor: $tertiaryColor, dangerousColor: $dangerousColor, backgroundColor: $backgroundColor, cardColor: $cardColor, surfaceElevatedColor: $surfaceElevatedColor, textPrimaryColor: $textPrimaryColor, textSecondaryColor: $textSecondaryColor, textMutedColor: $textMutedColor, scoreEagleColor: $scoreEagleColor, scoreBirdieColor: $scoreBirdieColor, scoreParColor: $scoreParColor, scoreBogeyColor: $scoreBogeyColor, scoreDoubleColor: $scoreDoubleColor, scoreTriplePlusColor: $scoreTriplePlusColor, teamAColor: $teamAColor, teamBColor: $teamBColor, statusPublishedColor: $statusPublishedColor, statusConfirmedColor: $statusConfirmedColor, statusReservedColor: $statusReservedColor, statusWaitlistColor: $statusWaitlistColor, statusWithdrawnColor: $statusWithdrawnColor, statusDinnerColor: $statusDinnerColor, cardRadius: $cardRadius, inputRadius: $inputRadius, useShadows: $useShadows, shadowIntensity: $shadowIntensity, useBorders: $useBorders, borderWidth: $borderWidth, pillRadius: $pillRadius, buttonRadius: $buttonRadius, borderColor: $borderColor, dividerColor: $dividerColor, heroRadius: $heroRadius, accentRadius: $accentRadius, accentOpacity: $accentOpacity, shadowSpread: $shadowSpread, shadowOpacity: $shadowOpacity, labelToCardSpacing: $labelToCardSpacing, cardToLabelSpacing: $cardToLabelSpacing, fieldToFieldSpacing: $fieldToFieldSpacing, cardToCardSpacing: $cardToCardSpacing, cardVerticalPadding: $cardVerticalPadding, cardHorizontalPadding: $cardHorizontalPadding, tabToContentSpacing: $tabToContentSpacing, groupFooterToLabelSpacing: $groupFooterToLabelSpacing, iconBadgeFillColor: $iconBadgeFillColor, iconBadgeIconColor: $iconBadgeIconColor, iconBadgeOpacity: $iconBadgeOpacity, iconOpacity: $iconOpacity, iconBadgeSize: $iconBadgeSize, iconBadgeIconSize: $iconBadgeIconSize, buttonHeight: $buttonHeight, buttonSmallHeight: $buttonSmallHeight, buttonHorizontalPadding: $buttonHorizontalPadding, sliderTrackHeight: $sliderTrackHeight, sliderThumbRadius: $sliderThumbRadius, dividerThickness: $dividerThickness, surfaceHeightLarge: $surfaceHeightLarge, surfaceHeightMedium: $surfaceHeightMedium, fontFamily: $fontFamily, themeMode: $themeMode, customColors: $customColors, cardTintIntensity: $cardTintIntensity, useCardGradient: $useCardGradient, currencySymbol: $currencySymbol, currencyCode: $currencyCode, groupingStrategy: $groupingStrategy, useWhsHandicaps: $useWhsHandicaps, distanceUnit: $distanceUnit, handicapSystem: $handicapSystem, selectedPaletteName: $selectedPaletteName, separateGuestLeaderboard: $separateGuestLeaderboard, societyCutMode: $societyCutMode, societyCutRules: $societyCutRules, societyCutEventLimit: $societyCutEventLimit, societyCutCountPlayedOnly: $societyCutCountPlayedOnly, societyCutFilterSeason: $societyCutFilterSeason, societyCutFilterInvitational: $societyCutFilterInvitational, globalMarkupPercentage: $globalMarkupPercentage, guestMarkupExtra: $guestMarkupExtra, showMatchPlayOverlay: $showMatchPlayOverlay, globalMembershipEndDate: $globalMembershipEndDate, renewalWindowDays: $renewalWindowDays, isRenewalActive: $isRenewalActive, renewalLaunchDate: $renewalLaunchDate, renewalDeadline: $renewalDeadline, renewalPaymentDeadline: $renewalPaymentDeadline, startingBalance: $startingBalance, ledgerEntries: $ledgerEntries, sponsors: $sponsors, pointsColor: $pointsColor)';
   }
 }
 
@@ -2495,6 +2541,7 @@ abstract mixin class _$SocietyConfigCopyWith<$Res>
       double cardVerticalPadding,
       double cardHorizontalPadding,
       double tabToContentSpacing,
+      double groupFooterToLabelSpacing,
       int iconBadgeFillColor,
       int iconBadgeIconColor,
       double iconBadgeOpacity,
@@ -2539,7 +2586,8 @@ abstract mixin class _$SocietyConfigCopyWith<$Res>
       @OptionalTimestampConverter() DateTime? renewalPaymentDeadline,
       double startingBalance,
       List<FinancialEntry> ledgerEntries,
-      List<Sponsor> sponsors});
+      List<Sponsor> sponsors,
+      int? pointsColor});
 }
 
 /// @nodoc
@@ -2603,6 +2651,7 @@ class __$SocietyConfigCopyWithImpl<$Res>
     Object? cardVerticalPadding = null,
     Object? cardHorizontalPadding = null,
     Object? tabToContentSpacing = null,
+    Object? groupFooterToLabelSpacing = null,
     Object? iconBadgeFillColor = null,
     Object? iconBadgeIconColor = null,
     Object? iconBadgeOpacity = null,
@@ -2648,6 +2697,7 @@ class __$SocietyConfigCopyWithImpl<$Res>
     Object? startingBalance = null,
     Object? ledgerEntries = null,
     Object? sponsors = null,
+    Object? pointsColor = freezed,
   }) {
     return _then(_SocietyConfig(
       societyName: null == societyName
@@ -2842,6 +2892,10 @@ class __$SocietyConfigCopyWithImpl<$Res>
           ? _self.tabToContentSpacing
           : tabToContentSpacing // ignore: cast_nullable_to_non_nullable
               as double,
+      groupFooterToLabelSpacing: null == groupFooterToLabelSpacing
+          ? _self.groupFooterToLabelSpacing
+          : groupFooterToLabelSpacing // ignore: cast_nullable_to_non_nullable
+              as double,
       iconBadgeFillColor: null == iconBadgeFillColor
           ? _self.iconBadgeFillColor
           : iconBadgeFillColor // ignore: cast_nullable_to_non_nullable
@@ -3022,6 +3076,10 @@ class __$SocietyConfigCopyWithImpl<$Res>
           ? _self._sponsors
           : sponsors // ignore: cast_nullable_to_non_nullable
               as List<Sponsor>,
+      pointsColor: freezed == pointsColor
+          ? _self.pointsColor
+          : pointsColor // ignore: cast_nullable_to_non_nullable
+              as int?,
     ));
   }
 }

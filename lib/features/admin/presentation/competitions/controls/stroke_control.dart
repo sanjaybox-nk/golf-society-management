@@ -142,6 +142,9 @@ class _StrokePlayControlState extends BaseCompetitionControlState<StrokePlayCont
             onChanged: (val) { if (val != null) setState(() => _teamBestXCount = val); },
           ),
         ),
+        
+        // ── OVERLAYS ──────────────────────────────────────────
+        buildOverlaySection(),
       ],
     );
   }
@@ -159,6 +162,7 @@ class _StrokePlayControlState extends BaseCompetitionControlState<StrokePlayCont
       applyCapToIndex: _applyCapToIndex,
       teamBestXCount: _teamBestXCount,
       useMixedTeeAdjustment: _useMixedTeeAdjustment,
+      hasMatchPlayOverlay: hasMatchPlayOverlay,
     );
   }
 }

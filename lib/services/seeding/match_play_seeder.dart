@@ -120,8 +120,9 @@ class MatchPlaySeeder {
       startDate: event.date,
       endDate: event.date,
       rules: const CompetitionRules(
-        format: CompetitionFormat.matchPlay,
+        format: CompetitionFormat.stableford,
         handicapAllowance: 1.0,
+        hasMatchPlayOverlay: true,
       ),
     ));
 

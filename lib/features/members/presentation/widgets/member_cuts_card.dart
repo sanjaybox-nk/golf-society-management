@@ -49,7 +49,7 @@ class MemberCutsCard extends StatelessWidget {
                     'SOCIETY CUTS',
                     style: AppTypography.label.copyWith(
                       fontWeight: AppTypography.weightBlack,
-                      letterSpacing: 1.2,
+                      letterSpacing: 1.0,
                     ),
                   ),
                   Text(
@@ -57,7 +57,7 @@ class MemberCutsCard extends StatelessWidget {
                     style: AppTypography.micro.copyWith(
                       color: isDark ? AppColors.dark400 : AppColors.dark300,
                       fontWeight: AppTypography.weightBold,
-                      letterSpacing: 1.2,
+                      letterSpacing: 1.0,
                     ),
                   ),
                 ],

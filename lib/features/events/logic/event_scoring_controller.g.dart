@@ -60,7 +60,7 @@ final class EventScoringControllerProvider
 }
 
 String _$eventScoringControllerHash() =>
-    r'4380bb3fcedc54bcafd298775df6247e55f325c1';
+    r'3aa96168cabb015b6a78656bd72959ef8f920685';
 
 final class EventScoringControllerFamily extends $Family
     with

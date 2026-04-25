@@ -424,37 +424,113 @@ class EventAnalysisEngine {
     addAward('ROLLERCOASTER', rollercoasterPlayer, getPlayerId(rollercoasterPlayer, event), maxVariance);
 
     // 4. Results List (Sorted for Leaderboard/Stats)
-    final List<Map<String, dynamic>> results = [];
-    final sortedByPoints = List<Scorecard>.from(mergedScorecards);
-    
-    if (isStableford) {
-      sortedByPoints.sort((a, b) => (b.points ?? 0).compareTo(a.points ?? 0));
-    } else {
-      sortedByPoints.sort((a, b) => (a.netTotal ?? 999).compareTo(b.netTotal ?? 999));
+    final List<Map<String, dynamic>> tempResults = [];
+    final isStb = competition?.rules.format == CompetitionFormat.stableford;
+
+    for (var s in mergedScorecards) {
+       final reg = event.registrations.firstWhereOrNull((r) => r.memberId == s.entryId.replaceFirst('_guest', ''));
+       final phc = reg?.playingHandicap ?? 0;
+       
+       // Calculate Hole Values (Points or Net)
+       final List<int> holeValues = [];
+       for (int i = 0; i < 18; i++) {
+          final score = s.holeScores.length > i ? s.holeScores[i] : null;
+          if (score == null) {
+             holeValues.add(isStb ? 0 : 99); // High score for Stroke Play
+             continue;
+          }
+          final par = holes.length > i ? holes[i].par : 4;
+          final si = holes.length > i ? holes[i].si : 18;
+          int shots = (phc ~/ 18);
+          if (si <= (phc % 18)) shots++;
+          final netScore = score - shots;
+          
+          if (isStb) {
+             holeValues.add((2 + (par - netScore)).clamp(0, 10).toInt());
+          } else {
+             holeValues.add(netScore);
+          }
+       }
+
+       // Calculate Metrics (B9, B6, B3, B1)
+       int getSum(int start, int end) => holeValues.sublist(start, end).fold(0, (a, b) => a + b);
+       final metrics = [getSum(9, 18), getSum(12, 18), getSum(15, 18), getSum(17, 18)];
+
+       tempResults.add({
+         'playerId': s.entryId.replaceFirst('_guest', ''),
+         'playerName': reg?.memberName ?? 'Unknown',
+         'points': s.points,
+         'netTotal': s.netTotal,
+         'isGuest': s.entryId.endsWith('_guest'),
+         'holeScores': s.holeScores,
+         'metrics': metrics,
+       });
     }
 
-    for (int i = 0; i < sortedByPoints.length; i++) {
-      final s = sortedByPoints[i];
+    // Sort by Score + Metrics
+    tempResults.sort((a, b) {
+       final scoreA = isStb ? (a['points'] ?? 0) : (a['netTotal'] ?? 999);
+       final scoreB = isStb ? (b['points'] ?? 0) : (b['netTotal'] ?? 999);
+       
+       if (scoreA != scoreB) {
+          return isStb ? scoreB.compareTo(scoreA) : scoreA.compareTo(scoreB);
+       }
+
+       // Tie-break metrics
+       final metricsA = a['metrics'] as List<int>;
+       final metricsB = b['metrics'] as List<int>;
+       for (int i = 0; i < metricsA.length; i++) {
+          if (metricsA[i] != metricsB[i]) {
+             return isStb ? metricsB[i].compareTo(metricsA[i]) : metricsA[i].compareTo(metricsB[i]);
+          }
+       }
+       return 0;
+    });
+
+    // Finalize Positions and Tie-Break Labels
+    final List<Map<String, dynamic>> results = [];
+    final Map<int, List<Map<String, dynamic>>> scoreToPlayersMap = {};
+    for (var r in tempResults) {
+       final score = isStb ? (r['points'] ?? 0) : (r['netTotal'] ?? 999);
+       scoreToPlayersMap[score] = (scoreToPlayersMap[score] ?? []);
+       scoreToPlayersMap[score]!.add(r);
+    }
+
+    for (int i = 0; i < tempResults.length; i++) {
+      final r = tempResults[i];
       int position = i + 1;
       
-      // Handle ties
       if (i > 0) {
-        final prev = sortedByPoints[i - 1];
-        if (isStableford) {
-          if (s.points == prev.points) position = results[i - 1]['position'];
-        } else {
-          if (s.netTotal == prev.netTotal) position = results[i - 1]['position'];
-        }
+        final prev = tempResults[i - 1];
+        final scoreA = isStb ? (r['points'] ?? 0) : (r['netTotal'] ?? 999);
+        final scoreB = isStb ? (prev['points'] ?? 0) : (prev['netTotal'] ?? 999);
+        if (scoreA == scoreB) position = results[i - 1]['position'];
+      }
+
+      // Calculate Tie-Break Label if tied with others
+      String? tieLabel;
+      final score = isStb ? (r['points'] ?? 0) : (r['netTotal'] ?? 999);
+      final tiedOnScore = scoreToPlayersMap[score] ?? [];
+      
+      if (tiedOnScore.length > 1) {
+         final metrics = r['metrics'] as List<int>;
+         final mNames = ['B9', 'B6', 'B3', 'B1'];
+         for (int m = 0; m < metrics.length; m++) {
+            final val = metrics[m];
+            final anyDiff = tiedOnScore.any((other) => (other['metrics'] as List<int>)[m] != val);
+            if (anyDiff) {
+               tieLabel = '${mNames[m]}: $val';
+               break;
+            }
+         }
+         // Fallback to B9 if still no diff (rare but possible if absolute ties)
+         tieLabel ??= 'B9: ${metrics[0]}';
       }
 
       results.add({
-        'memberId': s.entryId.replaceFirst('_guest', ''),
-        'memberName': event.registrations.firstWhereOrNull((r) => r.memberId == s.entryId.replaceFirst('_guest', ''))?.memberName ?? 'Unknown',
-        'points': s.points,
-        'netTotal': s.netTotal,
+        ...r,
         'position': position,
-        'isGuest': s.entryId.endsWith('_guest'),
-        'holeScores': s.holeScores,
+        'tieBreakLabel': tieLabel,
       });
     }
 

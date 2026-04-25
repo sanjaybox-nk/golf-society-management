@@ -14,19 +14,6 @@ class CompetitionRuleTranslator {
       case CompetitionFormat.stroke:
         parts.add('A standard $modeStr Strokeplay event where every shot counts.');
         break;
-      case CompetitionFormat.matchPlay:
-        if (rules.subtype == CompetitionSubtype.fourball) {
-          parts.add('A fourball match play competition where pairs of partners play their own ball and the best score counts for the side.');
-        } else if (rules.subtype == CompetitionSubtype.foursomes) {
-          parts.add('A foursomes match play competition where pairs of partners play alternate shots.');
-        } else if (rules.subtype == CompetitionSubtype.ryderCup) {
-          parts.add('A Ryder Cup style team competition where matches between sides contribute to an overall team points total.');
-        } else if (rules.subtype == CompetitionSubtype.teamMatchPlay) {
-          parts.add('A team-based match play competition where results from individual matches are aggregated for a team result.');
-        } else {
-          parts.add('A standard Match Play competition where you play against your opponent hole-by-hole.');
-        }
-        break;
       case CompetitionFormat.maxScore:
         String capDesc = '';
         if (rules.maxScoreConfig != null) {
@@ -47,6 +34,19 @@ class CompetitionRuleTranslator {
       case CompetitionFormat.scramble:
         parts.add('A team scramble format where the best shot is selected each time.');
         break;
+    }
+
+    // 1.5. Match Play Overlay
+    if (rules.isMatchPlay) {
+      if (rules.subtype == CompetitionSubtype.ryderCup) {
+        parts.add('Includes a Ryder Cup style team overlay where matches between sides contribute to an overall team points total.');
+      } else if (rules.subtype == CompetitionSubtype.teamMatchPlay) {
+        parts.add('Includes a team-based match play overlay where individual matches are aggregated for a team result.');
+      } else if (rules.subtype == CompetitionSubtype.matchPlaySeason) {
+        parts.add('This is part of a season-long match play knockout tournament.');
+      } else {
+        parts.add('Includes a Match Play overlay where you play against your opponent hole-by-hole.');
+      }
     }
 
     // 2. Handicap Details

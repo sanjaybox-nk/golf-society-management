@@ -209,7 +209,8 @@ class ProfileInfoRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
 
     return InkWell(
       onTap: onTap,
@@ -221,7 +222,7 @@ class ProfileInfoRow extends StatelessWidget {
             Icon(
               icon, 
               size: AppShapes.iconMd, 
-              color: Theme.of(context).primaryColor,
+              color: theme.primaryColor,
             ),
             const SizedBox(width: AppSpacing.lg),
             Expanded(
@@ -230,10 +231,8 @@ class ProfileInfoRow extends StatelessWidget {
                 children: [
                   Text(
                     label.toUpperCase(),
-                    style: AppTypography.micro.copyWith(
-                      color: isDark ? AppColors.dark200 : AppColors.dark300,
-                      fontWeight: AppTypography.weightBold,
-                      letterSpacing: 1.2,
+                    style: AppTypography.labelStrong.copyWith(
+                      color: theme.colorScheme.onSurface,
                     ),
                   ),
                   const SizedBox(height: AppSpacing.xs),
@@ -317,9 +316,7 @@ class BoxyArtSectionTitle extends StatelessWidget {
                 child: Text(
                   displayTitle.toUpperCase(),
                   style: (isLevel2 ? AppTypography.micro : AppTypography.label).copyWith(
-                    fontWeight: AppTypography.weightBold,
                     color: color ?? onSurface,
-                    letterSpacing: 1.2,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,

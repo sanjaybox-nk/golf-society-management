@@ -33,15 +33,15 @@ Never use arbitrary alpha values. Use the consolidated tokens via `.withValues(a
 
 ## 02 · Typography (The v4.x Split)
 
-### Fredoka — Display & Scoring
-Used for "emotional" moments and high-impact data.
-- **Tokens**: `displayHero` (80pt), `displayLarge` (32pt), `metricValue`.
+### Plus Jakarta Sans — Display & Scoring
+Used for high-impact numeric data and leaderboard "Hero" moments.
+- **Leaderboard Scores**: 22pt / 800 weight (`AppTypography.weightBlack`), -0.5 letter spacing.
 - **Numeric Rule**: Always use tabular numerals for score/stat alignment.
 
 ### Inter — UI & Functional
 Used for all interface elements and administrative controls.
 - **Body**: 14pt / 400 weight (line-height 1.6).
-- **Metadata Standard**: All structural labels (e.g., "HANDICAP", "STATUS") must use **ALL-CAPS**, 11pt, 800 weight, and `1.2` letter spacing.
+- **Metadata Standard**: All structural labels (e.g., "PTS", "NET", "STATUS") must use **ALL-CAPS**, 11pt, 800 weight (`AppTypography.weightExtraBold`), and `1.0` letter spacing.
 
 ---
 
@@ -74,7 +74,21 @@ The standard for navigation and settings icons.
 
 ---
 
-## 05 · Hardening & Compliance
+## 05 · Branding Tokens (Whitelabel Control)
+
+Societies can customize their visual identity via the Branding Console. These tokens are stored in `SocietyConfig` and managed by the `ThemeController`.
+
+| Token | Default | Usage |
+|-------|---------|-------|
+| `primaryColor` | `0xFFF7D354` | Main brand color (Yellow) |
+| `pointsColor` | `0xFF4ADE80` | Accent for Stableford points emphasis (Use `effectivePointsColor` fallback) |
+| `teamAColor` | `0xFF1E40AF` | Team A Identity (Blue) |
+| `teamBColor` | `0xFF166534` | Team B Identity (Dark Green) |
+| `effectivePointsColor` | `pointsColor ?? primaryColor` | Guaranteed color for Branded Scoring metrics |
+
+---
+
+## 06 · Hardening & Compliance
 
 1. **Zero Hardcoding**: All colors/fonts must reference `AppColors` or `AppTypography`.
 2. **Const Correctness**: Avoid `const` if a widget contains a dynamic token provider or suffix.

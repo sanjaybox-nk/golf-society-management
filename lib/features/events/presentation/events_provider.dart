@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter/foundation.dart';
 import 'package:collection/collection.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:golf_society/domain/models/golf_event.dart';
@@ -254,9 +255,17 @@ final adminPastSeasonEventsProvider = Provider<AsyncValue<List<GolfEvent>>>((ref
 
 // 7. Single Event Provider
 final eventProvider = StreamProvider.family<GolfEvent, String>((ref, id) {
+  if (id.isEmpty) {
+    debugPrint('DEBUG_PROVIDER: eventProvider called with EMPTY ID');
+    throw Exception('Event ID cannot be empty');
+  }
+  debugPrint('DEBUG_PROVIDER: eventProvider(id=$id)');
   final repository = ref.watch(eventsRepositoryProvider);
   return repository.watchEvent(id).map((event) {
-    if (event == null) throw Exception('Event $id not found');
+    if (event == null) {
+      debugPrint('DEBUG_PROVIDER: Event $id NOT FOUND in Firestore');
+      throw Exception('Event $id not found');
+    }
     return event;
   });
 });

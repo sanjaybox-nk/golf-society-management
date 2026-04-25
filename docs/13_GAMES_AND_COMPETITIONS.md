@@ -22,8 +22,8 @@ The primary driver of the scoring logic.
 | **Stableford** | None, Gross Stableford | Points based on score relative to par. |
 | **Stroke Play** | None | Traditional medal play (gross or net). |
 | **Max Score** | None | Stroke play with a cap per hole (e.g., Net Double Bogey). The UI enforces this cap during entry. |
-| **Match Play** | Knockout, League, matchPlaySeason | Head-to-head competition. Brackets/Divisions managed via specialized feature module. |
 | **Scramble** | Texas, Florida | Team-based "best ball" scramble. Supports Stroke Play or Stableford as an `underlyingFormat`. |
+| **Match Play** | (Feature Overlay) | Head-to-head competition enabled ON TOP of any standard format via the `hasMatchPlayOverlay` flag. |
 | **Pairs** | Fourball, Foursomes | Partner-based formats. Fourball shows individual scores per player with better-ball aggregate per pair in the footer. |
 
 ### Handicap & Allowances
@@ -141,6 +141,8 @@ All player entries on the leaderboard and admin scoring lists share a unified "U
     - **Dual Tee Display**: The Event Info Hub (`EventUserDetailsTab`) now displays both male and female tee positions (e.g., "Yellow / Red") when they differ, ensuring absolute clarity for mixed-gender fields.
     - **Header Sync**: Identical title and subtitle typography.
     - **Course Context**: A `CourseInfoCard` or `SlidingCourseInfoCard` showing the tee configuration and performance summaries.
+- **Scramble Multi-Line Display**: In Scramble and unified team formats, each player's name is listed on its own sub-row within the card. This ensures that even large 4-man teams are displayed clearly without text clipping or horizontal crowding.
+- **Captain Indicator**: The team's primary avatar (linked to the first registrant/captain) features a persistent **amber shield badge** and background color to denote leadership.
 - **Typographic Standard**: (v3.8 Refined)
     - **PAR Row**: Bold weight, background color matches the selected Tee color.
     - **SI Row**: Font size reduced by 1pt for better hierarchy.
@@ -166,7 +168,8 @@ Admins are presented with a simplified selector:
 1.  **Standard Games**: Stroke, Stableford, Max Score.
 2.  **Team Games**: Scramble (Texas/Florida).
 3.  **Pairs**: Fourball, Foursomes.
-4.  **Match Play**: Traditional match play.
+4.  **Match Play Feature**: Toggle the "Match Play Overlay" on any of the above formats to enable head-to-head results.
+5.  **Tournament Modes**: Dedicated Match Play events (Ryder Cup, Knockouts) using seeded draws.
 
 ### Library & Customization
 -   **Pick from Gallery**: Select a template pre-approved by the society committee. The gallery is context-aware and preserves the current `eventId` through the selection flow.
@@ -282,7 +285,14 @@ Core scoring logic is verified via a comprehensive test suite covering:
 -   **4BBB**: Partner-based better-ball selection logic.
 -   **Tee Mapping**: Gender-aware tee resolution (e.g., Red for Women) for mixed field equity.
 
-### 9.5 Executive Performance Analytics
+### 9.5 Stableford Visual Emphasis (v4.x Refined)
+To prioritize the primary performance goal in Stableford competitions, the UI implements a specialized "Hero Metric" pattern:
+- **Individual Scorecards**: Hole-by-hole point values use `AppTypography.weightBold` (w700) instead of dimmed styles.
+- **Summary Footers**: The "Points" total is rendered as a Hero Metric (24pt, `AppTypography.display`) to separate it from strokes and par metadata.
+- **Leaderboards**: Stableford point totals are emphasized with a 22pt `AppTypography.weightBlack` (w800) font, making the winning scores unmistakable in dense lists.
+- **Color Accent**: Total points utilize the society's brand color (typically `AppColors.lime500` or `AppColors.dark900`) for maximum visual anchoring.
+
+### 9.6 Executive Performance Analytics
 
 Introduced in Phase 11, the **Society Hub** provides advanced cross-event analytics to identify performance trends:
 - **Course Difficulty Index**: Automatically ranks society courses by average Stableford points/Net strokes per round, identifying the toughest challenges for the membership.

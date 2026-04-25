@@ -69,7 +69,7 @@ class LockerScreen extends ConsumerWidget {
                               style: AppTypography.label.copyWith(
                                 color: AppColors.lime500,
                                 fontWeight: AppTypography.weightHeavy,
-                                letterSpacing: 1.2,
+                                letterSpacing: 1.0,
                               ),
                             );
                           }
@@ -114,7 +114,7 @@ class LockerScreen extends ConsumerWidget {
                           style: AppTypography.micro.copyWith(
                             color: AppColors.lime500,
                             fontWeight: AppTypography.weightBold,
-                            letterSpacing: 1.2,
+                            letterSpacing: 1.0,
                           ),
                         ),
                       SizedBox(height: AppSpacing.xs),
@@ -174,7 +174,7 @@ class LockerScreen extends ConsumerWidget {
                                     'FINANCES', 
                                     style: AppTypography.micro.copyWith(
                                       fontWeight: AppTypography.weightBold,
-                                      letterSpacing: 1.2,
+                                      letterSpacing: 1.0,
                                     ),
                                   ),
                                   if (isCredit)
@@ -198,7 +198,7 @@ class LockerScreen extends ConsumerWidget {
                                   style: AppTypography.micro.copyWith(
                                     color: AppColors.lime500,
                                     fontWeight: AppTypography.weightBold,
-                                    letterSpacing: 1.2,
+                                    letterSpacing: 1.0,
                                   ),
                                 ),
                                 const SizedBox(height: AppSpacing.sm),
@@ -208,7 +208,7 @@ class LockerScreen extends ConsumerWidget {
                                   'EVENT ENTRY FEES OWED: £${status.totalEventFeesOwed.toStringAsFixed(0)}',
                                   style: AppTypography.micro.copyWith(
                                     fontWeight: AppTypography.weightBold,
-                                    letterSpacing: 1.2,
+                                    letterSpacing: 1.0,
                                   ),
                                 ),
                               ],
@@ -218,7 +218,7 @@ class LockerScreen extends ConsumerWidget {
                                   style: AppTypography.micro.copyWith(
                                     color: AppColors.coral500,
                                     fontWeight: AppTypography.weightBold,
-                                    letterSpacing: 1.2,
+                                    letterSpacing: 1.0,
                                   ),
                                 ),
                               ],
@@ -263,7 +263,7 @@ class LockerScreen extends ConsumerWidget {
                                       'SEASON STAKES',
                                       style: AppTypography.micro.copyWith(
                                         fontWeight: AppTypography.weightBold,
-                                        letterSpacing: 1.2,
+                                        letterSpacing: 1.0,
                                       ),
                                     ),
                                     const SizedBox(height: AppSpacing.xs),

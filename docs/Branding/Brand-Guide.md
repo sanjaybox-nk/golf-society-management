@@ -9,6 +9,8 @@ Fredoka (Display) + Inter (UI/Body) · `#4ADE80` Vivid Emerald
 
 The "Boxy Art" aesthetic represents a transition from "Minimalist Member" to "High-Performance Committee" design. It prioritizes clarity, structural hierarchy, and tactile administrative controls.
 
+5. **Hero Metrics** — Critical performance data (e.g., Stableford Points) uses high-impact typography to separate goals from auxiliary metadata.
+
 1. **Committee-Grade Controls** — Buttons and toggles must feel solid and responsive. No ambiguity.
 2. **Structural Rhythm** — Vertical space is intentional. Use the 5-tier spacing scale to create distinct information zones.
 3. **Metadata is Architecture** — Labels and system data are ALL-CAPS to differentiate them from user-generated content.
@@ -74,6 +76,7 @@ All spacing must snap to these tiers. No intermediate values.
 |------|-------|-------|
 | **Atomic** | `8.0` | Internal element gaps, label-to-card |
 | **Standard** | `16.0` | Card padding, page margins, card-to-label |
+| **Group Footer** | `16.0` | Gap between PHC pill and next group label |
 | **Large** | `24.0` | Enhanced breathing room, section gaps |
 | **Section** | `32.0` | Major structural breaks |
 | **Hero** | `64.0` | Structural layout padding |
@@ -90,18 +93,21 @@ All spacing must snap to these tiers. No intermediate values.
 
 ## 03 · Typography
 
-**The v4.x Split: Fredoka (Emotional) / Inter (Functional)**
+**The v4.x Split: Plus Jakarta Sans (Emotional) / Inter (Functional)**
 
-### Fredoka — Display & Scoring
+### Plus Jakarta Sans — Display & Scoring
 Used for "emotional" moments where the user celebrates their progress.
-- **Score Totals**: 80pt / 900 weight.
+- **Hero Metrics (Stableford Points)**: 24pt+ / 900 weight (`AppTypography.display`).
+- **Leaderboard Scores**: 22pt / 800 weight (`AppTypography.weightBlack`).
+- **Score Totals (Locker)**: 80pt / 900 weight.
 - **Hero Headers**: 32pt+ / 800 weight.
 - **Locker Room Numbers**: Tabular numerals.
 
 ### Inter — UI & Metadata
 Used for all functional interface elements.
 - **Body**: 14pt / 400 weight (line-height 1.6).
-- **Labels/Metadata**: **ALL-CAPS**, 11pt, 800 weight, `1.2` letter spacing.
+- **Labels/Metadata**: **ALL-CAPS**, 11pt, 800 weight, `1.0` letter spacing.
+- **Administrative Titles**: **ALL-CAPS**, 13pt, 700 weight, `1.0` letter spacing (e.g., Settings cards, Hub tiles).
 - **Captions**: **ALL-CAPS**, 10pt, 600 weight.
 
 ---
@@ -141,6 +147,19 @@ Administrative infrastructure actions (Wipe, Seed, Reset) must follow a 3-tier h
 1. **Initialize Demo Season**: Single master seed for full environment setup.
 2. **Clear Activity Data**: Wipe events/members while preserving scaffolding.
 3. **System Factory Reset**: Total deep wipe.
+
+---
+
+## 06 · Whitelabel Design Tokens
+
+The system supports dynamic branding for whitelabel deployment. These tokens override the default BoxyArt primitives at runtime via the `SocietyConfig`.
+
+| Token | BoxyArt Default | Usage |
+|-------|----------------|-------|
+| `primaryColor` | `#F7D354` | Main brand identity (Buttons, Active Icons) |
+| `pointsColor` | `#4ADE80` | Stableford points emphasis (Hero Metric) |
+| `teamAColor` | `#1E40AF` | Team A identity (Blue) |
+| `teamBColor` | `#166534` | Team B identity (Dark Green) |
 
 ---
 

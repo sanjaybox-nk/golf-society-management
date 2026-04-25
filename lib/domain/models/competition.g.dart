@@ -79,6 +79,7 @@ _CompetitionRules _$CompetitionRulesFromJson(Map<String, dynamic> json) =>
       progressionMode: $enumDecodeNullable(
               _$MatchPlayProgressionEnumMap, json['progressionMode']) ??
           MatchPlayProgression.bracketed,
+      hasMatchPlayOverlay: json['hasMatchPlayOverlay'] as bool? ?? false,
     );
 
 Map<String, dynamic> _$CompetitionRulesToJson(_CompetitionRules instance) =>
@@ -112,13 +113,13 @@ Map<String, dynamic> _$CompetitionRulesToJson(_CompetitionRules instance) =>
       'seedingLogic': _$SeedingLogicEnumMap[instance.seedingLogic]!,
       'progressionMode':
           _$MatchPlayProgressionEnumMap[instance.progressionMode]!,
+      'hasMatchPlayOverlay': instance.hasMatchPlayOverlay,
     };
 
 const _$CompetitionFormatEnumMap = {
   CompetitionFormat.stroke: 'stroke',
   CompetitionFormat.stableford: 'stableford',
   CompetitionFormat.maxScore: 'maxScore',
-  CompetitionFormat.matchPlay: 'matchPlay',
   CompetitionFormat.scramble: 'scramble',
 };
 

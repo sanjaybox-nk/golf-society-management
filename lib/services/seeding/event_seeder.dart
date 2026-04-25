@@ -16,6 +16,7 @@ import 'package:golf_society/domain/scoring/handicap_calculator.dart';
 import 'package:golf_society/domain/grouping/grouping_service.dart';
 import 'package:golf_society/domain/grouping/tee_group.dart';
 import 'package:golf_society/features/matchplay/domain/match_definition.dart';
+import 'package:golf_society/features/events/logic/event_analysis_engine.dart';
 import 'data_constants.dart';
 import 'newsletter_templates.dart';
 
@@ -43,6 +44,7 @@ class EventSeeder {
     int eventIndex = 0,
     EventType eventType = EventType.golf,
     double charityPot = 0.0,
+    bool hasMatchPlayOverlay = false,
   }) async {
     final eventRepo = ref.read(eventsRepositoryProvider);
     final compRepo = ref.read(competitionsRepositoryProvider);
@@ -177,7 +179,7 @@ class EventSeeder {
     int targetRegCount = (isSocial ? 45 : 30) + random.nextInt(15);
     
     // For Match Play, ensure we have an even number of participants
-    if (format == CompetitionFormat.matchPlay) {
+    if (hasMatchPlayOverlay) {
       final bool isPairs = (subtype == CompetitionSubtype.fourball || subtype == CompetitionSubtype.foursomes);
       if (isPairs) {
          // Ensure multiples of 4 for team-based match play
@@ -265,11 +267,13 @@ class EventSeeder {
       return [];
     }
 
-    final matchingTemplate = templates.where((t) => t.rules.format == format && t.rules.subtype == subtype).firstOrNull;
+    final matchingTemplate = templates.where((t) => t.rules.format == format && t.rules.subtype == subtype && t.rules.hasMatchPlayOverlay == hasMatchPlayOverlay).firstOrNull;
     final rules = matchingTemplate?.rules ?? CompetitionRules(
-      format: format, subtype: subtype, 
+      format: format, 
+      subtype: subtype, 
       handicapAllowance: subtype == CompetitionSubtype.fourball ? 0.85 : (subtype == CompetitionSubtype.foursomes ? 0.50 : 0.95),
       mode: (subtype == CompetitionSubtype.fourball || subtype == CompetitionSubtype.foursomes) ? CompetitionMode.pairs : (format == CompetitionFormat.scramble ? CompetitionMode.teams : CompetitionMode.singles),
+      hasMatchPlayOverlay: hasMatchPlayOverlay,
     );
 
     await compRepo.addCompetition(Competition(
@@ -293,11 +297,11 @@ class EventSeeder {
         strategy: isInvitational ? 'balanced' : 'progressive',
         useWhs: true, rules: rules,
       );
-
       final scoreRepo = ref.read(scorecardRepositoryProvider);
       await scoreRepo.deleteAllScorecards(updatedEvent.id);
       final isStableford = rules.format == CompetitionFormat.stableford;
       final cardStatus = status == EventStatus.completed ? ScorecardStatus.finalScore : ScorecardStatus.submitted;
+      final List<Scorecard> scorecards = [];
 
       for (var group in groups) {
         for (var p in group.players) {
@@ -346,7 +350,7 @@ class EventSeeder {
               pointsTotal += (par - netScore + 2).clamp(0, 10).toInt();
             }
 
-            await scoreRepo.addScorecard(Scorecard(
+            final newScorecard = Scorecard(
               id: 'seed_${updatedEvent.id}_$entryId', competitionId: updatedEvent.id,
               roundId: '1', entryId: entryId, submittedByUserId: 'system_seed',
               status: status == EventStatus.inPlay ? ScorecardStatus.draft : cardStatus, 
@@ -357,30 +361,29 @@ class EventSeeder {
                   ? date.copyWith(hour: 14, minute: random.nextInt(60)) 
                   : null,
               createdAt: DateTime.now(), updatedAt: DateTime.now(),
-            ));
-
-            results.add({
-              'playerId': entryId, 'playerName': p.name, 'memberId': entryId,
-              'points': isStableford ? pointsTotal : (grossTotal - (phc * (holesPassed / 18)).round()), 
-              'holeScores': holeScores, 'phc': phc, 'holesPlayed': holesPassed,
-            });
+            );
+            await scoreRepo.addScorecard(newScorecard);
+            scorecards.add(newScorecard);
         }
       }
 
-      final isHigherBetter = rules.format == CompetitionFormat.stableford || rules.format == CompetitionFormat.scramble;
-      results.sort((a, b) {
-        if (isHigherBetter) {
-          return (b['points'] as num).compareTo(a['points'] as num);
-        } else {
-          return (a['points'] as num).compareTo(b['points'] as num);
-        }
-      });
+      final comp = Competition(
+        id: updatedEvent.id, name: title, type: CompetitionType.event,
+        status: status == EventStatus.completed 
+            ? CompetitionStatus.closed 
+            : (status == EventStatus.inPlay ? CompetitionStatus.published : CompetitionStatus.open),
+        rules: rules, startDate: date, endDate: date,
+      );
 
-      for (int i = 0; i < results.length; i++) {
-         int pos = i + 1;
-         if (i > 0 && results[i]['points'] == results[i-1]['points']) pos = results[i-1]['position'];
-         results[i]['position'] = pos;
-      }
+      final stats = EventAnalysisEngine.calculateFinalStats(
+        scorecards: scorecards,
+        event: updatedEvent,
+        competition: comp,
+        isStableford: isStableford,
+      );
+
+      final List<Map<String, dynamic>> calculatedResults = List<Map<String, dynamic>>.from(stats['results'] ?? []);
+      results.addAll(calculatedResults);
 
       final memberCount = regs.where((r) => r.isConfirmed && r.attendingGolf && r.guestName == null).length;
       final totalPrizePool = memberCount * 10.0;
@@ -415,7 +418,7 @@ class EventSeeder {
       ));
 
       // [NEW] Generate Matches for Match Play events
-      if (format == CompetitionFormat.matchPlay) {
+      if (hasMatchPlayOverlay) {
         await generateTestMatches(updatedEvent.id, rules.mode);
       }
     } else {

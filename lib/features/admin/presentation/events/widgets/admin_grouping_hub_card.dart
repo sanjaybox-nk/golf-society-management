@@ -60,7 +60,22 @@ class AdminGroupingHubCard extends ConsumerWidget {
                   ],
                 ),
               ),
-              if (!isLocked) ...[
+              if (!event.isRegistrationClosed && !event.occursToday) ...[
+                const BoxyArtDivider(),
+                const Padding(
+                  padding: EdgeInsets.all(AppSpacing.lg),
+                  child: Center(
+                    child: Text(
+                      'Registration not completed',
+                      style: TextStyle(
+                        color: AppColors.dark400,
+                        fontStyle: FontStyle.italic,
+                        fontWeight: AppTypography.weightSemibold,
+                      ),
+                    ),
+                  ),
+                ),
+              ] else if (!event.isGroupingPublished && !isLocked) ...[
                 const BoxyArtDivider(),
                 Padding(
                   padding: const EdgeInsets.all(AppSpacing.lg),
@@ -167,7 +182,7 @@ class _HubRow extends StatelessWidget {
                     title.toUpperCase(),
                     style: AppTypography.micro.copyWith(
                       fontWeight: AppTypography.weightBold,
-                      letterSpacing: 1.2,
+                      letterSpacing: 1.0,
                       color: Theme.of(context).colorScheme.onSurface,
                     ),
                   ),

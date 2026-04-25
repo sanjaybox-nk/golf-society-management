@@ -185,7 +185,12 @@ class AdminSettingsHubScreen extends ConsumerWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Version', style: AppTypography.label.copyWith(color: AppColors.textTertiary)),
+                          Text('VERSION', style: AppTypography.labelStrong.copyWith(
+                            color: theme.colorScheme.onSurface,
+                            fontWeight: AppTypography.weightBold,
+                            fontSize: AppTypography.sizeLabel,
+                            letterSpacing: 1.0,
+                          )),
                           const SizedBox(height: AppSpacing.xs),
                           Text('1.0.0+1', style: AppTypography.displayLocker),
                           Text('v3.3 Stable', style: AppTypography.bodySmall),
@@ -200,7 +205,12 @@ class AdminSettingsHubScreen extends ConsumerWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Os', style: AppTypography.label.copyWith(color: AppColors.textTertiary)),
+                          Text('OS', style: AppTypography.labelStrong.copyWith(
+                            color: theme.colorScheme.onSurface,
+                            fontWeight: AppTypography.weightBold,
+                            fontSize: AppTypography.sizeLabel,
+                            letterSpacing: 1.0,
+                          )),
                           const SizedBox(height: AppSpacing.xs),
                           Text(Platform.operatingSystem.toUpperCase(), style: AppTypography.displayLocker),
                           Text('Build Path: ARM64', style: AppTypography.bodySmall),
@@ -324,10 +334,11 @@ class AdminSettingsHubScreen extends ConsumerWidget {
               children: [
                 Text(
                   title.toUpperCase(),
-                  style: AppTypography.micro.copyWith(
+                  style: AppTypography.labelStrong.copyWith(
                     color: theme.colorScheme.onSurface,
                     fontWeight: AppTypography.weightBold,
-                    letterSpacing: 1.2,
+                    fontSize: AppTypography.sizeLabel,
+                    letterSpacing: 1.0,
                   ),
                 ),
                 const SizedBox(height: 2),

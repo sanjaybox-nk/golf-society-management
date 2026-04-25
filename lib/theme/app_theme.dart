@@ -83,6 +83,7 @@ class AppTheme {
           cardVerticalPadding: config.cardVerticalPadding,
           cardHorizontalPadding: config.cardHorizontalPadding, 
           tabToContent: config.tabToContentSpacing,
+          groupFooterToLabel: config.groupFooterToLabelSpacing,
         ),
       ],
 
@@ -289,6 +290,7 @@ class AppTheme {
           cardVerticalPadding: config.cardVerticalPadding,
           cardHorizontalPadding: config.cardHorizontalPadding, 
           tabToContent: config.tabToContentSpacing,
+          groupFooterToLabel: config.groupFooterToLabelSpacing,
         ),
       ],
 

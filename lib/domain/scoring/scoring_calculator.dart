@@ -398,14 +398,16 @@ class ScoringCalculator {
     individualScores.sort();
     if (isStableford) individualScores.sort((a, b) => b.compareTo(a));
     
-    final int finalTotal = individualScores.take(bestX).fold<int>(0, (sum, s) => sum + s);
+    final int finalTotal = (rules.format == CompetitionFormat.scramble)
+        ? (individualScores.firstOrNull ?? 0)
+        : individualScores.take(bestX).fold<int>(0, (sum, s) => sum + s);
 
     // 2. Calculate Hole-by-Hole Best X for Tie-Breaker Metrics (Countback)
     // Segments: 9 holes, 6 holes, 3 holes, 1 hole
-    final int b9 = _calculateGroupSegment(individualResults, 9, 18, bestX, isStableford);
-    final int b6 = _calculateGroupSegment(individualResults, 12, 18, bestX, isStableford);
-    final int b3 = _calculateGroupSegment(individualResults, 15, 18, bestX, isStableford);
-    final int b1 = _calculateGroupSegment(individualResults, 17, 18, bestX, isStableford);
+    final int b9 = _calculateGroupSegment(individualResults, 9, 18, bestX, isStableford, rules.format);
+    final int b6 = _calculateGroupSegment(individualResults, 12, 18, bestX, isStableford, rules.format);
+    final int b3 = _calculateGroupSegment(individualResults, 15, 18, bestX, isStableford, rules.format);
+    final int b1 = _calculateGroupSegment(individualResults, 17, 18, bestX, isStableford, rules.format);
 
     return GroupScoringResult(
       totalScore: finalTotal,
@@ -421,8 +423,10 @@ class ScoringCalculator {
     int startHole, 
     int endHole, 
     int bestX, 
-    bool isStableford
+    bool isStableford,
+    CompetitionFormat format,
   ) {
+    final bool isScramble = format == CompetitionFormat.scramble;
     int segmentSum = 0;
     for (int i = startHole; i < endHole; i++) {
       final holeScores = individuals.map((r) {
@@ -433,7 +437,9 @@ class ScoringCalculator {
       holeScores.sort();
       if (isStableford) holeScores.sort((a, b) => b.compareTo(a));
       
-      segmentSum += holeScores.take(bestX).fold<int>(0, (sum, s) => sum + s);
+      segmentSum += isScramble
+          ? (holeScores.firstOrNull ?? 0)
+          : holeScores.take(bestX).fold<int>(0, (sum, s) => sum + s);
     }
     return segmentSum;
   }

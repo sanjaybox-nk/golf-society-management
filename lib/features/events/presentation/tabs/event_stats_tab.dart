@@ -1,5 +1,6 @@
 import 'package:golf_society/domain/models/course_config.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'dart:math' as math;
 import 'package:golf_society/domain/models/golf_event.dart';
 import 'package:golf_society/design_system/design_system.dart';
@@ -44,8 +45,32 @@ class EventStatsTab extends ConsumerWidget {
           isAdmin: isAdmin,
         );
       },
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (err, stack) => Center(child: Text('Error: $err')),
+      loading: () => HeadlessScaffold(
+        title: 'Event Stats',
+        subtitle: 'Loading Analysis...',
+        showBack: true,
+        onBack: () => context.go('/events'),
+        slivers: const [
+          SliverFillRemaining(
+            child: Center(child: CircularProgressIndicator()),
+          ),
+        ],
+      ),
+      error: (err, stack) => HeadlessScaffold(
+        title: 'Event Stats',
+        subtitle: 'Analysis Error',
+        showBack: true,
+        onBack: () => context.go('/events'),
+        slivers: [
+          SliverFillRemaining(
+            child: BoxyArtEmptyState(
+              title: 'Could not load statistics',
+              message: err.toString(),
+              icon: Icons.error_outline_rounded,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

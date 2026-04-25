@@ -76,9 +76,15 @@ class EventScoringProcessor {
       
       final bool hasScores = (liveCard != null && liveCard.holeScores.any((h) => h != null)) || (seededResult != null);
       
-      // [NEW] Master Filter: Must be in the "Playing" set or be the current user (Admin/Test)
+      // [NEW] Master Filter: Include everyone in the "Playing" set, OR in the grouping, OR who has a scorecard
       final bool isMe = currentUserId != null && (effectivePid == currentUserId || basePid == currentUserId);
-      if (!playingIds.contains(effectivePid) && !isMe) continue;
+      final bool isInGroups = event.grouping['groups'] != null && 
+                             (event.grouping['groups'] as List).any((g) => 
+                               (g['players'] as List).any((p) => p['registrationMemberId'] == basePid || p['registrationMemberId'] == effectivePid)
+                             );
+      final bool isPlaying = playingIds.contains(effectivePid);
+      
+      if (!isPlaying && !isInGroups && !hasScores && !isMe) continue;
       
       // Guests MUST have score data to appear on the leaderboard (per user request)
       if (isGuest && !hasScores) continue;
@@ -113,10 +119,31 @@ class EventScoringProcessor {
          holeScores = (seededResult['holeScores'] as List).cast<int?>();
       }
 
+      // 122. [NEW] Scramble Logic: If it's a team scramble, use the team PHC and scorecard
+      final isScramble = rules.format == CompetitionFormat.scramble;
+      final bool isTeamGame = isScramble || rules.subtype == CompetitionSubtype.texas || rules.subtype == CompetitionSubtype.florida;
+      
+      double effectivePhc = phc.toDouble();
+      if (isTeamGame) {
+        // Find the group this player belongs to
+        final groupData = (event.grouping['groups'] as List?)?.firstWhereOrNull((g) => 
+          (g['players'] as List).any((p) => p['registrationMemberId'] == basePid || p['registrationMemberId'] == effectivePid)
+        );
+        if (groupData != null) {
+          final group = TeeGroup.fromJson(groupData);
+          final List<double> indices = group.players.map((p) => p.handicapIndex).toList();
+          effectivePhc = HandicapCalculator.calculateTeamHandicap(
+            individualIndices: indices, 
+            rules: rules, 
+            courseConfig: courseConfig,
+          ).toDouble();
+        }
+      }
+
       final result = ScoringCalculator.calculate(
         holeScores: holeScores, 
         holes: courseConfig.holes, 
-        playingHandicap: phc.toDouble(), 
+        playingHandicap: effectivePhc, 
         format: rules.format,
         maxScoreConfig: rules.maxScoreConfig,
       );
@@ -136,7 +163,7 @@ class EventScoringProcessor {
         teeName: courseConfig.name,
         holeScores: holeScores,
         result: result,
-        tieBreakLabel: calculateTieBreakLabel(result),
+        tieBreakLabel: calculateTieBreakLabel(result, null),
         thruLabel: (result.holesPlayed > 0 && result.holesPlayed < 18)
             ? 'Thru ${result.holesPlayed}'
             : null,
@@ -144,11 +171,26 @@ class EventScoringProcessor {
       ));
     }
 
+    // 1.5 [NEW] Refine tie-break labels for ALL individual scores (v4.x consistency)
+    final Map<int, List<List<int>>> scoreToMetricsMap = {};
+    for (var p in individualScores) {
+      if (p.scoringStatus == ScoringStatus.ok && p.result.holesPlayed > 0) {
+        scoreToMetricsMap[p.result.score] ??= [];
+        scoreToMetricsMap[p.result.score]!.add(_calculateTieBreakMetrics(p.result));
+      }
+    }
+
+    final List<ProcessedPlayerScore> refinedIndividualScores = individualScores.map((p) {
+      return p.copyWith(
+        tieBreakLabel: calculateTieBreakLabel(p.result, scoreToMetricsMap[p.result.score]),
+      );
+    }).toList();
+
     // 2. [NEW] Pre-calculate Match Play results
     final Map<String, MatchResult> playerMatchResults = {};
     final bool isFourball = comp.rules.subtype == CompetitionSubtype.fourball || 
                        event.matches.any((m) => m.type == MatchType.fourball);
-    final bool isMatchPlayEvent = rules.format == CompetitionFormat.matchPlay || event.matches.isNotEmpty;
+    final bool isMatchPlayEvent = rules.isMatchPlay || event.matches.isNotEmpty;
 
     if (isMatchPlayEvent) {
       // 2a. Process Explicit Matches
@@ -181,12 +223,14 @@ class EventScoringProcessor {
                 final t1Ids = group.players.take(2).map((p) => p.isGuest ? '${p.registrationMemberId}_guest' : p.registrationMemberId).toList();
                 final t2Ids = group.players.skip(2).take(2).map((p) => p.isGuest ? '${p.registrationMemberId}_guest' : p.registrationMemberId).toList();
                 final res = MatchPlayCalculator.calculate(
-                  match: MatchDefinition(id: 'v_${groupIdx}', type: MatchType.fourball, team1Ids: t1Ids, team2Ids: t2Ids),
+                  match: MatchDefinition(id: 'v_$groupIdx', type: MatchType.fourball, team1Ids: t1Ids, team2Ids: t2Ids),
                   scorecards: liveScorecards,
                   courseConfig: event.courseConfig,
                   holesToPlay: 18,
                 );
-                for (final id in [...t1Ids, ...t2Ids]) playerMatchResults[id] = res;
+                for (final id in [...t1Ids, ...t2Ids]) {
+                   playerMatchResults[id] = res;
+                }
               } else if (group.players.length >= 2) {
                 // Singles matches for pairs
                 for (int i = 0; i < group.players.length; i += 2) {
@@ -215,20 +259,15 @@ class EventScoringProcessor {
     final isTeamComp = rules.effectiveMode != CompetitionMode.singles;
 
     if (!isTeamComp) {
-      final sortedIndividual = List<ProcessedPlayerScore>.from(individualScores);
+      final sortedIndividual = List<ProcessedPlayerScore>.from(refinedIndividualScores);
       final isStableford = currentFormat == CompetitionFormat.stableford;
       
       sortedIndividual.sort((a, b) {
         // 1. Status Check (WD/DQ/NR at bottom)
-        final liveA = liveScorecards.firstWhereOrNull((s) => s.entryId == a.playerId);
-        final liveB = liveScorecards.firstWhereOrNull((s) => s.entryId == b.playerId);
-        
-        final statusA = _resolveScoringStatus(liveA);
-        final statusB = _resolveScoringStatus(liveB);
-        
-        final aOk = statusA == ScoringStatus.ok;
-        final bOk = statusB == ScoringStatus.ok;
-        if (aOk != bOk) return aOk ? -1 : 1;
+        if (a.scoringStatus != b.scoringStatus) {
+           final aOk = a.scoringStatus == ScoringStatus.ok;
+           return aOk ? -1 : 1;
+        }
 
         // 2. Score check
         final scoreCompare = isStableford 
@@ -253,6 +292,18 @@ class EventScoringProcessor {
 
       for (int i = 0; i < sortedIndividual.length; i++) {
         final p = sortedIndividual[i];
+        
+        // [NEW] Strict Leaderboard Filter: Even if "isMe" allowed them into individualScores,
+        // they should only appear on the leaderboard if they are actually participating.
+        final bool isParticipating = playingIds.contains(p.playerId) || 
+                                    (event.grouping['groups'] as List?)?.any((g) => 
+                                      (g['players'] as List).any((pl) => pl['registrationMemberId'] == p.playerId || '${pl['registrationMemberId']}_guest' == p.playerId)
+                                    ) == true ||
+                                    p.result.holesPlayed > 0 ||
+                                    (liveScorecards.any((s) => s.entryId == p.playerId && s.holeScores.any((h) => h != null)));
+
+        if (!isParticipating) continue;
+
         int pos = i + 1;
         
         // Only share position if everything matches (including tie-breaks)
@@ -309,7 +360,7 @@ class EventScoringProcessor {
           position: pos,
           tieBreakMetrics: _calculateTieBreakMetrics(p.result),
           handicapIndex: p.handicapIndex,
-          tieBreakLabel: calculateTieBreakLabel(p.result),
+          tieBreakLabel: p.tieBreakLabel,
           scoringStatus: _resolveScoringStatus(liveScorecards.firstWhereOrNull((s) => s.entryId == p.playerId)),
           matchStatus: matchStatusLabel,
           matchScore: matchLead,
@@ -403,7 +454,7 @@ class EventScoringProcessor {
               individualHoleNetScores: teamResults.map((r) => r.holeNetScores).toList().cast<List<int?>>(),
               individualHolePoints: teamResults.map((r) => r.holePoints).toList().cast<List<int?>>(),
               handicapIndex: teamPlayers.firstOrNull?.handicapIndex ?? 0.0,
-              tieBreakLabel: calculateTieBreakLabel(finalResult),
+              tieBreakLabel: calculateTieBreakLabel(finalResult, null), // TODO: Group tie-break comparison if needed
               position: 0,
               tieBreakMetrics: _calculateTieBreakMetrics(finalResult),
               scoringStatus: teamStatus,
@@ -516,17 +567,36 @@ class EventScoringProcessor {
         }
     }
 
-    // 4. Global Stats
+    // 4. [NEW] Sort Group Rankings (Podium)
+    final isStableford = rules.format == CompetitionFormat.stableford;
+    groupRankings.sort((a, b) {
+      final scoreCompare = isStableford 
+          ? b.totalScore.compareTo(a.totalScore)
+          : a.totalScore.compareTo(b.totalScore);
+      if (scoreCompare != 0) return scoreCompare;
+      
+      // Tie-break
+      for (int i = 0; i < a.tieBreakMetrics.length; i++) {
+        final mCompare = isStableford
+            ? b.tieBreakMetrics[i].compareTo(a.tieBreakMetrics[i])
+            : a.tieBreakMetrics[i].compareTo(b.tieBreakMetrics[i]);
+        if (mCompare != 0) return mCompare;
+      }
+      return 0;
+    });
+
+    // 5. Global Stats
     final eventStats = EventAnalysisEngine.calculateFinalStats(
       scorecards: liveScorecards, 
       event: event, 
       competition: comp,
       isStableford: rules.format == CompetitionFormat.stableford,
     );
+    
 
     return ProcessedEventData(
       eventId: eventId,
-      individualScores: individualScores,
+      individualScores: refinedIndividualScores,
       leaderboard: leaderboard,
       groupRankings: groupRankings,
       eventStats: eventStats,
@@ -552,13 +622,24 @@ class EventScoringProcessor {
     return ScoringStatus.ok;
   }
 
-  static String? calculateTieBreakLabel(ScoringResult result) {
-    // Show progressive countback for tie-break visibility
-    final b9 = _getSegmentTotal(result, 9, 18);
-    final b6 = _getSegmentTotal(result, 12, 18);
-    final b3 = _getSegmentTotal(result, 15, 18);
+  static String? calculateTieBreakLabel(ScoringResult result, List<List<int>>? otherMetrics) {
+    if (otherMetrics == null || otherMetrics.length <= 1) return null;
+
+    // Standard countback: B9, B6, B3, B1
+    final metrics = _calculateTieBreakMetrics(result);
+    final mNames = ['B9', 'B6', 'B3', 'B1'];
+
+    // Find first metric that differs from ANY other player with the same score
+    for (int i = 0; i < metrics.length; i++) {
+      final val = metrics[i];
+      final anyDiff = otherMetrics.any((other) => i < other.length && other[i] != val);
+      if (anyDiff) {
+        return '${mNames[i]}: $val';
+      }
+    }
     
-    return 'B9: $b9 • B6: $b6 • B3: $b3';
+    // If absolutely everything is tied, show B9 as fallback
+    return 'B9: ${metrics[0]}';
   }
 
   static List<int> _calculateTieBreakMetrics(ScoringResult result) {

@@ -68,6 +68,7 @@ class BrandingSettingsScreen extends ConsumerWidget {
                 config.surfaceElevatedColor,
                 config.borderColor,
                 config.dividerColor,
+                config.groupFooterToLabelSpacing,
               ),
 
 // Redundant Identity and Appearance cards removed - managed via SocietyIdentityScreen
@@ -391,6 +392,34 @@ class BrandingSettingsScreen extends ConsumerWidget {
                     const BoxyArtSectionTitle(
                       title: 'VERTICAL SPACING & RHYTHM',
                       isLevel2: true,
+                    ),
+                    Row(
+                      children: [
+                        Text(
+                          'Group Footer to Label',
+                          style: AppTypography.helper.copyWith(
+                            fontWeight: AppTypography.weightBold,
+                          ),
+                        ),
+                        Expanded(
+                          child: Slider(
+                            value: config.groupFooterToLabelSpacing,
+                            min: 0.0,
+                            max: 64.0,
+                            divisions: 16,
+                            label: config.groupFooterToLabelSpacing.toStringAsFixed(0),
+                            activeColor: Color(config.secondaryColor),
+                            onChanged: (v) =>
+                                controller.setGroupFooterToLabelSpacing(v),
+                          ),
+                        ),
+                        Text(
+                          config.groupFooterToLabelSpacing.toStringAsFixed(0),
+                          style: AppTypography.helper.copyWith(
+                            fontWeight: AppTypography.weightBlack,
+                          ),
+                        ),
+                      ],
                     ),
                     Row(
                       children: [
@@ -897,7 +926,7 @@ class BrandingSettingsScreen extends ConsumerWidget {
                     'SCORING AESTHETICS',
                     style: AppTypography.label.copyWith(
                       fontWeight: AppTypography.weightBold,
-                      letterSpacing: 1.2,
+                      letterSpacing: 1.0,
                     ),
                   ),
                   subtitle: Text(
@@ -973,6 +1002,11 @@ class BrandingSettingsScreen extends ConsumerWidget {
                           label: 'Triple+',
                           color: Color(config.scoreTriplePlusColor),
                           onTap: () => _pickColor(context, 'Triple+', Color(config.scoreTriplePlusColor), (c) => controller.setScoreTriplePlusColor(c)),
+                        ),
+                        _ScoreColorGridItem(
+                          label: 'Points',
+                          color: Color(config.effectivePointsColor),
+                          onTap: () => _pickColor(context, 'Points Emphasis', Color(config.effectivePointsColor), (c) => controller.setPointsColor(c)),
                         ),
                       ],
                     ),
@@ -1130,6 +1164,7 @@ class BrandingSettingsScreen extends ConsumerWidget {
     int elevatedColorInt,
     int borderColorInt,
     int dividerColorInt,
+    double groupFooterToLabelSpacing,
   ) {
     final primary = Color(primaryInt);
     final secondary = Color(secondaryInt);

@@ -91,7 +91,7 @@ class NotificationInboxScreen extends ConsumerWidget {
                                   color: AppColors.pureWhite,
                                   fontSize: AppTypography.sizeCaption,
                                   fontWeight: AppTypography.weightBold,
-                                  letterSpacing: 1.2,
+                                  letterSpacing: 1.0,
                                 ),
                               ),
                             ],

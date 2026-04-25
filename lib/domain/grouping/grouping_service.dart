@@ -52,7 +52,7 @@ class GroupingService {
     }
 
     // 1. Get golfers who fit within the capacity (Confirmed or Reserved)
-    final isMatchPlay = rules?.format == CompetitionFormat.matchPlay;
+    final isMatchPlay = rules?.isMatchPlay == true;
     int takenSlotsCount = 0;
     final List<RegistrationItem> golfers = [];
     final capacity = event.maxParticipants ?? 999;

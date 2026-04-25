@@ -66,6 +66,7 @@ All repositories use `.withConverter` for type-safe JSON mapping:
 
 Complex business rules are encapsulated in standalone classes in `domain/`:
 
+- **Format + Feature Model**: (April 2026) Architecture distinguishes between the **Physical Format** (Stableford, Stroke) and **Scoring Features** (Match Play Overlay). This allows dual-scoring within a single scorecard and leaderboard.
 - **`MatchPlayCalculator`**: Authoritative engine for Net Match Play, Relative PHC, Fourball/Foursomes status.
 - **`ScoringCalculator`**: Authoritative engine for Stroke, Stableford, and Max Score capping.
 - **SSOT Pattern**: *Calculate Once, Display Everywhere.* `LeaderboardEntry` carries all pre-calculated values. Views (e.g. `ScorecardModal`) are **purely presentational** — they must NOT re-calculate scores.

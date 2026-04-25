@@ -9,7 +9,10 @@ import '../../../events/logic/event_analysis_engine.dart';
 import '../../../admin/providers/admin_ui_providers.dart';
 import 'package:golf_society/domain/grouping/grouping_service.dart';
 import 'package:golf_society/features/members/presentation/members_provider.dart';
+import '../../../events/domain/registration_logic.dart';
 import 'package:golf_society/domain/models/society_config.dart';
+import 'package:golf_society/domain/models/competition.dart';
+import 'package:golf_society/domain/grouping/tee_group.dart';
 
 class EventAdminControlsScreen extends ConsumerStatefulWidget {
   final String eventId;
@@ -51,12 +54,6 @@ class _EventAdminControlsScreenState extends ConsumerState<EventAdminControlsScr
               padding: EdgeInsets.symmetric(horizontal: spacing?.cardHorizontalPadding ?? AppSpacing.xl),
               sliver: SliverList(
                 delegate: SliverChildListDelegate([
-                  // 1. Status Overview Header
-                  const BoxyArtSectionTitle(
-                    title: 'Event status',
-                    isPeeking: true,
-                  ),
-                  _buildStatusHeader(event, scorecardsAsync, spacing),
 
                   // 2. Player Visibility Section
                   const BoxyArtSectionTitle(
@@ -360,6 +357,8 @@ class _EventAdminControlsScreenState extends ConsumerState<EventAdminControlsScr
 
     if (confirmed == true) {
       final stats = await _recalculateStats(event, scorecardsAsync);
+      
+      // Update Event Status
       await ref.read(eventsRepositoryProvider).updateEvent(
         event.copyWith(
           status: EventStatus.completed,
@@ -367,6 +366,34 @@ class _EventAdminControlsScreenState extends ConsumerState<EventAdminControlsScr
           finalizedStats: stats ?? {},
         ),
       );
+
+      // [Design 4.x Progression Check] Match Play Automation
+      // If this event had a Match Play overlay, we now offer to transition to the next round draw.
+      if (event.secondaryTemplateId != null) {
+        final secondaryComp = ref.read(competitionDetailProvider(event.secondaryTemplateId!)).value;
+        if (secondaryComp != null && secondaryComp.rules.subtype == CompetitionSubtype.matchPlaySeason) {
+          if (mounted) {
+            final startNextRound = await showBoxyArtDialog<bool>(
+              context: context,
+              title: 'Round Complete!',
+              message: 'This event included a Match Play Season Overlay. Would you like to generate the draw for the next round now?',
+              confirmText: 'GENERATE NEXT ROUND',
+              cancelText: 'LATER',
+              onConfirm: () => Navigator.of(context, rootNavigator: true).pop(true),
+            );
+
+            if (startNextRound == true && mounted) {
+              // Navigate to Match Play Hub for the next round setup
+              context.pushNamed(
+                'admin-event-matchplay-draw',
+                pathParameters: {'id': event.id},
+                queryParameters: {'progress': 'true'},
+              );
+            }
+          }
+        }
+      }
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Event Closed & Stats Finalized')),
@@ -465,93 +492,4 @@ class _EventAdminControlsScreenState extends ConsumerState<EventAdminControlsScr
   }
 
 
-  Widget _buildStatusHeader(GolfEvent event, AsyncValue<List<Scorecard>> scorecardsAsync, AppSpacingTokens? spacing) {
-    final Set<String> uniqueGolferIds = {};
-    for (final r in event.registrations) {
-      if (r.attendingGolf && r.isConfirmed) {
-        uniqueGolferIds.add(r.memberId);
-      }
-      if (r.attendingGolf && r.isGuest && r.guestIsConfirmed) {
-        uniqueGolferIds.add('guest-${r.guestName}');
-      }
-    }
-    final int totalGolfers = uniqueGolferIds.length;
-    
-    final submittedCount = scorecardsAsync.when(
-      data: (scorecards) => scorecards.where((s) => 
-        s.status == ScorecardStatus.submitted || s.status == ScorecardStatus.finalScore
-      ).length,
-      loading: () => 0,
-      error: (err, st) => 0,
-    );
-
-    final now = DateTime.now();
-    final bool isToday = now.year == event.date.year && 
-                        now.month == event.date.month && 
-                        now.day == event.date.day;
-    final bool isPast = event.date.isBefore(now) && !isToday;
-    
-    final bool isClosed = event.status == EventStatus.completed || event.isScoringLocked == true;
-    final bool isLive = (isToday || event.status == EventStatus.inPlay) && !isClosed;
-    
-    String status;
-    Color statusColor;
-    
-    if (isClosed) {
-      status = 'Closed';
-      statusColor = Theme.of(context).colorScheme.error;
-    } else if (isLive) {
-      status = 'Live';
-      statusColor = Theme.of(context).colorScheme.primary;
-    } else if (isPast) {
-      status = 'Past';
-      statusColor = AppColors.amber500;
-    } else {
-      status = 'Upcoming';
-      statusColor = AppColors.teamA;
-    }
-
-    return Row(
-      children: [
-        Expanded(
-          child: _buildBadgeCard('Status', status, statusColor, spacing),
-        ),
-        SizedBox(width: spacing?.labelToCard ?? AppSpacing.standard),
-        Expanded(
-          child: _buildBadgeCard(
-            'Submitted', 
-            '$submittedCount / $totalGolfers', 
-            AppColors.teamA,
-            spacing,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildBadgeCard(String label, String value, Color color, AppSpacingTokens? spacing) {
-    return BoxyArtCard(
-      padding: const EdgeInsets.symmetric(vertical: AppSpacing.xl, horizontal: AppSpacing.lg),
-      child: Column(
-        children: [
-          Text(
-            label, 
-            style: AppTypography.micro.copyWith(
-              fontWeight: AppTypography.weightExtraBold, 
-              color: AppColors.textSecondary, 
-              letterSpacing: AppTypography.lsMicro,
-            ),
-          ),
-          SizedBox(height: spacing?.labelToCard ?? AppSpacing.labelToCard),
-          Text(
-            value, 
-            style: AppTypography.display.copyWith(
-              color: color,
-              fontSize: AppTypography.sizeHeadline, // Adjusted from 24 to 20 for density
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 }

@@ -72,7 +72,7 @@ class _BoxyArtRichFormFieldState extends State<BoxyArtRichFormField> {
           style: AppTypography.micro.copyWith(
             color: Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha: AppColors.opacityHigh),
             fontWeight: AppTypography.weightBold,
-            letterSpacing: 1.2,
+            letterSpacing: 1.0,
           ),
         ),
         SizedBox(height: Theme.of(context).extension<AppSpacingTokens>()?.labelToCard ?? AppSpacing.labelToCard),

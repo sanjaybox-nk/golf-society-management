@@ -1,14 +1,16 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:golf_society/design_system/design_system.dart';
 import 'package:golf_society/utils/string_utils.dart';
 import 'package:golf_society/features/events/domain/registration_logic.dart';
 
 /// A premium, unified row for displaying members across the application.
 /// Supports rankings, avatars, legend-style metadata, and trait badges.
-class BoxyArtMemberRow extends StatelessWidget {
+class BoxyArtMemberRow extends ConsumerWidget {
   final String name;
   final String? secondaryName;
   final String initials;
   final String? avatarUrl;
+  final List<String>? teamNames; // [NEW] For multi-line team display (Scramble/Pairs)
   
   // Leading element type
   final Widget? leading;
@@ -78,12 +80,15 @@ class BoxyArtMemberRow extends StatelessWidget {
     this.showVerticalDivider = true,
     this.accentColor,
     this.isStableford = true,
+    this.teamNames,
   });
 
   final bool hasSocietyCut;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final config = ref.watch(themeControllerProvider);
+    final pointsColor = Color(config.effectivePointsColor);
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final primary = theme.primaryColor;
@@ -174,20 +179,33 @@ class BoxyArtMemberRow extends StatelessWidget {
           else
             const SizedBox(width: AppSpacing.md),
 
-          // 2. Content
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(
-                  toTitleCase(name),
-                  style: AppTypography.memberName.copyWith(
-                    color: isDark ? AppColors.pureWhite : AppColors.dark900,
+                if (teamNames != null && teamNames!.isNotEmpty)
+                  ...teamNames!.map((tName) => Padding(
+                    padding: const EdgeInsets.only(bottom: 2),
+                    child: Text(
+                      toTitleCase(tName),
+                      style: AppTypography.memberName.copyWith(
+                        color: isDark ? AppColors.pureWhite : AppColors.dark900,
+                        fontSize: teamNames!.length > 2 ? 14 : 16,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ))
+                else
+                  Text(
+                    toTitleCase(name),
+                    style: AppTypography.memberName.copyWith(
+                      color: isDark ? AppColors.pureWhite : AppColors.dark900,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
                 const SizedBox(height: AppSpacing.xs),
                 _buildMetadata(context),
                 if (secondaryName != null)
@@ -197,7 +215,7 @@ class BoxyArtMemberRow extends StatelessWidget {
                       toTitleCase(secondaryName!),
                       style: AppTypography.micro.copyWith(
                         color: isDark ? AppColors.pureWhite : AppColors.dark900,
-                        fontWeight: FontWeight.w500, // w500
+                        fontWeight: FontWeight.w500,
                         letterSpacing: 0.1,
                       ),
                       maxLines: 1,
@@ -211,7 +229,7 @@ class BoxyArtMemberRow extends StatelessWidget {
           const SizedBox(width: AppSpacing.sm),
 
           // 3. Trailing
-          _buildTrailing(context),
+          _buildTrailing(context, pointsColor),
         ],
     );
 
@@ -219,9 +237,10 @@ class BoxyArtMemberRow extends StatelessWidget {
     final double horizontalPadding = spacing?.cardHorizontalPadding ?? AppSpacing.md;
     final double verticalPadding = spacing?.cardVerticalPadding ?? 12.0;
 
+    final rowContent = IntrinsicHeight(child: content);
+
     final cardContent = useCard
-        ? IntrinsicHeight(
-            child: Row(
+        ? Row(
               children: [
                 Container(
                   width: 4,
@@ -241,22 +260,18 @@ class BoxyArtMemberRow extends StatelessWidget {
                       top: verticalPadding,
                       bottom: verticalPadding,
                     ),
-                    child: content,
+                    child: rowContent,
                   ),
                 ),
               ],
-            ),
-          )
+            )
         : Padding(
             padding: EdgeInsets.symmetric(horizontal: horizontalPadding, vertical: verticalPadding),
-            child: content,
+            child: rowContent,
           );
 
     if (!useCard) {
-      return Padding(
-        padding: EdgeInsets.symmetric(horizontal: horizontalPadding, vertical: verticalPadding),
-        child: content,
-      );
+      return cardContent;
     }
 
     return BoxyArtCard(
@@ -322,25 +337,16 @@ class BoxyArtMemberRow extends StatelessWidget {
           runSpacing: 2,
           crossAxisAlignment: WrapCrossAlignment.center,
           children: [
-            // HC & PHC Unified Style
-            if (handicapIndex != null || playingHandicap != null)
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  if (handicapIndex != null)
-                    BoxyArtIndicator.hc(
-                      label: handicapIndex!.toStringAsFixed(1),
-                      hasHorizontalMargin: false,
-                    ),
-                  if (handicapIndex != null && playingHandicap != null)
-                    const SizedBox(width: AppSpacing.md),
-                  if (playingHandicap != null)
-                    BoxyArtIndicator.phc(
-                      context: context,
-                      label: '$playingHandicap${hasSocietyCut ? '*' : ''}',
-                      hasHorizontalMargin: false,
-                    ),
-                ],
+            if (handicapIndex != null)
+              BoxyArtIndicator.hc(
+                label: handicapIndex!.toStringAsFixed(1),
+                hasHorizontalMargin: false,
+              ),
+            if (playingHandicap != null)
+              BoxyArtIndicator.phc(
+                context: context,
+                label: '$playingHandicap${hasSocietyCut ? '*' : ''}',
+                hasHorizontalMargin: false,
               ),
             
             if (thruLabel != null)
@@ -366,10 +372,9 @@ class BoxyArtMemberRow extends StatelessWidget {
     );
   }
 
-  Widget _buildTrailing(BuildContext context) {
+  Widget _buildTrailing(BuildContext context, Color pointsColor) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final primaryColor = theme.colorScheme.primary;
     
     return Row(
       mainAxisSize: MainAxisSize.min,
@@ -390,15 +395,16 @@ class BoxyArtMemberRow extends StatelessWidget {
                 child: RichText(
                   text: TextSpan(
                     style: AppTypography.displaySection.copyWith(
-                      color: scoreColor ?? (isDark ? AppColors.pureWhite : AppColors.dark900),
+                      color: scoreColor ?? (isStableford ? pointsColor : (isDark ? AppColors.pureWhite : AppColors.dark900)),
                       height: 1.0,
                     ),
                     children: [
                       TextSpan(
                         text: score!,
                         style: AppTypography.displaySection.copyWith(
-                          color: scoreColor ?? (isDark ? AppColors.pureWhite : AppColors.dark900),
-                          fontSize: (score!.length > 5) ? 16 : 18,
+                          color: scoreColor ?? (isStableford ? pointsColor : (isDark ? AppColors.pureWhite : AppColors.dark900)),
+                          fontSize: isStableford ? 22 : ((score!.length > 5) ? 16 : 18),
+                          fontWeight: isStableford ? AppTypography.weightBlack : AppTypography.weightBold,
                           height: 1.0,
                         ),
                       ),
@@ -406,29 +412,28 @@ class BoxyArtMemberRow extends StatelessWidget {
                         TextSpan(
                           text: ' pts',
                           style: AppTypography.label.copyWith(
-                            fontSize: 12,
-                            fontWeight: AppTypography.weightMedium,
-                            color: (scoreColor ?? (isDark ? AppColors.pureWhite : AppColors.dark900)).withValues(alpha: AppColors.opacityMedium),
+                            fontSize: 13,
+                            fontWeight: AppTypography.weightExtraBold,
+                            color: (scoreColor ?? (isStableford ? pointsColor : (isDark ? AppColors.pureWhite : AppColors.dark900))).withValues(alpha: AppColors.opacityHigh),
                           ),
                         ),
                     ],
                   ),
                 ),
               ),
-              if (tieBreakLabel != null)
-                Text(
-                  tieBreakLabel!,
-                  textAlign: TextAlign.end,
-                  style: AppTypography.label.copyWith(
-                    fontSize: 10,
-                    fontWeight: AppTypography.weightBold,
-                    color: isDark ? AppColors.dark400 : AppColors.dark500,
+                if (tieBreakLabel != null)
+                  Text(
+                    tieBreakLabel!,
+                    textAlign: TextAlign.end,
+                    style: AppTypography.label.copyWith(
+                      fontSize: 10,
+                      fontWeight: AppTypography.weightBold,
+                      color: isDark ? AppColors.dark400 : AppColors.dark500,
+                    ),
                   ),
-                ),
             ],
           ),
         ],
-        
         
         if (showChevron) ...[
           const SizedBox(width: AppSpacing.sm),
@@ -442,16 +447,4 @@ class BoxyArtMemberRow extends StatelessWidget {
     );
   }
 
-  Widget _buildTraitBadge({required BuildContext context, required Widget child, Color? backgroundColor}) {
-    final primaryColor = Theme.of(context).colorScheme.primary;
-    return Padding(
-      padding: const EdgeInsets.only(left: 4),
-      child: BoxyArtSquareBadge(
-        size: 24,
-        isTinted: true,
-        backgroundColor: backgroundColor ?? primaryColor.withValues(alpha: 0.1),
-        child: child,
-      ),
-    );
-  }
 }

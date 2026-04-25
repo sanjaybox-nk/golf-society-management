@@ -30,6 +30,7 @@ abstract class BaseCompetitionControlState<T extends BaseCompetitionControl> ext
   String? selectedSeasonId;
   String name = '';
   bool _isSaving = false;
+  bool hasMatchPlayOverlay = false;
   
   // To be implemented by subclasses
   CompetitionFormat get format;
@@ -51,6 +52,10 @@ abstract class BaseCompetitionControlState<T extends BaseCompetitionControl> ext
       endDate = DateTime.now().add(const Duration(days: 1));
       // For new ones, we can use the format's default name
       name = CompetitionRules(format: format).gameName;
+    }
+    
+    if (c != null) {
+      hasMatchPlayOverlay = c.rules.hasMatchPlayOverlay;
     }
   }
 
@@ -189,7 +194,7 @@ abstract class BaseCompetitionControlState<T extends BaseCompetitionControl> ext
               style: AppTypography.micro.copyWith(
                 fontWeight: AppTypography.weightBold,
                 color: isDark ? AppColors.dark200 : AppColors.dark400,
-                letterSpacing: 1.2,
+                letterSpacing: 1.0,
               ),
             ),
             BoxyArtPill.format(
@@ -252,7 +257,7 @@ abstract class BaseCompetitionControlState<T extends BaseCompetitionControl> ext
               style: AppTypography.micro.copyWith(
                 fontWeight: AppTypography.weightBold,
                 color: isDark ? AppColors.dark200 : AppColors.dark400,
-                letterSpacing: 1.2,
+                letterSpacing: 1.0,
               ),
             ),
             BoxyArtPill.format(
@@ -318,7 +323,7 @@ abstract class BaseCompetitionControlState<T extends BaseCompetitionControl> ext
             style: AppTypography.micro.copyWith(
               fontWeight: AppTypography.weightBold,
               color: theme.colorScheme.primary,
-              letterSpacing: 1.2,
+              letterSpacing: 1.0,
             ),
           ),
         ),
@@ -330,6 +335,25 @@ abstract class BaseCompetitionControlState<T extends BaseCompetitionControl> ext
               fontWeight: isBold ? AppTypography.weightBold : AppTypography.weightRegular,
               color: theme.textTheme.bodyMedium?.color,
             ),
+          ),
+        ),
+      ],
+    );
+  }
+  
+  /// Standardised Match Play overlay toggle.
+  Widget buildOverlaySection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const BoxyArtSectionTitle(title: 'GAME FEATURES'),
+        BoxyArtCard(
+          padding: const EdgeInsets.all(AppSpacing.xl),
+          child: BoxyArtSwitchField(
+            label: 'Match Play Overlay',
+            subtitle: 'Adds a side-by-side "Match Result" to the leaderboard.',
+            value: hasMatchPlayOverlay,
+            onChanged: (val) => setState(() => hasMatchPlayOverlay = val),
           ),
         ),
       ],

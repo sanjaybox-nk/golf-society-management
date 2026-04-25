@@ -175,6 +175,9 @@ class _MaxScoreControlState extends BaseCompetitionControlState<MaxScoreControl>
             onChanged: (val) { if (val != null) setState(() => _teamBestXCount = val); },
           ),
         ),
+        
+        // ── OVERLAYS ──────────────────────────────────────────
+        buildOverlaySection(),
       ],
     );
   }

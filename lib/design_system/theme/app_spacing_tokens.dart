@@ -9,6 +9,7 @@ class AppSpacingTokens extends ThemeExtension<AppSpacingTokens> {
   final double cardVerticalPadding;
   final double cardHorizontalPadding;
   final double tabToContent;
+  final double groupFooterToLabel;
 
   const AppSpacingTokens({
     required this.labelToCard,
@@ -18,6 +19,7 @@ class AppSpacingTokens extends ThemeExtension<AppSpacingTokens> {
     required this.cardVerticalPadding,
     required this.cardHorizontalPadding,
     required this.tabToContent,
+    required this.groupFooterToLabel,
   });
 
   @override
@@ -29,6 +31,7 @@ class AppSpacingTokens extends ThemeExtension<AppSpacingTokens> {
     double? cardVerticalPadding,
     double? cardHorizontalPadding,
     double? tabToContent,
+    double? groupFooterToLabel,
   }) {
     return AppSpacingTokens(
       labelToCard: labelToCard ?? this.labelToCard,
@@ -38,6 +41,7 @@ class AppSpacingTokens extends ThemeExtension<AppSpacingTokens> {
       cardVerticalPadding: cardVerticalPadding ?? this.cardVerticalPadding,
       cardHorizontalPadding: cardHorizontalPadding ?? this.cardHorizontalPadding,
       tabToContent: tabToContent ?? this.tabToContent,
+      groupFooterToLabel: groupFooterToLabel ?? this.groupFooterToLabel,
     );
   }
 
@@ -54,6 +58,7 @@ class AppSpacingTokens extends ThemeExtension<AppSpacingTokens> {
       cardVerticalPadding: lerpDouble(cardVerticalPadding, otherTokens.cardVerticalPadding, t) ?? cardVerticalPadding,
       cardHorizontalPadding: lerpDouble(cardHorizontalPadding, otherTokens.cardHorizontalPadding, t) ?? cardHorizontalPadding,
       tabToContent: lerpDouble(tabToContent, otherTokens.tabToContent, t) ?? tabToContent,
+      groupFooterToLabel: lerpDouble(groupFooterToLabel, otherTokens.groupFooterToLabel, t) ?? groupFooterToLabel,
     );
   }
 }

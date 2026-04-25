@@ -204,6 +204,11 @@ class TournamentWizardNotifier extends Notifier<TournamentWizardState> {
      state = state.copyWith(draftMatches: generatedMatches);
   }
 
+  void propagateWinners(List<MatchDefinition> currentMatches) {
+    final nextRoundMatches = MatchPlayDrawService.propagateWinners(currentMatches);
+    state = state.copyWith(draftMatches: nextRoundMatches);
+  }
+
   MatchRoundType _getStartRound(int count) {
     if (count <= 2) return MatchRoundType.finalRound;
     if (count <= 4) return MatchRoundType.semiFinal;

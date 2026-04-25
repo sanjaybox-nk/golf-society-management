@@ -66,8 +66,8 @@ class CompetitionBuilderScreen extends ConsumerWidget {
     }
     
     if (subtype != null) {
-      // Default placeholder format for shell, pairs control will handle reality
-      return _buildScaffold(context, CompetitionFormat.matchPlay); 
+      // Default to stableford as base for specialized match play tournaments
+      return _buildScaffold(context, CompetitionFormat.stableford); 
     }
 
     return const HeadlessScaffold(title: 'Error', showBack: true, slivers: [SliverFillRemaining(child: Center(child: Text("Error: No data provided for competition builder.")))]);
@@ -114,14 +114,22 @@ class CompetitionBuilderScreen extends ConsumerWidget {
         subtype: activeSubtype!,
       ); 
     }
+
+    if (activeSubtype == CompetitionSubtype.matchPlaySeason || 
+        activeSubtype == CompetitionSubtype.ryderCup || 
+        activeSubtype == CompetitionSubtype.teamMatchPlay) {
+      return MatchPlayControl(
+        competition: compToUse,
+        competitionId: competitionId,
+        isTemplate: isTemplate,
+      );
+    }
     
     switch (format) {
       case CompetitionFormat.stableford:
         return StablefordControl(competition: compToUse, competitionId: competitionId, isTemplate: isTemplate);
       case CompetitionFormat.stroke:
         return StrokePlayControl(competition: compToUse, competitionId: competitionId, isTemplate: isTemplate);
-      case CompetitionFormat.matchPlay:
-        return MatchPlayControl(competition: compToUse, competitionId: competitionId, isTemplate: isTemplate);
       case CompetitionFormat.scramble:
         return ScrambleControl(competition: compToUse, competitionId: competitionId, isTemplate: isTemplate);
       case CompetitionFormat.maxScore:

@@ -1,8 +1,9 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:golf_society/domain/models/competition.dart';
 import 'package:golf_society/domain/models/course_config.dart';
 import 'package:golf_society/design_system/design_system.dart';
 
-class CourseInfoCard extends StatelessWidget {
+class CourseInfoCard extends ConsumerWidget {
   final dynamic courseConfig;
   final String? selectedTeeName;
   final String distanceUnit;
@@ -49,7 +50,10 @@ class CourseInfoCard extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final config = ref.watch(themeControllerProvider);
+    final pointsColor = Color(config.effectivePointsColor);
+
     // 1. Resolve Course Data
     final List<int> pars = holePars ?? (courseConfig is CourseConfig ? (courseConfig as CourseConfig).holes.map((h) => h.par).toList() : List.filled(18, 4));
     final List<int> sis = holeSIs ?? (courseConfig is CourseConfig ? (courseConfig as CourseConfig).holes.map((h) => h.si).toList() : List.generate(18, (i) => i + 1));
@@ -100,11 +104,11 @@ class CourseInfoCard extends StatelessWidget {
       child: Column(
         children: [
           _buildHeaderRow(context, 'Front 9'),
-          _buildNineHoles(context, 'Out', 1, pars, sis, dists, holeScores, holeNetScores, holePoints),
+          _buildNineHoles(context, 'Out', 1, pars, sis, dists, holeScores, holeNetScores, holePoints, pointsColor),
           const SizedBox(height: AppSpacing.sm),
           _buildHeaderRow(context, 'Back 9'),
-          _buildNineHoles(context, 'In', 10, pars, sis, dists, holeScores, holeNetScores, holePoints),
-          _buildTotalsFooter(context, totalStrokes, totalNetStrokes, totalPoints, totalPar, holesPlayed, toParDiff),
+          _buildNineHoles(context, 'In', 10, pars, sis, dists, holeScores, holeNetScores, holePoints, pointsColor),
+          _buildTotalsFooter(context, totalStrokes, totalNetStrokes, totalPoints, totalPar, holesPlayed, toParDiff, pointsColor),
         ],
       ),
     );
@@ -120,6 +124,7 @@ class CourseInfoCard extends StatelessWidget {
     List<int?>? scores,
     List<int?>? nets,
     List<int?>? points,
+    Color pointsColor,
   ) {
     final startIdx = startHole - 1;
     final ninePars = pars.skip(startIdx).take(9).toList();
@@ -226,10 +231,10 @@ class CourseInfoCard extends StatelessWidget {
     if (isStableford) {
       children.add(Row(
         children: [
-          _buildSideLabel(context, 'Pts'),
+          _buildSideLabel(context, 'Pts', color: pointsColor),
           for (int i = 0; i < 9; i++)
-            Expanded(child: _buildValueCell(context, ninePoints[i] != null || nineScores[i] != null ? (ninePoints[i]?.toString() ?? '-') : '-', isDimmed: true)),
-          _buildTotalCell(context, ninePoints.whereType<int>().fold<int>(0, (a, b) => a + b).toString(), isDimmed: true, isBold: true),
+            Expanded(child: _buildValueCell(context, ninePoints[i] != null || nineScores[i] != null ? (ninePoints[i]?.toString() ?? '-') : '-', fontWeight: AppTypography.weightBold, color: pointsColor)),
+          _buildTotalCell(context, ninePoints.whereType<int>().fold<int>(0, (a, b) => a + b).toString(), isBold: true, color: pointsColor),
         ],
       ));
       children.add(const Divider(height: 1));
@@ -257,7 +262,7 @@ class CourseInfoCard extends StatelessWidget {
     );
   }
 
-  Widget _buildTotalsFooter(BuildContext context, int strokes, int nets, int points, int par, int thru, int? toPar) {
+  Widget _buildTotalsFooter(BuildContext context, int strokes, int nets, int points, int par, int thru, int? toPar, Color pointsColor) {
     final toParColor = (toPar ?? 0) < 0 ? AppColors.coral500 : ((toPar ?? 0) > 0 ? AppColors.dark900 : AppColors.dark900);
     final toParString = toPar == null ? '-' : (toPar == 0 ? 'E' : (toPar > 0 ? '+$toPar' : '$toPar'));
 
@@ -271,7 +276,7 @@ class CourseInfoCard extends StatelessWidget {
         children: [
           _buildStatItem('Total', strokes.toString(), sub: 'Thru $thru'),
           if (isStableford)
-            _buildStatItem('Points', points.toString())
+            _buildStatItem('Points', points.toString(), isHero: true, color: pointsColor)
           else if (thru > 0) ...[
             if (isNet) _buildStatItem('Net', nets.toString()),
             _buildStatItem('To Par', toParString, color: toParColor),
@@ -370,15 +375,20 @@ class CourseInfoCard extends StatelessWidget {
     );
   }
 
-  Widget _buildStatItem(String label, String value, {String? sub, Color? color}) {
+  Widget _buildStatItem(String label, String value, {String? sub, Color? color, bool isHero = false}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: AppTypography.nano.copyWith(color: AppColors.dark900, fontWeight: FontWeight.bold, letterSpacing: 1.2)),
+        Text(label, style: AppTypography.nano.copyWith(color: AppColors.dark900, fontWeight: FontWeight.bold, letterSpacing: 1.0)),
         Row(
           crossAxisAlignment: CrossAxisAlignment.baseline, textBaseline: TextBaseline.alphabetic,
           children: [
-            Text(value, style: AppTypography.labelStrong.copyWith(fontSize: 16, color: color ?? AppColors.dark900)),
+            Text(
+              value, 
+              style: isHero 
+                  ? AppTypography.display.copyWith(fontSize: 24, color: color ?? AppColors.dark900)
+                  : AppTypography.labelStrong.copyWith(fontSize: 16, color: color ?? AppColors.dark900),
+            ),
             if (sub != null) ...[const SizedBox(width: 4), Text(sub, style: AppTypography.nano.copyWith(color: AppColors.dark400, fontSize: 8))],
           ],
         ),

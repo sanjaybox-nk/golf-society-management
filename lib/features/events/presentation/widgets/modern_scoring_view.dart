@@ -88,6 +88,7 @@ class ModernScoringView extends StatelessWidget {
               BoxyArtPill.type(
                 label: markingName,
                 icon: Icons.person_outline,
+                isLegend: true,
               ),
               const Spacer(),
               _buildTeePill(context, selectedTeeName ?? event.selectedTeeName ?? 'White'),
@@ -195,11 +196,13 @@ class ModernScoringView extends StatelessWidget {
                 children: [
                   BoxyArtPill.format(
                     label: 'STABLEFORD: $pts pts',
+                    isLegend: true,
                   ),
                   if (matchResult != null) ...[
                     const SizedBox(width: AppSpacing.md),
                     BoxyArtPill.format(
                       label: 'MATCH: $matchHoleStatus',
+                      isLegend: true,
                     ),
                   ],
                 ],

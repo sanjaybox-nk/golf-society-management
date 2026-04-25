@@ -150,6 +150,13 @@ class ThemeController extends Notifier<SocietyConfig> {
     await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
   }
 
+  Future<void> setPointsColor(Color color) async {
+    final hex = color.toARGB32();
+    final newConfig = state.copyWith(pointsColor: hex);
+    state = newConfig;
+    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
+  }
+
   Future<void> setBackgroundColor(Color color) async {
     final hex = color.toARGB32();
     final newConfig = state.copyWith(backgroundColor: hex);
@@ -335,6 +342,12 @@ class ThemeController extends Notifier<SocietyConfig> {
 
   Future<void> setTabToContentSpacing(double spacing) async {
     final newConfig = state.copyWith(tabToContentSpacing: spacing);
+    state = newConfig;
+    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
+  }
+
+  Future<void> setGroupFooterToLabelSpacing(double spacing) async {
+    final newConfig = state.copyWith(groupFooterToLabelSpacing: spacing);
     state = newConfig;
     await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
   }

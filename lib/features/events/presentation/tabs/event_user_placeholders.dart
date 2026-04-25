@@ -25,12 +25,8 @@ import '../../../competitions/presentation/competitions_provider.dart';
 // REDACTED: unused imports
 // REDACTED: unused imports
 import 'package:golf_society/services/persistence_service.dart';
-import '../../../matchplay/presentation/widgets/matches_list_widget.dart';
-import '../../../matchplay/presentation/widgets/matches_bracket_widget.dart';
-import '../../../matchplay/presentation/widgets/match_group_standings_widget.dart';
 import '../../../matchplay/presentation/widgets/match_play_bracket_hub.dart';
 import '../../../matchplay/domain/golf_event_match_extensions.dart';
-import '../../../matchplay/domain/match_definition.dart';
 import '../../logic/event_scoring_controller.dart';
 import '../../domain/models/processed_event_data.dart';
 
@@ -74,29 +70,14 @@ class EventGroupingUserTab extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final spacing = Theme.of(context).extension<AppSpacingTokens>();
-    final eventsAsync = ref.watch(eventsProvider);
+    final eventAsync = ref.watch(eventProvider(eventId));
     final membersAsync = ref.watch(allMembersProvider);
     final compAsync = ref.watch(competitionDetailProvider(eventId));
     final scorecardsAsync = ref.watch(scorecardsListProvider(eventId));
 
-    return eventsAsync.when(
-      data: (events) {
-        final event = events.firstWhereOrNull((e) => e.id == eventId);
-        if (event == null) {
-          return const HeadlessScaffold(
-            title: 'Not Found',
-            showBack: true,
-            slivers: [
-              SliverFillRemaining(
-                child: BoxyArtEmptyCard(
-                  title: 'Event Not Found',
-                  message: 'The requested event could not be located on the fairway.',
-                  icon: Icons.error_outline_rounded,
-                ),
-              ),
-            ],
-          );
-        }
+    return eventAsync.when(
+      data: (event) {
+        final List<GolfEvent> allEvents = []; // History will be empty if not in active season
         
         var effectiveEvent = event;
         
@@ -187,7 +168,7 @@ class EventGroupingUserTab extends ConsumerWidget {
                              final group = groups[index];
                              final members = membersAsync.value ?? [];
                              final memberMap = {for (var m in members) m.id: m};
-                            final history = events.where((e) => e.seasonId == event.seasonId && e.date.isBefore(event.date)).toList();
+                            final history = allEvents.where((e) => e.seasonId == event.seasonId && e.date.isBefore(event.date)).toList();
                             final comp = compAsync.value;
                             
                              final scoringData = ref.watch(eventScoringControllerProvider(eventId));
@@ -305,28 +286,12 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
   @override
   Widget build(BuildContext context) {
     final spacing = Theme.of(context).extension<AppSpacingTokens>();
-    final eventsAsync = ref.watch(eventsProvider);
+    final eventAsync = ref.watch(eventProvider(widget.eventId));
     final compAsync = ref.watch(competitionDetailProvider(widget.eventId));
     final scoringData = ref.watch(eventScoringControllerProvider(widget.eventId));
 
-    return eventsAsync.when(
-      data: (events) {
-        final event = events.firstWhereOrNull((e) => e.id == widget.eventId);
-        if (event == null) {
-          return const HeadlessScaffold(
-            title: 'Not Found',
-            showBack: true,
-            slivers: [
-              SliverFillRemaining(
-                child: BoxyArtEmptyState(
-                  title: 'Event Not Found',
-                  message: 'The requested event could not be located.',
-                  icon: Icons.error_outline_rounded,
-                ),
-              ),
-            ],
-          );
-        }
+    return eventAsync.when(
+      data: (event) {
 
         return compAsync.when(
           data: (comp) {
@@ -337,7 +302,22 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
             final markerSelection = ref.watch(markerSelectionProvider);
             final bool isSelfMarking = markerSelection.isSelfMarking;
             final String? targetEntryId = markerSelection.targetEntryId;
-            final String effectiveEntryId = isSelfMarking ? currentUser.id : (targetEntryId ?? currentUser.id);
+            String effectiveEntryId = isSelfMarking ? currentUser.id : (targetEntryId ?? currentUser.id);
+
+            // [NEW] Unified Team Scorecard Resolution
+            if (effectiveRules.isUnifiedTeamFormat) {
+               final groupData = event.grouping['groups'] as List?;
+               final myGroup = groupData?.firstWhereOrNull((g) => (g['players'] as List).any((p) => p['registrationMemberId'] == currentUser.id));
+               if (myGroup != null) {
+                  final players = myGroup['players'] as List;
+                  final teamSize = effectiveRules.teamSize;
+                  int playerIdx = players.indexWhere((p) => p['registrationMemberId'] == currentUser.id);
+                  int teamIdx = playerIdx ~/ teamSize;
+                  
+                  final teamPlayers = players.skip(teamIdx * teamSize).take(teamSize).toList();
+                  effectiveEntryId = teamPlayers.first['registrationMemberId'];
+               }
+            }
 
             final allScorecards = ref.watch(scorecardsListProvider(widget.eventId)).asData?.value ?? [];
             final userScorecard = allScorecards.firstWhereOrNull((s) => s.entryId == effectiveEntryId);
@@ -394,7 +374,7 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
 
             return HeadlessScaffold(
               title: event.title,
-              subtitle: 'My Event Card',
+              subtitle: effectiveRules.isUnifiedTeamFormat ? 'Team Scorecard' : 'My Event Card',
               showAdminShortcut: false, // Explicitly removed as per user preference
               showBack: true,
               onBack: () => context.go('/events'),
@@ -417,6 +397,8 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
                             label: headerBadgeText,
                             color: headerBadgeColor,
                             hasHorizontalMargin: false,
+                            isLegend: headerOnBadgeTap == null,
+                            isAction: headerOnBadgeTap != null,
                           ),
                     ),
                   ),
@@ -446,12 +428,58 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
               ],
             );
           },
-          loading: () => const Scaffold(body: Center(child: CircularProgressIndicator())),
-          error: (err, stack) => Scaffold(body: Center(child: Text('Error: $err'))),
+          loading: () => HeadlessScaffold(
+            title: event.title,
+            subtitle: 'Loading Scores...',
+            showBack: true,
+            onBack: () => context.go('/events'),
+            slivers: const [
+              SliverFillRemaining(
+                child: Center(child: CircularProgressIndicator()),
+              ),
+            ],
+          ),
+          error: (err, stack) => HeadlessScaffold(
+            title: event.title,
+            subtitle: 'Scores Error',
+            showBack: true,
+            onBack: () => context.go('/events'),
+            slivers: [
+              SliverFillRemaining(
+                child: BoxyArtEmptyState(
+                  title: 'Could not load scoring data',
+                  message: err.toString(),
+                  icon: Icons.error_outline_rounded,
+                ),
+              ),
+            ],
+          ),
         );
       },
-      loading: () => const Scaffold(body: Center(child: CircularProgressIndicator())),
-      error: (err, stack) => Scaffold(body: Center(child: Text('Error: $err'))),
+      loading: () => HeadlessScaffold(
+        title: 'Loading Event...',
+        showBack: true,
+        onBack: () => context.go('/events'),
+        slivers: const [
+          SliverFillRemaining(
+            child: Center(child: CircularProgressIndicator()),
+          ),
+        ],
+      ),
+      error: (err, stack) => HeadlessScaffold(
+        title: 'Event Error',
+        showBack: true,
+        onBack: () => context.go('/events'),
+        slivers: [
+          SliverFillRemaining(
+            child: BoxyArtEmptyState(
+              title: 'Could not load event',
+              message: err.toString(),
+              icon: Icons.error_outline_rounded,
+            ),
+          ),
+        ],
+      ),
     );
   }
   
@@ -502,7 +530,6 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
   Widget _buildTabContent(GolfEvent event, Competition? comp, List<LeaderboardEntry> mockEntries, CompetitionRules effectiveRules, ProcessedEventData? scoringData) {
     final config = ref.watch(themeControllerProvider);
     final currentUser = ref.watch(effectiveUserProvider);
-    final scorecardsAsync = ref.watch(scorecardsListProvider(event.id));
     final members = ref.watch(allMembersProvider).asData?.value ?? [];
     
     final currentFormat = comp?.rules.format ?? CompetitionFormat.stableford;
@@ -883,6 +910,8 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
 
     return Column(
       children: [
+        if (effectiveRules.isUnifiedTeamFormat)
+           _buildTeamMembersRow(context, event, effectiveRules),
         Padding(
           padding: EdgeInsets.only(bottom: Theme.of(context).extension<AppSpacingTokens>()?.labelToCard ?? AppSpacing.sm),
           child: Row(
@@ -1169,7 +1198,7 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
 
     BoxyArtBottomSheet.showPersistent(
       context: context,
-      title: 'Marker & Tee Selection',
+      title: 'Marker & Tee Selection'.toUpperCase(),
       child: Consumer(
         builder: (context, ref, _) {
           final markerSelection = ref.watch(markerSelectionProvider);
@@ -1185,9 +1214,9 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
                 child: Row(
                   children: [
                     Text(
-                      'Select Player To Mark',
+                      'Select Player To Mark'.toUpperCase(),
                       style: AppTypography.label.copyWith(
-                        color: Theme.of(context).colorScheme.primary,
+                        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: AppColors.opacityHigh),
                         fontWeight: AppTypography.weightHeavy,
                         letterSpacing: AppTypography.lsLabel,
                       ),
@@ -1196,62 +1225,77 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
                 ),
               ),
               
-              // Option 1: Myself
-              buildSelectionRow(
-                context, 
-                ref,
-                isSelected: isSelfMarking,
-                name: 'Myself (Me)',
-                entryId: currentUser.id,
-                tees: tees,
-                overrides: markerSelection.teeOverrides,
-                onSelect: () {
-                  ref.read(markerSelectionProvider.notifier).selectSelf();
-                  // Instead of immediate setState, let the Notifier propagate
-                  setState(() { _selectedMarkerTab = MarkerTab.verifier; });
-                },
-                defaultTeeName: event.selectedTeeName ?? 'White',
-              ),
-              
-              // Option 2: Group Members
-              ...groupPlayersRaw.where((p) {
-                 final pid = p['id'] ?? p['registrationMemberId'];
-                 final id = (p['isGuest'] == true || pid.toString().contains('_guest')) ? (pid.toString().contains('_guest') ? pid : '${pid}_guest') : pid;
-                 return id != currentUser.id;
-              }).map((p) {
-                 final pid = p['id'] ?? p['registrationMemberId'];
-                 final id = (p['isGuest'] == true || pid.toString().contains('_guest')) ? (pid.toString().contains('_guest') ? pid : '${pid}_guest') : pid;
-                 final name = p['name'] ?? 'Unknown';
-                 final isSelected = !isSelfMarking && targetEntryId == id;
-                  
-                 return buildSelectionRow(
-                   context,
-                   ref,
-                   isSelected: isSelected,
-                   name: name,
-                   entryId: id ?? '',
-                   tees: tees,
-                   overrides: markerSelection.teeOverrides,
-                   onSelect: () {
-                     if (id != null) {
-                       ref.read(markerSelectionProvider.notifier).selectTarget(id);
-                     }
-                   },
-                   defaultTeeName: event.selectedTeeName ?? 'White',
-                 );
-              }),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+                child: BoxyArtCard(
+                  padding: EdgeInsets.zero,
+                  child: Column(
+                    children: (() {
+                      final otherPlayers = groupPlayersRaw.where((p) {
+                        final pid = p['id'] ?? p['registrationMemberId'];
+                        final id = (p['isGuest'] == true || pid.toString().contains('_guest')) ? (pid.toString().contains('_guest') ? pid : '${pid}_guest') : pid;
+                        return id != currentUser.id;
+                      }).toList();
 
-              const SizedBox(height: AppSpacing.lg),
+                      return [
+                        // Option 1: Myself
+                        buildSelectionRow(
+                          context, 
+                          ref,
+                          isSelected: isSelfMarking,
+                          name: 'Myself (Me)',
+                          entryId: currentUser.id,
+                          tees: tees,
+                          overrides: markerSelection.teeOverrides,
+                          onSelect: () {
+                            ref.read(markerSelectionProvider.notifier).selectSelf();
+                            setState(() { _selectedMarkerTab = MarkerTab.verifier; });
+                          },
+                          defaultTeeName: event.selectedTeeName ?? 'White',
+                          showDivider: otherPlayers.isNotEmpty,
+                        ),
+                        
+                        // Option 2: Group Members
+                        ...otherPlayers.asMap().entries.map((entry) {
+                          final idx = entry.key;
+                          final p = entry.value;
+                          final pid = p['id'] ?? p['registrationMemberId'];
+                          final id = (p['isGuest'] == true || pid.toString().contains('_guest')) ? (pid.toString().contains('_guest') ? pid : '${pid}_guest') : pid;
+                          final name = p['name'] ?? 'Unknown';
+                          final isSelected = !isSelfMarking && targetEntryId == id;
+                           
+                          return buildSelectionRow(
+                            context,
+                            ref,
+                            isSelected: isSelected,
+                            name: name,
+                            entryId: id ?? '',
+                            tees: tees,
+                            overrides: markerSelection.teeOverrides,
+                            onSelect: () {
+                              if (id != null) {
+                                ref.read(markerSelectionProvider.notifier).selectTarget(id);
+                              }
+                            },
+                            defaultTeeName: event.selectedTeeName ?? 'White',
+                            showDivider: idx < otherPlayers.length - 1,
+                          );
+                        }),
+                      ];
+                    })(),
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: AppSpacing.xl),
               
               // Tip logic
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.x2l),
-                child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+                child: BoxyArtCard(
+                  backgroundColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.04),
+                  showShadow: false,
                   padding: const EdgeInsets.symmetric(vertical: AppSpacing.md, horizontal: AppSpacing.lg),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.04), // Design 4.x Soft Tint
-                    borderRadius: AppShapes.md,
-                  ),
                   child: Row(
                     children: [
                       Icon(
@@ -1415,13 +1459,14 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
     required Map<String, String> overrides,
     required VoidCallback onSelect,
     required String defaultTeeName,
+    bool showDivider = true,
   }) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.xs),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.xs),
+          child: Row(
             children: [
               // Left Col (Player)
               Expanded(
@@ -1489,9 +1534,15 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
               ),
             ],
           ),
-          Divider(height: 1, color: Theme.of(context).dividerColor.withValues(alpha: AppColors.opacityLow)),
-        ],
-      ),
+        ),
+        if (showDivider)
+          Divider(
+            height: 1, 
+            color: Theme.of(context).dividerColor.withValues(alpha: AppColors.opacityLow),
+            indent: AppSpacing.lg,
+            endIndent: AppSpacing.lg,
+          ),
+      ],
     );
   }
 
@@ -1618,7 +1669,77 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
     if (name.contains('purple')) return AppColors.teamB;
     return AppColors.dark600;
   }
-} // End of _EventScoresUserTabState
+
+  Widget _buildTeamMembersRow(BuildContext context, GolfEvent event, CompetitionRules rules) {
+    final members = ref.watch(allMembersProvider).value ?? [];
+    final currentUser = ref.watch(effectiveUserProvider);
+    final groupData = event.grouping['groups'] as List?;
+    final myGroup = groupData?.firstWhereOrNull((g) => (g['players'] as List).any((p) => p['registrationMemberId'] == currentUser.id));
+    
+    if (myGroup == null) return const SizedBox.shrink();
+
+    final players = myGroup['players'] as List;
+    final teamSize = rules.teamSize;
+    int playerIdx = players.indexWhere((p) => p['registrationMemberId'] == currentUser.id);
+    int teamIdx = playerIdx ~/ teamSize;
+    final teamPlayers = players.skip(teamIdx * teamSize).take(teamSize).toList();
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: AppSpacing.md),
+      padding: const EdgeInsets.all(AppSpacing.lg),
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
+        borderRadius: AppShapes.md,
+        border: Border.all(color: Theme.of(context).dividerColor.withValues(alpha: 0.1)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.group_outlined, size: 16, color: AppColors.lime500),
+              const SizedBox(width: AppSpacing.sm),
+              Text(
+                'TEAM MEMBERS'.toUpperCase(),
+                style: AppTypography.micro.copyWith(
+                  color: AppColors.textSecondary,
+                  letterSpacing: 1.0,
+                  fontWeight: AppTypography.weightBlack,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.md),
+          Wrap(
+            spacing: AppSpacing.sm,
+            runSpacing: AppSpacing.sm,
+            children: teamPlayers.map((p) {
+              final member = members.firstWhereOrNull((m) => m.id == p['registrationMemberId']);
+              return Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  BoxyArtAvatar(
+                    url: member?.avatarUrl,
+                    initials: p['name'],
+                    radius: 12,
+                  ),
+                  const SizedBox(width: AppSpacing.xs),
+                  Text(
+                    p['name'].toString().split(' ').first,
+                    style: AppTypography.label.copyWith(
+                      color: Theme.of(context).colorScheme.onSurface,
+                      fontWeight: AppTypography.weightBold,
+                    ),
+                  ),
+                ],
+              );
+            }).toList(),
+          ),
+        ],
+      ),
+    );
+  }
+}
 
 class EventStatsUserTab extends ConsumerWidget {
   final String eventId;
@@ -1626,16 +1747,12 @@ class EventStatsUserTab extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final eventsAsync = ref.watch(eventsProvider);
+    final eventAsync = ref.watch(eventProvider(eventId));
     final compAsync = ref.watch(competitionDetailProvider(eventId));
     final scorecardsAsync = ref.watch(scorecardsListProvider(eventId));
 
-    return eventsAsync.when(
-      data: (events) {
-        final event = events.firstWhereOrNull((e) => e.id == eventId);
-        if (event == null) {
-          return const Scaffold(body: Center(child: Text('Event not found')));
-        }
+    return eventAsync.when(
+      data: (event) {
         final user = ref.watch(effectiveUserProvider);
         final isStaff = user.role != MemberRole.member;
 
@@ -1646,14 +1763,6 @@ class EventStatsUserTab extends ConsumerWidget {
           showBack: true,
           onBack: () => context.go('/events'),
 
-          actions: [
-            if (isStaff)
-              BoxyArtGlassIconButton(
-                icon: Icons.edit_rounded,
-                tooltip: 'Manage Stats',
-                onPressed: () => context.push('/admin/events/manage/${event.id}/broadcast'), // Or dedicated stats edit if it exists
-              ),
-          ],
           slivers: [
             const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.xs)),
             SliverToBoxAdapter(
@@ -1726,7 +1835,7 @@ class _ScoresHubToggle extends ConsumerWidget {
 
     final tabs = <ModernFilterTab<int>>[
       const ModernFilterTab(label: 'Groups', value: 1, icon: Icons.groups_rounded),
-      const ModernFilterTab(label: 'Leaderboard', value: 2, icon: Icons.leaderboard_rounded),
+      const ModernFilterTab(label: 'Standings', value: 2, icon: Icons.leaderboard_rounded),
     ];
 
     return ModernUnderlinedFilterBar<int>(
@@ -1744,14 +1853,12 @@ class TournamentScoresUserTab extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final spacing = Theme.of(context).extension<AppSpacingTokens>();
-    final eventsAsync = ref.watch(eventsProvider);
+    final eventAsync = ref.watch(eventProvider(eventId));
     final compAsync = ref.watch(competitionDetailProvider(eventId));
     final currentTab = ref.watch(eventScoresHubTabProvider);
 
-    return eventsAsync.when(
-      data: (events) {
-        final event = events.firstWhereOrNull((e) => e.id == eventId);
-        if (event == null) return const Scaffold(body: Center(child: Text('Event not found')));
+    return eventAsync.when(
+      data: (event) {
 
         return compAsync.when(
           data: (comp) {
@@ -1774,11 +1881,13 @@ class TournamentScoresUserTab extends ConsumerWidget {
                     child: _ScoresHubToggle(event: event),
                   ),
                 ),
-                // Standardized rhythm (tabToContent)
-                SliverToBoxAdapter(child: SizedBox(height: spacing?.tabToContent ?? AppSpacing.tabToContent)),
                 
                 SliverPadding(
-                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+                  padding: EdgeInsets.only(
+                    left: AppSpacing.xl, 
+                    right: AppSpacing.xl,
+                    top: spacing?.tabToContent ?? AppSpacing.tabToContent,
+                  ),
                   sliver: SliverToBoxAdapter(
                     child: Builder(builder: (context) {
                       switch (activeTab) {
@@ -1873,6 +1982,7 @@ class SharedTournamentLogic {
     required CompetitionRules rules,
     required Map<String, int> playerHoleLimits,
     required Map<String, String> teeOverrides,
+    bool isAdmin = false,
     Function(TeeGroupParticipant p, TeeGroup g)? onTapParticipant,
   }) {
     final membersAsync = ref.watch(allMembersProvider);
@@ -1894,6 +2004,7 @@ class SharedTournamentLogic {
           members: membersAsync.value ?? [],
           playerHoleLimits: playerHoleLimits,
           teeOverrides: teeOverrides,
+          isAdmin: isAdmin,
           onTapParticipant: onTapParticipant,
         );
       },
@@ -1911,6 +2022,7 @@ class GroupScoresView extends ConsumerStatefulWidget {
   final List<Member> members;
   final Map<String, int> playerHoleLimits;
   final Map<String, String> teeOverrides;
+  final bool isAdmin;
   final Function(TeeGroupParticipant p, TeeGroup g)? onTapParticipant;
 
   const GroupScoresView({
@@ -1922,15 +2034,16 @@ class GroupScoresView extends ConsumerStatefulWidget {
     required this.members,
     required this.playerHoleLimits,
     required this.teeOverrides,
+    this.isAdmin = false,
     this.onTapParticipant,
   });
 
   @override
-  ConsumerState<GroupScoresView> createState() => GroupScoresViewState();
+  ConsumerState<GroupScoresView> createState() => _GroupScoresViewState();
 }
 
-class GroupScoresViewState extends ConsumerState<GroupScoresView> {
-  late List<GlobalKey> _cardKeys;
+class _GroupScoresViewState extends ConsumerState<GroupScoresView> {
+  List<GlobalKey> _cardKeys = [];
 
   @override
   void initState() {
@@ -2103,7 +2216,7 @@ class GroupScoresViewState extends ConsumerState<GroupScoresView> {
         }
     }
 
-    final isMatchPlay = widget.rules.format == CompetitionFormat.matchPlay;
+    final isMatchPlay = widget.rules.isMatchPlay;
 
     return Column(
       children: [
@@ -2111,11 +2224,6 @@ class GroupScoresViewState extends ConsumerState<GroupScoresView> {
           GroupingPodiumHeader(
             entries: podiumEntries,
             onTap: _scrollToGroup,
-          ),
-        if (!isMatchPlay)
-          BoxyArtSectionTitle(
-            title: 'Group Scores',
-            followsCard: true,
           ),
         ListView.builder(
           padding: EdgeInsets.zero,
@@ -2125,17 +2233,15 @@ class GroupScoresViewState extends ConsumerState<GroupScoresView> {
           itemBuilder: (context, index) {
             final group = widget.groups[index];
 
-            return Padding(
+            return GroupingCard(
               key: _cardKeys[index],
-              padding: const EdgeInsets.only(bottom: AppSpacing.md),
-              child: GroupingCard(
-                group: group,
-                memberMap: memberMapForAll,
-                history: const [], // TODO: Add history if needed
-                totalGroups: widget.groups.length,
-                rules: widget.rules,
-                courseConfig: widget.event.courseConfig,
-                isAdmin: false,
+              group: group,
+              memberMap: memberMapForAll,
+              history: const [], // TODO: Add history if needed
+              totalGroups: widget.groups.length,
+              rules: widget.rules,
+              courseConfig: widget.event.courseConfig,
+                isAdmin: widget.isAdmin,
                 isScoreMode: true,
                 scoreMap: scoreMap,
                 scorecardMap: {for (var s in widget.scorecards) s.entryId: s},
@@ -2145,7 +2251,7 @@ class GroupScoresViewState extends ConsumerState<GroupScoresView> {
                 thruMap: thruMap,
                 hcMap: hcMap,
                 statusMap: statusMap,
-                matchPlayMode: widget.rules.format == CompetitionFormat.matchPlay || widget.rules.subtype == CompetitionSubtype.fourball,
+                matchPlayMode: widget.rules.isMatchPlay || widget.rules.subtype == CompetitionSubtype.fourball,
                 matches: widget.event.matches,
                 betterBallMap: betterBallMap,
                 groupIndex: index,
@@ -2153,9 +2259,8 @@ class GroupScoresViewState extends ConsumerState<GroupScoresView> {
                 computedEntries: { for (var e in data.leaderboard) e.entryId : e },
                 computedGroupResults: { for (var g in data.groupRankings) g.groupIndex : g },
                 onTapParticipant: widget.onTapParticipant,
-              ),
-            );
-          },
+              );
+            },
         ),
       ],
     );

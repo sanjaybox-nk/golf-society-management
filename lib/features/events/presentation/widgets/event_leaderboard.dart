@@ -51,12 +51,12 @@ class _EventLeaderboardState extends ConsumerState<EventLeaderboard> {
 
     final memberMap = {for (final m in widget.membersList) m.id: m};
 
-    final isMatchPlay = currentFormat == CompetitionFormat.matchPlay || widget.event.matches.isNotEmpty;
+    final isMatchPlay = (widget.comp?.rules.isMatchPlay ?? false) || widget.event.matches.isNotEmpty;
     final isFourball = widget.comp?.rules.subtype == CompetitionSubtype.fourball || 
                        widget.event.matches.any((m) => m.type == MatchType.fourball);
 
     // 2. Map Processed Data to UI-friendly LeaderboardEntry
-    final List<LeaderboardEntry> finalEntries = data.leaderboard.map((e) {
+    final List<LeaderboardEntry> finalEntries = data.leaderboard.map<LeaderboardEntry>((e) {
       final String? playerId = e.teamMemberIds.firstOrNull;
       final member = playerId != null ? memberMap[playerId] : null;
 
@@ -73,9 +73,12 @@ class _EventLeaderboardState extends ConsumerState<EventLeaderboard> {
       String? matchStatus = e.matchStatus;
       int matchLead = e.matchScore ?? 0;
 
+      final isUnified = widget.comp?.rules.isUnifiedTeamFormat ?? false;
+      final String displayName = e.playerName;
+
       return LeaderboardEntry(
         entryId: e.entryId,
-        playerName: e.playerName,
+        playerName: displayName,
         score: isMatchPlay ? matchLead : e.score,
         scoreLabel: isMatchPlay ? matchStatus : e.scoreLabel,
         handicap: (e.handicapIndex ?? 0.0).round(),
@@ -84,6 +87,7 @@ class _EventLeaderboardState extends ConsumerState<EventLeaderboard> {
         holesPlayed: e.holesPlayed,
         isGuest: e.isGuest,
         hasGuest: hasGuest,
+        initials: isUnified ? (e.teamMemberNames.firstOrNull ?? displayName) : displayName,
         avatarUrl: member?.avatarUrl,
         hostName: hostName,
         hasSocietyCut: e.hasSocietyCut,
@@ -99,6 +103,8 @@ class _EventLeaderboardState extends ConsumerState<EventLeaderboard> {
         tieBreakDetails: e.tieBreakLabel,
         tieBreakMetrics: e.tieBreakMetrics,
         scoringStatus: e.scoringStatus,
+        mode: widget.comp?.rules.mode ?? CompetitionMode.singles,
+        isCaptain: isUnified,
       );
     }).toList();
 
@@ -123,7 +129,8 @@ class _EventLeaderboardState extends ConsumerState<EventLeaderboard> {
     }
 
     // 3. Handle Guest/Member Separation
-    final bool shouldSeparate = widget.event.separateGuests ?? (!widget.event.isInvitational);
+    final bool isUnified = widget.comp?.rules.isUnifiedTeamFormat ?? false;
+    final bool shouldSeparate = (widget.event.separateGuests ?? (!widget.event.isInvitational)) && !isUnified;
     
     if (!shouldSeparate) {
        return Column(
@@ -137,14 +144,15 @@ class _EventLeaderboardState extends ConsumerState<EventLeaderboard> {
             LeaderboardWidget(
                entries: finalEntries,
                format: currentFormat,
+               isMatchPlay: isMatchPlay,
                onPlayerTap: widget.onPlayerTap,
             ),
          ],
        );
     }
 
-    final guestEntries = _recalculatePositions(finalEntries.where((e) => e.isGuest).toList());
-    final memberEntries = _recalculatePositions(finalEntries.where((e) => !e.isGuest).toList());
+    final memberEntries = _recalculatePositions(finalEntries.where((e) => !e.isGuest && memberMap.containsKey(e.teamMemberIds?.firstOrNull ?? e.entryId)).toList());
+    final guestEntries = _recalculatePositions(finalEntries.where((e) => !memberEntries.any((me) => me.entryId == e.entryId)).toList());
     final bool hasGuests = guestEntries.isNotEmpty;
 
     return Column(
@@ -161,6 +169,7 @@ class _EventLeaderboardState extends ConsumerState<EventLeaderboard> {
           LeaderboardWidget(
             entries: memberEntries,
             format: currentFormat,
+            isMatchPlay: isMatchPlay,
             onPlayerTap: widget.onPlayerTap,
           ),
         ],
@@ -175,6 +184,7 @@ class _EventLeaderboardState extends ConsumerState<EventLeaderboard> {
           LeaderboardWidget(
             entries: guestEntries,
             format: currentFormat,
+            isMatchPlay: isMatchPlay,
             onPlayerTap: widget.onPlayerTap,
           ),
         ],

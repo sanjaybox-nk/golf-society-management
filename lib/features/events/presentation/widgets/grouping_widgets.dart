@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+import 'package:intl/intl.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:golf_society/design_system/design_system.dart';
 import 'package:golf_society/utils/string_utils.dart';
@@ -74,6 +75,7 @@ class GroupingPlayerTile extends ConsumerWidget {
   final Function(String action, TeeGroupParticipant p, TeeGroup g)? onAction;
   final VoidCallback? onTap;
   final bool isSelected;
+  final bool useCard;
   final bool hasGuest;
   final bool isScoreMode;
   final String? scoreDisplay;
@@ -102,6 +104,7 @@ class GroupingPlayerTile extends ConsumerWidget {
     this.onAction,
     this.onTap,
     this.isSelected = false,
+    this.useCard = true,
     this.hasGuest = false,
     this.isScoreMode = false,
     this.scoreDisplay,
@@ -151,7 +154,8 @@ class GroupingPlayerTile extends ConsumerWidget {
     final double cardHeight = vPadding * 4.5; // Standardized with Leaderboard
 
     // Score Text Formatting (v4.0 standardized)
-    final bool hasScore = isScoreMode && (scoreDisplay != null && scoreDisplay != '-');
+    final bool isScramble = rules?.format == CompetitionFormat.scramble;
+    final bool hasScore = isScoreMode && (scoreDisplay != null && scoreDisplay != '-') && !isScramble;
     final String rawScore = hasScore ? scoreDisplay! : '';
 
     return BoxyArtMemberRow(
@@ -175,7 +179,7 @@ class GroupingPlayerTile extends ConsumerWidget {
       scoreColor: null,
       onTap: onTap,
       isSelected: isSelected,
-      useCard: true,
+      useCard: useCard,
       showVerticalDivider: true,
       showChevron: false,
       accentColor: null,
@@ -389,6 +393,7 @@ class GroupingCard extends ConsumerWidget {
     final config = ref.watch(themeControllerProvider);
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final spacing = Theme.of(context).extension<AppSpacingTokens>();
+    final hPadding = (spacing?.cardHorizontalPadding ?? AppSpacing.lg) * 0.8;
 
     
     // 1. Calculate Total PHC dynamically
@@ -419,7 +424,7 @@ class GroupingCard extends ConsumerWidget {
     final isScramble = rules?.format == CompetitionFormat.scramble;
     final isFourball = rules?.subtype == CompetitionSubtype.fourball;
     final int bestX = rules?.teamBestXCount ?? 2;
-    final isMatchPlay = rules?.format == CompetitionFormat.matchPlay;
+    final isMatchPlay = rules?.isMatchPlay ?? false;
 
     // 2. Relative PHC Map for Match Play
     final Map<String, int> relativePhcMap = phcMap != null ? Map.from(phcMap!) : {};
@@ -467,8 +472,6 @@ class GroupingCard extends ConsumerWidget {
         ? computedGroupResults![groupIndex!] 
         : null;
     
-    int teamAScore = groupResult?.sideAScore ?? 0;
-    int teamBScore = groupResult?.sideBScore ?? 0;
     String? teamALabel = groupResult?.sideALabel;
     String? teamBLabel = groupResult?.sideBLabel;
     
@@ -511,30 +514,9 @@ class GroupingCard extends ConsumerWidget {
       }
     }
 
-    // 6. Group Total
-    int groupTotalCount = 0;
-    if (showScoring && isScoreMode && scoreMap != null) {
-      final List<int> groupTotalScores = [];
-      for (var p in group.players) {
-        final id = p.isGuest ? '${p.registrationMemberId}_guest' : p.registrationMemberId;
-        final s = scoreMap![id];
-        if (s != null && s != '-') {
-          final val = int.tryParse(s);
-          if (val != null) groupTotalScores.add(val);
-        }
-      }
-      if (groupTotalScores.isNotEmpty) {
-        if (bestX < groupTotalScores.length) {
-          groupTotalScores.sort((a, b) => b.compareTo(a));
-          groupTotalCount = groupTotalScores.take(bestX).fold(0, (sum, val) => sum + val);
-        } else {
-          groupTotalCount = groupTotalScores.fold(0, (sum, val) => sum + val);
-        }
-      }
-    }
 
     return Padding(
-      padding: EdgeInsets.only(bottom: spacing?.cardToLabel ?? AppSpacing.x2l),
+      padding: EdgeInsets.only(bottom: spacing?.groupFooterToLabel ?? AppSpacing.x2l),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -546,7 +528,7 @@ class GroupingCard extends ConsumerWidget {
                 style: AppTypography.displaySection.copyWith(
                   color: isDark ? AppColors.pureWhite : AppColors.dark900,
                   fontWeight: AppTypography.weightExtraBold,
-                  fontSize: AppTypography.sizeLargeBody,
+                  fontSize: AppTypography.sizeHeadline, // Increased from sizeLargeBody (18) to 22
                 ),
               ),
               BoxyArtPill(
@@ -558,9 +540,12 @@ class GroupingCard extends ConsumerWidget {
             ],
           ),
           SizedBox(height: spacing?.labelToCard ?? AppSpacing.md),
-          // 7. Render Players (Match Play aware reordering)
-          ...() {
-            Widget buildParticipantTile(TeeGroupParticipant p, String id, String? side) {
+          BoxyArtCard(
+            padding: EdgeInsets.zero,
+            child: Column(
+              children: [
+                ...() {
+                  Widget buildParticipantTile(TeeGroupParticipant p, String id, String? side, {bool useCard = false}) {
               final bool hasGuestInGroupP = !p.isGuest && group.players.any((other) => other.isGuest && other.registrationMemberId == p.registrationMemberId);
               
               return GroupingPlayerTile(
@@ -581,18 +566,44 @@ class GroupingCard extends ConsumerWidget {
                     : null,
                 isWinner: isScoreMode ? (internalWinnerMap[id] ?? false) : false,
                 thruLabel: isScoreMode ? (thruMap != null ? thruMap![id] : null) : null,
+                tieBreakLabel: isScoreMode ? (tieBreakMap != null ? tieBreakMap![id] : null) : null,
                 handicapIndex: hcMap != null ? hcMap![id] : null,
                 scoringStatus: (statusMap != null ? statusMap![id] : null) ?? ScoringStatus.ok,
                 onTap: () => onTapParticipant?.call(p, group),
                 hasSocietyCut: p.hasSocietyCut,
                 hasGuestInGroup: hasGuestInGroupP,
                 matchSide: side,
-                phcOverride: isScoreMode ? relativePhcMap[id] : null,
+                useCard: useCard,
+                phcOverride: (isScramble || rules?.subtype == CompetitionSubtype.foursomes) 
+                    ? displayTotalHandicap.toInt() 
+                    : (isScoreMode ? relativePhcMap[id] : null),
               );
             }
 
             final List<Widget> children = [];
             final List<TeeGroupParticipant> players = List.from(group.players);
+
+            // [NEW] Unified Team Format Check (Scramble, Fourball, etc)
+            if (rules?.isUnifiedTeamFormat == true) {
+              return players.asMap().entries.map((entry) {
+                final p = entry.value;
+                final id = p.isGuest ? '${p.registrationMemberId}_guest' : p.registrationMemberId;
+                final isLast = entry.key == players.length - 1;
+
+                return Column(
+                  children: [
+                    buildParticipantTile(p, id, null, useCard: false),
+                    if (!isLast)
+                      Divider(
+                        height: 1,
+                        indent: hPadding,
+                        endIndent: hPadding,
+                        color: Theme.of(context).dividerColor.withValues(alpha: 0.1),
+                      ),
+                  ],
+                );
+              }).toList();
+            }
             
             // Reordering and Vertical Rhythm for Match Play (v4.x)
             if (config.showMatchPlayOverlay && (isMatchPlay || matchPlayMode || matches.isNotEmpty)) {
@@ -600,8 +611,7 @@ class GroupingCard extends ConsumerWidget {
               int matchIndex = 1;
               
               // 1. Render Defined Matches
-              for (final match in (matches ?? [])) {
-                final allMatchIds = [...match.team1Ids, ...match.team2Ids];
+              for (final match in matches) {
                 final List<TeeGroupParticipant> sideA = [];
                 final List<TeeGroupParticipant> sideB = [];
 
@@ -638,7 +648,13 @@ class GroupingCard extends ConsumerWidget {
                     processedIds.add(id);
                     final tile = buildParticipantTile(p, id, 'A');
                     children.add(isAdmin ? _wrapWithDraggable(context, p, tile) : tile);
-                    if (p != sideA.last) children.add(const SizedBox(height: 8));
+                    if (p != sideA.last)
+                      children.add(Divider(
+                        height: 1,
+                        indent: hPadding,
+                        endIndent: hPadding,
+                        color: Theme.of(context).dividerColor.withValues(alpha: 0.1),
+                      ));
                   }
 
                   // Add "v" Separator
@@ -666,7 +682,13 @@ class GroupingCard extends ConsumerWidget {
                     processedIds.add(id);
                     final tile = buildParticipantTile(p, id, 'B');
                     children.add(isAdmin ? _wrapWithDraggable(context, p, tile) : tile);
-                    if (p != sideB.last) children.add(const SizedBox(height: 8));
+                    if (p != sideB.last)
+                      children.add(Divider(
+                        height: 1,
+                        indent: hPadding,
+                        endIndent: hPadding,
+                        color: Theme.of(context).dividerColor.withValues(alpha: 0.1),
+                      ));
                   }
 
                   matchIndex++;
@@ -702,16 +724,22 @@ class GroupingCard extends ConsumerWidget {
                   isAdmin: isAdmin,
                   isSelected: isSelected?.call(p) ?? false,
                   onAction: onAction,
+                  isScoreMode: isScoreMode,
                   scoreDisplay: isScoreMode 
                       ? (playerMatchResults[id]?.status ?? (scoreMap != null ? scoreMap![id] : null)) 
                       : null,
                   isWinner: isScoreMode ? (internalWinnerMap[id] ?? false) : false,
                   thruLabel: isScoreMode ? (thruMap != null ? thruMap![id] : null) : null,
+                  tieBreakLabel: isScoreMode ? (tieBreakMap != null ? tieBreakMap![id] : null) : null,
                   handicapIndex: hcMap?[id],
                   scoringStatus: statusMap?[id] ?? ScoringStatus.ok,
                   onTap: () => onTapParticipant?.call(p, group),
                   hasSocietyCut: p.hasSocietyCut,
                   hasGuestInGroup: !p.isGuest && group.players.any((other) => other.isGuest && other.registrationMemberId == p.registrationMemberId),
+                  useCard: false,
+                  phcOverride: (isScramble || rules?.subtype == CompetitionSubtype.foursomes)
+                      ? displayTotalHandicap.toInt()
+                      : (isScoreMode ? relativePhcMap[id] : null),
                 );
 
                 Widget playerWidget = isAdmin ? _wrapWithDraggable(context, p, baseTile) : baseTile;
@@ -766,22 +794,43 @@ class GroupingCard extends ConsumerWidget {
                 } else {
                   children.add(Column(mainAxisSize: MainAxisSize.min, children: [
                     playerWidget,
-                    if (index != group.players.length - 1) SizedBox(height: spacing?.labelToCard ?? AppSpacing.md),
+                    if (index != group.players.length - 1)
+                      Divider(
+                        height: 1,
+                        indent: hPadding,
+                        endIndent: hPadding,
+                        color: Theme.of(context).dividerColor.withValues(alpha: 0.1),
+                      ),
                   ]));
                 }
               }
             }
             return children;
           }(),
+              ],
+            ),
+          ),
           if (isAdmin && group.players.length < 4) emptySlotBuilder?.call(group) ?? const SizedBox.shrink(),
           SizedBox(height: spacing?.cardToCard ?? AppSpacing.md),
           Padding(
             padding: EdgeInsets.zero,
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.end, // Align PHC to the right
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
+                if (showScoring && isScoreMode && groupResult != null && !isMatchPlay)
+                  Text(
+                    isScramble 
+                        ? 'Team Total: ${groupResult.label}'
+                        : 'Group Total (Best $bestX): ${groupResult.label}',
+                    style: AppTypography.label.copyWith(
+                      color: isDark ? AppColors.pureWhite : AppColors.dark900,
+                      fontWeight: AppTypography.weightExtraBold,
+                      fontSize: 12,
+                    ),
+                  ),
+                const Spacer(),
                 if (isFourball)
-                  Text(rules?.format == CompetitionFormat.matchPlay ? 'Match Play (Rel)' : 'Fourball (Pairs)', style: AppTypography.label.copyWith(color: isDark ? AppColors.dark100 : AppColors.dark900, fontWeight: AppTypography.weightBold, fontSize: 12, letterSpacing: -0.2))
+                  Text(rules?.isMatchPlay == true ? 'Match Play (Rel)' : 'Fourball (Pairs)', style: AppTypography.label.copyWith(color: isDark ? AppColors.dark100 : AppColors.dark900, fontWeight: AppTypography.weightBold, fontSize: 12, letterSpacing: -0.2))
                 else if (isScramble)
                   BoxyArtPill.phc(context: context, label: 'Team: ${displayTotalHandicap.toInt()}', hasHorizontalMargin: false)
                 else
@@ -797,7 +846,7 @@ class GroupingCard extends ConsumerWidget {
 
 
   String _formatTime(BuildContext context, DateTime time) {
-    return TimeOfDay.fromDateTime(time).format(context);
+    return DateFormat.Hm().format(time);
   }
 
   Widget _wrapWithDraggable(
@@ -903,11 +952,14 @@ class GroupingPodiumHeader extends ConsumerWidget {
     if (entries.isEmpty) return const SizedBox.shrink();
 
     return Container(
-      padding: EdgeInsets.only(bottom: Theme.of(context).extension<AppSpacingTokens>()?.labelToCard ?? AppSpacing.lg),
+      padding: EdgeInsets.only(bottom: Theme.of(context).extension<AppSpacingTokens>()?.groupFooterToLabel ?? AppSpacing.x2l),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const BoxyArtSectionTitle(title: 'Top Results'),
+          const BoxyArtSectionTitle(
+            title: 'Group Results',
+            topPadding: 0,
+          ),
           Row(
             children: entries.asMap().entries.map((item) {
               final idx = item.key;
@@ -918,7 +970,7 @@ class GroupingPodiumHeader extends ConsumerWidget {
                     left: idx == 0 ? 0 : 4,
                     right: idx == entries.length - 1 ? 0 : 4,
                   ),
-                  child: _buildPodiumCard(context, entry),
+                  child: _buildPodiumCard(context, ref, entry),
                 ),
               );
             }).toList(),
@@ -928,7 +980,7 @@ class GroupingPodiumHeader extends ConsumerWidget {
     );
   }
 
-  Widget _buildPodiumCard(BuildContext context, PodiumEntry entry) {
+  Widget _buildPodiumCard(BuildContext context, WidgetRef ref, PodiumEntry entry) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final bool isFirst = entry.rank == 1;
 
@@ -943,37 +995,15 @@ class GroupingPodiumHeader extends ConsumerWidget {
         padding: EdgeInsets.zero,
         showShadow: false,
         border: Border.all(
-          color: isFirst 
-              ? AppColors.amber500.withValues(alpha: 0.3) 
-              : (isDark ? AppColors.dark500 : AppColors.lightBorder), 
+          color: isDark ? AppColors.dark500 : AppColors.lightBorder, 
           width: AppShapes.borderThin,
         ),
         backgroundColor: isDark ? AppColors.dark150 : AppColors.pureWhite,
-        child: IntrinsicHeight(
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
+        child: Padding(
+          padding: const EdgeInsets.all(AppSpacing.lg), // Increased from md
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              // 1. Ranking Accent (Left)
-              Container(
-                width: 1.5,
-                margin: const EdgeInsets.symmetric(vertical: 0),
-                decoration: BoxDecoration(
-                  color: rankColor,
-                  borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(AppShapes.rMd),
-                    bottomLeft: Radius.circular(AppShapes.rMd),
-                  ),
-                ),
-              ),
-              const SizedBox(width: AppSpacing.md),
-              
-              // 2. Content
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.all(AppSpacing.lg), // Increased from md
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
@@ -995,7 +1025,7 @@ class GroupingPodiumHeader extends ConsumerWidget {
                         textAlign: TextAlign.center,
                         style: AppTypography.caption.copyWith(
                           fontWeight: AppTypography.weightExtraBold,
-                          fontSize: 13,
+                          fontSize: 16, // Increased from 13
                           color: isDark ? AppColors.dark150 : AppColors.dark400,
                         ),
                         maxLines: 1,
@@ -1005,44 +1035,37 @@ class GroupingPodiumHeader extends ConsumerWidget {
                       FittedBox(
                         fit: BoxFit.scaleDown,
                         alignment: Alignment.center,
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.baseline,
-                          textBaseline: TextBaseline.alphabetic,
+                        child: Column(
                           children: [
-                            if (entry.tieBreakLabel != null)
-                              Padding(
-                                padding: const EdgeInsets.only(right: 6),
-                                child: Text(
-                                  entry.tieBreakLabel!,
-                                  style: AppTypography.label.copyWith(
-                                    fontSize: 10,
-                                    fontWeight: AppTypography.weightBold,
-                                    color: isDark ? AppColors.dark400 : AppColors.dark500,
-                                  ),
-                                ),
-                              ),
                             Text(
                               entry.score,
                               style: AppTypography.displaySection.copyWith(
                                 fontFamily: 'Plus Jakarta Sans',
                                 fontSize: 22,
                                 height: 1.1,
-                                fontWeight: AppTypography.weightExtraBold,
+                                fontWeight: AppTypography.weightBlack,
                                 letterSpacing: -0.5,
-                                color: isDark ? AppColors.pureWhite : AppColors.dark900,
+                                color: Color(ref.watch(themeControllerProvider).effectivePointsColor),
                               ),
                             ),
+                            if (entry.tieBreakLabel != null)
+                              Padding(
+                                padding: const EdgeInsets.only(top: 2),
+                                child: Text(
+                                  entry.tieBreakLabel!,
+                                  style: AppTypography.micro.copyWith(
+                                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                    fontWeight: AppTypography.weightBold,
+                                    letterSpacing: 1.0,
+                                  ),
+                                ),
+                              ),
                           ],
                         ),
                       ),
                     ],
                   ),
-                ),
-              ),
-            ],
           ),
-        ),
       ),
     );
   }

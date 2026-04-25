@@ -1,12 +1,9 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:golf_society/design_system/design_system.dart';
-import 'package:go_router/go_router.dart';
 import 'package:collection/collection.dart';
 import 'package:golf_society/domain/models/golf_event.dart';
 import 'package:golf_society/domain/models/scorecard.dart';
 import 'package:golf_society/domain/models/competition.dart';
-import 'package:golf_society/domain/models/leaderboard_standing.dart';
 import 'package:golf_society/domain/models/member.dart';
 import '../../../events/presentation/events_provider.dart';
 import '../../../members/presentation/members_provider.dart';
@@ -16,6 +13,7 @@ import '../../../events/logic/event_scoring_controller.dart';
 import '../../../events/presentation/widgets/event_leaderboard.dart';
 import '../../../events/presentation/widgets/scorecard_modal.dart';
 import '../../../matchplay/presentation/widgets/match_play_bracket_hub.dart';
+import '../../../events/domain/registration_logic.dart';
 import '../../../events/presentation/tabs/event_user_placeholders.dart'; // [NEW] For shared GroupScoresView logic
 
 class EventAdminScoresScreen extends ConsumerStatefulWidget {
@@ -28,7 +26,7 @@ class EventAdminScoresScreen extends ConsumerStatefulWidget {
 }
 
 class _EventAdminScoresScreenState extends ConsumerState<EventAdminScoresScreen> {
-  int _selectedTab = 0;
+  int _selectedTab = 3;
 
   @override
   Widget build(BuildContext context) {
@@ -44,9 +42,10 @@ class _EventAdminScoresScreenState extends ConsumerState<EventAdminScoresScreen>
         final membersAsync = ref.watch(allMembersProvider);
 
         // Determining if it is a match play event - check both template and competition rules
-        final isMatchPlay = event.secondaryTemplateId == 'matchplay' || 
-                           event.groupingStrategy == 'matchplay' ||
-                           compAsync.value?.rules.format == CompetitionFormat.matchPlay;
+        final bool isMatchPlay = (compAsync.value?.rules.isMatchPlay ?? false) || 
+                           event.secondaryTemplateId == 'matchplay' || 
+                           event.groupingStrategy == 'matchplay';
+        final bool isTournamentStyle = compAsync.value?.rules.isTournamentStyleGrouping ?? false;
 
         final spacing = Theme.of(context).extension<AppSpacingTokens>();
         final config = ref.watch(themeControllerProvider);
@@ -62,18 +61,18 @@ class _EventAdminScoresScreenState extends ConsumerState<EventAdminScoresScreen>
               sliver: SliverToBoxAdapter(
                 child: ModernUnderlinedFilterBar<int>(
                   selectedValue: _selectedTab,
-                  isExpanded: false,
+                  isExpanded: true,
                   onTabSelected: (val) => setState(() => _selectedTab = val),
-                  tabs: isMatchPlay && config.showMatchPlayOverlay
+                  tabs: isTournamentStyle
                     ? [
-                        const ModernFilterTab(label: 'Leaderboard', value: 0, icon: Icons.leaderboard_rounded),
                         const ModernFilterTab(label: 'Groups', value: 3, icon: Icons.groups_rounded),
+                        const ModernFilterTab(label: 'Standings', value: 0, icon: Icons.leaderboard_rounded),
                         const ModernFilterTab(label: 'Bracket', value: 2, icon: Icons.account_tree_rounded),
                         const ModernFilterTab(label: 'Verify', value: 1, icon: Icons.verified_user_rounded),
                       ]
                     : [
-                        const ModernFilterTab(label: 'Leaderboard', value: 0, icon: Icons.leaderboard_rounded),
                         const ModernFilterTab(label: 'Groups', value: 3, icon: Icons.groups_rounded),
+                        const ModernFilterTab(label: 'Standings', value: 0, icon: Icons.leaderboard_rounded),
                         const ModernFilterTab(label: 'Verify', value: 1, icon: Icons.verified_user_rounded),
                       ],
                 ),
@@ -118,7 +117,7 @@ class _EventAdminScoresScreenState extends ConsumerState<EventAdminScoresScreen>
         padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
         sliver: SliverToBoxAdapter(
           child: BoxyArtSectionTitle(
-            title: isMatchPlay ? 'MATCH LEADERBOARD' : 'LIVE LEADERBOARD', 
+            title: isMatchPlay ? 'MATCH STANDINGS' : 'LIVE STANDINGS', 
             topPadding: 0,
           ),
         ),
@@ -158,7 +157,7 @@ class _EventAdminScoresScreenState extends ConsumerState<EventAdminScoresScreen>
     return [
       const SliverPadding(
         padding: EdgeInsets.symmetric(horizontal: AppSpacing.xl),
-        sliver: SliverToBoxAdapter(child: BoxyArtSectionTitle(title: 'TOURNAMENT BRACKET', topPadding: 0)),
+        sliver: const SliverToBoxAdapter(child: BoxyArtSectionTitle(title: 'TOURNAMENT BRACKET')),
       ),
       SliverFillRemaining(
         hasScrollBody: true,
@@ -186,6 +185,7 @@ class _EventAdminScoresScreenState extends ConsumerState<EventAdminScoresScreen>
             rules: comp?.rules ?? const CompetitionRules(),
             playerHoleLimits: const {},
             teeOverrides: const {}, // Admin views typically don't need personal tee overrides
+            isAdmin: true,
             onTapParticipant: (p, g) {
               final scoringData = ref.read(eventScoringControllerProvider(event.id));
               final entryId = p.isGuest ? '${p.registrationMemberId}_guest' : p.registrationMemberId;
@@ -241,27 +241,34 @@ class _EventAdminScoresScreenState extends ConsumerState<EventAdminScoresScreen>
     final membersAsync = ref.read(allMembersProvider);
     return scorecardsAsync.when(
       data: (scorecards) {
-        final totalGolfers = event.registrations.where((r) => r.attendingGolf).length;
+        final totalGolfers = RegistrationLogic.getSortedItems(event).length;
+        
         final submitted = scorecards.where((s) => s.status == ScorecardStatus.submitted).toList();
         final reviewed = scorecards.where((s) => s.status == ScorecardStatus.reviewed || s.status == ScorecardStatus.finalScore).toList();
         final incomplete = scorecards.where((s) => 
           s.scoringStatus == ScoringStatus.incomplete || 
           (s.holeScores.contains(null) && s.scoringStatus == ScoringStatus.ok)
         ).toList();
-        
         final outliers = scorecards.where((s) => s.scoringStatus != ScoringStatus.ok).toList();
+
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const BoxyArtSectionTitle(title: 'Summary', isPeeking: true),
+            const BoxyArtSectionTitle(title: 'Summary'),
             Row(
               children: [
-                Expanded(child: _buildStatMiniCard('Pending', '${submitted.length}', AppColors.amber500)),
+                Expanded(child: _buildStatMiniCard('Pending', '${submitted.length}', Theme.of(context).colorScheme.onSurface)),
                 const SizedBox(width: AppSpacing.md),
-                Expanded(child: _buildStatMiniCard('Incomplete', '${incomplete.length}', AppColors.coral500)),
+                Expanded(child: _buildStatMiniCard('Incomplete', '${incomplete.length}', Theme.of(context).colorScheme.onSurface)),
                 const SizedBox(width: AppSpacing.md),
-                Expanded(child: _buildStatMiniCard('Reviewed', '${reviewed.length} / $totalGolfers', AppColors.lime500)),
+                Expanded(
+                  child: _buildStatMiniCard(
+                    'Reviewed', 
+                    '${reviewed.length} / $totalGolfers', 
+                    Theme.of(context).colorScheme.onSurface,
+                  )
+                ),
               ],
             ),
             const SizedBox(height: AppSpacing.xl),
@@ -288,7 +295,7 @@ class _EventAdminScoresScreenState extends ConsumerState<EventAdminScoresScreen>
             ],
 
             if (incomplete.isNotEmpty || outliers.isNotEmpty) ...[
-              const BoxyArtSectionTitle(title: 'Issues to resolve', isPeeking: true),
+              const BoxyArtSectionTitle(title: 'Issues to resolve'),
               ...[...incomplete, ...outliers].map((s) {
                  final reg = event.registrations.firstWhereOrNull((r) => r.memberId == s.entryId);
                  return Padding(
@@ -333,14 +340,40 @@ class _EventAdminScoresScreenState extends ConsumerState<EventAdminScoresScreen>
     );
   }
 
-  Widget _buildStatMiniCard(String label, String value, Color color) {
+  Widget _buildStatMiniCard(String label, String value, Color color, {String? subtitle}) {
     return BoxyArtCard(
-      padding: const EdgeInsets.all(AppSpacing.md),
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg, horizontal: AppSpacing.md),
       child: Column(
         children: [
-          Text(label, style: AppTypography.micro.copyWith(color: AppColors.textSecondary, fontWeight: AppTypography.weightBold)),
-          const SizedBox(height: AppSpacing.xs),
-          Text(value, style: AppTypography.headline.copyWith(color: color)),
+          Text(
+            label.toUpperCase(),
+            style: AppTypography.micro.copyWith(
+              color: AppColors.dark400,
+              fontWeight: AppTypography.weightBold,
+              letterSpacing: 1.2,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          Text(
+            value,
+            style: AppTypography.headline.copyWith(
+              color: color,
+              fontWeight: AppTypography.weightBlack,
+              height: 1.0,
+            ),
+          ),
+          if (subtitle != null) ...[
+            const SizedBox(height: AppSpacing.xs),
+            Text(
+              subtitle,
+              style: AppTypography.caption.copyWith(
+                color: AppColors.dark300,
+                fontSize: 8,
+                fontStyle: FontStyle.italic,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
         ],
       ),
     );
