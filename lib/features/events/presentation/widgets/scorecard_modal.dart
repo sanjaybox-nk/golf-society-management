@@ -14,6 +14,7 @@ import '../../../matchplay/domain/match_definition.dart';
 import 'course_info_card.dart';
 import '../../../competitions/data/scorecard_repository.dart';
 import '../../../competitions/presentation/competitions_provider.dart';
+import '../../../members/presentation/profile_provider.dart';
 
 
 class ScorecardModal {
