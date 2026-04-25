@@ -303,7 +303,12 @@ class _HoleByHoleScoringWidgetState extends ConsumerState<HoleByHoleScoringWidge
     }
 
     final int currentScore = (widget.selectedTab == MarkerTab.player ? _localScores : _verifierScores)[currentHoleNum] ?? par;
-    final bool isReadOnly = !widget.isAdmin && (widget.event.isScoringLocked == true || widget.event.status == EventStatus.completed);
+    final currentUserId = ref.watch(effectiveUserProvider).id;
+    final activeMarkerId = widget.targetScorecard?.markerId ?? widget.targetScorecard?.submittedByUserId;
+    
+    // [NEW] Marker Lock logic: If it's a team/multiple entry card, only the active marker (or admin) can edit.
+    final bool isNotMarker = activeMarkerId != null && activeMarkerId != 'system' && activeMarkerId != currentUserId;
+    final bool isReadOnly = !widget.isAdmin && (widget.event.isScoringLocked == true || widget.event.status == EventStatus.completed || isNotMarker);
 
     return Column(
       children: [

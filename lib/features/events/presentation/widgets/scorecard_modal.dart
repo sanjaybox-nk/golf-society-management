@@ -168,6 +168,12 @@ class ScorecardModal {
     String focusedPlayerId = (entry.teamMemberIds != null && entry.teamMemberIds!.isNotEmpty)
         ? entry.teamMemberIds!.first
         : entry.entryId;
+    
+    // [NEW] Resolve authoritative marker from scorecard
+    String? activeMarkerId = actualScorecard.markerId ?? actualScorecard.submittedByUserId;
+    if (activeMarkerId == 'system') activeMarkerId = null;
+
+    final currentUserId = ref.read(effectiveUserProvider).id;
 
     showModalBottomSheet(
       context: context,
@@ -294,10 +300,31 @@ class ScorecardModal {
                                         final idx = e.key;
                                         final name = e.value;
                                         final id = entry.teamMemberIds![idx];
+                                        
+                                        final isMarker = activeMarkerId == id;
+                                        final isMe = currentUserId == id;
+                                        final isFocused = focusedPlayerId == id;
+
                                         return _buildViewPill(
                                           label: name,
-                                          isSelected: focusedPlayerId == id,
-                                          onTap: () => setModalState(() => focusedPlayerId = id),
+                                          isSelected: isMarker, // Green if marker
+                                          isFocused: isFocused, // Border if focused
+                                          onTap: () async {
+                                            setModalState(() => focusedPlayerId = id);
+                                            
+                                            // [NEW] Claim logic: If I tap my own name and I'm not the marker, claim it!
+                                            if (isMe && !isMarker) {
+                                              debugPrint(" [Claim] User $id claiming marker role for scorecard ${actualScorecard.id}");
+                                              final updatedCard = actualScorecard.copyWith(
+                                                markerId: id,
+                                                submittedByUserId: id, // Fallback for legacy
+                                                updatedAt: DateTime.now(),
+                                              );
+                                              await ref.read(scorecardRepositoryProvider).updateScorecard(updatedCard);
+                                              // We need to update local markerId to show immediate UI feedback
+                                              setModalState(() => activeMarkerId = id);
+                                            }
+                                          },
                                         );
                                       }),
                                     ],
@@ -764,6 +791,7 @@ class ScorecardModal {
   static Widget _buildViewPill({
     required String label,
     required bool isSelected,
+    bool isFocused = false,
     required VoidCallback onTap,
   }) {
     return GestureDetector(
@@ -771,18 +799,24 @@ class ScorecardModal {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.lime500.withValues(alpha: AppColors.opacityLow) : Colors.transparent,
+          color: isSelected 
+              ? AppColors.lime500.withValues(alpha: AppColors.opacityLow) 
+              : (isFocused ? AppColors.dark400.withValues(alpha: 0.1) : Colors.transparent),
           borderRadius: AppShapes.pill,
           border: Border.all(
-            color: isSelected ? AppColors.lime500 : AppColors.dark500,
-            width: AppShapes.borderThin,
+            color: isSelected 
+                ? AppColors.lime500 
+                : (isFocused ? AppColors.dark400 : AppColors.dark500),
+            width: (isSelected || isFocused) ? 1.5 : AppShapes.borderThin,
           ),
         ),
         child: Text(
           label.toUpperCase(),
           style: AppTypography.micro.copyWith(
-            fontWeight: isSelected ? AppTypography.weightBold : AppTypography.weightStrong,
-            color: isSelected ? AppColors.lime500 : AppColors.dark300,
+            fontWeight: (isSelected || isFocused) ? AppTypography.weightBold : AppTypography.weightStrong,
+            color: isSelected 
+                ? AppColors.lime500 
+                : (isFocused ? AppColors.dark900 : AppColors.dark300),
             letterSpacing: 1.0,
           ),
         ),

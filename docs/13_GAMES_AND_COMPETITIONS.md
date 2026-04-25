@@ -142,7 +142,13 @@ All player entries on the leaderboard and admin scoring lists share a unified "U
     - **Header Sync**: Identical title and subtitle typography.
     - **Course Context**: A `CourseInfoCard` or `SlidingCourseInfoCard` showing the tee configuration and performance summaries.
 - **Scramble Multi-Line Display**: In Scramble and unified team formats, each player's name is listed on its own sub-row within the card. This ensures that even large 4-man teams are displayed clearly without text clipping or horizontal crowding.
-- **Captain Indicator**: The team's primary avatar (linked to the first registrant/captain) features a persistent **amber shield badge** and background color to denote leadership.
+- ### 5.3 Marker Responsibility & Identity
+In team and unified formats, one player is designated as the authoritative **Marker**.
+
+-   **The Green Pill**: Identified by a green status pill in the scorecard modal.
+-   **Device Lock**: The scoring keypad is only active on the marker's device to prevent concurrent edit conflicts.
+-   **Self-Service Handoff**: Any team member can "Claim" the marker role by tapping their own name in the scorecard modal, enabling seamless transition if a device loses power.
+-   **Admin Overrides**: Administrators can bypass the marker lock to correct scores manually at any time.
 - **Typographic Standard**: (v3.8 Refined)
     - **PAR Row**: Bold weight, background color matches the selected Tee color.
     - **SI Row**: Font size reduced by 1pt for better hierarchy.

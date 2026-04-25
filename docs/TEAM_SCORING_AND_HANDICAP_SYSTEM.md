@@ -2,6 +2,17 @@
 
 This document explains the technical implementation of team-based scoring (Scramble, Pairs) within the Golf Society Management system. This system ensures consistency across the Leaderboard, Group Hub, and individual Scorecards.
 
+### 4.2 Marker Identity & Handoff (Claim the Card)
+To ensure data integrity and prevent simultaneous editing conflicts, each team/group scorecard has a designated **Active Marker**.
+
+-   **Visual Identity**: The active marker is identified by a **Green Pill** (Brand Primary tint) in the scorecard header.
+-   **Write Access Lock**: Only the Active Marker (or a Society Admin) has write access to the scoring keypad. Other teammates view the card in "Read Only" mode.
+-   **Self-Service Handoff**: If the designated marker's phone dies or they wish to hand over scoring duties, any other team member can "Claim the Card":
+    1.  Open the team scorecard.
+    2.  Tap their own **Name Pill** in the header.
+    3.  The system immediately transfers the Marker Role to them, turning their pill green and granting them write access while locking out the previous marker.
+-   **Historical Attribution**: Every score entry is attributed to the user who held the Marker role at the time of entry, providing a clear audit trail.
+
 ## 1. Team Handicap (PHC) Calculation
 
 Unlike individual formats where each player has their own Playing Handicap (PHC), team formats like Scramble use a unified **Team PHC**.
