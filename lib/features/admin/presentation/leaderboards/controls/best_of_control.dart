@@ -71,7 +71,8 @@ class _BestOfSeriesControlState extends State<BestOfSeriesControl>
 
     return Form(
       key: _formKey,
-      child: BoxyArtFormColumn(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           // ── IDENTITY ─────────────────────────────────────────
           const BoxyArtSectionTitle(title: 'LEADERBOARD DETAILS', isPeeking: true),
@@ -85,6 +86,7 @@ class _BestOfSeriesControlState extends State<BestOfSeriesControl>
                   prefixIcon: Icon(Icons.list_alt_rounded),
                   validator: (v) => (v == null || v.isEmpty) ? 'Required' : null,
                 ),
+                const BoxyArtDivider(),
                 buildScopeSelector(
                   value: _scope,
                   onChanged: (v) => setState(() => _scope = v as LeaderboardScope),
@@ -94,7 +96,11 @@ class _BestOfSeriesControlState extends State<BestOfSeriesControl>
           ),
 
           // ── LEAGUE RULES ──────────────────────────────────────
-          const BoxyArtSectionTitle(title: 'LEAGUE RULES'),
+          const BoxyArtSectionTitle(
+            title: 'LEAGUE RULES',
+            isPeeking: true,
+            followsCard: true,
+          ),
           BoxyArtCard(
             child: BoxyArtFormColumn(
               children: [
@@ -109,8 +115,10 @@ class _BestOfSeriesControlState extends State<BestOfSeriesControl>
                   },
                 ),
                 buildInfoBubble('Only the top N scores will count toward the final total.'),
+                const BoxyArtDivider(),
                 BoxyArtDropdownField<BestOfMetric>(
                   label: 'Metric',
+                  prefixIcon: const Icon(Icons.show_chart_rounded),
                   value: _metric,
                   items: displayMetrics
                       .map((v) => DropdownMenuItem(
@@ -120,8 +128,10 @@ class _BestOfSeriesControlState extends State<BestOfSeriesControl>
                       .toList(),
                   onChanged: (v) => setState(() => _metric = v!),
                 ),
+                const BoxyArtDivider(),
                 BoxyArtDropdownField<ScoringType>(
                   label: 'Scoring Type',
+                  prefixIcon: const Icon(Icons.calculate_rounded),
                   value: _scoringType,
                   items: ScoringType.values
                       .map((v) => DropdownMenuItem(
@@ -138,7 +148,11 @@ class _BestOfSeriesControlState extends State<BestOfSeriesControl>
 
           // ── POINTS DISTRIBUTION ───────────────────────────────
           if (_scoringType == ScoringType.position) ...[
-            const BoxyArtSectionTitle(title: 'POINTS DISTRIBUTION'),
+            const BoxyArtSectionTitle(
+              title: 'POINTS DISTRIBUTION',
+              isPeeking: true,
+              followsCard: true,
+            ),
             BoxyArtCard(
               child: BoxyArtFormColumn(
                 children: [
@@ -148,9 +162,7 @@ class _BestOfSeriesControlState extends State<BestOfSeriesControl>
                     keyboardType: TextInputType.number,
                     prefixIcon: Icon(Icons.star_outline_rounded),
                   ),
-                  Divider(
-                      color: theme.dividerColor
-                          .withValues(alpha: AppColors.opacityLow)),
+                  const BoxyArtDivider(),
                   BoxyArtFormColumn(
                     spacing: AppSpacing.md,
                     children: (_positionPoints.entries.toList()
@@ -160,8 +172,20 @@ class _BestOfSeriesControlState extends State<BestOfSeriesControl>
                               points: e.value,
                               onChanged: (pos, val) =>
                                   setState(() => _positionPoints[pos] = val),
-                              onRemove: (pos) =>
-                                  setState(() => _positionPoints.remove(pos)),
+                              onRemove: (pos) {
+                                setState(() {
+                                  _positionPoints.remove(pos);
+                                  // Re-index remaining positions to "slide up"
+                                  final sortedPoints = _positionPoints.entries.toList()
+                                    ..sort((a, b) => a.key.compareTo(b.key));
+                                  
+                                  final newPoints = <int, int>{};
+                                  for (int i = 0; i < sortedPoints.length; i++) {
+                                    newPoints[i + 1] = sortedPoints[i].value;
+                                  }
+                                  _positionPoints = newPoints;
+                                });
+                              },
                             )).toList(),
                   ),
                   buildAddButton(
@@ -173,13 +197,14 @@ class _BestOfSeriesControlState extends State<BestOfSeriesControl>
             ),
           ],
 
-          BoxyArtButton(
-            title: widget.existingConfig == null ? 'Create leaderboard' : 'Save changes',
-            onTap: _isSaving ? null : _save,
-            isLoading: _isSaving,
-            fullWidth: true,
-            backgroundColor: Theme.of(context).primaryColor,
-            textColor: AppColors.pureWhite,
+          Padding(
+            padding: const EdgeInsets.only(top: AppSpacing.x2l, bottom: AppSpacing.xl),
+            child: BoxyArtButton(
+              title: widget.existingConfig == null ? 'Create leaderboard' : 'Save changes',
+              onTap: _isSaving ? null : _save,
+              isLoading: _isSaving,
+              fullWidth: true,
+            ),
           ),
         ],
       ),

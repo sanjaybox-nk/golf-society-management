@@ -245,7 +245,7 @@ class _AdminSponsorshipHubScreenState extends ConsumerState<AdminSponsorshipHubS
     return HeadlessScaffold(
       title: 'Sponsorship Hub',
       subtitle: 'Manage partners & branding',
-      titleSuffix: BoxyArtPill.committee(label: 'ADMIN'),
+      topPill: BoxyArtPill.committee(label: 'ADMIN'),
       showBack: true,
       onBack: () {
         if (_showForm) {

@@ -89,12 +89,11 @@ mixin BaseLeaderboardControlMixin<T extends StatefulWidget> on State<T> {
     );
   }
 
-  /// Converts camelCase enum name to "Title Case".
+  /// Converts camelCase enum name to ALL-CAPS metadata.
   String formatEnum(String val) {
-    if (val == 'holeInOne') return 'Hole In One';
     final exp = RegExp(r'(?<=[a-z])[A-Z]');
     final result = val.replaceAllMapped(exp, (m) => ' ${m.group(0)}');
-    return result[0].toUpperCase() + result.substring(1);
+    return result.toUpperCase();
   }
 
   /// Ordinal suffix for position numbers (1st, 2nd, 3rd…).
@@ -118,7 +117,7 @@ mixin BaseLeaderboardControlMixin<T extends StatefulWidget> on State<T> {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
-    return Padding(
+    final content = Padding(
       padding: const EdgeInsets.only(bottom: AppSpacing.standard),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -129,17 +128,16 @@ mixin BaseLeaderboardControlMixin<T extends StatefulWidget> on State<T> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  ordinal(position),
+                  ordinal(position).toUpperCase(),
                   style: AppTypography.cardTitle.copyWith(
                     color: theme.colorScheme.onSurface,
                     fontWeight: AppTypography.weightBold,
                   ),
                 ),
                 Text(
-                  'Place',
+                  'PLACE',
                   style: AppTypography.micro.copyWith(
                     color: isDark ? AppColors.dark300 : AppColors.dark400,
-                    fontWeight: AppTypography.weightRegular,
                   ),
                 ),
               ],
@@ -157,30 +155,10 @@ mixin BaseLeaderboardControlMixin<T extends StatefulWidget> on State<T> {
                 color: theme.colorScheme.onSurface,
                 fontWeight: AppTypography.weightExtraBold,
               ),
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 isDense: true,
-                contentPadding: const EdgeInsets.symmetric(
+                contentPadding: EdgeInsets.symmetric(
                     vertical: AppSpacing.md, horizontal: AppSpacing.sm),
-                fillColor: isDark ? AppColors.dark600 : AppColors.lightHeader,
-                filled: true,
-                border: OutlineInputBorder(
-                  borderRadius: AppShapes.md,
-                  borderSide: BorderSide.none,
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: AppShapes.md,
-                  borderSide: BorderSide(
-                    color: isDark ? AppColors.dark500 : AppColors.dark100,
-                    width: 1.0,
-                  ),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: AppShapes.md,
-                  borderSide: BorderSide(
-                    color: theme.colorScheme.primary,
-                    width: 1.5,
-                  ),
-                ),
               ),
               onChanged: (val) {
                 final v = int.tryParse(val);
@@ -192,31 +170,49 @@ mixin BaseLeaderboardControlMixin<T extends StatefulWidget> on State<T> {
           const SizedBox(width: AppSpacing.sm),
 
           // ── Pts pill ───────────────────────────
-          BoxyArtPill.format(
-            label: 'PTS',
-            color: theme.colorScheme.primary,
+          Text(
+            'PTS',
+            style: AppTypography.micro.copyWith(
+              color: isDark ? AppColors.dark300 : AppColors.dark400,
+            ),
           ),
 
           const SizedBox(width: AppSpacing.sm),
 
           // ── Remove button ──────────────────────
-          GestureDetector(
-            onLongPress: () => onRemove(position),
-            child: IconButton(
-              icon: Icon(
-                Icons.remove_circle_outline_rounded,
-                size: AppShapes.iconMd,
-                color: isDark ? AppColors.dark400 : AppColors.dark200,
-              ),
-              onPressed: () => onRemove(position),
-              visualDensity: VisualDensity.compact,
-              padding: EdgeInsets.zero,
-              constraints: const BoxConstraints(),
-              tooltip: 'Remove',
+          IconButton(
+            icon: Icon(
+              Icons.remove_circle_outline_rounded,
+              size: AppShapes.iconMd,
+              color: theme.colorScheme.error.withValues(alpha: 0.8),
             ),
+            onPressed: () => onRemove(position),
+            visualDensity: VisualDensity.compact,
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(),
+            tooltip: 'Remove',
           ),
         ],
       ),
+    );
+
+    return Dismissible(
+      key: ValueKey('pos_$position'),
+      direction: DismissDirection.endToStart,
+      onDismissed: (_) => onRemove(position),
+      background: Container(
+        alignment: Alignment.centerRight,
+        padding: const EdgeInsets.only(right: AppSpacing.xl),
+        decoration: BoxDecoration(
+          color: theme.colorScheme.error.withValues(alpha: 0.1),
+          borderRadius: AppShapes.md,
+        ),
+        child: Icon(
+          Icons.delete_outline_rounded,
+          color: theme.colorScheme.error,
+        ),
+      ),
+      child: content,
     );
   }
 
@@ -252,6 +248,7 @@ mixin BaseLeaderboardControlMixin<T extends StatefulWidget> on State<T> {
       children: [
         BoxyArtDropdownField<LeaderboardScope>(
           label: 'Event Scope',
+          prefixIcon: const Icon(Icons.public_rounded),
           value: value,
           items: LeaderboardScope.values
               .map((v) => DropdownMenuItem(

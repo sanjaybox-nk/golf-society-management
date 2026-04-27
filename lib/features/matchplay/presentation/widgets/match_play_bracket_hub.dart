@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:collection/collection.dart';
 import '../../domain/match_definition.dart';
@@ -6,7 +5,6 @@ import '../../domain/match_play_calculator.dart';
 import '../../domain/match_progression_logic.dart';
 import '../../domain/golf_event_match_extensions.dart';
 import '../../../events/presentation/events_provider.dart';
-import '../../../events/data/events_repository.dart';
 import '../../../members/presentation/members_provider.dart';
 import '../../../members/presentation/profile_provider.dart';
 import '../../../competitions/presentation/competitions_provider.dart';
@@ -14,7 +12,6 @@ import '../../../../design_system/design_system.dart';
 import '../../../../domain/models/member.dart';
 import '../../../../domain/models/scorecard.dart';
 import '../../../../domain/models/golf_event.dart';
-import 'match_play_standings_view.dart';
 import 'matches_bracket_widget.dart';
 
 class MatchPlayActiveRoundNotifier extends Notifier<MatchRoundType> {
@@ -231,7 +228,6 @@ class _RoundCarousel extends StatelessWidget {
       case MatchRoundType.quarterFinal: return 'Quarter-Finals';
       case MatchRoundType.semiFinal: return 'Semi-Finals';
       case MatchRoundType.finalRound: return 'The Final';
-      default: return 'Round';
     }
   }
 }

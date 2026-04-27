@@ -4,10 +4,7 @@ import 'package:golf_society/design_system/design_system.dart';
 import 'package:golf_society/domain/models/competition.dart';
 import 'package:golf_society/domain/models/scorecard.dart';
 import 'package:golf_society/domain/models/member.dart';
-import 'package:golf_society/features/matchplay/domain/match_play_calculator.dart';
-import 'package:golf_society/features/matchplay/domain/match_definition.dart';
 import 'package:golf_society/features/matchplay/domain/golf_event_match_extensions.dart';
-import 'package:golf_society/domain/grouping/tee_group.dart';
 import '../../logic/event_scoring_controller.dart';
 import '../../../competitions/presentation/widgets/leaderboard_widget.dart';
 import 'package:collection/collection.dart';
@@ -41,7 +38,6 @@ class EventLeaderboard extends ConsumerStatefulWidget {
 class _EventLeaderboardState extends ConsumerState<EventLeaderboard> {
   @override
   Widget build(BuildContext context) {
-    final spacing = Theme.of(context).extension<AppSpacingTokens>();
 
     // 1. Subscribe to the Central Scoring Brain
     final data = ref.watch(eventScoringControllerProvider(widget.event.id));
@@ -52,8 +48,6 @@ class _EventLeaderboardState extends ConsumerState<EventLeaderboard> {
     final memberMap = {for (final m in widget.membersList) m.id: m};
 
     final isMatchPlay = (widget.comp?.rules.isMatchPlay ?? false) || widget.event.matches.isNotEmpty;
-    final isFourball = widget.comp?.rules.subtype == CompetitionSubtype.fourball || 
-                       widget.event.matches.any((m) => m.type == MatchType.fourball);
 
     // 2. Map Processed Data to UI-friendly LeaderboardEntry
     final List<LeaderboardEntry> finalEntries = data.leaderboard.map<LeaderboardEntry>((e) {
@@ -105,6 +99,8 @@ class _EventLeaderboardState extends ConsumerState<EventLeaderboard> {
         scoringStatus: e.scoringStatus,
         mode: widget.comp?.rules.mode ?? CompetitionMode.singles,
         isCaptain: isUnified,
+        teeName: e.teeName,
+        teeColor: AppColors.getTeeColor(e.teeName, widget.event.courseConfig.tees),
       );
     }).toList();
 

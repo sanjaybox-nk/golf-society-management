@@ -1,7 +1,6 @@
 import 'package:golf_society/domain/models/competition.dart';
 import 'package:golf_society/design_system/design_system.dart';
 import '../../utils/competition_rule_translator.dart';
-import 'package:golf_society/utils/string_utils.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../competitions_provider.dart';
 

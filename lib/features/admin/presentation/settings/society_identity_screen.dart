@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../design_system/design_system.dart';
@@ -16,7 +15,7 @@ class SocietyIdentityScreen extends ConsumerWidget {
     return HeadlessScaffold(
       title: 'Society Identity',
       subtitle: 'Manage branding and assets',
-      titleSuffix: BoxyArtPill.committee(label: 'ADMIN'),
+      topPill: BoxyArtPill.committee(label: 'ADMIN'),
       showBack: true,
       onBack: () => context.pop(),
       slivers: [

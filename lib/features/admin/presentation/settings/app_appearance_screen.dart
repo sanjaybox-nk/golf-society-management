@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../design_system/design_system.dart';
@@ -11,12 +10,11 @@ class AppAppearanceScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final config = ref.watch(themeControllerProvider);
     final controller = ref.read(themeControllerProvider.notifier);
-    final spacing = Theme.of(context).extension<AppSpacingTokens>();
 
     return HeadlessScaffold(
       title: 'App Appearance',
       subtitle: 'Customize light and dark mode',
-      titleSuffix: BoxyArtPill.committee(label: 'ADMIN'),
+      topPill: BoxyArtPill.committee(label: 'ADMIN'),
       showBack: true,
       onBack: () => context.pop(),
       actions: const [],

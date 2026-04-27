@@ -17,6 +17,7 @@ abstract class ProcessedPlayerScore with _$ProcessedPlayerScore {
     required int playingHandicap,
     @Default(0.0) double appliedSocietyCut,
     required String teeName,
+    String? teeColor, // [NEW]
     required List<int?> holeScores,
     required ScoringResult result,
     String? tieBreakLabel,
@@ -71,6 +72,8 @@ abstract class ProcessedLeaderboardEntry with _$ProcessedLeaderboardEntry {
     String? matchStatus, // [NEW] e.g. "WIN 7 & 6", "2 UP", "AS"
     int? matchScore, // [NEW] lead tracking
     @Default(false) bool isMatch, // [NEW] flag for match play entries
+    String? teeName, // [NEW]
+    String? teeColor, // [NEW]
   }) = _ProcessedLeaderboardEntry;
 
   factory ProcessedLeaderboardEntry.fromJson(Map<String, dynamic> json) =>

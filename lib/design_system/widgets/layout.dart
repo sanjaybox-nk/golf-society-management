@@ -1,16 +1,5 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:golf_society/theme/app_colors.dart';
-import 'package:golf_society/theme/app_typography.dart';
-import 'package:golf_society/theme/app_shapes.dart';
-import 'package:golf_society/theme/app_spacing.dart';
-import 'package:golf_society/design_system/theme/app_spacing_tokens.dart';
-import 'package:golf_society/design_system/theme/app_shadows.dart';
-import 'package:golf_society/design_system/theme/contrast_helper.dart';
-import 'package:golf_society/design_system/theme/animation_constants.dart';
-import 'package:golf_society/utils/string_utils.dart';
-import '../atoms/buttons/boxy_art_icon_buttons.dart';
-import 'package:golf_society/design_system/theme/theme_controller.dart';
+import 'package:golf_society/design_system/design_system.dart';
 
 /// A floating bottom bar with Search and Filter segments.
 class FloatingBottomSearch extends ConsumerWidget {
@@ -281,7 +270,6 @@ class BoxyArtSectionTitle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
     final spacing = theme.extension<AppSpacingTokens>();
     final onSurface = theme.colorScheme.onSurface;
     final displayTitle = count != null ? '$title ($count)' : title;

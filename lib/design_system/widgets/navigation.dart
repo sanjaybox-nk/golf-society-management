@@ -75,6 +75,7 @@ class _ModernUnderlinedFilterBarState<T> extends State<ModernUnderlinedFilterBar
     
     final childRow = Row(
       mainAxisSize: widget.isExpanded ? MainAxisSize.max : MainAxisSize.min,
+      mainAxisAlignment: widget.isExpanded ? MainAxisAlignment.start : MainAxisAlignment.center,
       children: widget.tabs.map((tab) {
         final isSelected = widget.selectedValue == tab.value;
         final item = _UnderlinedTabItem(
@@ -109,7 +110,7 @@ class _ModernUnderlinedFilterBarState<T> extends State<ModernUnderlinedFilterBar
             : SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
                 physics: const BouncingScrollPhysics(),
-                child: childRow,
+                child: Center(child: childRow),
               ),
       ),
     );
@@ -254,6 +255,7 @@ class _UnderlinedTabItem extends StatelessWidget {
       ),
       child: Container(
         height: 48,
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.standard),
         alignment: Alignment.center,
         child: Stack(
           alignment: Alignment.bottomCenter,

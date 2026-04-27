@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:golf_society/domain/models/leaderboard_config.dart';
 import 'package:golf_society/design_system/design_system.dart';
 import '../../../utils/leaderboard_rule_translator.dart';

@@ -52,6 +52,7 @@ _Scorecard _$ScorecardFromJson(Map<String, dynamic> json) => _Scorecard(
       points: (json['points'] as num?)?.toInt(),
       handicapIndex: (json['handicapIndex'] as num?)?.toDouble(),
       playingHandicap: (json['playingHandicap'] as num?)?.toInt(),
+      assignedTeeName: json['assignedTeeName'] as String?,
       adminEditAudit: json['adminEditAudit'] == null
           ? null
           : AdminEditAudit.fromJson(
@@ -81,6 +82,7 @@ Map<String, dynamic> _$ScorecardToJson(_Scorecard instance) =>
       'points': instance.points,
       'handicapIndex': instance.handicapIndex,
       'playingHandicap': instance.playingHandicap,
+      'assignedTeeName': instance.assignedTeeName,
       'adminEditAudit': instance.adminEditAudit?.toJson(),
       'adminOverridePublish': instance.adminOverridePublish,
       'submittedAt': _$JsonConverterToJson<Object?, DateTime>(

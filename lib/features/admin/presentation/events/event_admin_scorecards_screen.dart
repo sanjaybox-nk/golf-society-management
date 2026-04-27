@@ -20,7 +20,7 @@ class EventAdminScorecardsScreen extends ConsumerWidget {
     return eventAsync.when(
       data: (event) => HeadlessScaffold(
         title: 'Scorecard Management',
-        titleSuffix: BoxyArtPill.committee(label: 'ADMIN'),
+        topPill: BoxyArtPill.committee(label: 'ADMIN'),
         subtitle: event.title,
         showBack: true,
         onBack: () => context.pop(),

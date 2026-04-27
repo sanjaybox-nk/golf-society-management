@@ -75,13 +75,18 @@ A shared mixin (`controls/base_leaderboard_control.dart`) provides all controls 
 - **`formatEnum(val)`** — camelCase → Title Case for enum display
 - **`ordinal(n)`** — Ordinal suffix helper (1st, 2nd…)
 
-#### Tokenisation Changes
-- Section titles: `BoxyArtSectionTitle(title: 'SECTION NAME', isPeeking: true)` with ALL CAPS labels
-- Text fields: `ModernTextField` replacing `BoxyArtInputField` for consistency with competition controls
-- Info cards: Tinted with `theme.colorScheme.primary` (adapts to light/dark and society branding) — replacing the hardcoded lime-green container
-- Handicap value badges: `BoxyArtPill.format(...)` replacing raw `Text` widget
-- Marker chips: Selected state uses `theme.colorScheme.primary` with `AppColors.pureWhite` label (was hardcoded `AppColors.lime500`)
-- Save button: `backgroundColor: Theme.of(context).primaryColor` + dynamic title (`'Create leaderboard'` vs `'Save changes'`)
+#### Functional Hardening (April 2026)
+- **Auto Re-indexing**: The builder now features "Sliding Rank" logic. If an Admin deletes a middle rank (e.g., 3rd place), the system automatically slides up all subsequent ranks to fill the gap, ensuring the list remains contiguous without manual re-entry.
+- **Branded Numeric Inputs**: Points and rank inputs now utilize the society's dynamic **inputRadius** and **borderColor** tokens.
+- **Micro-Typography Labels**: Section metadata like "PLACE" and "PTS" now use a specialized 11pt bold style (`AppTypography.micro`) to maximize vertical space in dense configuration lists.
+
+#### Tokenisation Summary
+- **Section Titles**: `BoxyArtSectionTitle(title: 'SECTION NAME', isPeeking: true)` with ALL CAPS labels.
+- **Text Fields**: `ModernTextField` with inherited `SocietyConfig` branding tokens.
+- **Info Cards**: Tinted with `theme.colorScheme.primary` (adapts to light/dark and society branding).
+- **Handicap Badges**: `BoxyArtPill.format(...)` for consistent rules display.
+- **Points Logic**: Values are validated in real-time to prevent negative or non-integer entry.
+- **Save Action**: Uses the dynamic `primaryColor` token with context-aware labels (Create vs. Save).
 
 ## 4. Seasonal Standings Hub & Spoke
 Introduced in early 2026 and modernized in April 2026, the Standings Hub provides a premium home for long-term competition using a discoverable **Hub & Spoke** architecture.

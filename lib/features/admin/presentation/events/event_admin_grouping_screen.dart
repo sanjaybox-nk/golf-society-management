@@ -213,7 +213,7 @@ class _EventAdminGroupingScreenState extends ConsumerState<EventAdminGroupingScr
                 ],
               ),
 
-              titleSuffix: BoxyArtPill.committee(label: 'ADMIN'),
+              topPill: BoxyArtPill.committee(label: 'ADMIN'),
 
               showBack: true,
               onBack: () async {
@@ -256,7 +256,7 @@ class _EventAdminGroupingScreenState extends ConsumerState<EventAdminGroupingScr
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (err, _) => HeadlessScaffold(
         title: 'Error',
-        titleSuffix: BoxyArtPill.committee(label: 'ADMIN'),
+        topPill: BoxyArtPill.committee(label: 'ADMIN'),
         showBack: true,
         slivers: [
           SliverFillRemaining(
@@ -882,7 +882,6 @@ class _EventAdminGroupingScreenState extends ConsumerState<EventAdminGroupingScr
     CompetitionRules? rules,
   }) {
     final participants = RegistrationLogic.getSortedItems(event);
-    final previousInSeason = allEvents.where((e) => e.seasonId == event.seasonId && e.date.isBefore(event.date)).toList();
     final strategy = strategyOverride ?? config.groupingStrategy;
 
     setState(() {

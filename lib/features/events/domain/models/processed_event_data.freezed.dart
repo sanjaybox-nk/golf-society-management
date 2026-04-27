@@ -22,6 +22,7 @@ mixin _$ProcessedPlayerScore {
   int get playingHandicap;
   double get appliedSocietyCut;
   String get teeName;
+  String? get teeColor; // [NEW]
   List<int?> get holeScores;
   ScoringResult get result;
   String? get tieBreakLabel;
@@ -58,6 +59,8 @@ mixin _$ProcessedPlayerScore {
             (identical(other.appliedSocietyCut, appliedSocietyCut) ||
                 other.appliedSocietyCut == appliedSocietyCut) &&
             (identical(other.teeName, teeName) || other.teeName == teeName) &&
+            (identical(other.teeColor, teeColor) ||
+                other.teeColor == teeColor) &&
             const DeepCollectionEquality()
                 .equals(other.holeScores, holeScores) &&
             (identical(other.result, result) || other.result == result) &&
@@ -81,6 +84,7 @@ mixin _$ProcessedPlayerScore {
       playingHandicap,
       appliedSocietyCut,
       teeName,
+      teeColor,
       const DeepCollectionEquality().hash(holeScores),
       result,
       tieBreakLabel,
@@ -89,7 +93,7 @@ mixin _$ProcessedPlayerScore {
 
   @override
   String toString() {
-    return 'ProcessedPlayerScore(playerId: $playerId, playerName: $playerName, isGuest: $isGuest, handicapIndex: $handicapIndex, courseHandicap: $courseHandicap, playingHandicap: $playingHandicap, appliedSocietyCut: $appliedSocietyCut, teeName: $teeName, holeScores: $holeScores, result: $result, tieBreakLabel: $tieBreakLabel, thruLabel: $thruLabel, scoringStatus: $scoringStatus)';
+    return 'ProcessedPlayerScore(playerId: $playerId, playerName: $playerName, isGuest: $isGuest, handicapIndex: $handicapIndex, courseHandicap: $courseHandicap, playingHandicap: $playingHandicap, appliedSocietyCut: $appliedSocietyCut, teeName: $teeName, teeColor: $teeColor, holeScores: $holeScores, result: $result, tieBreakLabel: $tieBreakLabel, thruLabel: $thruLabel, scoringStatus: $scoringStatus)';
   }
 }
 
@@ -108,6 +112,7 @@ abstract mixin class $ProcessedPlayerScoreCopyWith<$Res> {
       int playingHandicap,
       double appliedSocietyCut,
       String teeName,
+      String? teeColor,
       List<int?> holeScores,
       ScoringResult result,
       String? tieBreakLabel,
@@ -136,6 +141,7 @@ class _$ProcessedPlayerScoreCopyWithImpl<$Res>
     Object? playingHandicap = null,
     Object? appliedSocietyCut = null,
     Object? teeName = null,
+    Object? teeColor = freezed,
     Object? holeScores = null,
     Object? result = null,
     Object? tieBreakLabel = freezed,
@@ -175,6 +181,10 @@ class _$ProcessedPlayerScoreCopyWithImpl<$Res>
           ? _self.teeName
           : teeName // ignore: cast_nullable_to_non_nullable
               as String,
+      teeColor: freezed == teeColor
+          ? _self.teeColor
+          : teeColor // ignore: cast_nullable_to_non_nullable
+              as String?,
       holeScores: null == holeScores
           ? _self.holeScores
           : holeScores // ignore: cast_nullable_to_non_nullable
@@ -301,6 +311,7 @@ extension ProcessedPlayerScorePatterns on ProcessedPlayerScore {
             int playingHandicap,
             double appliedSocietyCut,
             String teeName,
+            String? teeColor,
             List<int?> holeScores,
             ScoringResult result,
             String? tieBreakLabel,
@@ -321,6 +332,7 @@ extension ProcessedPlayerScorePatterns on ProcessedPlayerScore {
             _that.playingHandicap,
             _that.appliedSocietyCut,
             _that.teeName,
+            _that.teeColor,
             _that.holeScores,
             _that.result,
             _that.tieBreakLabel,
@@ -355,6 +367,7 @@ extension ProcessedPlayerScorePatterns on ProcessedPlayerScore {
             int playingHandicap,
             double appliedSocietyCut,
             String teeName,
+            String? teeColor,
             List<int?> holeScores,
             ScoringResult result,
             String? tieBreakLabel,
@@ -374,6 +387,7 @@ extension ProcessedPlayerScorePatterns on ProcessedPlayerScore {
             _that.playingHandicap,
             _that.appliedSocietyCut,
             _that.teeName,
+            _that.teeColor,
             _that.holeScores,
             _that.result,
             _that.tieBreakLabel,
@@ -407,6 +421,7 @@ extension ProcessedPlayerScorePatterns on ProcessedPlayerScore {
             int playingHandicap,
             double appliedSocietyCut,
             String teeName,
+            String? teeColor,
             List<int?> holeScores,
             ScoringResult result,
             String? tieBreakLabel,
@@ -426,6 +441,7 @@ extension ProcessedPlayerScorePatterns on ProcessedPlayerScore {
             _that.playingHandicap,
             _that.appliedSocietyCut,
             _that.teeName,
+            _that.teeColor,
             _that.holeScores,
             _that.result,
             _that.tieBreakLabel,
@@ -449,6 +465,7 @@ class _ProcessedPlayerScore implements ProcessedPlayerScore {
       required this.playingHandicap,
       this.appliedSocietyCut = 0.0,
       required this.teeName,
+      this.teeColor,
       required final List<int?> holeScores,
       required this.result,
       this.tieBreakLabel,
@@ -476,7 +493,11 @@ class _ProcessedPlayerScore implements ProcessedPlayerScore {
   final double appliedSocietyCut;
   @override
   final String teeName;
+  @override
+  final String? teeColor;
+// [NEW]
   final List<int?> _holeScores;
+// [NEW]
   @override
   List<int?> get holeScores {
     if (_holeScores is EqualUnmodifiableListView) return _holeScores;
@@ -529,6 +550,8 @@ class _ProcessedPlayerScore implements ProcessedPlayerScore {
             (identical(other.appliedSocietyCut, appliedSocietyCut) ||
                 other.appliedSocietyCut == appliedSocietyCut) &&
             (identical(other.teeName, teeName) || other.teeName == teeName) &&
+            (identical(other.teeColor, teeColor) ||
+                other.teeColor == teeColor) &&
             const DeepCollectionEquality()
                 .equals(other._holeScores, _holeScores) &&
             (identical(other.result, result) || other.result == result) &&
@@ -552,6 +575,7 @@ class _ProcessedPlayerScore implements ProcessedPlayerScore {
       playingHandicap,
       appliedSocietyCut,
       teeName,
+      teeColor,
       const DeepCollectionEquality().hash(_holeScores),
       result,
       tieBreakLabel,
@@ -560,7 +584,7 @@ class _ProcessedPlayerScore implements ProcessedPlayerScore {
 
   @override
   String toString() {
-    return 'ProcessedPlayerScore(playerId: $playerId, playerName: $playerName, isGuest: $isGuest, handicapIndex: $handicapIndex, courseHandicap: $courseHandicap, playingHandicap: $playingHandicap, appliedSocietyCut: $appliedSocietyCut, teeName: $teeName, holeScores: $holeScores, result: $result, tieBreakLabel: $tieBreakLabel, thruLabel: $thruLabel, scoringStatus: $scoringStatus)';
+    return 'ProcessedPlayerScore(playerId: $playerId, playerName: $playerName, isGuest: $isGuest, handicapIndex: $handicapIndex, courseHandicap: $courseHandicap, playingHandicap: $playingHandicap, appliedSocietyCut: $appliedSocietyCut, teeName: $teeName, teeColor: $teeColor, holeScores: $holeScores, result: $result, tieBreakLabel: $tieBreakLabel, thruLabel: $thruLabel, scoringStatus: $scoringStatus)';
   }
 }
 
@@ -581,6 +605,7 @@ abstract mixin class _$ProcessedPlayerScoreCopyWith<$Res>
       int playingHandicap,
       double appliedSocietyCut,
       String teeName,
+      String? teeColor,
       List<int?> holeScores,
       ScoringResult result,
       String? tieBreakLabel,
@@ -609,6 +634,7 @@ class __$ProcessedPlayerScoreCopyWithImpl<$Res>
     Object? playingHandicap = null,
     Object? appliedSocietyCut = null,
     Object? teeName = null,
+    Object? teeColor = freezed,
     Object? holeScores = null,
     Object? result = null,
     Object? tieBreakLabel = freezed,
@@ -648,6 +674,10 @@ class __$ProcessedPlayerScoreCopyWithImpl<$Res>
           ? _self.teeName
           : teeName // ignore: cast_nullable_to_non_nullable
               as String,
+      teeColor: freezed == teeColor
+          ? _self.teeColor
+          : teeColor // ignore: cast_nullable_to_non_nullable
+              as String?,
       holeScores: null == holeScores
           ? _self._holeScores
           : holeScores // ignore: cast_nullable_to_non_nullable
@@ -1218,7 +1248,9 @@ mixin _$ProcessedLeaderboardEntry {
   String? get tieBreakLabel;
   String? get matchStatus; // [NEW] e.g. "WIN 7 & 6", "2 UP", "AS"
   int? get matchScore; // [NEW] lead tracking
-  bool get isMatch;
+  bool get isMatch; // [NEW] flag for match play entries
+  String? get teeName; // [NEW]
+  String? get teeColor;
 
   /// Create a copy of ProcessedLeaderboardEntry
   /// with the given fields replaced by the non-null parameter values.
@@ -1279,7 +1311,10 @@ mixin _$ProcessedLeaderboardEntry {
                 other.matchStatus == matchStatus) &&
             (identical(other.matchScore, matchScore) ||
                 other.matchScore == matchScore) &&
-            (identical(other.isMatch, isMatch) || other.isMatch == isMatch));
+            (identical(other.isMatch, isMatch) || other.isMatch == isMatch) &&
+            (identical(other.teeName, teeName) || other.teeName == teeName) &&
+            (identical(other.teeColor, teeColor) ||
+                other.teeColor == teeColor));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -1309,12 +1344,14 @@ mixin _$ProcessedLeaderboardEntry {
         tieBreakLabel,
         matchStatus,
         matchScore,
-        isMatch
+        isMatch,
+        teeName,
+        teeColor
       ]);
 
   @override
   String toString() {
-    return 'ProcessedLeaderboardEntry(entryId: $entryId, playerName: $playerName, score: $score, scoreLabel: $scoreLabel, holesPlayed: $holesPlayed, isGuest: $isGuest, teamMemberIds: $teamMemberIds, teamMemberNames: $teamMemberNames, individualPlayingHandicaps: $individualPlayingHandicaps, holeNetScores: $holeNetScores, individualHoleScores: $individualHoleScores, individualHoleNetScores: $individualHoleNetScores, individualHolePoints: $individualHolePoints, holeScores: $holeScores, holePoints: $holePoints, hasSocietyCut: $hasSocietyCut, position: $position, tieBreakMetrics: $tieBreakMetrics, scoringStatus: $scoringStatus, handicapIndex: $handicapIndex, tieBreakLabel: $tieBreakLabel, matchStatus: $matchStatus, matchScore: $matchScore, isMatch: $isMatch)';
+    return 'ProcessedLeaderboardEntry(entryId: $entryId, playerName: $playerName, score: $score, scoreLabel: $scoreLabel, holesPlayed: $holesPlayed, isGuest: $isGuest, teamMemberIds: $teamMemberIds, teamMemberNames: $teamMemberNames, individualPlayingHandicaps: $individualPlayingHandicaps, holeNetScores: $holeNetScores, individualHoleScores: $individualHoleScores, individualHoleNetScores: $individualHoleNetScores, individualHolePoints: $individualHolePoints, holeScores: $holeScores, holePoints: $holePoints, hasSocietyCut: $hasSocietyCut, position: $position, tieBreakMetrics: $tieBreakMetrics, scoringStatus: $scoringStatus, handicapIndex: $handicapIndex, tieBreakLabel: $tieBreakLabel, matchStatus: $matchStatus, matchScore: $matchScore, isMatch: $isMatch, teeName: $teeName, teeColor: $teeColor)';
   }
 }
 
@@ -1348,7 +1385,9 @@ abstract mixin class $ProcessedLeaderboardEntryCopyWith<$Res> {
       String? tieBreakLabel,
       String? matchStatus,
       int? matchScore,
-      bool isMatch});
+      bool isMatch,
+      String? teeName,
+      String? teeColor});
 }
 
 /// @nodoc
@@ -1388,6 +1427,8 @@ class _$ProcessedLeaderboardEntryCopyWithImpl<$Res>
     Object? matchStatus = freezed,
     Object? matchScore = freezed,
     Object? isMatch = null,
+    Object? teeName = freezed,
+    Object? teeColor = freezed,
   }) {
     return _then(_self.copyWith(
       entryId: null == entryId
@@ -1486,6 +1527,14 @@ class _$ProcessedLeaderboardEntryCopyWithImpl<$Res>
           ? _self.isMatch
           : isMatch // ignore: cast_nullable_to_non_nullable
               as bool,
+      teeName: freezed == teeName
+          ? _self.teeName
+          : teeName // ignore: cast_nullable_to_non_nullable
+              as String?,
+      teeColor: freezed == teeColor
+          ? _self.teeColor
+          : teeColor // ignore: cast_nullable_to_non_nullable
+              as String?,
     ));
   }
 }
@@ -1607,7 +1656,9 @@ extension ProcessedLeaderboardEntryPatterns on ProcessedLeaderboardEntry {
             String? tieBreakLabel,
             String? matchStatus,
             int? matchScore,
-            bool isMatch)?
+            bool isMatch,
+            String? teeName,
+            String? teeColor)?
         $default, {
     required TResult orElse(),
   }) {
@@ -1638,7 +1689,9 @@ extension ProcessedLeaderboardEntryPatterns on ProcessedLeaderboardEntry {
             _that.tieBreakLabel,
             _that.matchStatus,
             _that.matchScore,
-            _that.isMatch);
+            _that.isMatch,
+            _that.teeName,
+            _that.teeColor);
       case _:
         return orElse();
     }
@@ -1683,7 +1736,9 @@ extension ProcessedLeaderboardEntryPatterns on ProcessedLeaderboardEntry {
             String? tieBreakLabel,
             String? matchStatus,
             int? matchScore,
-            bool isMatch)
+            bool isMatch,
+            String? teeName,
+            String? teeColor)
         $default,
   ) {
     final _that = this;
@@ -1713,7 +1768,9 @@ extension ProcessedLeaderboardEntryPatterns on ProcessedLeaderboardEntry {
             _that.tieBreakLabel,
             _that.matchStatus,
             _that.matchScore,
-            _that.isMatch);
+            _that.isMatch,
+            _that.teeName,
+            _that.teeColor);
       case _:
         throw StateError('Unexpected subclass');
     }
@@ -1757,7 +1814,9 @@ extension ProcessedLeaderboardEntryPatterns on ProcessedLeaderboardEntry {
             String? tieBreakLabel,
             String? matchStatus,
             int? matchScore,
-            bool isMatch)?
+            bool isMatch,
+            String? teeName,
+            String? teeColor)?
         $default,
   ) {
     final _that = this;
@@ -1787,7 +1846,9 @@ extension ProcessedLeaderboardEntryPatterns on ProcessedLeaderboardEntry {
             _that.tieBreakLabel,
             _that.matchStatus,
             _that.matchScore,
-            _that.isMatch);
+            _that.isMatch,
+            _that.teeName,
+            _that.teeColor);
       case _:
         return null;
     }
@@ -1821,7 +1882,9 @@ class _ProcessedLeaderboardEntry implements ProcessedLeaderboardEntry {
       this.tieBreakLabel,
       this.matchStatus,
       this.matchScore,
-      this.isMatch = false})
+      this.isMatch = false,
+      this.teeName,
+      this.teeColor})
       : _teamMemberIds = teamMemberIds,
         _teamMemberNames = teamMemberNames,
         _individualPlayingHandicaps = individualPlayingHandicaps,
@@ -1964,6 +2027,12 @@ class _ProcessedLeaderboardEntry implements ProcessedLeaderboardEntry {
   @override
   @JsonKey()
   final bool isMatch;
+// [NEW] flag for match play entries
+  @override
+  final String? teeName;
+// [NEW]
+  @override
+  final String? teeColor;
 
   /// Create a copy of ProcessedLeaderboardEntry
   /// with the given fields replaced by the non-null parameter values.
@@ -2031,7 +2100,10 @@ class _ProcessedLeaderboardEntry implements ProcessedLeaderboardEntry {
                 other.matchStatus == matchStatus) &&
             (identical(other.matchScore, matchScore) ||
                 other.matchScore == matchScore) &&
-            (identical(other.isMatch, isMatch) || other.isMatch == isMatch));
+            (identical(other.isMatch, isMatch) || other.isMatch == isMatch) &&
+            (identical(other.teeName, teeName) || other.teeName == teeName) &&
+            (identical(other.teeColor, teeColor) ||
+                other.teeColor == teeColor));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -2061,12 +2133,14 @@ class _ProcessedLeaderboardEntry implements ProcessedLeaderboardEntry {
         tieBreakLabel,
         matchStatus,
         matchScore,
-        isMatch
+        isMatch,
+        teeName,
+        teeColor
       ]);
 
   @override
   String toString() {
-    return 'ProcessedLeaderboardEntry(entryId: $entryId, playerName: $playerName, score: $score, scoreLabel: $scoreLabel, holesPlayed: $holesPlayed, isGuest: $isGuest, teamMemberIds: $teamMemberIds, teamMemberNames: $teamMemberNames, individualPlayingHandicaps: $individualPlayingHandicaps, holeNetScores: $holeNetScores, individualHoleScores: $individualHoleScores, individualHoleNetScores: $individualHoleNetScores, individualHolePoints: $individualHolePoints, holeScores: $holeScores, holePoints: $holePoints, hasSocietyCut: $hasSocietyCut, position: $position, tieBreakMetrics: $tieBreakMetrics, scoringStatus: $scoringStatus, handicapIndex: $handicapIndex, tieBreakLabel: $tieBreakLabel, matchStatus: $matchStatus, matchScore: $matchScore, isMatch: $isMatch)';
+    return 'ProcessedLeaderboardEntry(entryId: $entryId, playerName: $playerName, score: $score, scoreLabel: $scoreLabel, holesPlayed: $holesPlayed, isGuest: $isGuest, teamMemberIds: $teamMemberIds, teamMemberNames: $teamMemberNames, individualPlayingHandicaps: $individualPlayingHandicaps, holeNetScores: $holeNetScores, individualHoleScores: $individualHoleScores, individualHoleNetScores: $individualHoleNetScores, individualHolePoints: $individualHolePoints, holeScores: $holeScores, holePoints: $holePoints, hasSocietyCut: $hasSocietyCut, position: $position, tieBreakMetrics: $tieBreakMetrics, scoringStatus: $scoringStatus, handicapIndex: $handicapIndex, tieBreakLabel: $tieBreakLabel, matchStatus: $matchStatus, matchScore: $matchScore, isMatch: $isMatch, teeName: $teeName, teeColor: $teeColor)';
   }
 }
 
@@ -2102,7 +2176,9 @@ abstract mixin class _$ProcessedLeaderboardEntryCopyWith<$Res>
       String? tieBreakLabel,
       String? matchStatus,
       int? matchScore,
-      bool isMatch});
+      bool isMatch,
+      String? teeName,
+      String? teeColor});
 }
 
 /// @nodoc
@@ -2142,6 +2218,8 @@ class __$ProcessedLeaderboardEntryCopyWithImpl<$Res>
     Object? matchStatus = freezed,
     Object? matchScore = freezed,
     Object? isMatch = null,
+    Object? teeName = freezed,
+    Object? teeColor = freezed,
   }) {
     return _then(_ProcessedLeaderboardEntry(
       entryId: null == entryId
@@ -2240,6 +2318,14 @@ class __$ProcessedLeaderboardEntryCopyWithImpl<$Res>
           ? _self.isMatch
           : isMatch // ignore: cast_nullable_to_non_nullable
               as bool,
+      teeName: freezed == teeName
+          ? _self.teeName
+          : teeName // ignore: cast_nullable_to_non_nullable
+              as String?,
+      teeColor: freezed == teeColor
+          ? _self.teeColor
+          : teeColor // ignore: cast_nullable_to_non_nullable
+              as String?,
     ));
   }
 }

@@ -1,8 +1,6 @@
 import "package:golf_society/design_system/design_system.dart";
-import 'package:golf_society/utils/string_utils.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:flutter/material.dart';
 
 /// The base card component for the BoxyArt design system.
 /// Features soft diffused shadows, themed tints, and high rounded corners.

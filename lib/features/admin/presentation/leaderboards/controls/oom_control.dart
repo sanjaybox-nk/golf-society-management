@@ -68,7 +68,8 @@ class _OrderOfMeritControlState extends State<OrderOfMeritControl>
 
     return Form(
       key: _formKey,
-      child: BoxyArtFormColumn(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           // ── IDENTITY ─────────────────────────────────────────
           const BoxyArtSectionTitle(title: 'LEADERBOARD DETAILS', isPeeking: true),
@@ -82,6 +83,7 @@ class _OrderOfMeritControlState extends State<OrderOfMeritControl>
                   prefixIcon: Icon(Icons.emoji_events_rounded),
                   validator: (v) => (v == null || v.isEmpty) ? 'Required' : null,
                 ),
+                const BoxyArtDivider(),
                 buildScopeSelector(
                   value: _scope,
                   onChanged: (v) => setState(() => _scope = v as LeaderboardScope),
@@ -91,12 +93,17 @@ class _OrderOfMeritControlState extends State<OrderOfMeritControl>
           ),
 
           // ── SCORING RULES ─────────────────────────────────────
-          const BoxyArtSectionTitle(title: 'SCORING RULES'),
+          const BoxyArtSectionTitle(
+            title: 'SCORING RULES',
+            isPeeking: true,
+            followsCard: true,
+          ),
           BoxyArtCard(
             child: BoxyArtFormColumn(
               children: [
                 BoxyArtDropdownField<OOMRankingBasis>(
                   label: 'Metric',
+                  prefixIcon: const Icon(Icons.show_chart_rounded),
                   value: _metric,
                   items: OOMRankingBasis.values
                       .map((v) => DropdownMenuItem(
@@ -106,8 +113,10 @@ class _OrderOfMeritControlState extends State<OrderOfMeritControl>
                       .toList(),
                   onChanged: (v) => setState(() => _metric = v!),
                 ),
+                const BoxyArtDivider(),
                 BoxyArtDropdownField<ScoringType>(
                   label: 'Scoring Type',
+                  prefixIcon: const Icon(Icons.calculate_rounded),
                   value: _scoringType,
                   items: ScoringType.values
                       .map((v) => DropdownMenuItem(
@@ -124,7 +133,11 @@ class _OrderOfMeritControlState extends State<OrderOfMeritControl>
 
           // ── POINTS DISTRIBUTION ───────────────────────────────
           if (_scoringType == ScoringType.position) ...[
-            const BoxyArtSectionTitle(title: 'POINTS DISTRIBUTION'),
+            const BoxyArtSectionTitle(
+              title: 'POINTS DISTRIBUTION',
+              isPeeking: true,
+              followsCard: true,
+            ),
             BoxyArtCard(
               child: BoxyArtFormColumn(
                 children: [
@@ -134,9 +147,7 @@ class _OrderOfMeritControlState extends State<OrderOfMeritControl>
                     keyboardType: TextInputType.number,
                     prefixIcon: Icon(Icons.star_outline_rounded),
                   ),
-                  Divider(
-                      color: theme.dividerColor
-                          .withValues(alpha: AppColors.opacityLow)),
+                  const BoxyArtDivider(),
                   BoxyArtFormColumn(
                     spacing: AppSpacing.md,
                     children: (_positionPoints.entries.toList()
@@ -146,8 +157,20 @@ class _OrderOfMeritControlState extends State<OrderOfMeritControl>
                               points: e.value,
                               onChanged: (pos, val) =>
                                   setState(() => _positionPoints[pos] = val),
-                              onRemove: (pos) =>
-                                  setState(() => _positionPoints.remove(pos)),
+                              onRemove: (pos) {
+                                setState(() {
+                                  _positionPoints.remove(pos);
+                                  // Re-index remaining positions to "slide up"
+                                  final sortedPoints = _positionPoints.entries.toList()
+                                    ..sort((a, b) => a.key.compareTo(b.key));
+                                  
+                                  final newPoints = <int, int>{};
+                                  for (int i = 0; i < sortedPoints.length; i++) {
+                                    newPoints[i + 1] = sortedPoints[i].value;
+                                  }
+                                  _positionPoints = newPoints;
+                                });
+                              },
                             )).toList(),
                   ),
                   buildAddButton(
@@ -159,13 +182,14 @@ class _OrderOfMeritControlState extends State<OrderOfMeritControl>
             ),
           ],
 
-          BoxyArtButton(
-            title: widget.existingConfig == null ? 'Create leaderboard' : 'Save changes',
-            onTap: _isSaving ? null : _save,
-            isLoading: _isSaving,
-            fullWidth: true,
-            backgroundColor: Theme.of(context).primaryColor,
-            textColor: AppColors.pureWhite,
+          Padding(
+            padding: const EdgeInsets.only(top: AppSpacing.x2l, bottom: AppSpacing.xl),
+            child: BoxyArtButton(
+              title: widget.existingConfig == null ? 'Create leaderboard' : 'Save changes',
+              onTap: _isSaving ? null : _save,
+              isLoading: _isSaving,
+              fullWidth: true,
+            ),
           ),
         ],
       ),

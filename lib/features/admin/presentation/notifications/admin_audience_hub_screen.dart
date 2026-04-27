@@ -29,7 +29,7 @@ class AdminAudienceHubScreen extends ConsumerWidget {
     return HeadlessScaffold(
       title: 'Audience Manager',
       subtitle: 'Manage segments & templates',
-      titleSuffix: BoxyArtPill.committee(label: 'ADMIN'),
+      topPill: BoxyArtPill.committee(label: 'ADMIN'),
       showBack: true,
       leading: Align(
         alignment: Alignment.centerLeft,

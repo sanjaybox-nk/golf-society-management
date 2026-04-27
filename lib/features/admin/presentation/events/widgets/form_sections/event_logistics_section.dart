@@ -12,7 +12,6 @@ class EventLogisticsSection extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final stateAsync = ref.watch(eventFormNotifierProvider);
-    final theme = Theme.of(context);
     
     return stateAsync.when(
       data: (state) => Column(

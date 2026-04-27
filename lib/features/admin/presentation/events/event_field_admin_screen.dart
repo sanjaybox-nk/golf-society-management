@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:golf_society/design_system/design_system.dart';
 import 'package:go_router/go_router.dart';
@@ -35,7 +34,7 @@ class EventFieldAdminScreen extends ConsumerWidget {
               SliverFillRemaining(
                 child: Center(
                   child: Padding(
-                    padding: const EdgeInsets.all(AppSpacing.xl),
+                    padding: EdgeInsets.all(AppSpacing.xl),
                     child: BoxyArtEmptyCard(
                       title: 'Event Not Found',
                       message: 'The requested event could not be located on the fairway.',
@@ -51,12 +50,11 @@ class EventFieldAdminScreen extends ConsumerWidget {
         final competitionAsync = ref.watch(competitionDetailProvider(eventId));
         final selectedTab = ref.watch(eventFieldTabProvider);
 
-        final isMatchPlay = competitionAsync.value?.rules.isMatchPlay ?? false;
         final isTournamentGrouping = competitionAsync.value?.rules.isTournamentStyleGrouping ?? false;
 
         return HeadlessScaffold(
           title: event.title,
-          titleSuffix: BoxyArtPill.committee(label: 'ADMIN'),
+          topPill: BoxyArtPill.committee(label: 'ADMIN'),
           subtitle: 'Event Field and Tee Time',
           showBack: true,
           onBack: () => context.go('/admin/events'),

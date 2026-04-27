@@ -4,6 +4,7 @@ import 'package:golf_society/domain/models/golf_event.dart';
 import 'package:golf_society/domain/models/competition.dart';
 import 'package:golf_society/domain/models/member.dart';
 import 'package:golf_society/domain/models/course.dart';
+import 'package:golf_society/domain/models/scorecard.dart';
 import 'package:golf_society/domain/models/event_registration.dart';
 import 'package:golf_society/features/competitions/presentation/competitions_provider.dart';
 import 'package:golf_society/features/events/presentation/events_provider.dart';
@@ -25,6 +26,87 @@ class ScenarioSeeder {
   final String seasonId = 'demo_season_2025_2026';
 
   ScenarioSeeder(this.ref, [Random? seedRandom]) : random = seedRandom ?? Random(42);
+
+  Future<String> seedVerificationScenario() async {
+    final membersRepo = ref.read(membersRepositoryProvider);
+    var members = await membersRepo.getMembers();
+    if (members.length < 32) {
+      await MemberSeeder(ref, random).seed();
+      members = await membersRepo.getMembers();
+    }
+
+    final courseRepo = ref.read(courseRepositoryProvider);
+    var courses = await courseRepo.watchCourses().first;
+    if (courses.isEmpty) {
+      courses = await CourseSeeder(ref, random).seed();
+    }
+    final course = courses.first;
+
+    final eventSeeder = EventSeeder(ref, random);
+    final compRepo = ref.read(competitionsRepositoryProvider);
+    final templates = await compRepo.getTemplates();
+    
+    final date = DateTime.now();
+
+    // 1. Create the base event as "In Play"
+    await eventSeeder.createFullEvent(
+      seasonId: seasonId,
+      course: course,
+      title: 'Verification Test Event',
+      date: date,
+      format: CompetitionFormat.stableford,
+      isInvitational: false,
+      isSeasonEvent: true,
+      members: members,
+      appliedCuts: {},
+      status: EventStatus.inPlay,
+      templates: templates,
+    );
+
+    // Get the created event ID (EventSeeder generates a random one, but we can find it)
+    final events = await ref.read(eventsRepositoryProvider).getEvents(seasonId: seasonId);
+    final event = events.firstWhere((e) => e.title == 'Verification Test Event');
+    
+    final scoreRepo = ref.read(scorecardRepositoryProvider);
+    final scorecards = await scoreRepo.getScorecards(event.id);
+    
+    // We want:
+    // 70% completed/submitted (18 holes, Submitted)
+    // 20% completed/not submitted (18 holes, Draft)
+    // 10% playing last holes (16 holes, Draft)
+    final total = scorecards.length;
+    final submittedCount = (total * 0.7).floor();
+    final completedNotSubmittedCount = (total * 0.2).floor();
+    
+    for (int i = 0; i < total; i++) {
+      final s = scorecards[i];
+      if (i < submittedCount) {
+        // 70%: Full 18 holes, status: submitted
+        final List<int?> scores = List.generate(18, (_) => 4 + random.nextInt(3));
+        await scoreRepo.updateScorecard(s.copyWith(
+          status: ScorecardStatus.submitted,
+          holeScores: scores,
+          submittedAt: DateTime.now().subtract(Duration(minutes: random.nextInt(120))),
+        ));
+      } else if (i < (submittedCount + completedNotSubmittedCount)) {
+        // 20%: Full 18 holes, status: draft (Completed but not submitted)
+        final List<int?> scores = List.generate(18, (_) => 4 + random.nextInt(3));
+        await scoreRepo.updateScorecard(s.copyWith(
+          status: ScorecardStatus.draft,
+          holeScores: scores,
+        ));
+      } else {
+        // 10%: Playing last holes (e.g., 16 holes), status: draft
+        final List<int?> scores = List.generate(18, (idx) => idx < 16 ? 4 + random.nextInt(3) : null);
+        await scoreRepo.updateScorecard(s.copyWith(
+          status: ScorecardStatus.draft,
+          holeScores: scores,
+        ));
+      }
+    }
+
+    return event.id;
+  }
 
   Future<void> seedMatchPlayProgression() async {
     final membersRepo = ref.read(membersRepositoryProvider);

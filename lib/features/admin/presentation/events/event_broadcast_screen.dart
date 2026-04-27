@@ -163,7 +163,7 @@ class _EventBroadcastScreenState extends ConsumerState<EventBroadcastScreen> {
       child: HeadlessScaffold(
         title: 'Event Comms',
         subtitle: 'Post Management',
-        titleSuffix: BoxyArtPill.committee(label: 'ADMIN'),
+        topPill: BoxyArtPill.committee(label: 'ADMIN'),
         showBack: true,
         onBack: () => context.goNamed(
           'admin-event-manage-tower',

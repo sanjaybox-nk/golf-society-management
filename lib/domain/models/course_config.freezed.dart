@@ -820,6 +820,7 @@ mixin _$CourseConfig {
   int? get par;
   String? get selectedTeeName;
   bool get isGlobal;
+  String? get selectedTeeColor;
 
   /// Create a copy of CourseConfig
   /// with the given fields replaced by the non-null parameter values.
@@ -847,7 +848,9 @@ mixin _$CourseConfig {
             (identical(other.selectedTeeName, selectedTeeName) ||
                 other.selectedTeeName == selectedTeeName) &&
             (identical(other.isGlobal, isGlobal) ||
-                other.isGlobal == isGlobal));
+                other.isGlobal == isGlobal) &&
+            (identical(other.selectedTeeColor, selectedTeeColor) ||
+                other.selectedTeeColor == selectedTeeColor));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -862,11 +865,12 @@ mixin _$CourseConfig {
       slope,
       par,
       selectedTeeName,
-      isGlobal);
+      isGlobal,
+      selectedTeeColor);
 
   @override
   String toString() {
-    return 'CourseConfig(name: $name, address: $address, tees: $tees, holes: $holes, rating: $rating, slope: $slope, par: $par, selectedTeeName: $selectedTeeName, isGlobal: $isGlobal)';
+    return 'CourseConfig(name: $name, address: $address, tees: $tees, holes: $holes, rating: $rating, slope: $slope, par: $par, selectedTeeName: $selectedTeeName, isGlobal: $isGlobal, selectedTeeColor: $selectedTeeColor)';
   }
 }
 
@@ -885,7 +889,8 @@ abstract mixin class $CourseConfigCopyWith<$Res> {
       int? slope,
       int? par,
       String? selectedTeeName,
-      bool isGlobal});
+      bool isGlobal,
+      String? selectedTeeColor});
 }
 
 /// @nodoc
@@ -909,6 +914,7 @@ class _$CourseConfigCopyWithImpl<$Res> implements $CourseConfigCopyWith<$Res> {
     Object? par = freezed,
     Object? selectedTeeName = freezed,
     Object? isGlobal = null,
+    Object? selectedTeeColor = freezed,
   }) {
     return _then(_self.copyWith(
       name: null == name
@@ -947,6 +953,10 @@ class _$CourseConfigCopyWithImpl<$Res> implements $CourseConfigCopyWith<$Res> {
           ? _self.isGlobal
           : isGlobal // ignore: cast_nullable_to_non_nullable
               as bool,
+      selectedTeeColor: freezed == selectedTeeColor
+          ? _self.selectedTeeColor
+          : selectedTeeColor // ignore: cast_nullable_to_non_nullable
+              as String?,
     ));
   }
 }
@@ -1053,7 +1063,8 @@ extension CourseConfigPatterns on CourseConfig {
             int? slope,
             int? par,
             String? selectedTeeName,
-            bool isGlobal)?
+            bool isGlobal,
+            String? selectedTeeColor)?
         $default, {
     required TResult orElse(),
   }) {
@@ -1069,7 +1080,8 @@ extension CourseConfigPatterns on CourseConfig {
             _that.slope,
             _that.par,
             _that.selectedTeeName,
-            _that.isGlobal);
+            _that.isGlobal,
+            _that.selectedTeeColor);
       case _:
         return orElse();
     }
@@ -1099,7 +1111,8 @@ extension CourseConfigPatterns on CourseConfig {
             int? slope,
             int? par,
             String? selectedTeeName,
-            bool isGlobal)
+            bool isGlobal,
+            String? selectedTeeColor)
         $default,
   ) {
     final _that = this;
@@ -1114,7 +1127,8 @@ extension CourseConfigPatterns on CourseConfig {
             _that.slope,
             _that.par,
             _that.selectedTeeName,
-            _that.isGlobal);
+            _that.isGlobal,
+            _that.selectedTeeColor);
       case _:
         throw StateError('Unexpected subclass');
     }
@@ -1143,7 +1157,8 @@ extension CourseConfigPatterns on CourseConfig {
             int? slope,
             int? par,
             String? selectedTeeName,
-            bool isGlobal)?
+            bool isGlobal,
+            String? selectedTeeColor)?
         $default,
   ) {
     final _that = this;
@@ -1158,7 +1173,8 @@ extension CourseConfigPatterns on CourseConfig {
             _that.slope,
             _that.par,
             _that.selectedTeeName,
-            _that.isGlobal);
+            _that.isGlobal,
+            _that.selectedTeeColor);
       case _:
         return null;
     }
@@ -1177,7 +1193,8 @@ class _CourseConfig implements CourseConfig {
       this.slope,
       this.par,
       this.selectedTeeName,
-      this.isGlobal = true})
+      this.isGlobal = true,
+      this.selectedTeeColor})
       : _tees = tees,
         _holes = holes;
   factory _CourseConfig.fromJson(Map<String, dynamic> json) =>
@@ -1219,6 +1236,8 @@ class _CourseConfig implements CourseConfig {
   @override
   @JsonKey()
   final bool isGlobal;
+  @override
+  final String? selectedTeeColor;
 
   /// Create a copy of CourseConfig
   /// with the given fields replaced by the non-null parameter values.
@@ -1250,7 +1269,9 @@ class _CourseConfig implements CourseConfig {
             (identical(other.selectedTeeName, selectedTeeName) ||
                 other.selectedTeeName == selectedTeeName) &&
             (identical(other.isGlobal, isGlobal) ||
-                other.isGlobal == isGlobal));
+                other.isGlobal == isGlobal) &&
+            (identical(other.selectedTeeColor, selectedTeeColor) ||
+                other.selectedTeeColor == selectedTeeColor));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -1265,11 +1286,12 @@ class _CourseConfig implements CourseConfig {
       slope,
       par,
       selectedTeeName,
-      isGlobal);
+      isGlobal,
+      selectedTeeColor);
 
   @override
   String toString() {
-    return 'CourseConfig(name: $name, address: $address, tees: $tees, holes: $holes, rating: $rating, slope: $slope, par: $par, selectedTeeName: $selectedTeeName, isGlobal: $isGlobal)';
+    return 'CourseConfig(name: $name, address: $address, tees: $tees, holes: $holes, rating: $rating, slope: $slope, par: $par, selectedTeeName: $selectedTeeName, isGlobal: $isGlobal, selectedTeeColor: $selectedTeeColor)';
   }
 }
 
@@ -1290,7 +1312,8 @@ abstract mixin class _$CourseConfigCopyWith<$Res>
       int? slope,
       int? par,
       String? selectedTeeName,
-      bool isGlobal});
+      bool isGlobal,
+      String? selectedTeeColor});
 }
 
 /// @nodoc
@@ -1315,6 +1338,7 @@ class __$CourseConfigCopyWithImpl<$Res>
     Object? par = freezed,
     Object? selectedTeeName = freezed,
     Object? isGlobal = null,
+    Object? selectedTeeColor = freezed,
   }) {
     return _then(_CourseConfig(
       name: null == name
@@ -1353,6 +1377,10 @@ class __$CourseConfigCopyWithImpl<$Res>
           ? _self.isGlobal
           : isGlobal // ignore: cast_nullable_to_non_nullable
               as bool,
+      selectedTeeColor: freezed == selectedTeeColor
+          ? _self.selectedTeeColor
+          : selectedTeeColor // ignore: cast_nullable_to_non_nullable
+              as String?,
     ));
   }
 }

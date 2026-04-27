@@ -160,7 +160,8 @@ class EventScoringProcessor {
         courseHandicap: courseHandicap,
         playingHandicap: phc,
         appliedSocietyCut: manualCuts[basePid] ?? 0.0,
-        teeName: courseConfig.name,
+        teeName: courseConfig.selectedTeeName ?? 'Default',
+        teeColor: courseConfig.selectedTeeColor,
         holeScores: holeScores,
         result: result,
         tieBreakLabel: calculateTieBreakLabel(result, null),
@@ -365,6 +366,8 @@ class EventScoringProcessor {
           matchStatus: matchStatusLabel,
           matchScore: matchLead,
           isMatch: matchResult != null,
+          teeName: p.teeName,
+          teeColor: p.teeColor,
         ));
       }
     } else {

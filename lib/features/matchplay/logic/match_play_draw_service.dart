@@ -38,7 +38,6 @@ class MatchPlayDrawService {
       fieldSize *= 2;
     }
 
-    final int byeCount = fieldSize - entrantCount;
     
     // 3. Create Slots (Seeds vs Byes)
     // In a standard R&A draw:

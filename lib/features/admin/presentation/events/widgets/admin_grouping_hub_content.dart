@@ -16,7 +16,8 @@ import 'package:golf_society/features/matchplay/domain/golf_event_match_extensio
 import 'package:golf_society/features/events/domain/registration_logic.dart';
 import 'package:golf_society/features/events/domain/models/processed_event_data.dart';
 import 'package:golf_society/features/events/logic/event_scoring_controller.dart';
-import 'package:go_router/go_router.dart';
+import 'package:golf_society/domain/models/event_registration.dart';
+import 'package:golf_society/features/courses/presentation/courses_provider.dart';
 import './admin_grouping_hub_card.dart';
 
 class AdminGroupingHubContent extends ConsumerStatefulWidget {
@@ -302,6 +303,31 @@ class _AdminGroupingHubContentState extends ConsumerState<AdminGroupingHubConten
     if (action == 'captain') {
        p.isCaptain = !p.isCaptain;
        _updateDirty(true, groups, null);
+    } else if (action == 'tee') {
+       final eventsAsync = ref.read(adminEventsProvider);
+       final event = eventsAsync.value?.firstWhere((e) => e.id == widget.eventId);
+       if (event == null) return;
+
+       _showTeeSelector(
+         context: context, 
+         ref: ref, 
+         event: event, 
+         memberId: p.registrationMemberId, 
+         currentTeeName: p.teeName ?? 'Yellow', 
+         onTeeSelected: (newTee) {
+            // Update the local participant
+            p.status = p.status; // dummy update to ensure groups ref remains
+            // We need to update the participant in the local groups list
+            final updatedGroups = List<TeeGroup>.from(groups);
+            // Search for the player across groups (though we have p already)
+            // Update the local participant
+            p.teeName = newTee;
+            _updateDirty(true, updatedGroups, null);
+            
+            // Also update the Registration in Firestore for consistency
+            _syncTeeToRegistration(ref, event, p.registrationMemberId, p.isGuest, newTee);
+         },
+       );
     } else if (action == 'withdraw') {
        final eventsAsync = ref.read(adminEventsProvider);
        final event = eventsAsync.value?.firstWhere((e) => e.id == widget.eventId);
@@ -344,5 +370,107 @@ class _AdminGroupingHubContentState extends ConsumerState<AdminGroupingHubConten
          );
        }
     }
+  }
+
+  void _syncTeeToRegistration(WidgetRef ref, GolfEvent event, String memberId, bool isGuest, String newTee) async {
+    final registrations = List<EventRegistration>.from(event.registrations);
+    final idx = registrations.indexWhere((r) => r.memberId == memberId);
+    if (idx >= 0) {
+      final reg = registrations[idx];
+      final updatedReg = isGuest 
+          ? reg.copyWith(guestTeeName: newTee)
+          : reg.copyWith(teeName: newTee);
+      
+      registrations[idx] = updatedReg;
+      final updatedEvent = event.copyWith(registrations: registrations);
+      await ref.read(eventsRepositoryProvider).updateEvent(updatedEvent);
+    }
+  }
+
+  void _showTeeSelector({
+    required BuildContext context,
+    required WidgetRef ref,
+    required GolfEvent event,
+    required String memberId,
+    required String currentTeeName,
+    required Function(String) onTeeSelected,
+  }) {
+    final courseDetail = event.courseId != null 
+        ? ref.read(courseDetailProvider(event.courseId!)).value 
+        : null;
+    
+    final tees = courseDetail?.tees ?? [];
+    
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        decoration: BoxDecoration(
+          color: Theme.of(context).scaffoldBackgroundColor,
+          borderRadius: AppShapes.sheet,
+        ),
+        padding: const EdgeInsets.all(AppSpacing.xl),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const BoxyArtSectionTitle(title: 'SELECT TEE'),
+            const SizedBox(height: AppSpacing.md),
+            if (tees.isEmpty)
+              Padding(
+                padding: const EdgeInsets.all(AppSpacing.lg),
+                child: Text(
+                  'NO TEES DEFINED FOR THIS COURSE. PLEASE ENSURE THE COURSE CONFIGURATION IS COMPLETE.',
+                  style: TextStyle(
+                    fontSize: AppTypography.sizeCaption,
+                    color: AppColors.dark400,
+                    fontWeight: AppTypography.weightBold,
+                  ),
+                ),
+              )
+            else
+              ConstrainedBox(
+                constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.4),
+                child: SingleChildScrollView(
+                  child: Column(
+                    children: tees.map((t) => BoxyArtCard(
+                      margin: const EdgeInsets.only(bottom: AppSpacing.sm),
+                      onTap: () {
+                         onTeeSelected(t.name);
+                         Navigator.pop(context);
+                      },
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 12,
+                            height: 12,
+                            decoration: BoxDecoration(
+                              color: AppColors.getTeeColor(t.name, tees),
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                          const SizedBox(width: AppSpacing.md),
+                          Text(
+                            t.name.toUpperCase(), 
+                            style: const TextStyle(
+                              fontWeight: AppTypography.weightBlack,
+                              fontSize: AppTypography.sizeButton,
+                              letterSpacing: 0.5,
+                            )
+                          ),
+                          const Spacer(),
+                          if (t.name == currentTeeName)
+                            const Icon(Icons.check_circle_rounded, color: AppColors.lime500),
+                        ],
+                      ),
+                    )).toList(),
+                  ),
+                ),
+              ),
+            const SizedBox(height: AppSpacing.xl),
+          ],
+        ),
+      ),
+    );
   }
 }

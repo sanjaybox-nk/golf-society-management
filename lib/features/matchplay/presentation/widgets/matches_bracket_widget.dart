@@ -369,31 +369,6 @@ class _BracketMatchTile extends ConsumerWidget {
   }
 }
 
-class _StrokeBadge extends StatelessWidget {
-  final int count;
-  const _StrokeBadge({required this.count});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
-      decoration: BoxDecoration(
-        color: AppColors.pureWhite.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(AppShapes.rSm),
-        border: Border.all(color: AppColors.pureWhite.withValues(alpha: 0.1)),
-      ),
-      child: Text(
-        '+$count',
-        style: const TextStyle(
-          color: AppColors.lime500,
-          fontSize: 9,
-          fontWeight: FontWeight.bold,
-          letterSpacing: -0.5,
-        ),
-      ),
-    );
-  }
-}
   Color _getStatusColor(String status) {
     if (status == 'A/S') return AppColors.amber500;
     if (status.contains('UP') || status.contains('&')) return AppColors.teamA;

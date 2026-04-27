@@ -63,6 +63,25 @@ The Match Play engine is now fully integrated into the **Master Seed** to ensure
 
 ---
 
+## 04 · Verification & Lab Scenarios
+
+The seeding engine includes specialized "Lab" scenarios for debugging complex UI states and verifying result verification workflows:
+
+### 1. Verification Test Scenario
+Seeds a specific event state designed to test the **Admin Verification Hub**:
+- **70% Submitted**: Completed scorecards with final status.
+- **20% Draft (Complete)**: 18-hole cards waiting for submission.
+- **10% In Play**: Scorecards with partial holes (e.g. 16 holes) for real-time tracking.
+- **Usage**: Accessible via the "Seed Verification Scenario" action in Debug settings.
+
+### 2. Match Play Lab Stages
+Specialized seeding for Match Play lifecycle testing:
+- **Stage 1 (Registration)**: 32 members registered, no draw.
+- **Stage 2 (Draw Published)**: Full 16-match bracket generated.
+- **Stage 3 (Partial Results)**: 8 matches completed, 8 pending.
+
+---
+
 ## 04 · Technical Orchestration
 
 ### `SeedingService.seedFullDemoData()`

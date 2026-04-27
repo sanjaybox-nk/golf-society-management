@@ -1,15 +1,10 @@
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:collection/collection.dart';
 import 'package:intl/intl.dart';
-import '../../../../utils/string_utils.dart';
-import '../../../matchplay/presentation/state/match_play_providers.dart';
-import '../../../matchplay/presentation/tournament_wizard_provider.dart';
 import '../../../matchplay/domain/match_play_tournament.dart';
 import '../../../matchplay/domain/match_definition.dart';
 import '../../../matchplay/domain/match_play_calculator.dart';
-import '../../../matchplay/presentation/state/match_play_providers.dart' as mp_state;
 import '../../../matchplay/logic/match_play_entrant_service.dart';
 import '../../../events/presentation/events_provider.dart';
 import '../../../members/presentation/members_provider.dart';
@@ -18,13 +13,14 @@ import '../../../../design_system/design_system.dart';
 import '../../../../domain/models/golf_event.dart';
 import '../../../../domain/models/competition.dart';
 import '../../../../domain/models/member.dart';
+import '../../../../domain/models/society_config.dart';
 import '../../../../features/matchplay/data/match_play_repository.dart';
 import 'package:uuid/uuid.dart';
-import '../../../../domain/models/society_config.dart';
-import '../../../../domain/models/event_registration.dart';
 import '../../../../features/competitions/presentation/widgets/competition_shared_widgets.dart';
 import '../../../matchplay/domain/match_play_reminder_service.dart';
 import '../../../notifications/domain/notification_broadcast_service.dart';
+import '../../../matchplay/presentation/tournament_wizard_provider.dart';
+import '../../../matchplay/presentation/state/match_play_providers.dart';
 
 class MatchPlayDrawManagerScreen extends ConsumerStatefulWidget {
   final String? eventId;
@@ -105,7 +101,7 @@ class _MatchPlayDrawManagerScreenState extends ConsumerState<MatchPlayDrawManage
     return HeadlessScaffold(
       title: 'Match Play Hub',
       subtitle: state.name.isNotEmpty ? state.name : 'Tournament Manager',
-      titleSuffix: BoxyArtPill.committee(label: 'ADMIN'),
+      topPill: BoxyArtPill.committee(label: 'ADMIN'),
       showBack: true,
       actions: [
         BoxyArtGlassIconButton(
@@ -118,14 +114,13 @@ class _MatchPlayDrawManagerScreenState extends ConsumerState<MatchPlayDrawManage
           BoxyArtGlassIconButton(
             onPressed: () async {
               await ref.read(matchPlayReminderServiceProvider).syncReminders(tournamentId: widget.eventId);
-              if (mounted) {
-                BoxyArtDialog.show(
-                  context: context,
-                  title: 'Reminders Processed',
-                  message: 'A scan of the current tournament matches was performed. Any matches due in 5 days have been notified.',
-                  confirmText: 'DONE',
-                );
-              }
+              if (!context.mounted) return;
+              BoxyArtDialog.show(
+                context: context,
+                title: 'Reminders Processed',
+                message: 'A scan of the current tournament matches was performed. Any matches due in 5 days have been notified.',
+                confirmText: 'DONE',
+              );
             },
             icon: Icons.notifications_active_rounded,
             tooltip: 'Send 5-Day Reminders',
@@ -279,7 +274,6 @@ class _MatchPlayDrawManagerScreenState extends ConsumerState<MatchPlayDrawManage
           ...matches.asMap().entries.expand((entry) {
             final index = entry.key;
             final m = entry.value;
-            final isLast = index == matches.length - 1;
 
             return [
               BoxyArtSectionTitle(
@@ -369,7 +363,7 @@ class _MatchPlayDrawManagerScreenState extends ConsumerState<MatchPlayDrawManage
   }
 
 
-  Widget _buildFooter(WidgetRef ref, TournamentWizardState state, TournamentWizardNotifier notifier, ThemeData theme, BuildContext context, {bool hasEvent = false}) {
+  Widget _buildFooter(WidgetRef ref, TournamentWizardState state, TournamentWizardNotifier notifier, ThemeData theme, BuildContext context) {
     // [Design 4.x Standard] Persistent Footer Action.
     // The footer is now always visible once a tournament context is established, 
     // ensuring "Save Draft" and "Publish" are accessible from both the Entries and Draw tabs.
@@ -463,7 +457,7 @@ class _MatchPlayDrawManagerScreenState extends ConsumerState<MatchPlayDrawManage
     }
     
     if (context.mounted) {
-      final confirmed = await BoxyArtDialog.show<bool>(
+      await BoxyArtDialog.show<bool>(
         context: context,
         title: isPublish ? (ref.read(tournamentWizardProvider).isPublished ? 'Draw Updated!' : 'Tournament Published!') : 'Draft Saved',
         message: isPublish 
@@ -579,12 +573,11 @@ class _DraftMatchItem extends ConsumerWidget {
     final p2 = match.team2Ids.isNotEmpty ? members.firstWhereOrNull((m) => m.id == match.team2Ids.first) : null;
 
     // Calculate live result if published
-    MatchResult? liveResult;
     if (isPublished && eventId != null) {
       final scorecards = ref.watch(scorecardsListProvider(eventId!)).value ?? [];
       final event = ref.watch(eventProvider(eventId!)).value;
       if (event != null) {
-        liveResult = MatchPlayCalculator.calculate(
+        MatchPlayCalculator.calculate(
           match: match,
           scorecards: scorecards,
           courseConfig: event.courseConfig,
@@ -868,7 +861,7 @@ class _MatchupPlayerCard extends StatelessWidget {
     }
 
     // [Design 4.x Standard] 28-Cap PHC logic for Match Play
-    final int? phc = member!.handicap?.clamp(0.0, 28.0).toInt();
+    final int phc = member!.handicap.clamp(0.0, 28.0).toInt();
 
     final String initials = '${member!.firstName.isNotEmpty ? member!.firstName[0] : ''}${member!.lastName.isNotEmpty ? member!.lastName[0] : ''}'.toUpperCase();
 
@@ -973,47 +966,9 @@ String getRoundLabel(MatchRoundType round) {
     case MatchRoundType.quarterFinal: return 'Quarter-Finals';
     case MatchRoundType.semiFinal: return 'Semi-Finals';
     case MatchRoundType.finalRound: return 'The Final';
-    default: return 'Round';
   }
 }
 
-class _EntrantsHeader extends StatelessWidget {
-  final int count;
-  final VoidCallback onAddManual;
-  final ThemeData theme;
-  final SocietyConfig config;
-
-  const _EntrantsHeader({
-    required this.count,
-    required this.onAddManual,
-    required this.theme,
-    required this.config,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('ENTRANTS', style: AppTypography.labelStrong.copyWith(color: AppColors.textSecondary, fontSize: AppTypography.sizeMicro)),
-            Text('$count players/pairs registered', style: AppTypography.caption.copyWith(color: AppColors.textSecondary)),
-          ],
-        ),
-        BoxyArtButton(
-          title: 'Add Manual',
-          icon: Icons.add_circle_outline_rounded,
-          isPrimary: false,
-          isSecondary: true,
-          isSmall: true,
-          onTap: onAddManual,
-        ),
-      ],
-    );
-  }
-}
 
 class _EntrantListItem extends StatelessWidget {
   final MatchPlayEntrant entrant;
@@ -1035,9 +990,7 @@ class _EntrantListItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // [Design 4.x Standard] 28-Cap PHC logic for Match Play
-    final int? phc = handicapIndex != null 
-        ? handicapIndex!.clamp(0.0, 28.0).toInt() 
-        : null;
+    final int? phc = handicapIndex?.clamp(0.0, 28.0).toInt();
 
     final String initials = member != null 
         ? '${member!.firstName.isNotEmpty ? member!.firstName[0] : ''}${member!.lastName.isNotEmpty ? member!.lastName[0] : ''}'.toUpperCase()

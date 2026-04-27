@@ -2,11 +2,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 import 'package:golf_society/domain/models/golf_event.dart';
-import '../../notifications/domain/notification_broadcast_service.dart';
-import '../../events/data/events_repository.dart';
 import '../../events/presentation/events_provider.dart';
 import '../data/match_play_repository.dart';
-import 'match_definition.dart';
 
 class MatchPlayReminderService {
   final Ref ref;
@@ -83,7 +80,6 @@ class MatchPlayReminderService {
     required DateTime deadline,
   }) async {
     final deadlineFormatted = DateFormat('d MMM').format(deadline);
-    final notificationService = ref.read(renewalNudgeServiceProvider);
 
     for (final playerId in playerIds) {
       // Direct Firestore write for simplicity or use notificationService

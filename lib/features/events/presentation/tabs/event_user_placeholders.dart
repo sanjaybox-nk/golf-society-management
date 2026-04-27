@@ -1753,8 +1753,6 @@ class EventStatsUserTab extends ConsumerWidget {
 
     return eventAsync.when(
       data: (event) {
-        final user = ref.watch(effectiveUserProvider);
-        final isStaff = user.role != MemberRole.member;
 
         return HeadlessScaffold(
           title: event.title,

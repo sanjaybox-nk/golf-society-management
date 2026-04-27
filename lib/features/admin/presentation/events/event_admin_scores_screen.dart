@@ -48,12 +48,11 @@ class _EventAdminScoresScreenState extends ConsumerState<EventAdminScoresScreen>
         final bool isTournamentStyle = compAsync.value?.rules.isTournamentStyleGrouping ?? false;
 
         final spacing = Theme.of(context).extension<AppSpacingTokens>();
-        final config = ref.watch(themeControllerProvider);
-
+    
         return HeadlessScaffold(
           title: 'Event Scores',
           subtitle: event.title,
-          titleSuffix: BoxyArtPill.committee(label: 'ADMIN'),
+          topPill: BoxyArtPill.committee(label: 'ADMIN'),
           showBack: true,
           slivers: [
             SliverPadding(
@@ -157,7 +156,7 @@ class _EventAdminScoresScreenState extends ConsumerState<EventAdminScoresScreen>
     return [
       const SliverPadding(
         padding: EdgeInsets.symmetric(horizontal: AppSpacing.xl),
-        sliver: const SliverToBoxAdapter(child: BoxyArtSectionTitle(title: 'TOURNAMENT BRACKET')),
+        sliver: SliverToBoxAdapter(child: BoxyArtSectionTitle(title: 'TOURNAMENT BRACKET')),
       ),
       SliverFillRemaining(
         hasScrollBody: true,

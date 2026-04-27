@@ -10,6 +10,7 @@ class HeadlessScaffold extends StatelessWidget {
   final String? subtitle;
   final Widget? subtitleWidget;
   final Widget? titleSuffix;
+  final Widget? topPill;
   final List<Widget> slivers;
   final Widget? subtitleTrailing;
   final Color? backgroundColor;
@@ -34,6 +35,7 @@ class HeadlessScaffold extends StatelessWidget {
     this.subtitleWidget,
     this.subtitleTrailing,
     this.titleSuffix,
+    this.topPill,
     required this.slivers,
     this.backgroundColor,
     this.contentPadding,
@@ -86,9 +88,8 @@ class HeadlessScaffold extends StatelessWidget {
                 child: Padding(
                   padding: const EdgeInsets.only(
                     // Absolute Golden Rhythm: Exactly 124px from Physical Top (Grid-snapped + 4px nudge)
-                    // We use a fixed value here because the GlobalAppShell and Modals now all start at Y=0
-                    // Absolute Golden Rhythm: Increased to 140px to clear fixed UI comfortably
-                    top: 140.0, 
+                    // Absolute Golden Rhythm: Restored to 124px to tighten connection to actions
+                    top: 124.0, 
                     left: AppSpacing.xl,
                     right: AppSpacing.xl,
                     bottom: AppSpacing.large,
@@ -155,72 +156,84 @@ class HeadlessScaffold extends StatelessWidget {
                 // Layer 2: Actionable Navigation Row (Fixed 48px for 8pt grid parity)
                 SizedBox(
                   height: 48.0,
-                  child: Row(
+                  child: Stack(
+                    alignment: Alignment.center,
                     children: [
-                      // Leading slot
-                      SizedBox(
-                        width: leadingWidth ?? 72.0,
-                        child: leading ?? (showBack 
-                            ? Center(
-                                child: BoxyArtGlassIconButton(
-                                  icon: backIcon ?? Icons.arrow_back_rounded,
-                                  onPressed: onBack ?? () => Navigator.of(context).maybePop(),
-                                  tooltip: 'Back',
-                                  iconColor: AppColors.dark900, // Force contrast
-                                  iconSize: 24,
-                                ),
-                              )
-                            : (showMenu 
+                      // Centered Pill (North Star for Admin/Context indicators)
+                      if (topPill != null) 
+                        DefaultTextStyle(
+                          style: AppTypography.micro.copyWith(fontWeight: AppTypography.weightBold),
+                          child: topPill!,
+                        ),
+
+                      Row(
+                        children: [
+                          // Leading slot
+                          SizedBox(
+                            width: leadingWidth ?? 72.0,
+                            child: leading ?? (showBack 
                                 ? Center(
                                     child: BoxyArtGlassIconButton(
-                                      icon: Icons.menu_rounded,
-                                      onPressed: () => Scaffold.of(context).openDrawer(),
-                                      tooltip: 'Menu',
+                                      icon: backIcon ?? Icons.arrow_back_rounded,
+                                      onPressed: onBack ?? () => Navigator.of(context).maybePop(),
+                                      tooltip: 'Back',
                                       iconColor: AppColors.dark900, // Force contrast
+                                      iconSize: 24,
                                     ),
                                   )
-                                : null)),
-                      ),
-
-                      // Spacer
-                      const Expanded(child: SizedBox.shrink()),
-
-                      // Actions slot
-                      if (actions != null || showAdminShortcut)
-                        Padding(
-                          padding: const EdgeInsets.only(right: AppSpacing.xl),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              if (showAdminShortcut)
-                                Builder(
-                                  builder: (context) {
-                                    final path = GoRouterState.of(context).uri.path;
-                                    if (path.contains('/admin')) return const SizedBox.shrink();
-                                    return Padding(
-                                      padding: EdgeInsets.only(
-                                        right: (actions != null && actions!.isNotEmpty) ? AppSpacing.sm : 0,
-                                      ),
-                                      child: const AdminShortcutAction(),
-                                    );
-                                  },
-                                ),
-                              if (actions != null)
-                                ...actions!.asMap().entries.map((entry) {
-                                  final idx = entry.key;
-                                  final widget = entry.value;
-                                  final isLast = idx == actions!.length - 1;
-                                  
-                                  return Padding(
-                                    padding: EdgeInsets.only(
-                                      right: isLast ? 0 : AppSpacing.sm,
-                                    ),
-                                    child: widget,
-                                  );
-                                }),
-                            ],
+                                : (showMenu 
+                                    ? Center(
+                                        child: BoxyArtGlassIconButton(
+                                          icon: Icons.menu_rounded,
+                                          onPressed: () => Scaffold.of(context).openDrawer(),
+                                          tooltip: 'Menu',
+                                          iconColor: AppColors.dark900, // Force contrast
+                                        ),
+                                      )
+                                    : null)),
                           ),
-                        ),
+
+                          // Spacer
+                          const Expanded(child: SizedBox.shrink()),
+
+                          // Actions slot
+                          if (actions != null || showAdminShortcut)
+                            Padding(
+                              padding: const EdgeInsets.only(right: AppSpacing.xl),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  if (showAdminShortcut)
+                                    Builder(
+                                      builder: (context) {
+                                        final path = GoRouterState.of(context).uri.path;
+                                        if (path.contains('/admin')) return const SizedBox.shrink();
+                                        return Padding(
+                                          padding: EdgeInsets.only(
+                                            right: (actions != null && actions!.isNotEmpty) ? AppSpacing.sm : 0,
+                                          ),
+                                          child: const AdminShortcutAction(),
+                                        );
+                                      },
+                                    ),
+                                  if (actions != null)
+                                    ...actions!.asMap().entries.map((entry) {
+                                      final idx = entry.key;
+                                      final widget = entry.value;
+                                      final isLast = idx == actions!.length - 1;
+                                      
+                                      return Padding(
+                                        padding: EdgeInsets.only(
+                                          right: isLast ? 0 : AppSpacing.sm,
+                                        ),
+                                        child: widget,
+                                      );
+                                    }),
+                                ],
+                              ),
+                            ),
+                        ],
+                      ),
                     ],
                   ),
                 ),

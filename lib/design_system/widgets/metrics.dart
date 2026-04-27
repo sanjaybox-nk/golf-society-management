@@ -47,7 +47,6 @@ class ModernMetricStat extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
     final config = ref.watch(themeControllerProvider);
     
     // 1. Universal Badge Token Logic
@@ -143,7 +142,6 @@ class ModernSummaryIcon extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
     final config = ref.watch(themeControllerProvider);
     final color = active ? (activeColor ?? Color(config.secondaryColor)) : AppColors.dark300;
     return Column(

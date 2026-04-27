@@ -91,10 +91,20 @@ While in Match Play Mode on standard events:
 - **Interactive Grid**: Admins can tap players within a group to swap their side (A or B), determining who plays whom.
 - **Persistence**: These pairings are saved as `MatchDefinition` objects within the event's grouping metadata.
 
-### 9. Authoritative Tee Resolution via Marker Selection
+### 9. Authoritative Tee Resolution
 The grouping UI reflects the authoritative tee resolved for each player.
-- **Marker Overrides**: Admins can override event-level tee defaults (e.g., forcing a high-handicapper to use Red tees) via the **Marker Selection Sheet** accessible from the scoring views.
-- **Dynamic Feedback**: Real-time integration with `markerSelectionProvider` ensures that any manual tee change is instantly visible on the grouping card, allowing admins to verify competitive equity at a glance.
+- **Auto-Assignment**: Tees are initially assigned during registration based on event defaults and gender.
+- **Resolution Priority**: The system resolves the playing tee box in this order:
+    1. **Manual Admin Override** (Set in Grouping Hub)
+    2. **Player Manual Override** (Set in Scorecard Modal)
+    3. **Registration Default** (Set at signup)
+    4. **Event Default** (Course-wide)
+
+### 10. Administrative Tee Overrides
+Admins have the final authority to override any player's tee box within the **Grouping Hub**.
+- **Interactive Tapping**: Admins can tap the tee indicator on a player's tile to open the **Tee Selector**.
+- **Admin Popup Menu**: The "Change Tee..." option is also available in the player's leading popup menu.
+- **Persistence**: Changes are synchronized back to the `EventRegistration` in Firestore and snapshotted in the `TeeGroupParticipant` for consistency across re-generations.
 
 ---
 

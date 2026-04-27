@@ -1,8 +1,6 @@
 import 'package:golf_society/design_system/design_system.dart';
 import 'package:golf_society/domain/models/competition.dart';
 import 'package:golf_society/domain/models/scorecard.dart';
-import 'package:golf_society/utils/string_utils.dart';
-import 'package:golf_society/features/matchplay/domain/match_play_calculator.dart';
 
 class LeaderboardWidget extends StatelessWidget {
   final List<LeaderboardEntry> entries;
@@ -32,7 +30,6 @@ class LeaderboardWidget extends StatelessWidget {
         tiedGroups[e.score]!.add(e);
       }
     }
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     final isStableford = format == CompetitionFormat.stableford;
 
     return Column(
@@ -112,6 +109,8 @@ class LeaderboardWidget extends StatelessWidget {
             isCaptain: entry.isCaptain,
             hasMemberGuest: entry.hasGuest,
             isStableford: isStableford,
+            teeName: entry.teeName,
+            teeColor: entry.teeColor,
             useCard: true,
             showChevron: false,
             isSelected: highlightEntryId != null && entry.entryId == highlightEntryId,
@@ -159,6 +158,8 @@ class LeaderboardEntry {
   final List<List<int?>>? individualHolePoints; // [NEW]
   final bool hasSocietyCut; // [NEW] Track for display notation (*)
   final bool isCaptain; // [NEW] For captain indicator
+  final String? teeName; // [NEW]
+  final Color? teeColor; // [NEW]
   final int position;
 
   LeaderboardEntry({
@@ -196,6 +197,8 @@ class LeaderboardEntry {
     this.individualHolePoints,
     this.hasSocietyCut = false,
     this.isCaptain = false,
+    this.teeName,
+    this.teeColor,
     this.position = 0,
     this.scoringStatus = ScoringStatus.ok,
   });
@@ -237,6 +240,8 @@ class LeaderboardEntry {
     List<List<int?>>? individualHoleNetScores,
     List<List<int?>>? individualHolePoints,
     bool? isCaptain,
+    String? teeName,
+    Color? teeColor,
   }) {
     return LeaderboardEntry(
       entryId: entryId ?? this.entryId,
@@ -275,6 +280,8 @@ class LeaderboardEntry {
       individualHoleNetScores: individualHoleNetScores ?? this.individualHoleNetScores,
       individualHolePoints: individualHolePoints ?? this.individualHolePoints,
       isCaptain: isCaptain ?? this.isCaptain,
+      teeName: teeName ?? this.teeName,
+      teeColor: teeColor ?? this.teeColor,
     );
   }
 }

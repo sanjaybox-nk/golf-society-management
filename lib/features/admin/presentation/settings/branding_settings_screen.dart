@@ -15,7 +15,7 @@ class BrandingSettingsScreen extends ConsumerWidget {
     return HeadlessScaffold(
       title: 'Branding',
       subtitle: 'Customize colors and identity',
-      titleSuffix: BoxyArtPill.committee(label: 'ADMIN'),
+      topPill: BoxyArtPill.committee(label: 'ADMIN'),
       showBack: true,
       onBack: () => context.pop(),
       actions: const [],
@@ -1167,7 +1167,6 @@ class BrandingSettingsScreen extends ConsumerWidget {
     double groupFooterToLabelSpacing,
   ) {
     final primary = Color(primaryInt);
-    final secondary = Color(secondaryInt);
     final tertiary = Color(tertiaryInt);
     final textPrimary = Color(textPrimaryInt);
     final textSecondary = Color(textSecondaryInt);

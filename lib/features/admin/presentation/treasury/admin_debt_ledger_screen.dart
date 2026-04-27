@@ -315,7 +315,7 @@ class _AdminDebtLedgerScreenState extends ConsumerState<AdminDebtLedgerScreen> {
             return HeadlessScaffold(
               title: 'Central Debt Ledger',
               subtitle: 'Track and Settle Society Finances',
-              titleSuffix: BoxyArtPill.committee(label: 'ADMIN'),
+              topPill: BoxyArtPill.committee(label: 'ADMIN'),
               showBack: true,
               onBack: () => context.pop(),
               actions: const [],
@@ -418,24 +418,24 @@ class _AdminDebtLedgerScreenState extends ConsumerState<AdminDebtLedgerScreen> {
           },
           loading: () => HeadlessScaffold(
             title: 'Loading Events...', 
-            titleSuffix: BoxyArtPill.committee(label: 'ADMIN'),
+            topPill: BoxyArtPill.committee(label: 'ADMIN'),
             slivers: const [],
           ),
           error: (err, st) => HeadlessScaffold(
             title: 'Error', 
-            titleSuffix: BoxyArtPill.committee(label: 'ADMIN'),
+            topPill: BoxyArtPill.committee(label: 'ADMIN'),
             slivers: [SliverFillRemaining(child: Center(child: Text('Error')))],
           ),
         );
       },
       loading: () => HeadlessScaffold(
         title: 'Loading Members...', 
-        titleSuffix: BoxyArtPill.committee(label: 'ADMIN'),
+        topPill: BoxyArtPill.committee(label: 'ADMIN'),
         slivers: const [],
       ),
       error: (err, st) => HeadlessScaffold(
         title: 'Error', 
-        titleSuffix: BoxyArtPill.committee(label: 'ADMIN'),
+        topPill: BoxyArtPill.committee(label: 'ADMIN'),
         slivers: [SliverFillRemaining(child: Center(child: Text('Error')))],
       ),
     );

@@ -64,11 +64,27 @@ class EventCourseSection extends ConsumerWidget {
                     maxLines: 2,
                     onChanged: (v) => ref.read(eventFormNotifierProvider.notifier).updateCourseDetailsManual(v),
                   ),
-                  // Tee Selection (Simplified for now - can be expanded)
-                  BoxyArtFormField(
-                    label: 'Starting Tee (Manual)',
-                    initialValue: state.selectedTeeName,
-                    onChanged: (v) => ref.read(eventFormNotifierProvider.notifier).updateSelectedTeeName(v),
+                  // Tee Selection (Smart Defaults)
+                  Row(
+                    children: [
+                      Expanded(
+                        child: BoxyArtFormField(
+                          label: "Default Men's Tee",
+                          initialValue: state.selectedTeeName,
+                          onChanged: (v) => ref.read(eventFormNotifierProvider.notifier).updateSelectedTeeName(v),
+                          hintText: 'e.g., Yellow',
+                        ),
+                      ),
+                      const SizedBox(width: AppSpacing.md),
+                      Expanded(
+                        child: BoxyArtFormField(
+                          label: "Default Ladies Tee",
+                          initialValue: state.selectedFemaleTeeName,
+                          onChanged: (v) => ref.read(eventFormNotifierProvider.notifier).updateSelectedFemaleTeeName(v),
+                          hintText: 'e.g., Red',
+                        ),
+                      ),
+                    ],
                   ),
                   BoxyArtFormField(
                     label: 'Dress Code',

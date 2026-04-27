@@ -12,21 +12,49 @@ class MemberStatusPicker extends StatelessWidget {
   });
 
   static void show(BuildContext context, MemberStatus currentStatus, ValueChanged<MemberStatus> onStatusSelected) {
+    MemberStatus selectedStatus = currentStatus;
+
     BoxyArtBottomSheet.show(
       context: context,
       title: 'Update Member Status',
-      initialChildSize: 0.75,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildStatusPickerOption(context, MemberStatus.member, currentStatus, onStatusSelected),
-          _buildStatusPickerOption(context, MemberStatus.pending, currentStatus, onStatusSelected),
-          _buildStatusPickerOption(context, MemberStatus.suspended, currentStatus, onStatusSelected),
-          _buildStatusPickerOption(context, MemberStatus.expired, currentStatus, onStatusSelected),
-          _buildStatusPickerOption(context, MemberStatus.left, currentStatus, onStatusSelected),
-          _buildStatusPickerOption(context, MemberStatus.archived, currentStatus, onStatusSelected),
-        ],
+      initialChildSize: 0.85,
+      maxChildSize: 0.9,
+      child: StatefulBuilder(
+        builder: (context, setModalState) {
+          final spacing = Theme.of(context).extension<AppSpacingTokens>();
+          final cardGap = spacing?.cardToCard ?? AppSpacing.standard;
+
+          return Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildStatusPickerOption(context, MemberStatus.member, selectedStatus, (val) {
+                onStatusSelected(val);
+                setModalState(() => selectedStatus = val);
+              }, cardGap),
+              _buildStatusPickerOption(context, MemberStatus.pending, selectedStatus, (val) {
+                onStatusSelected(val);
+                setModalState(() => selectedStatus = val);
+              }, cardGap),
+              _buildStatusPickerOption(context, MemberStatus.suspended, selectedStatus, (val) {
+                onStatusSelected(val);
+                setModalState(() => selectedStatus = val);
+              }, cardGap),
+              _buildStatusPickerOption(context, MemberStatus.expired, selectedStatus, (val) {
+                onStatusSelected(val);
+                setModalState(() => selectedStatus = val);
+              }, cardGap),
+              _buildStatusPickerOption(context, MemberStatus.left, selectedStatus, (val) {
+                onStatusSelected(val);
+                setModalState(() => selectedStatus = val);
+              }, cardGap),
+              _buildStatusPickerOption(context, MemberStatus.archived, selectedStatus, (val) {
+                onStatusSelected(val);
+                setModalState(() => selectedStatus = val);
+              }, cardGap),
+            ],
+          );
+        },
       ),
     );
   }
@@ -40,7 +68,8 @@ class MemberStatusPicker extends StatelessWidget {
     BuildContext context, 
     MemberStatus status, 
     MemberStatus currentStatus, 
-    ValueChanged<MemberStatus> onStatusSelected
+    ValueChanged<MemberStatus> onStatusSelected,
+    double cardGap,
   ) {
     final isSelected = currentStatus == status;
     final theme = Theme.of(context);
@@ -54,10 +83,11 @@ class MemberStatusPicker extends StatelessWidget {
     return GestureDetector(
       onTap: () {
         onStatusSelected(status);
-        Navigator.pop(context);
+        // [Design Feedback] Selection no longer closes the slider automatically
+        // Navigator.pop(context); 
       },
       child: BoxyArtCard(
-        margin: const EdgeInsets.only(bottom: AppSpacing.standard),
+        margin: EdgeInsets.only(bottom: cardGap),
         padding: const EdgeInsets.symmetric(
           horizontal: AppSpacing.standard,
           vertical: AppSpacing.md,

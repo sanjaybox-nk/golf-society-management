@@ -21,10 +21,16 @@ Renewal alerts are restricted to the **Home Screen** only. This prevents UI clut
 
 ### 4. Admin Renewal Hub
 The central command center for processing submissions, accessed via the **RENEWALS** tile in the Admin Dashboard.
-- **Architecture**: Implemented using a **Branch Navigator** to ensure the global bottom navigation remains persistent and interactive during the renewal process.
-- **Design Standard**: Follows **v4.1 True Minimal** (Title Case headers, card-to-label vertical rhythm).
-- **Grouped Views**: Members are categorized by their chosen status.
-- **Batch Processing**: Admins can confirm renewals in bulk, which updates the `membershipEndDate` to the next cycle and resets the renewal intent.
+- **Architecture**: Implemented using a **Branch Navigator** to ensure the global bottom navigation remains persistent and interactive.
+- **Terminology (Design 4.x)**: 
+    - **Pending**: Members who have been sent a reminder but have not yet chosen a status.
+    - **Renewing**: Members who have chosen to renew but have not yet been marked as "Paid".
+    - **Paid**: Members whose renewal fees are confirmed by the Admin.
+- **Nudge Tracking**: A dedicated action pill allows Admins to send push notifications to unpaid members.
+    - **Visual Indicator**: Uses a **Notification Bell (🔔)** icon to distinguish communication from state-editing.
+    - **Nudge Counter**: Displays the frequency of reminders sent (e.g., `NUDGE (3)`) to prevent over-communication.
+- **Status Button Affordance**: Interactive status pills (Paid/Renewing) feature a subtle background tint, border, and **Pencil (✎)** icon to indicate they are clickable toggles.
+- **Lifecycle Finalization**: marking a member as "Paid" does not automatically make them "Active". Once all payments are tracked in the **PAID** tab, the Admin clicks **"Process Renewals"** to bulk-update lifecycle statuses from `Expired` -> `Active`.
 - **Archival**: Suspended or leaving members can be archived with one click.
 
 ## Logical Flow

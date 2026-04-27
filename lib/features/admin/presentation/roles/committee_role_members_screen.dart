@@ -18,7 +18,6 @@ class CommitteeRoleMembersScreen extends ConsumerStatefulWidget {
 
 class _CommitteeRoleMembersScreenState extends ConsumerState<CommitteeRoleMembersScreen> {
   final TextEditingController _searchController = TextEditingController();
-  Color get _roleColor => Theme.of(context).primaryColor;
   String _searchQuery = '';
 
   @override

@@ -1,41 +1,40 @@
-# Walkthrough: Administrative Seeding Infrastructure & UI Consolidation (v7.0)
+# Walkthrough: Administrative Design Hardening & Navigation Refinements (v8.0)
 
-I have successfully consolidated the administrative seeding infrastructure and standardized the settings hub UI to provide a high-fidelity, zero-error management experience.
-
-## Location
-- **Settings Hub** (Gear Icon) > **INFRASTRUCTURE**
+I have successfully implemented the latest hardening of the administrative design tokens and navigation behavior to provide a more intuitive and high-fidelity management experience.
 
 ## Changes Implemented
 
-### 1. Seeding Infrastructure Consolidation
-- **Unified Master Seed**: Merged all fragmented seeding processes into a single "Initialize Demo Season" workflow in `SeedingService.seedFullDemoData()`.
-- **Match Play Integration**: The master seed now automatically instantiates a 36-player Match Play tournament, including the Season Opener hybrid event and bracket progression.
-- **3-Tier Hierarchy**: Streamlined the settings hub to three authoritative controls:
-    1. **Initialize Demo Season** (Full environment setup)
-    2. **Clear Activity Data** (Surgical wipe of events/members)
-    3. **System Factory Reset** (Total deep wipe)
+### 1. Navigation Refinement: "Reset-on-Tap"
+- **Fresh Entry Logic**: Refactored the `GlobalAppShell` navigation logic to force a branch reset whenever a bottom navigation item is tapped.
+- **Improved Flow**: Switching between layouts (e.g., Members -> Dashboard) now always lands the user at the root screen of the target section, eliminating the confusion of getting "stuck" in deep sub-menus.
 
-### 2. UI & Design Standardization (Boxy Art v4.x)
-- **Settings Hub Layout**: Refactored the `AdminSettingsHubScreen` with premium `BoxyArtNavTile` and `BoxyArtSwitchTile` components.
-- **Match Play Toggle**: Implemented the "Match Play Overlay" switch with high-fidelity ALL-CAPS typography and branded icon badges.
-- **Responsive Dialogs**: Refactored `BoxyArtDialog` to use `OverflowBar`. Action buttons now automatically stack vertically if labels are too long, preventing text truncation.
-- **Button Flex**: Removed rigid truncation from `BoxyArtButton` to allow for natural label wrapping while maintaining professional styling.
-- **Typography**: Applied the **ALL-CAPS Metadata Standard** across all administrative configuration rows.
+### 2. Renewal Hub & Status Hardening
+- **Terminology Update**: Renamed renewal states to **Pending** (idle) and **Renewing** (active intent/unpaid) to improve lifecycle clarity.
+- **Nudge Tracking**: Implemented a dynamic outreach counter on the Nudge pill (e.g., `NUDGE (3)`). 
+- **Action Icons**: Updated the Nudge action icon to a **Notification Bell (🔔)** to distinguish communication from state editing.
+- **Tab Optimization**: Removed icons from the Renewal Hub filter bar to ensure long labels like "RENEWING" fit perfectly on mobile devices without truncation.
 
-### 3. Stability & Compliance
-- **Null Safety**: Implemented null-safe handicap processing in `ScenarioSeeder` to prevent runtime crashes during complex seeding operations.
-- **Import Audit**: Resolved critical import errors in the settings hub by standardizing on the central `design_system.dart` barrel.
-- **Documentation**: Fully updated the **Brand Guide**, **Theme System**, **Seeding Guide**, and **Shared UI Library** to reflect v4.x standards.
+### 3. Indicator System: "Status Button" Affordance
+- **Interactive Elevation**: Modified the base `BoxyArtIndicator` to automatically adopt a button-like aesthetic when an `onTap` callback is provided.
+- **Visual Cues**: Interactive indicators now feature a subtle background tint, a soft border, and a trailing **Pencil (✎)** icon to signify editability.
 
-## Visual Verification
-The administrative settings hub now presents a clean, professional "Boxy Art" aesthetic. All action buttons (including the renamed "CLEAR" control) are fully visible and responsive across all device sizes.
+### 4. Leaderboard Builder Hardening
+- **Auto Re-indexing**: Implemented a "Sliding Rank" system that automatically re-orders positions when a rank is deleted, preventing data gaps.
+- **Token Integration**: Numeric inputs for ranks and points now correctly inherit the society's dynamic branding tokens (radius, borders, and fills).
+- **Micro-Typography**: Standardized "PLACE" and "PTS" metadata to use the high-density `AppTypography.micro` style.
+
+## Document Updates
+The following guides have been updated to reflect these 4.x/4.5 standards:
+- [09_SHARED_UI_LIBRARY.md](file:///Users/sanjaypatel/Documents/Projects/Golf%20Society%20Management/docs/09_SHARED_UI_LIBRARY.md) (Indicator patterns & Nav behavior)
+- [13_GAMES_AND_COMPETITIONS.md](file:///Users/sanjaypatel/Documents/Projects/Golf%20Society%20Management/docs/13_GAMES_AND_COMPETITIONS.md) (Leaderboard Builder logic)
+- [21_MEMBERSHIP_RENEWAL.md](file:///Users/sanjaypatel/Documents/Projects/Golf%20Society%20Management/docs/21_MEMBERSHIP_RENEWAL.md) (Renewal terminology & Nudge tracking)
 
 ---
 
 ### 🍙 Key Accomplishments
-*   **Infrastructure Simplicity**: Reduced 5+ fragmented seeding buttons to 3 high-fidelity controls.
-*   **Design Parity**: 100% alignment with v4.x "Boxy Art" tokens.
-*   **Zero-Overflow**: Refactored dialog and button logic to eliminate all reported text truncation issues.
-*   **Zero-Error State**: Codebase is fully analyzed and stable.
+*   **Navigation Predictability**: Eliminated the "Sticky State" issue when switching between functional areas.
+*   **Communication Tracking**: Admins can now monitor outreach frequency via the Nudge counter.
+*   **Affordance Consistency**: Clear visual distinction between passive labels and interactive status buttons.
+*   **Builder Efficiency**: Reduced manual rank re-entry via automated re-indexing.
 
-**Status**: Administrative Infrastructure Consolidation Complete & Verified.
+**Status**: Administrative Design Hardening & Navigation Refinements Complete & Verified.

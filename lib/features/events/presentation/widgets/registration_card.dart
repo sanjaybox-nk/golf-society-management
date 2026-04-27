@@ -359,10 +359,6 @@ class RegistrationCard extends ConsumerWidget {
     );
   }
 
-  Color _getIconActiveColor(BuildContext context, SocietyConfig config) {
-    // v4.5 Follow secondary brand token for information-dense rows
-    return Color(config.secondaryColor);
-  }
 
   Color _getIconInactiveColor(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;

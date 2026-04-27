@@ -57,43 +57,30 @@ class _SeasonFormScreenState extends ConsumerState<SeasonFormScreen> {
     return HeadlessScaffold(
       title: widget.season == null ? 'Create Season' : 'Edit Season',
       subtitle: (widget.season?.name != null) ? widget.season!.name : 'Configure season properties',
-      titleSuffix: BoxyArtPill.committee(label: 'ADMIN'),
+      topPill: BoxyArtPill.committee(label: 'ADMIN'),
       showBack: true,
       onBack: () => context.pop(),
       actions: [
-        const SizedBox(width: AppSpacing.md),
         if (widget.season != null)
-          Padding(
-            padding: const EdgeInsets.only(top: AppSpacing.xs),
-            child: BoxyArtButton(
-              title: 'Sync',
-              isGhost: true,
-              icon: Icons.sync_rounded,
-              onTap: _syncStandings,
-            ),
+          BoxyArtGlassIconButton(
+            icon: Icons.sync_rounded,
+            onPressed: _syncStandings,
+            tooltip: 'Sync Standings',
           ),
-        Padding(
-          padding: const EdgeInsets.only(right: AppSpacing.sm, top: AppSpacing.xs),
-          child: BoxyArtButton(
-            title: 'Save',
-            isGhost: true,
-            isLoading: _isSaving,
-            textColor: AppColors.lime500,
-            onTap: _save,
-          ),
-        ),
+        const SizedBox(width: AppSpacing.sm),
       ],
       slivers: [
         SliverPadding(
           padding: EdgeInsets.only(
             left: AppSpacing.xl,
             right: AppSpacing.xl,
-            bottom: MediaQuery.of(context).padding.bottom + 100,
+            bottom: MediaQuery.of(context).padding.bottom + AppSpacing.x2l,
           ),
           sliver: SliverToBoxAdapter(
             child: Form(
               key: _formKey,
-            child: BoxyArtFormColumn(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 const BoxyArtSectionTitle(title: 'Basic info', isPeeking: true),
                 BoxyArtCard(
@@ -127,7 +114,7 @@ class _SeasonFormScreenState extends ConsumerState<SeasonFormScreen> {
                     ],
                   ),
                 ),
-                const BoxyArtSectionTitle(title: 'Dates'),
+                const BoxyArtSectionTitle(title: 'Dates', isPeeking: true, followsCard: true),
                 BoxyArtCard(
                   child: BoxyArtFormColumn(
                     children: [
@@ -153,20 +140,38 @@ class _SeasonFormScreenState extends ConsumerState<SeasonFormScreen> {
                     ],
                   ),
                 ),
-                BoxyArtSwitchField(
-                  label: 'Set as current season',
-                  value: _isCurrent,
-                  onChanged: (v) => setState(() => _isCurrent = v),
+                const BoxyArtSectionTitle(title: 'Settings', isPeeking: true, followsCard: true),
+                BoxyArtCard(
+                  padding: EdgeInsets.zero,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
+                    child: BoxyArtSwitchTile(
+                      icon: Icons.star_rounded,
+                      label: 'Current Season',
+                      subtitle: 'Make this the active season for the society',
+                      value: _isCurrent,
+                      onChanged: (v) => setState(() => _isCurrent = v),
+                    ),
+                  ),
                 ),
-
-                const BoxyArtSectionTitle(title: 'Season Standings'),
+                const BoxyArtSectionTitle(title: 'Assigned Leaderboards', isPeeking: true, followsCard: true),
                 _buildLeaderboardsList(),
+                const SizedBox(height: AppSpacing.standard),
                 BoxyArtButton(
-                  title: 'Add from Template',
+                  title: 'Add Leaderboard Templates',
                   isSecondary: true,
                   icon: Icons.add_to_photos_rounded,
                   fullWidth: true,
                   onTap: _showTemplateSelector,
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(top: AppSpacing.x3l, bottom: AppSpacing.xl),
+                  child: BoxyArtButton(
+                    title: 'Save Season',
+                    isLoading: _isSaving,
+                    onTap: _save,
+                    fullWidth: true,
+                  ),
                 ),
               ],
             ),
@@ -210,64 +215,95 @@ class _SeasonFormScreenState extends ConsumerState<SeasonFormScreen> {
       );
     }
 
-    return BoxyArtFormColumn(
-      spacing: AppSpacing.md,
-      children: _leaderboards.map((l) => BoxyArtCard(
-        child: Row(
-          children: [
-            BoxyArtIconBadge(
-              icon: l.map(
-                orderOfMerit: (_) => Icons.format_list_numbered_rounded,
-                bestOfSeries: (_) => Icons.stars_rounded,
-                eclectic: (_) => Icons.grid_on_rounded,
-                markerCounter: (_) => Icons.emoji_events_rounded,
-              ),
-              color: Theme.of(context).colorScheme.primary,
-            ),
-            const SizedBox(width: AppSpacing.md),
-            Expanded(
-              child: BoxyArtFormColumn(
-                spacing: AppSpacing.xs,
-                children: [
-                  Text(l.name, style: AppTypography.cardTitle),
-                  Row(
+    return BoxyArtCard(
+      padding: EdgeInsets.zero,
+      child: Column(
+        children: _leaderboards.asMap().entries.map((entry) {
+          final idx = entry.key;
+          final l = entry.value;
+          final isLast = idx == _leaderboards.length - 1;
+          
+          return Column(
+            children: [
+              Dismissible(
+                key: ValueKey(l.id),
+                direction: DismissDirection.endToStart,
+                background: Container(
+                  color: AppColors.coral500,
+                  alignment: Alignment.centerRight,
+                  padding: const EdgeInsets.only(right: AppSpacing.xl),
+                  child: const Icon(Icons.delete_outline_rounded, color: Colors.white),
+                ),
+                confirmDismiss: (_) async {
+                  return await showBoxyArtDialog<bool>(
+                    context: context,
+                    title: 'Remove Leaderboard?',
+                    message: 'This will remove "${l.name}" from the season and clear its calculated standings. This cannot be undone.',
+                    confirmText: 'Remove',
+                    isDangerous: true,
+                  );
+                },
+                onDismissed: (_) {
+                  setState(() => _leaderboards.removeWhere((item) => item.id == l.id));
+                },
+                child: InkWell(
+                  onTap: () => _editLeaderboard(l),
+                  child: Padding(
+                    padding: const EdgeInsets.all(AppSpacing.standard),
+                  child: Row(
                     children: [
-                      BoxyArtPill.status(
-                        label: toSentenceCase(l.scope.name),
-                        color: l.scope == LeaderboardScope.global 
-                            ? AppColors.lime500 
-                            : AppColors.teamA,
+                    BoxyArtIconBadge(
+                      icon: l.map(
+                        orderOfMerit: (_) => Icons.format_list_numbered_rounded,
+                        bestOfSeries: (_) => Icons.stars_rounded,
+                        eclectic: (_) => Icons.grid_on_rounded,
+                        markerCounter: (_) => Icons.emoji_events_rounded,
                       ),
-                      const SizedBox(width: AppSpacing.xs),
-                      Expanded(
-                        child: Text(
-                          _getFormatConfigSummary(l),
-                          style: AppTypography.micro.copyWith(color: AppColors.dark400),
-                          overflow: TextOverflow.ellipsis,
-                        ),
+                      color: Theme.of(context).colorScheme.primary,
+                      isTinted: true,
+                    ),
+                    const SizedBox(width: AppSpacing.standard),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(l.name, style: AppTypography.cardTitle),
+                          const SizedBox(height: 2),
+                          Text(
+                            _getFormatConfigSummary(l),
+                            style: AppTypography.caption.copyWith(color: AppColors.dark400),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: AppSpacing.sm),
+                          BoxyArtIndicator(
+                            label: l.scope == LeaderboardScope.global ? 'GLOBAL' : 'SEASON LONG',
+                            dotColor: l.scope == LeaderboardScope.global 
+                                ? AppColors.lime500 
+                                : AppColors.teamA,
+                            hasHorizontalMargin: false,
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
-                ],
+                    ),
+                  ],
+                ),
               ),
-            ),
-            IconButton(
-              icon: const Icon(Icons.delete_outline_rounded, color: AppColors.coral500),
-              onPressed: () => _removeLeaderboard(l),
-              visualDensity: VisualDensity.compact,
-            ),
-          ],
-        ),
-      )).toList(),
+              ),
+              ),
+              if (!isLast) const BoxyArtDivider(),
+            ],
+          );
+        }).toList(),
+      ),
     );
   }
 
   String _getFormatConfigSummary(LeaderboardConfig config) {
     return config.map(
-      orderOfMerit: (o) => 'OOM • ${o.rankingBasis.name.toUpperCase()} • Best ${o.bestN}',
-      bestOfSeries: (b) => 'Best of Series • Best ${b.bestN}',
-      eclectic: (e) => 'Eclectic • ${e.metric.name.toUpperCase()}',
-      markerCounter: (m) => 'Markers • ${m.targetTypes.length} Targets',
+      orderOfMerit: (o) => 'OOM (${o.source.name.toUpperCase()}) • ${o.rankingBasis.name.toUpperCase()}${o.bestN > 0 ? ' • Best ${o.bestN}' : ' • All rounds'}',
+      bestOfSeries: (b) => 'Best of Series • ${b.metric.name.toUpperCase()}${b.bestN > 0 ? ' • Best ${b.bestN}' : ' • All rounds'}',
+      eclectic: (e) => 'Eclectic • ${e.metric.name.toUpperCase()}${e.handicapPercentage > 0 ? ' • ${e.handicapPercentage}% HCP' : ' • Gross'}',
+      markerCounter: (m) => 'Markers • ${m.targetTypes.length} Targets • ${m.holeFilter == HoleFilter.all ? 'All Holes' : m.holeFilter.name.toUpperCase()}',
     );
   }
 
@@ -283,19 +319,20 @@ class _SeasonFormScreenState extends ConsumerState<SeasonFormScreen> {
     }
   }
 
-
-  void _removeLeaderboard(LeaderboardConfig config) {
-    BoxyArtDialog.show(
-      context: context,
-      title: 'Remove Leaderboard?',
-      message: 'This will remove "${config.name}" from the season and clear its calculated standings. This cannot be undone.',
-      confirmText: 'Remove',
-      isDangerous: true,
-      onConfirm: () {
-        setState(() => _leaderboards.removeWhere((l) => l.id == config.id));
-        Navigator.pop(context);
-      },
+  void _editLeaderboard(LeaderboardConfig config) async {
+    final result = await context.push<LeaderboardConfig>(
+      '/admin/leaderboards/edit/local',
+      extra: config,
     );
+
+    if (result != null && mounted) {
+      setState(() {
+        final index = _leaderboards.indexWhere((l) => l.id == config.id);
+        if (index != -1) {
+          _leaderboards[index] = result;
+        }
+      });
+    }
   }
 
   Future<void> _syncStandings() async {

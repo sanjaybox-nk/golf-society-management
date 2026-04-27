@@ -139,8 +139,26 @@ Used for all functional interface elements.
 
 ## 05 · Administrative Standards
 
-### The "ADMIN" Signifier
-Every administrative screen must include the `BoxyArtPill.committee(label: 'ADMIN')` suffix in the `HeadlessScaffold` title area. This provides immediate context to the committee member.
+### The "ADMIN" Signifier — North Star Pattern (v4.x)
+Every administrative screen must display `BoxyArtPill.committee(label: 'ADMIN')` in the **`topPill`** slot of `HeadlessScaffold`. This renders the pill absolutely centred in the navigation bar above the title, providing immediate visual context for committee members without cluttering the title row.
+
+```dart
+// ✅ Correct — Design 4.x North Star
+HeadlessScaffold(
+  title: 'Screen Title',
+  topPill: BoxyArtPill.committee(label: 'ADMIN'),
+  ...
+)
+
+// ❌ Deprecated — Do not use
+HeadlessScaffold(
+  title: 'Screen Title',
+  titleSuffix: BoxyArtPill.committee(label: 'ADMIN'), // removed in v4.x
+  ...
+)
+```
+
+The `topPill` slot is conditionally populated — only set it when `isAdminMode` or equivalent context is `true`. Shared screens visible to both members and admins must not hardcode it.
 
 ### Infrastructure Actions
 Administrative infrastructure actions (Wipe, Seed, Reset) must follow a 3-tier hierarchy:

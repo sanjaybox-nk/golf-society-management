@@ -38,6 +38,7 @@ class TeeGroupParticipant {
   final bool isGuest;
   final double handicapIndex;     // The raw index (e.g. 33.2)
   final double playingHandicap;   // The adjusted/capped value (e.g. 28.0)
+  String? teeName;                // [NEW] Snapshotted/Overridden tee (Mutable for local admin overrides)
   bool needsBuggy;
   RegistrationStatus buggyStatus;
   bool isCaptain;
@@ -50,6 +51,7 @@ class TeeGroupParticipant {
     required this.handicapIndex,
     required this.playingHandicap,
     required this.needsBuggy,
+    this.teeName,
     this.buggyStatus = RegistrationStatus.none,
     this.isCaptain = false,
     this.hasSocietyCut = false,
@@ -64,6 +66,7 @@ class TeeGroupParticipant {
     'isGuest': isGuest,
     'handicapIndex': handicapIndex,
     'playingHandicap': playingHandicap,
+    'teeName': teeName,
     'needsBuggy': needsBuggy,
     'buggyStatus': buggyStatus.name,
     'isCaptain': isCaptain,
@@ -77,6 +80,7 @@ class TeeGroupParticipant {
     isGuest: json['isGuest'],
     handicapIndex: (json['handicapIndex'] as num?)?.toDouble() ?? (json['handicap'] as num?)?.toDouble() ?? 0.0,
     playingHandicap: (json['playingHandicap'] as num?)?.toDouble() ?? (json['handicap'] as num?)?.toDouble() ?? 0.0,
+    teeName: json['teeName'] as String?,
     needsBuggy: json['needsBuggy'] ?? false,
     buggyStatus: RegistrationStatus.values.firstWhere(
       (e) => e.name == json['buggyStatus'], 
@@ -96,6 +100,7 @@ class TeeGroupParticipant {
     bool? isGuest,
     double? handicapIndex,
     double? playingHandicap,
+    String? teeName,
     bool? needsBuggy,
     RegistrationStatus? buggyStatus,
     bool? isCaptain,
@@ -107,6 +112,7 @@ class TeeGroupParticipant {
     isGuest: isGuest ?? this.isGuest,
     handicapIndex: handicapIndex ?? this.handicapIndex,
     playingHandicap: playingHandicap ?? this.playingHandicap,
+    teeName: teeName ?? this.teeName,
     needsBuggy: needsBuggy ?? this.needsBuggy,
     buggyStatus: buggyStatus ?? this.buggyStatus,
     isCaptain: isCaptain ?? this.isCaptain,

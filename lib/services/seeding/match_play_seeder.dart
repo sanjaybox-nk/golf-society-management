@@ -3,7 +3,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:golf_society/domain/models/golf_event.dart';
 import 'package:golf_society/domain/models/competition.dart';
-import 'package:golf_society/domain/models/member.dart';
 import 'package:golf_society/domain/models/event_registration.dart';
 import 'package:golf_society/domain/models/course_config.dart';
 import 'package:golf_society/features/matchplay/domain/match_play_tournament.dart';
@@ -227,14 +226,4 @@ class MatchPlaySeeder {
     ));
   }
 
-  CourseConfig _getLaboratoryCourseConfig() {
-    return CourseConfig(
-      name: 'Laboratory Championship Course',
-      holes: List.generate(18, (i) => CourseHole(
-        hole: i + 1,
-        par: 4,
-        si: ((i * 3) % 18) + 1,
-      )),
-    );
-  }
 }

@@ -25,7 +25,7 @@ class EventRegistrationsAdminScreen extends ConsumerWidget {
       data: (event) {
         return HeadlessScaffold(
           title: 'Registrations',
-          titleSuffix: BoxyArtPill.committee(label: 'ADMIN'),
+          topPill: BoxyArtPill.committee(label: 'ADMIN'),
           subtitle: event.title,
 
           showBack: true,

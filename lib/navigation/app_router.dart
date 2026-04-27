@@ -12,10 +12,8 @@ import '../features/home/presentation/member_home_screen.dart';
 import '../features/members/presentation/locker_screen.dart';
 import '../features/members/presentation/members_screen.dart';
 import '../features/admin/presentation/admin_dashboard_screen.dart';
-import '../features/admin/presentation/events/admin_events_screen.dart';
 import '../features/admin/presentation/events/event_admin_controls_screen.dart';
 import '../features/admin/presentation/events/event_form_screen.dart';
-import '../features/admin/presentation/members/admin_members_screen.dart';
 import '../features/admin/presentation/members/admin_member_renewal_screen.dart';
 import '../features/admin/presentation/settings/branding_settings_screen.dart';
 import '../features/admin/presentation/settings/society_identity_screen.dart';
@@ -43,7 +41,6 @@ import '../features/events/presentation/event_registration_screen.dart';
 import 'global_app_shell.dart';
 import '../features/admin/presentation/events/event_admin_reports_screen.dart';
 import '../features/admin/presentation/reports/admin_reports_screen.dart';
-import '../features/events/presentation/event_user_shell.dart';
 import '../features/events/presentation/tabs/event_user_details_tab.dart';
 import '../features/events/presentation/event_feed_detail_screen.dart';
 import '../features/events/presentation/tabs/event_user_placeholders.dart';
@@ -51,6 +48,7 @@ import '../features/competitions/presentation/season_standings_screen.dart';
 import '../features/competitions/presentation/season_leaderboard_detail_screen.dart';
 import '../features/admin/presentation/events/event_admin_financials_screen.dart';
 import '../features/admin/presentation/events/event_admin_scores_screen.dart';
+import '../features/admin/presentation/events/event_admin_scorecard_editor_screen.dart';
 import 'package:golf_society/features/admin/presentation/events/event_broadcast_screen.dart';
 import 'package:golf_society/features/admin/presentation/events/feed_item_editor_screen.dart';
 import 'package:golf_society/features/admin/presentation/events/event_cost_control_screen.dart';
@@ -109,7 +107,7 @@ CustomTransitionPage boxyPage({
     child: hubId != null 
       ? (isAdmin 
           ? EventAdminShell(id: hubId, child: child) 
-          : EventUserShell(id: hubId, child: child))
+          : EventAdminShell(id: hubId, child: child))
       : child,
     transitionDuration: AppAnimations.medium,
     transitionsBuilder: (context, animation, secondaryAnimation, child) {
@@ -619,6 +617,15 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                     ),
                   ),
                   GoRoute(
+                    path: 'leaderboards/edit/local',
+                    pageBuilder: (context, state) => boxyPage(state: state,
+                      child: LeaderboardBuilderScreen(
+                        existingConfig: state.extra as LeaderboardConfig?,
+                        isTemplate: false,
+                      ),
+                    ),
+                  ),
+                  GoRoute(
                     path: 'surveys',
                     name: 'admin-surveys',
                     pageBuilder: (context, state) => boxyPage(
@@ -690,7 +697,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                 name: 'admin-events',
                 pageBuilder: (context, state) => boxyPage(
                   state: state,
-                  child: const AdminEventsScreen(),
+                  child: const EventsScreen(isAdminContext: true),
                 ),
                 routes: [
                   GoRoute(
@@ -757,6 +764,19 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                       hubId: state.pathParameters['id']!,
                       child: EventAdminScoresScreen(eventId: state.pathParameters['id']!),
                     ),
+                    routes: [
+                      GoRoute(
+                        path: ':playerId',
+                        name: 'admin-event-scorecard-edit',
+                        pageBuilder: (context, state) => boxyPage(
+                          state: state,
+                          child: EventAdminScorecardEditorScreen(
+                            eventId: state.pathParameters['id']!,
+                            playerId: state.pathParameters['playerId']!,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                   GoRoute(
                     path: 'manage/:id/stats',
@@ -928,7 +948,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                 path: '/admin/members',
                 name: 'admin-members',
                 pageBuilder: (context, state) => boxyPage(state: state,
-                  child: const AdminMembersScreen(),
+                  child: const MembersScreen(isAdminContext: true),
                 ),
                 routes: [
                   // Renewal Hub moved to Branch 5 for shell persistence

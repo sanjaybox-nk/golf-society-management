@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:golf_society/design_system/design_system.dart';
@@ -17,7 +16,7 @@ class AdminSettingsHubScreen extends ConsumerWidget {
 
     return HeadlessScaffold(
       title: 'Settings Hub',
-      titleSuffix: BoxyArtPill.committee(label: 'ADMIN'),
+      topPill: BoxyArtPill.committee(label: 'ADMIN'),
       subtitle: 'System Configuration',
       showBack: true,
       slivers: [
@@ -299,9 +298,6 @@ class AdminSettingsHubScreen extends ConsumerWidget {
     }
   }
 
-  void _showMatchPlayProgressionConfirmation(BuildContext context, WidgetRef ref) async {
-    // Consolidated into Initialize Demo Season
-  }
 
   Widget _buildConfigToggle(
     BuildContext context, 
@@ -357,7 +353,7 @@ class AdminSettingsHubScreen extends ConsumerWidget {
           Switch.adaptive(
             value: value,
             onChanged: onChanged,
-            activeColor: AppColors.lime500,
+            activeThumbColor: AppColors.lime500,
             activeTrackColor: AppColors.lime500.withValues(alpha: 0.25),
           ),
         ],

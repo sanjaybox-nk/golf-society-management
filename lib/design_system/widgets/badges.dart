@@ -1,7 +1,6 @@
 import 'package:intl/intl.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:golf_society/design_system/design_system.dart';
-import 'package:golf_society/utils/string_utils.dart';
 
 /// A centralized icon badge for small indicators (location, time, etc.)
 class BoxyArtIconBadge extends ConsumerWidget {
@@ -551,6 +550,7 @@ class BoxyArtStatusPill extends StatelessWidget {
   final String paidLabel;
   final String dueLabel;
   final Color? color;
+  final IconData? customActionIcon;
   final VoidCallback? onToggle;
   final bool hasHorizontalMargin;
 
@@ -560,6 +560,7 @@ class BoxyArtStatusPill extends StatelessWidget {
     this.paidLabel = 'Paid',
     this.dueLabel = 'Due',
     this.color,
+    this.customActionIcon,
     this.onToggle,
     this.hasHorizontalMargin = true,
   });
@@ -574,6 +575,7 @@ class BoxyArtStatusPill extends StatelessWidget {
       label: isPaid ? paidLabel : dueLabel,
       dotColor: dotColor,
       onTap: onToggle,
+      customActionIcon: customActionIcon,
       hasHorizontalMargin: hasHorizontalMargin,
     );
   }

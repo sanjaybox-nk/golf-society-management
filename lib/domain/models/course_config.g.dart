@@ -65,6 +65,7 @@ _CourseConfig _$CourseConfigFromJson(Map<String, dynamic> json) =>
       par: (json['par'] as num?)?.toInt(),
       selectedTeeName: json['selectedTeeName'] as String?,
       isGlobal: json['isGlobal'] as bool? ?? true,
+      selectedTeeColor: json['selectedTeeColor'] as String?,
     );
 
 Map<String, dynamic> _$CourseConfigToJson(_CourseConfig instance) =>
@@ -78,4 +79,5 @@ Map<String, dynamic> _$CourseConfigToJson(_CourseConfig instance) =>
       'par': instance.par,
       'selectedTeeName': instance.selectedTeeName,
       'isGlobal': instance.isGlobal,
+      'selectedTeeColor': instance.selectedTeeColor,
     };

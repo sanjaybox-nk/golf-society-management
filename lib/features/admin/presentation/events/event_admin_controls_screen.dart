@@ -3,16 +3,14 @@ import 'package:go_router/go_router.dart';
 import 'package:golf_society/design_system/design_system.dart';
 import '../../../events/presentation/events_provider.dart';
 import '../../../competitions/presentation/competitions_provider.dart';
-import 'package:golf_society/domain/models/golf_event.dart';
 import 'package:golf_society/domain/models/scorecard.dart';
 import '../../../events/logic/event_analysis_engine.dart';
 import '../../../admin/providers/admin_ui_providers.dart';
 import 'package:golf_society/domain/grouping/grouping_service.dart';
 import 'package:golf_society/features/members/presentation/members_provider.dart';
-import '../../../events/domain/registration_logic.dart';
-import 'package:golf_society/domain/models/society_config.dart';
 import 'package:golf_society/domain/models/competition.dart';
-import 'package:golf_society/domain/grouping/tee_group.dart';
+import 'package:golf_society/domain/models/golf_event.dart';
+import 'package:golf_society/services/seeding_service.dart';
 
 class EventAdminControlsScreen extends ConsumerStatefulWidget {
   final String eventId;
@@ -46,7 +44,7 @@ class _EventAdminControlsScreenState extends ConsumerState<EventAdminControlsScr
         return HeadlessScaffold(
           title: 'Control Tower',
           subtitle: event.title,
-          titleSuffix: BoxyArtPill.committee(label: 'ADMIN'),
+          topPill: BoxyArtPill.committee(label: 'ADMIN'),
           showBack: true,
           onBack: () => context.goNamed('admin-events'),
           slivers: [
@@ -268,6 +266,33 @@ class _EventAdminControlsScreenState extends ConsumerState<EventAdminControlsScr
                         } else {
                           _reopenEvent(event);
                         }
+                      },
+                    ),
+                  ),
+
+                  // 6. Debug & Seeding (Bottom)
+                  const BoxyArtSectionTitle(
+                    title: 'Testing & Seeding',
+                    isPeeking: true,
+                  ),
+                  BoxyArtCard(
+                    padding: EdgeInsets.zero,
+                    child: BoxyArtNavTile(
+                      title: 'Seed Verification Scenario',
+                      subtitle: 'Generate 70% sub / 20% complete-draft / 10% in-play',
+                      icon: Icons.biotech_rounded,
+                      iconColor: AppColors.teamA,
+                      onTap: () async {
+                        final messenger = ScaffoldMessenger.of(context);
+                        messenger.showSnackBar(
+                          const SnackBar(content: Text('Seeding verification scenario...')),
+                        );
+                        await ref.read(seedingServiceProvider).seedVerificationScenario();
+                        if (!mounted) return;
+                        messenger.showSnackBar(
+                          const SnackBar(content: Text('Verification scenario seeded! Refreshing...')),
+                        );
+                        if (context.mounted) context.goNamed('admin-events');
                       },
                     ),
                   ),

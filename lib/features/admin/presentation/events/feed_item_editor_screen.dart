@@ -261,7 +261,7 @@ class _FeedItemEditorScreenState extends ConsumerState<FeedItemEditorScreen> {
 
     return HeadlessScaffold(
       title: widget.existingItem == null ? 'Create Post' : 'Edit Post',
-      titleSuffix: BoxyArtPill.committee(label: 'ADMIN'),
+      topPill: BoxyArtPill.committee(label: 'ADMIN'),
       subtitle: _selectedType.name.toUpperCase(),
       showBack: true,
       onBack: () => context.pop(),

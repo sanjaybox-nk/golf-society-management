@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:golf_society/design_system/design_system.dart';
 import 'package:golf_society/domain/models/golf_event.dart';
 import 'package:golf_society/domain/models/society_config.dart';
@@ -132,7 +131,7 @@ class MemberCutsCard extends StatelessWidget {
                 ],
               ),
             );
-          }).toList(),
+          }),
 
           const BoxyArtDivider(verticalPadding: AppSpacing.sm),
           

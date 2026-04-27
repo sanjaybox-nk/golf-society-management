@@ -44,7 +44,8 @@ class _EclecticControlState extends State<EclecticControl>
 
     return Form(
       key: _formKey,
-      child: BoxyArtFormColumn(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           // ── IDENTITY ─────────────────────────────────────────
           const BoxyArtSectionTitle(title: 'LEADERBOARD DETAILS', isPeeking: true),
@@ -58,6 +59,7 @@ class _EclecticControlState extends State<EclecticControl>
                   prefixIcon: Icon(Icons.grid_on_rounded),
                   validator: (v) => (v == null || v.isEmpty) ? 'Required' : null,
                 ),
+                const BoxyArtDivider(),
                 buildScopeSelector(
                   value: _scope,
                   onChanged: (v) => setState(() => _scope = v as LeaderboardScope),
@@ -67,12 +69,17 @@ class _EclecticControlState extends State<EclecticControl>
           ),
 
           // ── ECLECTIC RULES ────────────────────────────────────
-          const BoxyArtSectionTitle(title: 'ECLECTIC RULES'),
+          const BoxyArtSectionTitle(
+            title: 'ECLECTIC RULES',
+            isPeeking: true,
+            followsCard: true,
+          ),
           BoxyArtCard(
             child: BoxyArtFormColumn(
               children: [
                 BoxyArtDropdownField<EclecticMetric>(
                   label: 'Metric',
+                  prefixIcon: const Icon(Icons.show_chart_rounded),
                   value: _metric,
                   items: EclecticMetric.values
                       .map((v) => DropdownMenuItem(
@@ -82,6 +89,7 @@ class _EclecticControlState extends State<EclecticControl>
                       .toList(),
                   onChanged: (v) => setState(() => _metric = v!),
                 ),
+                if (_metric == EclecticMetric.strokes) const BoxyArtDivider(),
 
                 if (_metric == EclecticMetric.strokes) ...[
                   BoxyArtFormColumn(
@@ -128,13 +136,14 @@ class _EclecticControlState extends State<EclecticControl>
             ),
           ),
 
-          BoxyArtButton(
-            title: widget.existingConfig == null ? 'Create leaderboard' : 'Save changes',
-            onTap: _isSaving ? null : _save,
-            isLoading: _isSaving,
-            fullWidth: true,
-            backgroundColor: Theme.of(context).primaryColor,
-            textColor: AppColors.pureWhite,
+          Padding(
+            padding: const EdgeInsets.only(top: AppSpacing.x2l, bottom: AppSpacing.xl),
+            child: BoxyArtButton(
+              title: widget.existingConfig == null ? 'Create leaderboard' : 'Save changes',
+              onTap: _isSaving ? null : _save,
+              isLoading: _isSaving,
+              fullWidth: true,
+            ),
           ),
         ],
       ),

@@ -10,7 +10,7 @@ class BoxyArtMemberRow extends ConsumerWidget {
   final String? secondaryName;
   final String initials;
   final String? avatarUrl;
-  final List<String>? teamNames; // [NEW] For multi-line team display (Scramble/Pairs)
+  final List<String>? teamNames; 
   
   // Leading element type
   final Widget? leading;
@@ -28,26 +28,30 @@ class BoxyArtMemberRow extends ConsumerWidget {
   // Status/Traits
   final bool isGuest;
   final bool isCaptain;
-  final bool hasMemberGuest; // [NEW] Member who has a guest in the group
+  final bool hasMemberGuest; 
   final bool needsBuggy;
   final RegistrationStatus? buggyStatus;
   final bool isWinner;
   final String? matchSide; // 'A' or 'B'
   
-  // Custom Trailing
-  final Widget? trailing; // [NEW] Optional custom trailing widget (e.g. for Admin toggles)
+  // Custom Slots
+  final Widget? trailing; 
+  final Widget? footer; // [NEW] Bottom-aligned content to free up horizontal space
   
   // Variety Pillar for grouping behavior signaling
   final Color? varietyPillarColor;
+  final String? teeName; 
+  final Color? teeColor; 
+  final VoidCallback? onTeeTap; 
   
   final VoidCallback? onTap;
   final bool isSelected;
-  final int? ranking; // [NEW] For ranking overlay on avatar
-  final bool useCard; // [NEW] Whether to wrap in a card or show as a flat row
-  final bool showChevron; // [NEW] Control visibility of interaction chevron
-  final bool showVerticalDivider; // [NEW] Shows vertical line between avatar and content
-  final Color? accentColor; // [NEW] Master accent color for the left border
-  final bool isStableford; // [NEW] Whether to show 'pts' suffix for scores
+  final int? ranking; 
+  final bool useCard; 
+  final bool showChevron; 
+  final bool showVerticalDivider; 
+  final Color? accentColor; 
+  final bool isStableford; 
 
   const BoxyArtMemberRow({
     super.key,
@@ -58,6 +62,9 @@ class BoxyArtMemberRow extends ConsumerWidget {
     this.leading,
     this.handicapIndex,
     this.playingHandicap,
+    this.teeName,
+    this.teeColor,
+    this.onTeeTap,
     this.tieBreakLabel,
     this.thruLabel,
     this.score,
@@ -70,6 +77,7 @@ class BoxyArtMemberRow extends ConsumerWidget {
     this.isWinner = false,
     this.matchSide,
     this.trailing,
+    this.footer,
     this.varietyPillarColor,
     this.hasSocietyCut = false,
     this.onTap,
@@ -222,6 +230,11 @@ class BoxyArtMemberRow extends ConsumerWidget {
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
+                if (footer != null)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8),
+                    child: footer!,
+                  ),
               ],
             ),
           ),
@@ -288,7 +301,7 @@ class BoxyArtMemberRow extends ConsumerWidget {
 
   Widget _buildAvatar(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final double size = 48.0; // Increased to 48px for premium impact
+    final double size = 48.0; 
 
     return Container(
       width: size + 8,
@@ -346,6 +359,14 @@ class BoxyArtMemberRow extends ConsumerWidget {
               BoxyArtIndicator.phc(
                 context: context,
                 label: '$playingHandicap${hasSocietyCut ? '*' : ''}',
+                hasHorizontalMargin: false,
+              ),
+            
+            if (teeName != null)
+              BoxyArtIndicator.tee(
+                label: teeName!,
+                teeColor: teeColor ?? AppColors.textSecondary,
+                onTap: onTeeTap,
                 hasHorizontalMargin: false,
               ),
             

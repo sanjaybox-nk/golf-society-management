@@ -10,6 +10,7 @@ import 'package:golf_society/domain/grouping/grouping_service.dart';
 import 'package:golf_society/features/members/presentation/members_provider.dart';
 import 'package:golf_society/features/competitions/presentation/competitions_provider.dart';
 import 'package:golf_society/features/notifications/domain/notification_broadcast_service.dart';
+import 'package:golf_society/features/members/presentation/profile_provider.dart';
 
 class EventRegistrationScreen extends ConsumerStatefulWidget {
   final String eventId;
@@ -67,8 +68,15 @@ class _EventRegistrationScreenState extends ConsumerState<EventRegistrationScree
       final repo = ref.read(eventsRepositoryProvider);
       final memberRepo = ref.read(membersRepositoryProvider);
       
-      const memberId = 'current-user-id';
-      const memberName = 'Current Member';
+      final currentMember = ref.read(effectiveUserProvider);
+      final memberId = currentMember.id;
+      final memberName = '${currentMember.firstName} ${currentMember.lastName}';
+      
+      // [NEW] Resolve correct default tee based on gender
+      final isFemale = currentMember.gender?.toLowerCase() == 'female';
+      final defaultTee = isFemale 
+          ? (event.selectedFemaleTeeName ?? event.selectedTeeName) 
+          : event.selectedTeeName;
 
       double totalCost = 0;
       if (event.eventType == EventType.social) {
@@ -131,6 +139,8 @@ class _EventRegistrationScreenState extends ConsumerState<EventRegistrationScree
         guestBuggyStatusOverride: existingReg?.guestBuggyStatusOverride,
         partnerId: _partnerId,
         partnerName: _partnerName,
+        teeName: existingReg?.teeName ?? defaultTee, // Use default if first time
+        guestTeeName: existingReg?.guestTeeName ?? event.selectedTeeName, // Guest defaults to main tee
         history: [...(existingReg?.history ?? []), historyItem],
       );
 
@@ -314,7 +324,7 @@ class _EventRegistrationScreenState extends ConsumerState<EventRegistrationScree
         final spacing = Theme.of(context).extension<AppSpacingTokens>();
         
         if (!_isInitialized) {
-          const currentMemberId = 'current-user-id';
+          final currentMemberId = ref.read(effectiveUserProvider).id;
           final myReg = event.registrations.where((r) => r.memberId == currentMemberId).firstOrNull;
           
           if (myReg != null) {

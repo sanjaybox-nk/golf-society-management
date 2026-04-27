@@ -190,19 +190,20 @@ The unified row for displaying members across the application.
 - **`useCard`**: Whether to wrap in a `BoxyArtCard` (default: true). Set to `false` for internal list items.
 - **`showChevron`**: Toggle the right-aligned interaction chevron.
 
-### `BoxyArtIndicator` (Modern Handicap Standards)
-The authoritative component for handicap display. Replaces `BoxyArtPill.hc` and `.phc` patterns for a lighter, premium dashboard feel.
+### `BoxyArtIndicator` (Modern Handicap & Status Standards)
+The authoritative component for handicap and interactive status display. 
 
 | Factory | Color | Usage |
 |---|---|---|
 | `BoxyArtIndicator.hc(label: '8.8')` | Neutral (dark300) | Global Base Index (1 decimal) |
 | `BoxyArtIndicator.phc(label: '10')` | Amber (amber500) | Contextual Playing Handicap |
+| `BoxyArtIndicator.tee(label: 'White')` | Tee specific | Course Tee Marker |
 
-```dart
-// Example usage in cards
-BoxyArtIndicator.hc(label: entry.handicap.toStringAsFixed(1)),
-BoxyArtIndicator.phc(context: context, label: '12*'), // Now uses Amber
-```
+#### Interactive "Status Button" Affordance (v4.x)
+If a `BoxyArtIndicator` (or `BoxyArtStatusPill`) is provided with an `onTap` or `onToggle` callback, it automatically transforms into a "Status Button":
+- **Background**: Gains a subtle 8% opacity background tint and 15% opacity border matching the dot color.
+- **Pencil Icon (✎)**: Automatically appends `Icons.edit_rounded` to indicate a state change is possible.
+- **Notification Icon (🔔)**: Can be overridden with a custom icon (e.g., `Icons.notifications_active_rounded`) for actions like "Nudging" members.
 
 ---
 
@@ -249,7 +250,12 @@ Network image with loading/error state handling, configurable `fit`, `borderRadi
 
 ---
 
-## 9. Navigation Bar Visibility Rules
+## 9. Navigation Bar Visibility & Behavior
+
+### Branch Reset-on-Tap (v4.x)
+The `GlobalAppShell` enforces a **"Fresh Entry"** policy for bottom navigation:
+- **Resets on Switch**: Tapping a different tab (e.g. switching from Members to Dashboard) always resets that branch to its initial root location. This prevents administrators from getting "lost" in deep sub-menus when jumping between functional areas.
+- **Resets on Active Tap**: Tapping the currently active tab also resets it to the root.
 
 ### `BoxyArtBottomSheet`
 Canonical bottom sheet wrapper with branded drag handle, title, and `DraggableScrollableSheet`.

@@ -183,15 +183,15 @@ When an admin creates or edits an event and selects a course, the system now sav
 
 The Event Form provides two new dropdowns ("Men's Default Tee" and "Ladies' Default Tee") that auto-populate based on common tee name conventions (e.g., "Red" → Ladies, "White" → Men's).
 
-### 5.3 Smart Tee Resolution
-The system ensures that the scorecard and handicap math are perfectly matched to each individual's gender:
-1. **Explicit Female Tee**: Uses `selectedFemaleTeeName` for female players if set.
-2. **Admin-set gender default**: Fallback to `mensTeeName` / `ladiesTeeName` from `courseConfig`.
-3. **Auto-detection**: Heuristic search by tee name (Red/Lady → Ladies, Yellow/Men → Men's).
-4. **Event baseline tee**: `event.selectedTeeName`.
-5. **First available tee**: Final fallback.
+### 5.3 Smart Tee Resolution (4-Layer Priority)
+The system ensures that the scorecard and handicap math are perfectly matched to each individual's gender and skill level. The playing tee box is resolved using the following authoritative order:
 
-This ensures that the `HoleByHoleScoringWidget` dynamically switches Par and SI values based on the player being marked.
+1.  **Manual Admin Override**: Set by an administrator in the **Grouping Hub**. This is the highest priority and persists across re-generations.
+2.  **Player Manual Override**: Set by the player in the **Scorecard Start-up** screen. This allows for self-service corrections.
+3.  **Registration Default**: The tee box snapshotted during signup, which is automatically assigned based on the event's gender-aware defaults.
+4.  **Event Baseline Tee**: The global default tee box defined in the event form (`event.selectedTeeName`).
+
+This 4-layer resolution ensuring that the `HoleByHoleScoringWidget` and `ScoringCalculator` dynamically switch Par and SI values based on the most accurate data available for the player.
 
 ### 5.4 Guest Indicator
 The `ScorecardModal` now displays a gold **"GUEST"** pill next to the player name for any guest participant. This is determined by the `isGuest` flag on the `LeaderboardEntry` or by the `_guest` suffix on the entry ID.
@@ -223,6 +223,14 @@ All scoring visualizations (Scorecards, Leaderboards, Results) now utilize the d
 - **Whitelabel Integrity**: By tokenizing the points color, societies can differentiate their scoring aesthetics from standard "Fairway" greens, supporting custom branding for elite or corporate society deployments.
 
 ---
+
+### 5. Administrative Oversight & Master Overrides
+
+Admins maintain "Master Override" authority over all scorecards via the **Admin Scorecard Editor**. However, the following principles apply:
+
+1.  **Post-Play Priority**: Admins generally avoid making live edits to a member's scorecard while they are actively **"In Play"**. This prevents data conflicts with the player's own real-time inputs.
+2.  **Submission Review**: The primary administrative window for edits is after a card has been **Submitted** or the player is **"Thru 18"**.
+3.  **Special Cases**: Admins use the editor during play only for participants who cannot score themselves (e.g., certain guest entries or members with hardware failure).
 
 ## 8. Administrative Navigation & Visibility Standards (v4.x)
 

@@ -6,7 +6,6 @@ import 'package:golf_society/features/events/presentation/state/marker_selection
 import 'package:golf_society/features/members/presentation/profile_provider.dart';
 import '../domain/models/processed_event_data.dart';
 import 'event_scoring_processor.dart';
-import 'package:collection/collection.dart';
 
 part 'event_scoring_controller.g.dart';
 

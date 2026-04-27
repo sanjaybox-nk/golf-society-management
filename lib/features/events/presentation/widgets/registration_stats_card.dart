@@ -1,7 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:golf_society/design_system/design_system.dart';
-import 'package:golf_society/design_system/widgets/metrics.dart';
 import 'package:golf_society/domain/models/golf_event.dart';
 import 'package:golf_society/domain/models/society_config.dart';
 import '../../domain/registration_logic.dart';
@@ -63,9 +62,6 @@ class RegistrationStatsCard extends ConsumerWidget {
   }
 
   Widget _buildGridVersion(BuildContext context, List<Widget> items, bool isDark) {
-    final spacing = Theme.of(context).extension<AppSpacingTokens>();
-    final double vPadding = spacing?.cardVerticalPadding ?? AppSpacing.lg;
-    final double hPadding = spacing?.cardHorizontalPadding ?? AppSpacing.xl;
 
     return LayoutBuilder(
       builder: (context, constraints) {

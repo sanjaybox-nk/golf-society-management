@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:golf_society/design_system/design_system.dart';
@@ -17,9 +16,7 @@ class HomeWelcomeHero extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
     final isAdmin = member.role == MemberRole.admin || member.role == MemberRole.superAdmin;
-    final primaryColor = Color(config.primaryColor);
 
     return BoxyArtCard(
       padding: const EdgeInsets.all(AppSpacing.x2l),

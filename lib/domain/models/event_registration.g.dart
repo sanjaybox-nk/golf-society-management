@@ -51,6 +51,8 @@ _EventRegistration _$EventRegistrationFromJson(Map<String, dynamic> json) =>
           const [],
       fineAmount: (json['fineAmount'] as num?)?.toDouble() ?? 0.0,
       finePaid: json['finePaid'] as bool? ?? false,
+      teeName: json['teeName'] as String?,
+      guestTeeName: json['guestTeeName'] as String?,
     );
 
 Map<String, dynamic> _$EventRegistrationToJson(_EventRegistration instance) =>
@@ -90,6 +92,8 @@ Map<String, dynamic> _$EventRegistrationToJson(_EventRegistration instance) =>
       'fines': instance.fines.map((e) => e.toJson()).toList(),
       'fineAmount': instance.fineAmount,
       'finePaid': instance.finePaid,
+      'teeName': instance.teeName,
+      'guestTeeName': instance.guestTeeName,
     };
 
 _RegistrationHistoryItem _$RegistrationHistoryItemFromJson(

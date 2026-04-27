@@ -18,7 +18,7 @@ class EventCostControlScreen extends ConsumerWidget {
     return eventAsync.when(
       data: (event) => HeadlessScaffold(
         title: 'Costs & Charges',
-        titleSuffix: BoxyArtPill.committee(label: 'ADMIN'),
+        topPill: BoxyArtPill.committee(label: 'ADMIN'),
         subtitle: event.title,
         showBack: true,
         onBack: () => context.pop(),

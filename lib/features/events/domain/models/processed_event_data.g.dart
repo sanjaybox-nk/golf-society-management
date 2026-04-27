@@ -17,6 +17,7 @@ _ProcessedPlayerScore _$ProcessedPlayerScoreFromJson(
       playingHandicap: (json['playingHandicap'] as num).toInt(),
       appliedSocietyCut: (json['appliedSocietyCut'] as num?)?.toDouble() ?? 0.0,
       teeName: json['teeName'] as String,
+      teeColor: json['teeColor'] as String?,
       holeScores: (json['holeScores'] as List<dynamic>)
           .map((e) => (e as num?)?.toInt())
           .toList(),
@@ -39,6 +40,7 @@ Map<String, dynamic> _$ProcessedPlayerScoreToJson(
       'playingHandicap': instance.playingHandicap,
       'appliedSocietyCut': instance.appliedSocietyCut,
       'teeName': instance.teeName,
+      'teeColor': instance.teeColor,
       'holeScores': instance.holeScores,
       'result': instance.result.toJson(),
       'tieBreakLabel': instance.tieBreakLabel,
@@ -138,6 +140,8 @@ _ProcessedLeaderboardEntry _$ProcessedLeaderboardEntryFromJson(
       matchStatus: json['matchStatus'] as String?,
       matchScore: (json['matchScore'] as num?)?.toInt(),
       isMatch: json['isMatch'] as bool? ?? false,
+      teeName: json['teeName'] as String?,
+      teeColor: json['teeColor'] as String?,
     );
 
 Map<String, dynamic> _$ProcessedLeaderboardEntryToJson(
@@ -167,6 +171,8 @@ Map<String, dynamic> _$ProcessedLeaderboardEntryToJson(
       'matchStatus': instance.matchStatus,
       'matchScore': instance.matchScore,
       'isMatch': instance.isMatch,
+      'teeName': instance.teeName,
+      'teeColor': instance.teeColor,
     };
 
 _ProcessedEventData _$ProcessedEventDataFromJson(Map<String, dynamic> json) =>

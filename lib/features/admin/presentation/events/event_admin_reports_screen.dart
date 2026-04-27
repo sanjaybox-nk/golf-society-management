@@ -34,7 +34,7 @@ class EventAdminReportsScreen extends ConsumerWidget {
       data: (event) {
         return HeadlessScaffold(
           title: 'Event Analysis',
-          titleSuffix: BoxyArtPill.committee(label: 'ADMIN'),
+          topPill: BoxyArtPill.committee(label: 'ADMIN'),
           subtitle: event.title,
           showBack: true,
           onBack: () => context.go('/admin/events'),

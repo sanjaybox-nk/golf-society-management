@@ -39,18 +39,19 @@ class EventAdminScorecardEditorScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final eventAsync = ref.watch(eventProvider(eventId));
-    final scorecardAsync = ref.watch(scorecardByEntryIdProvider((competitionId: eventId, entryId: playerId)));
+    final scorecard = ref.watch(scorecardByEntryIdProvider((competitionId: eventId, entryId: playerId)));
     final config = ref.watch(themeControllerProvider);
     final compAsync = ref.watch(competitionDetailProvider(eventId));
     final membersAsync = ref.watch(allMembersProvider);
     final members = membersAsync.value ?? [];
     
     final currentHole = ref.watch(adminEditorHoleProvider);
+    final spacing = Theme.of(context).extension<AppSpacingTokens>();
 
     return eventAsync.when(
       data: (event) => HeadlessScaffold(
         title: 'Scorecard Editor',
-        titleSuffix: BoxyArtPill.committee(label: 'ADMIN'),
+        topPill: BoxyArtPill.committee(label: 'ADMIN'),
         subtitle: _getDisplayName(event, playerId),
         showBack: true,
  // Nested in EventAdminShell
@@ -88,6 +89,15 @@ class EventAdminScorecardEditorScreen extends ConsumerWidget {
                     courseConfig: playerTeeConfig,
                   );
 
+                  // [NEW] Authoritative Calculation for Display
+                  final scoringResult = ScoringCalculator.calculate(
+                    holeScores: scorecard?.holeScores ?? List.filled(18, null),
+                    holes: playerTeeConfig.holes,
+                    playingHandicap: phc.toDouble(),
+                    format: comp?.rules.format ?? CompetitionFormat.stableford,
+                    maxScoreConfig: comp?.rules.maxScoreConfig,
+                  );
+
                   return Column(
                     children: [
                       // Player Info Row
@@ -111,19 +121,24 @@ class EventAdminScorecardEditorScreen extends ConsumerWidget {
                         selectedTeeName: playerTeeName,
                         distanceUnit: config.distanceUnit,
                         isStableford: isStableford,
-                        holeScores: scorecardAsync?.holeScores ?? [],
+                        holeScores: scoringResult.holeScores,
+                        holeNetScores: scoringResult.holeNetScores,
+                        holePoints: scoringResult.holePoints,
                         format: comp?.rules.format ?? CompetitionFormat.stableford,
                         maxScoreConfig: comp?.rules.maxScoreConfig,
                       ),
                       
-                      const SizedBox(height: AppSpacing.sm),
+                      SizedBox(height: spacing?.cardToCard ?? AppSpacing.standard),
                       
-                      // Admin Keypad
-                      AdminScorecardKeypad(
-                        currentHole: currentHole,
-                        scores: _getHoleScores(scorecardAsync),
-                        onHoleChanged: (h) => ref.read(adminEditorHoleProvider.notifier).state = h,
-                        onSetScore: (h, score) => _persistScore(context, ref, h, score, scorecardAsync, event),
+                      // Admin Keypad - Wrapped in Card for Design 4.x
+                      BoxyArtCard(
+                        padding: const EdgeInsets.all(AppSpacing.xl),
+                        child: AdminScorecardKeypad(
+                          currentHole: currentHole,
+                          scores: _getHoleScores(scorecard),
+                          onHoleChanged: (h) => ref.read(adminEditorHoleProvider.notifier).state = h,
+                          onSetScore: (h, score) => _persistScore(context, ref, h, score, scorecard, event),
+                        ),
                       ),
                     ],
                   );

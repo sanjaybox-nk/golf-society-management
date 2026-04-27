@@ -354,6 +354,7 @@ class GroupingService {
       isGuest: item.isGuest,
       handicapIndex: rawHandicap,
       playingHandicap: finalHandicap,
+      teeName: item.isGuest ? item.registration.guestTeeName : item.registration.teeName,
       needsBuggy: item.needsBuggy,
       buggyStatus: buggyStatus,
       hasSocietyCut: hasSocietyCut,

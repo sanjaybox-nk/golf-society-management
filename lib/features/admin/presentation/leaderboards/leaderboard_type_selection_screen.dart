@@ -20,7 +20,7 @@ class LeaderboardTypeSelectionScreen extends StatelessWidget {
     return HeadlessScaffold(
       title: 'Leaderboard Control',
       subtitle: 'Manage standing blueprints by format',
-      titleSuffix: BoxyArtPill.committee(label: 'ADMIN'),
+      topPill: BoxyArtPill.committee(label: 'ADMIN'),
       actions: const [],
       showBack: true,
       onBack: () => context.pop(),

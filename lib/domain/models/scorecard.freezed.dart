@@ -408,6 +408,8 @@ mixin _$Scorecard {
   int? get points;
   double? get handicapIndex;
   int? get playingHandicap;
+  String?
+      get assignedTeeName; // [NEW] Snapshotted tee for this specific scorecard
   AdminEditAudit? get adminEditAudit;
   bool get adminOverridePublish;
   @TimestampConverter()
@@ -459,6 +461,8 @@ mixin _$Scorecard {
                 other.handicapIndex == handicapIndex) &&
             (identical(other.playingHandicap, playingHandicap) ||
                 other.playingHandicap == playingHandicap) &&
+            (identical(other.assignedTeeName, assignedTeeName) ||
+                other.assignedTeeName == assignedTeeName) &&
             (identical(other.adminEditAudit, adminEditAudit) ||
                 other.adminEditAudit == adminEditAudit) &&
             (identical(other.adminOverridePublish, adminOverridePublish) ||
@@ -491,6 +495,7 @@ mixin _$Scorecard {
         points,
         handicapIndex,
         playingHandicap,
+        assignedTeeName,
         adminEditAudit,
         adminOverridePublish,
         submittedAt,
@@ -500,7 +505,7 @@ mixin _$Scorecard {
 
   @override
   String toString() {
-    return 'Scorecard(id: $id, competitionId: $competitionId, roundId: $roundId, entryId: $entryId, submittedByUserId: $submittedByUserId, status: $status, scoringStatus: $scoringStatus, holeScores: $holeScores, playerVerifierScores: $playerVerifierScores, markerId: $markerId, shotAttributions: $shotAttributions, grossTotal: $grossTotal, netTotal: $netTotal, points: $points, handicapIndex: $handicapIndex, playingHandicap: $playingHandicap, adminEditAudit: $adminEditAudit, adminOverridePublish: $adminOverridePublish, submittedAt: $submittedAt, createdAt: $createdAt, updatedAt: $updatedAt)';
+    return 'Scorecard(id: $id, competitionId: $competitionId, roundId: $roundId, entryId: $entryId, submittedByUserId: $submittedByUserId, status: $status, scoringStatus: $scoringStatus, holeScores: $holeScores, playerVerifierScores: $playerVerifierScores, markerId: $markerId, shotAttributions: $shotAttributions, grossTotal: $grossTotal, netTotal: $netTotal, points: $points, handicapIndex: $handicapIndex, playingHandicap: $playingHandicap, assignedTeeName: $assignedTeeName, adminEditAudit: $adminEditAudit, adminOverridePublish: $adminOverridePublish, submittedAt: $submittedAt, createdAt: $createdAt, updatedAt: $updatedAt)';
   }
 }
 
@@ -526,6 +531,7 @@ abstract mixin class $ScorecardCopyWith<$Res> {
       int? points,
       double? handicapIndex,
       int? playingHandicap,
+      String? assignedTeeName,
       AdminEditAudit? adminEditAudit,
       bool adminOverridePublish,
       @TimestampConverter() DateTime? submittedAt,
@@ -563,6 +569,7 @@ class _$ScorecardCopyWithImpl<$Res> implements $ScorecardCopyWith<$Res> {
     Object? points = freezed,
     Object? handicapIndex = freezed,
     Object? playingHandicap = freezed,
+    Object? assignedTeeName = freezed,
     Object? adminEditAudit = freezed,
     Object? adminOverridePublish = null,
     Object? submittedAt = freezed,
@@ -634,6 +641,10 @@ class _$ScorecardCopyWithImpl<$Res> implements $ScorecardCopyWith<$Res> {
           ? _self.playingHandicap
           : playingHandicap // ignore: cast_nullable_to_non_nullable
               as int?,
+      assignedTeeName: freezed == assignedTeeName
+          ? _self.assignedTeeName
+          : assignedTeeName // ignore: cast_nullable_to_non_nullable
+              as String?,
       adminEditAudit: freezed == adminEditAudit
           ? _self.adminEditAudit
           : adminEditAudit // ignore: cast_nullable_to_non_nullable
@@ -782,6 +793,7 @@ extension ScorecardPatterns on Scorecard {
             int? points,
             double? handicapIndex,
             int? playingHandicap,
+            String? assignedTeeName,
             AdminEditAudit? adminEditAudit,
             bool adminOverridePublish,
             @TimestampConverter() DateTime? submittedAt,
@@ -810,6 +822,7 @@ extension ScorecardPatterns on Scorecard {
             _that.points,
             _that.handicapIndex,
             _that.playingHandicap,
+            _that.assignedTeeName,
             _that.adminEditAudit,
             _that.adminOverridePublish,
             _that.submittedAt,
@@ -852,6 +865,7 @@ extension ScorecardPatterns on Scorecard {
             int? points,
             double? handicapIndex,
             int? playingHandicap,
+            String? assignedTeeName,
             AdminEditAudit? adminEditAudit,
             bool adminOverridePublish,
             @TimestampConverter() DateTime? submittedAt,
@@ -879,6 +893,7 @@ extension ScorecardPatterns on Scorecard {
             _that.points,
             _that.handicapIndex,
             _that.playingHandicap,
+            _that.assignedTeeName,
             _that.adminEditAudit,
             _that.adminOverridePublish,
             _that.submittedAt,
@@ -920,6 +935,7 @@ extension ScorecardPatterns on Scorecard {
             int? points,
             double? handicapIndex,
             int? playingHandicap,
+            String? assignedTeeName,
             AdminEditAudit? adminEditAudit,
             bool adminOverridePublish,
             @TimestampConverter() DateTime? submittedAt,
@@ -947,6 +963,7 @@ extension ScorecardPatterns on Scorecard {
             _that.points,
             _that.handicapIndex,
             _that.playingHandicap,
+            _that.assignedTeeName,
             _that.adminEditAudit,
             _that.adminOverridePublish,
             _that.submittedAt,
@@ -978,6 +995,7 @@ class _Scorecard extends Scorecard {
       this.points,
       this.handicapIndex,
       this.playingHandicap,
+      this.assignedTeeName,
       this.adminEditAudit,
       this.adminOverridePublish = false,
       @TimestampConverter() this.submittedAt,
@@ -1049,6 +1067,9 @@ class _Scorecard extends Scorecard {
   @override
   final int? playingHandicap;
   @override
+  final String? assignedTeeName;
+// [NEW] Snapshotted tee for this specific scorecard
+  @override
   final AdminEditAudit? adminEditAudit;
   @override
   @JsonKey()
@@ -1110,6 +1131,8 @@ class _Scorecard extends Scorecard {
                 other.handicapIndex == handicapIndex) &&
             (identical(other.playingHandicap, playingHandicap) ||
                 other.playingHandicap == playingHandicap) &&
+            (identical(other.assignedTeeName, assignedTeeName) ||
+                other.assignedTeeName == assignedTeeName) &&
             (identical(other.adminEditAudit, adminEditAudit) ||
                 other.adminEditAudit == adminEditAudit) &&
             (identical(other.adminOverridePublish, adminOverridePublish) ||
@@ -1142,6 +1165,7 @@ class _Scorecard extends Scorecard {
         points,
         handicapIndex,
         playingHandicap,
+        assignedTeeName,
         adminEditAudit,
         adminOverridePublish,
         submittedAt,
@@ -1151,7 +1175,7 @@ class _Scorecard extends Scorecard {
 
   @override
   String toString() {
-    return 'Scorecard(id: $id, competitionId: $competitionId, roundId: $roundId, entryId: $entryId, submittedByUserId: $submittedByUserId, status: $status, scoringStatus: $scoringStatus, holeScores: $holeScores, playerVerifierScores: $playerVerifierScores, markerId: $markerId, shotAttributions: $shotAttributions, grossTotal: $grossTotal, netTotal: $netTotal, points: $points, handicapIndex: $handicapIndex, playingHandicap: $playingHandicap, adminEditAudit: $adminEditAudit, adminOverridePublish: $adminOverridePublish, submittedAt: $submittedAt, createdAt: $createdAt, updatedAt: $updatedAt)';
+    return 'Scorecard(id: $id, competitionId: $competitionId, roundId: $roundId, entryId: $entryId, submittedByUserId: $submittedByUserId, status: $status, scoringStatus: $scoringStatus, holeScores: $holeScores, playerVerifierScores: $playerVerifierScores, markerId: $markerId, shotAttributions: $shotAttributions, grossTotal: $grossTotal, netTotal: $netTotal, points: $points, handicapIndex: $handicapIndex, playingHandicap: $playingHandicap, assignedTeeName: $assignedTeeName, adminEditAudit: $adminEditAudit, adminOverridePublish: $adminOverridePublish, submittedAt: $submittedAt, createdAt: $createdAt, updatedAt: $updatedAt)';
   }
 }
 
@@ -1180,6 +1204,7 @@ abstract mixin class _$ScorecardCopyWith<$Res>
       int? points,
       double? handicapIndex,
       int? playingHandicap,
+      String? assignedTeeName,
       AdminEditAudit? adminEditAudit,
       bool adminOverridePublish,
       @TimestampConverter() DateTime? submittedAt,
@@ -1218,6 +1243,7 @@ class __$ScorecardCopyWithImpl<$Res> implements _$ScorecardCopyWith<$Res> {
     Object? points = freezed,
     Object? handicapIndex = freezed,
     Object? playingHandicap = freezed,
+    Object? assignedTeeName = freezed,
     Object? adminEditAudit = freezed,
     Object? adminOverridePublish = null,
     Object? submittedAt = freezed,
@@ -1289,6 +1315,10 @@ class __$ScorecardCopyWithImpl<$Res> implements _$ScorecardCopyWith<$Res> {
           ? _self.playingHandicap
           : playingHandicap // ignore: cast_nullable_to_non_nullable
               as int?,
+      assignedTeeName: freezed == assignedTeeName
+          ? _self.assignedTeeName
+          : assignedTeeName // ignore: cast_nullable_to_non_nullable
+              as String?,
       adminEditAudit: freezed == adminEditAudit
           ? _self.adminEditAudit
           : adminEditAudit // ignore: cast_nullable_to_non_nullable

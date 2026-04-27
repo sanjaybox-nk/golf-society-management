@@ -50,6 +50,8 @@ mixin _$EventRegistration {
   List<EventFine> get fines;
   double get fineAmount;
   bool get finePaid;
+  String? get teeName; // [NEW] Player-specific tee override
+  String? get guestTeeName;
 
   /// Create a copy of EventRegistration
   /// with the given fields replaced by the non-null parameter values.
@@ -131,7 +133,10 @@ mixin _$EventRegistration {
             (identical(other.fineAmount, fineAmount) ||
                 other.fineAmount == fineAmount) &&
             (identical(other.finePaid, finePaid) ||
-                other.finePaid == finePaid));
+                other.finePaid == finePaid) &&
+            (identical(other.teeName, teeName) || other.teeName == teeName) &&
+            (identical(other.guestTeeName, guestTeeName) ||
+                other.guestTeeName == guestTeeName));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -171,12 +176,14 @@ mixin _$EventRegistration {
         const DeepCollectionEquality().hash(history),
         const DeepCollectionEquality().hash(fines),
         fineAmount,
-        finePaid
+        finePaid,
+        teeName,
+        guestTeeName
       ]);
 
   @override
   String toString() {
-    return 'EventRegistration(memberId: $memberId, memberName: $memberName, isGuest: $isGuest, attendingGolf: $attendingGolf, attendingBreakfast: $attendingBreakfast, attendingLunch: $attendingLunch, attendingDinner: $attendingDinner, hasPaid: $hasPaid, cost: $cost, creditApplied: $creditApplied, handicap: $handicap, playingHandicap: $playingHandicap, needsBuggy: $needsBuggy, dietaryRequirements: $dietaryRequirements, specialNeeds: $specialNeeds, guestName: $guestName, guestHandicap: $guestHandicap, guestAttendingBreakfast: $guestAttendingBreakfast, guestAttendingLunch: $guestAttendingLunch, guestAttendingDinner: $guestAttendingDinner, guestNeedsBuggy: $guestNeedsBuggy, isCaptain: $isCaptain, registeredAt: $registeredAt, isConfirmed: $isConfirmed, guestIsConfirmed: $guestIsConfirmed, statusOverride: $statusOverride, buggyStatusOverride: $buggyStatusOverride, guestBuggyStatusOverride: $guestBuggyStatusOverride, partnerId: $partnerId, partnerName: $partnerName, history: $history, fines: $fines, fineAmount: $fineAmount, finePaid: $finePaid)';
+    return 'EventRegistration(memberId: $memberId, memberName: $memberName, isGuest: $isGuest, attendingGolf: $attendingGolf, attendingBreakfast: $attendingBreakfast, attendingLunch: $attendingLunch, attendingDinner: $attendingDinner, hasPaid: $hasPaid, cost: $cost, creditApplied: $creditApplied, handicap: $handicap, playingHandicap: $playingHandicap, needsBuggy: $needsBuggy, dietaryRequirements: $dietaryRequirements, specialNeeds: $specialNeeds, guestName: $guestName, guestHandicap: $guestHandicap, guestAttendingBreakfast: $guestAttendingBreakfast, guestAttendingLunch: $guestAttendingLunch, guestAttendingDinner: $guestAttendingDinner, guestNeedsBuggy: $guestNeedsBuggy, isCaptain: $isCaptain, registeredAt: $registeredAt, isConfirmed: $isConfirmed, guestIsConfirmed: $guestIsConfirmed, statusOverride: $statusOverride, buggyStatusOverride: $buggyStatusOverride, guestBuggyStatusOverride: $guestBuggyStatusOverride, partnerId: $partnerId, partnerName: $partnerName, history: $history, fines: $fines, fineAmount: $fineAmount, finePaid: $finePaid, teeName: $teeName, guestTeeName: $guestTeeName)';
   }
 }
 
@@ -220,7 +227,9 @@ abstract mixin class $EventRegistrationCopyWith<$Res> {
       List<RegistrationHistoryItem>? history,
       List<EventFine> fines,
       double fineAmount,
-      bool finePaid});
+      bool finePaid,
+      String? teeName,
+      String? guestTeeName});
 }
 
 /// @nodoc
@@ -270,6 +279,8 @@ class _$EventRegistrationCopyWithImpl<$Res>
     Object? fines = null,
     Object? fineAmount = null,
     Object? finePaid = null,
+    Object? teeName = freezed,
+    Object? guestTeeName = freezed,
   }) {
     return _then(_self.copyWith(
       memberId: null == memberId
@@ -408,6 +419,14 @@ class _$EventRegistrationCopyWithImpl<$Res>
           ? _self.finePaid
           : finePaid // ignore: cast_nullable_to_non_nullable
               as bool,
+      teeName: freezed == teeName
+          ? _self.teeName
+          : teeName // ignore: cast_nullable_to_non_nullable
+              as String?,
+      guestTeeName: freezed == guestTeeName
+          ? _self.guestTeeName
+          : guestTeeName // ignore: cast_nullable_to_non_nullable
+              as String?,
     ));
   }
 }
@@ -539,7 +558,9 @@ extension EventRegistrationPatterns on EventRegistration {
             List<RegistrationHistoryItem>? history,
             List<EventFine> fines,
             double fineAmount,
-            bool finePaid)?
+            bool finePaid,
+            String? teeName,
+            String? guestTeeName)?
         $default, {
     required TResult orElse(),
   }) {
@@ -580,7 +601,9 @@ extension EventRegistrationPatterns on EventRegistration {
             _that.history,
             _that.fines,
             _that.fineAmount,
-            _that.finePaid);
+            _that.finePaid,
+            _that.teeName,
+            _that.guestTeeName);
       case _:
         return orElse();
     }
@@ -635,7 +658,9 @@ extension EventRegistrationPatterns on EventRegistration {
             List<RegistrationHistoryItem>? history,
             List<EventFine> fines,
             double fineAmount,
-            bool finePaid)
+            bool finePaid,
+            String? teeName,
+            String? guestTeeName)
         $default,
   ) {
     final _that = this;
@@ -675,7 +700,9 @@ extension EventRegistrationPatterns on EventRegistration {
             _that.history,
             _that.fines,
             _that.fineAmount,
-            _that.finePaid);
+            _that.finePaid,
+            _that.teeName,
+            _that.guestTeeName);
       case _:
         throw StateError('Unexpected subclass');
     }
@@ -729,7 +756,9 @@ extension EventRegistrationPatterns on EventRegistration {
             List<RegistrationHistoryItem>? history,
             List<EventFine> fines,
             double fineAmount,
-            bool finePaid)?
+            bool finePaid,
+            String? teeName,
+            String? guestTeeName)?
         $default,
   ) {
     final _that = this;
@@ -769,7 +798,9 @@ extension EventRegistrationPatterns on EventRegistration {
             _that.history,
             _that.fines,
             _that.fineAmount,
-            _that.finePaid);
+            _that.finePaid,
+            _that.teeName,
+            _that.guestTeeName);
       case _:
         return null;
     }
@@ -813,7 +844,9 @@ class _EventRegistration extends EventRegistration {
       final List<RegistrationHistoryItem>? history = const [],
       final List<EventFine> fines = const [],
       this.fineAmount = 0.0,
-      this.finePaid = false})
+      this.finePaid = false,
+      this.teeName,
+      this.guestTeeName})
       : _history = history,
         _fines = fines,
         super._();
@@ -929,6 +962,11 @@ class _EventRegistration extends EventRegistration {
   @override
   @JsonKey()
   final bool finePaid;
+  @override
+  final String? teeName;
+// [NEW] Player-specific tee override
+  @override
+  final String? guestTeeName;
 
   /// Create a copy of EventRegistration
   /// with the given fields replaced by the non-null parameter values.
@@ -1014,7 +1052,10 @@ class _EventRegistration extends EventRegistration {
             (identical(other.fineAmount, fineAmount) ||
                 other.fineAmount == fineAmount) &&
             (identical(other.finePaid, finePaid) ||
-                other.finePaid == finePaid));
+                other.finePaid == finePaid) &&
+            (identical(other.teeName, teeName) || other.teeName == teeName) &&
+            (identical(other.guestTeeName, guestTeeName) ||
+                other.guestTeeName == guestTeeName));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -1054,12 +1095,14 @@ class _EventRegistration extends EventRegistration {
         const DeepCollectionEquality().hash(_history),
         const DeepCollectionEquality().hash(_fines),
         fineAmount,
-        finePaid
+        finePaid,
+        teeName,
+        guestTeeName
       ]);
 
   @override
   String toString() {
-    return 'EventRegistration(memberId: $memberId, memberName: $memberName, isGuest: $isGuest, attendingGolf: $attendingGolf, attendingBreakfast: $attendingBreakfast, attendingLunch: $attendingLunch, attendingDinner: $attendingDinner, hasPaid: $hasPaid, cost: $cost, creditApplied: $creditApplied, handicap: $handicap, playingHandicap: $playingHandicap, needsBuggy: $needsBuggy, dietaryRequirements: $dietaryRequirements, specialNeeds: $specialNeeds, guestName: $guestName, guestHandicap: $guestHandicap, guestAttendingBreakfast: $guestAttendingBreakfast, guestAttendingLunch: $guestAttendingLunch, guestAttendingDinner: $guestAttendingDinner, guestNeedsBuggy: $guestNeedsBuggy, isCaptain: $isCaptain, registeredAt: $registeredAt, isConfirmed: $isConfirmed, guestIsConfirmed: $guestIsConfirmed, statusOverride: $statusOverride, buggyStatusOverride: $buggyStatusOverride, guestBuggyStatusOverride: $guestBuggyStatusOverride, partnerId: $partnerId, partnerName: $partnerName, history: $history, fines: $fines, fineAmount: $fineAmount, finePaid: $finePaid)';
+    return 'EventRegistration(memberId: $memberId, memberName: $memberName, isGuest: $isGuest, attendingGolf: $attendingGolf, attendingBreakfast: $attendingBreakfast, attendingLunch: $attendingLunch, attendingDinner: $attendingDinner, hasPaid: $hasPaid, cost: $cost, creditApplied: $creditApplied, handicap: $handicap, playingHandicap: $playingHandicap, needsBuggy: $needsBuggy, dietaryRequirements: $dietaryRequirements, specialNeeds: $specialNeeds, guestName: $guestName, guestHandicap: $guestHandicap, guestAttendingBreakfast: $guestAttendingBreakfast, guestAttendingLunch: $guestAttendingLunch, guestAttendingDinner: $guestAttendingDinner, guestNeedsBuggy: $guestNeedsBuggy, isCaptain: $isCaptain, registeredAt: $registeredAt, isConfirmed: $isConfirmed, guestIsConfirmed: $guestIsConfirmed, statusOverride: $statusOverride, buggyStatusOverride: $buggyStatusOverride, guestBuggyStatusOverride: $guestBuggyStatusOverride, partnerId: $partnerId, partnerName: $partnerName, history: $history, fines: $fines, fineAmount: $fineAmount, finePaid: $finePaid, teeName: $teeName, guestTeeName: $guestTeeName)';
   }
 }
 
@@ -1105,7 +1148,9 @@ abstract mixin class _$EventRegistrationCopyWith<$Res>
       List<RegistrationHistoryItem>? history,
       List<EventFine> fines,
       double fineAmount,
-      bool finePaid});
+      bool finePaid,
+      String? teeName,
+      String? guestTeeName});
 }
 
 /// @nodoc
@@ -1155,6 +1200,8 @@ class __$EventRegistrationCopyWithImpl<$Res>
     Object? fines = null,
     Object? fineAmount = null,
     Object? finePaid = null,
+    Object? teeName = freezed,
+    Object? guestTeeName = freezed,
   }) {
     return _then(_EventRegistration(
       memberId: null == memberId
@@ -1293,6 +1340,14 @@ class __$EventRegistrationCopyWithImpl<$Res>
           ? _self.finePaid
           : finePaid // ignore: cast_nullable_to_non_nullable
               as bool,
+      teeName: freezed == teeName
+          ? _self.teeName
+          : teeName // ignore: cast_nullable_to_non_nullable
+              as String?,
+      guestTeeName: freezed == guestTeeName
+          ? _self.guestTeeName
+          : guestTeeName // ignore: cast_nullable_to_non_nullable
+              as String?,
     ));
   }
 }

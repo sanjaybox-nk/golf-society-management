@@ -184,7 +184,6 @@ class EventRegistrationUserTab extends ConsumerWidget {
 
 
 
-    final spacing = Theme.of(context).extension<AppSpacingTokens>();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

@@ -32,7 +32,7 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen> {
     return HeadlessScaffold(
       title: 'Society Hub',
       subtitle: 'Operations & Insights',
-      titleSuffix: BoxyArtPill.committee(label: 'ADMIN'),
+      topPill: BoxyArtPill.committee(label: 'ADMIN'),
       showBack: false,
       leading: Center(
         child: BoxyArtGlassIconButton(

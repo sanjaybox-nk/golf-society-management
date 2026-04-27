@@ -197,13 +197,17 @@ class _ShellLayoutDelegate extends StatelessWidget {
 
     if (isAdmin) {
       items = NavigationConstants.adminNavItems;
-      for (int i = 0; i < items.length; i++) branchMap[i] = i + 5;
+      for (int i = 0; i < items.length; i++) {
+        branchMap[i] = i + 5;
+      }
     } else if (isDeparted) {
       items = [NavigationConstants.userNavItems[3], NavigationConstants.userNavItems[4]];
       branchMap = {0: 3, 1: 4};
     } else {
       items = NavigationConstants.userNavItems;
-      for (int i = 0; i < items.length; i++) branchMap[i] = i;
+      for (int i = 0; i < items.length; i++) {
+        branchMap[i] = i;
+      }
     }
 
     final int baseIndex = isDeparted && !isAdmin
@@ -225,12 +229,9 @@ class _ShellLayoutDelegate extends StatelessWidget {
     final int manageIdx = segments.indexOf('manage');
     final bool isAdminEventHub = manageIdx != -1 && manageIdx + 1 < segments.length;
 
-    final String hubId = isUserEventHub 
-        ? segments[eventsIdx + 1] 
-        : (isAdminEventHub ? segments[manageIdx + 1] : '');
+
 
     final bool isSurveyView = location.contains('/surveys/') && !location.contains('/admin/node');
-    final bool isSpecialForm = location.split('/').any((s) => s == 'new' || s == 'edit' || s == 'create');
 
     if (isUserEventHub) {
       items = [
@@ -252,19 +253,33 @@ class _ShellLayoutDelegate extends StatelessWidget {
 
     int finalIndex = baseIndex;
     if (isUserEventHub) {
-      if (location.endsWith('details')) finalIndex = 0;
-      else if (location.endsWith('field')) finalIndex = 1;
-      else if (location.endsWith('live')) finalIndex = 2;
-      else if (location.endsWith('scores')) finalIndex = 3;
-      else if (location.endsWith('stats')) finalIndex = 4;
-      else finalIndex = 0;
+      if (location.endsWith('details')) {
+        finalIndex = 0;
+      } else if (location.endsWith('field')) {
+        finalIndex = 1;
+      } else if (location.endsWith('live')) {
+        finalIndex = 2;
+      } else if (location.endsWith('scores')) {
+        finalIndex = 3;
+      } else if (location.endsWith('stats')) {
+        finalIndex = 4;
+      } else {
+        finalIndex = 0;
+      }
     } else if (isAdminEventHub) {
-      if (location.endsWith('details')) finalIndex = 0;
-      else if (location.endsWith('gallery')) finalIndex = 1;
-      else if (location.endsWith('scores')) finalIndex = 2;
-      else if (location.endsWith('stats')) finalIndex = 3;
-      else if (location.endsWith('controls')) finalIndex = 4;
-      else finalIndex = 0;
+      if (location.endsWith('details')) {
+        finalIndex = 0;
+      } else if (location.endsWith('gallery')) {
+        finalIndex = 1;
+      } else if (location.endsWith('scores')) {
+        finalIndex = 2;
+      } else if (location.endsWith('stats')) {
+        finalIndex = 3;
+      } else if (location.endsWith('controls')) {
+        finalIndex = 4;
+      } else {
+        finalIndex = 0;
+      }
     }
 
     final bool isWhiteListed = location.contains('renewal') || location.contains('ledger') || 
@@ -276,7 +291,7 @@ class _ShellLayoutDelegate extends StatelessWidget {
     return builder(context, _ShellProperties(
       items: items,
       finalDisplayIndex: finalIndex,
-      shouldHideMainNav: isSpecialForm && !isWhiteListed,
+      shouldHideMainNav: false,
       isAdmin: isAdmin,
       branchMap: branchMap,
       isUserHub: isUserEventHub,
@@ -344,6 +359,6 @@ void _onTap(BuildContext context, int index, _ShellProperties props) {
   }
 
   final int branchIndex = props.branchMap[index] ?? (props.isAdmin ? index + 5 : index);
-  props.navigationShell.goBranch(branchIndex, initialLocation: branchIndex == props.navigationShell.currentIndex);
+  props.navigationShell.goBranch(branchIndex, initialLocation: true);
 }
 

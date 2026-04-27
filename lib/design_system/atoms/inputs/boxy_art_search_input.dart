@@ -62,6 +62,7 @@ class _BoxyArtSearchInputState extends State<BoxyArtSearchInput> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Padding(
       padding: widget.margin ?? EdgeInsets.zero,
       child: Column(
@@ -74,7 +75,7 @@ class _BoxyArtSearchInputState extends State<BoxyArtSearchInput> {
               child: Text(
                 widget.label!,
                 style: AppTypography.label.copyWith(
-                  color: Theme.of(context).textTheme.bodySmall?.color?.withOpacity(0.8),
+                  color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.8),
                   fontWeight: AppTypography.weightBold,
                   letterSpacing: 0.5,
                 ),
@@ -93,7 +94,7 @@ class _BoxyArtSearchInputState extends State<BoxyArtSearchInput> {
                       key: ValueKey(_controller.text.isNotEmpty),
                       color: _controller.text.isNotEmpty 
                           ? StatusColors.negative 
-                          : Theme.of(context).primaryColor,
+                          : theme.primaryColor,
                       size: AppShapes.iconMd,
                     ),
                   ),
@@ -111,7 +112,7 @@ class _BoxyArtSearchInputState extends State<BoxyArtSearchInput> {
                       fontSize: 18,
                       height: 1.2,
                       fontWeight: AppTypography.weightSemibold,
-                      color: Theme.of(context).colorScheme.onSurface,
+                      color: theme.colorScheme.onSurface.withValues(alpha: 0.4),
                     ),
                     decoration: InputDecoration(
                       hintText: widget.hintText,

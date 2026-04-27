@@ -1,8 +1,8 @@
 import 'package:golf_society/domain/models/competition.dart';
 import 'package:golf_society/domain/models/golf_event.dart';
-import 'package:golf_society/domain/models/course_config.dart';
 import 'package:golf_society/domain/models/member.dart';
 import 'package:collection/collection.dart';
+import 'package:golf_society/domain/models/course_config.dart';
 
 class ScoringResult {
   final int score;
@@ -107,21 +107,70 @@ class ScoringCalculator {
     required List<Member> membersList,
     String? manualTeeName,
   }) {
+    final nonNullTee = resolvePlayerTee(
+      memberId: memberId,
+      event: event,
+      membersList: membersList,
+      manualTeeName: manualTeeName,
+    );
+    
+    final pars = nonNullTee.holePars;
+    final sis = nonNullTee.holeSIs;
+    
+    final reconstructedHoles = List.generate(pars.length, (i) => CourseHole(
+      hole: i + 1,
+      par: pars[i],
+      si: sis[i],
+      yardage: nonNullTee.yardages.length > i ? nonNullTee.yardages[i] : null,
+    ));
+
+    return event.courseConfig.copyWith(
+       rating: nonNullTee.rating,
+       slope: nonNullTee.slope,
+       par: pars.isEmpty ? (event.courseConfig.par ?? 72) : pars.fold<int>(0, (a, b) => a + b),
+       holes: reconstructedHoles.isNotEmpty ? reconstructedHoles : event.courseConfig.holes,
+       selectedTeeName: nonNullTee.name,
+       selectedTeeColor: nonNullTee.color,
+    );
+  }
+
+  /// Resolves the specific TeeConfig for a player.
+  static TeeConfig resolvePlayerTee({
+    required String memberId,
+    required GolfEvent event,
+    required List<Member> membersList,
+    String? manualTeeName,
+  }) {
     final tees = event.courseConfig.tees;
     
     if (tees.isEmpty) {
-      return event.courseConfig;
+       // Return a dummy/empty tee config based on event baseline if no tees defined
+       return TeeConfig(
+         name: 'Default',
+         rating: event.courseConfig.rating ?? 72.0,
+         slope: event.courseConfig.slope ?? 113,
+         holePars: event.courseConfig.holes.map((h) => h.par).toList(),
+         holeSIs: event.courseConfig.holes.map((h) => h.si).toList(),
+         yardages: event.courseConfig.holes.map((h) => h.yardage ?? 0).toList(),
+       );
     }
 
-    final member = membersList.firstWhereOrNull((m) => m.id == memberId.replaceFirst('_guest', ''));
+    final baseId = memberId.replaceFirst('_guest', '');
+    final registration = event.registrations.firstWhereOrNull((r) => r.memberId == baseId);
+    final isGuest = memberId.contains('_guest');
+    final registrationTeeName = isGuest ? registration?.guestTeeName : registration?.teeName;
+    
+    final effectiveTeeName = manualTeeName ?? registrationTeeName;
+
+    final member = membersList.firstWhereOrNull((m) => m.id == baseId);
     final gender = member?.gender?.toLowerCase() ?? 'male';
     
     TeeConfig? selectedTee;
     
-    // 1. Manual Override logic
-    if (manualTeeName != null) {
+    // 1. Manual Override logic (priority)
+    if (effectiveTeeName != null) {
       selectedTee = tees.firstWhereOrNull((t) => 
-        t.name.toLowerCase().trim() == manualTeeName.toLowerCase().trim()
+        t.name.toLowerCase().trim() == effectiveTeeName.toLowerCase().trim()
       );
     }
 
@@ -139,30 +188,19 @@ class ScoringCalculator {
          );
       }
       
+      if (selectedTee == null && event.selectedTeeName != null) {
+         selectedTee = tees.firstWhereOrNull((t) => 
+           t.name.toLowerCase().trim() == event.selectedTeeName!.toLowerCase().trim()
+         );
+      }
+
       selectedTee ??= tees.firstWhereOrNull((t) => 
          t.name.toLowerCase().trim() == (event.selectedTeeName ?? 'white').toLowerCase().trim()
       );
   
       selectedTee ??= tees.first;
     }
-    final TeeConfig nonNullTee = selectedTee;
-    final pars = nonNullTee.holePars;
-    final sis = nonNullTee.holeSIs;
-    
-    final reconstructedHoles = List.generate(pars.length, (i) => CourseHole(
-      hole: i + 1,
-      par: pars[i],
-      si: sis[i],
-      yardage: nonNullTee.yardages.length > i ? nonNullTee.yardages[i] : null,
-    ));
-
-    return event.courseConfig.copyWith(
-       rating: nonNullTee.rating,
-       slope: nonNullTee.slope,
-       par: pars.isEmpty ? (event.courseConfig.par ?? 72) : pars.fold<int>(0, (a, b) => a + b),
-       holes: reconstructedHoles.isNotEmpty ? reconstructedHoles : event.courseConfig.holes,
-       selectedTeeName: nonNullTee.name,
-    );
+    return selectedTee;
   }
 
   /// Calculates "Score to Par" (Net) or Stableford Points.

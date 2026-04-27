@@ -20,6 +20,10 @@ class MemberStatsRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final spacing = theme.extension<AppSpacingTokens>();
+    final cardGap = spacing?.cardToCard ?? AppSpacing.atomic;
+
     return BoxyArtCard(
       child: Row(
         children: [
@@ -31,7 +35,7 @@ class MemberStatsRow extends StatelessWidget {
                 isCompact: true,
               ),
             ),
-            const SizedBox(width: AppSpacing.sm),
+            SizedBox(width: cardGap),
           ],
           Expanded(
             child: ModernMetricStat(
@@ -40,7 +44,7 @@ class MemberStatsRow extends StatelessWidget {
               isCompact: true,
             ),
           ),
-          const SizedBox(width: AppSpacing.sm),
+          SizedBox(width: cardGap),
           Expanded(
             child: ModernMetricStat(
               label: 'Avg Pts',
@@ -48,7 +52,7 @@ class MemberStatsRow extends StatelessWidget {
               isCompact: true,
             ),
           ),
-          const SizedBox(width: AppSpacing.sm),
+          SizedBox(width: cardGap),
           Expanded(
             child: ModernMetricStat(
               label: 'Best',
@@ -56,7 +60,7 @@ class MemberStatsRow extends StatelessWidget {
               isCompact: true,
             ),
           ),
-          const SizedBox(width: AppSpacing.sm),
+          SizedBox(width: cardGap),
           Expanded(
             child: ModernMetricStat(
               label: 'Rank',

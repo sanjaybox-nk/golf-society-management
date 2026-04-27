@@ -31,7 +31,7 @@ final selectedMemberIdsProvider = NotifierProvider<SelectedMemberIdsNotifier, Se
   SelectedMemberIdsNotifier.new,
 );
 
-enum RenewalFilter { noAction, requested, paid }
+enum RenewalFilter { pending, renewing, paid }
 
 class AdminMemberRenewalScreen extends ConsumerStatefulWidget {
   const AdminMemberRenewalScreen({super.key});
@@ -41,7 +41,7 @@ class AdminMemberRenewalScreen extends ConsumerStatefulWidget {
 }
 
 class _AdminMemberRenewalScreenState extends ConsumerState<AdminMemberRenewalScreen> {
-  RenewalFilter _currentFilter = RenewalFilter.noAction;
+  RenewalFilter _currentFilter = RenewalFilter.pending;
   String _searchQuery = '';
 
   void _showRenewalSettings(BuildContext context) {
@@ -211,7 +211,7 @@ class _AdminMemberRenewalScreenState extends ConsumerState<AdminMemberRenewalScr
     return HeadlessScaffold(
         title: 'Renewal Hub',
         subtitle: 'Manage season renewals',
-        titleSuffix: BoxyArtPill.committee(label: 'ADMIN'),
+        topPill: BoxyArtPill.committee(label: 'ADMIN'),
         showBack: true,
         onBack: () => context.pop(),
         pinnedBottom: selectedIds.isNotEmpty
@@ -239,16 +239,16 @@ class _AdminMemberRenewalScreenState extends ConsumerState<AdminMemberRenewalScr
             error: (err, _) => SliverFillRemaining(child: Center(child: Text('Error: $err'))),
             data: (members) {
               // 1. Calculate counts for tabs
-              final requested = members.where((m) => m.renewalStatus == MemberRenewalStatus.renew && !m.hasPaid).toList();
+              final renewing = members.where((m) => m.renewalStatus == MemberRenewalStatus.renew && !m.hasPaid).toList();
               final paid = members.where((m) => m.renewalStatus == MemberRenewalStatus.renew && m.hasPaid).toList();
-              final noAction = members.where((m) => m.renewalStatus == MemberRenewalStatus.none).toList();
+              final pending = members.where((m) => m.renewalStatus == MemberRenewalStatus.none).toList();
 
               // 2. Select list based on current tab
               List<Member> displayMembers;
               switch (_currentFilter) {
-                case RenewalFilter.requested: displayMembers = requested; break;
+                case RenewalFilter.renewing: displayMembers = renewing; break;
                 case RenewalFilter.paid: displayMembers = paid; break;
-                case RenewalFilter.noAction: displayMembers = noAction; break;
+                case RenewalFilter.pending: displayMembers = pending; break;
               }
 
               // 3. Filter by search query
@@ -263,15 +263,6 @@ class _AdminMemberRenewalScreenState extends ConsumerState<AdminMemberRenewalScr
               return SliverMainAxisGroup(
                 slivers: [
                   // 1. Section Title (Double-Rhythm Baseline)
-                  const SliverToBoxAdapter(
-                    child: Padding(
-                      padding: EdgeInsets.symmetric(horizontal: AppSpacing.xl),
-                      child: BoxyArtSectionTitle(
-                        title: 'Renewal management',
-                        isPeeking: true,
-                      ),
-                    ),
-                  ),
 
                   // 2. Tab Bar Standardized
                   SliverToBoxAdapter(
@@ -283,9 +274,9 @@ class _AdminMemberRenewalScreenState extends ConsumerState<AdminMemberRenewalScr
                         padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
                         isExpanded: true,
                         tabs: [
-                          const ModernFilterTab(label: 'No Action', value: RenewalFilter.noAction, icon: Icons.pending_actions_rounded),
-                          const ModernFilterTab(label: 'Requested', value: RenewalFilter.requested, icon: Icons.notifications_active_rounded),
-                          const ModernFilterTab(label: 'Paid', value: RenewalFilter.paid, icon: Icons.check_circle_rounded),
+                          const ModernFilterTab(label: 'Pending', value: RenewalFilter.pending),
+                          const ModernFilterTab(label: 'Renewing', value: RenewalFilter.renewing),
+                          const ModernFilterTab(label: 'Paid', value: RenewalFilter.paid),
                         ],
                       ),
                     ),
@@ -440,7 +431,7 @@ class _MemberRenewalTile extends ConsumerWidget {
         break;
       case MemberRenewalStatus.none:
         renewalColor = AppColors.dark400;
-        renewalLabel = 'No action';
+        renewalLabel = 'Pending';
         break;
     }
 
@@ -514,10 +505,17 @@ class _MemberRenewalTile extends ConsumerWidget {
                       child: BoxyArtStatusPill(
                         isPaid: false,
                         paidLabel: '', 
-                        dueLabel: 'Nudge',
+                        dueLabel: member.nudgeCount > 0 ? 'Nudge (${member.nudgeCount})' : 'Nudge',
                         color: AppColors.dark400,
+                        customActionIcon: Icons.notifications_active_rounded,
                         onToggle: () async {
-                          await ref.read(renewalNudgeServiceProvider).notifyMemberOfPaymentDue(member: member);
+                          final updatedMember = member.copyWith(
+                            nudgeCount: member.nudgeCount + 1,
+                            lastNudgedAt: DateTime.now(),
+                          );
+                          await ref.read(membersRepositoryProvider).updateMember(updatedMember);
+                          await ref.read(renewalNudgeServiceProvider).notifyMemberOfPaymentDue(member: updatedMember);
+                          
                           if (context.mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(content: Text('Payment reminder sent to ${member.firstName}')),

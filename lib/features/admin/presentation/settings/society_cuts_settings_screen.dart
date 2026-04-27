@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:golf_society/design_system/design_system.dart';
@@ -54,7 +53,7 @@ class _SocietyCutsSettingsScreenState extends ConsumerState<SocietyCutsSettingsS
     return HeadlessScaffold(
       title: 'Society Cuts',
       subtitle: (config.societyCutMode != SocietyCutMode.off) ? 'Active' : 'Disabled',
-      titleSuffix: BoxyArtPill.committee(label: 'ADMIN'),
+      topPill: BoxyArtPill.committee(label: 'ADMIN'),
       showBack: true,
       onBack: () => context.pop(),
       actions: const [],

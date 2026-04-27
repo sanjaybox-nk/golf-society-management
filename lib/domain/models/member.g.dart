@@ -38,6 +38,7 @@ _Member _$MemberFromJson(Map<String, dynamic> json) => _Member(
       allowSocialEventsOnly: json['allowSocialEventsOnly'] as bool? ?? false,
       lastNudgedAt:
           const OptionalTimestampConverter().fromJson(json['lastNudgedAt']),
+      nudgeCount: (json['nudgeCount'] as num?)?.toInt() ?? 0,
     );
 
 Map<String, dynamic> _$MemberToJson(_Member instance) => <String, dynamic>{
@@ -68,6 +69,7 @@ Map<String, dynamic> _$MemberToJson(_Member instance) => <String, dynamic>{
       'allowSocialEventsOnly': instance.allowSocialEventsOnly,
       'lastNudgedAt':
           const OptionalTimestampConverter().toJson(instance.lastNudgedAt),
+      'nudgeCount': instance.nudgeCount,
     };
 
 const _$MemberRoleEnumMap = {

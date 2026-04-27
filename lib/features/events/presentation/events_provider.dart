@@ -12,23 +12,24 @@ import '../../admin/data/leaderboard_templates_repository.dart';
 
 enum EventFilter { season, social }
 
+/// Member Events tab filter — isolated from admin tab state.
 final eventFilterProvider = NotifierProvider<EventFilterNotifier, EventFilter>(EventFilterNotifier.new);
 
 class EventFilterNotifier extends Notifier<EventFilter> {
   @override
   EventFilter build() => EventFilter.season;
-  
   void update(EventFilter filter) => state = filter;
 }
+
+/// Admin Events tab filter — isolated from member tab state.
+final adminEventFilterProvider = NotifierProvider<AdminEventFilterNotifier, EventFilter>(AdminEventFilterNotifier.new);
 
 class AdminEventFilterNotifier extends Notifier<EventFilter> {
   @override
   EventFilter build() => EventFilter.season;
-  
   void update(EventFilter filter) => state = filter;
 }
 
-final adminEventFilterProvider = NotifierProvider<AdminEventFilterNotifier, EventFilter>(AdminEventFilterNotifier.new);
 
 final eventsRepositoryProvider = Provider<EventsRepository>((ref) {
   return FirestoreEventsRepository(FirebaseFirestore.instance);

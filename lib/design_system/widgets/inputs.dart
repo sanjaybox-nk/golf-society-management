@@ -715,6 +715,7 @@ class BoxyArtDropdownField<T> extends ConsumerWidget {
   final List<DropdownMenuItem<T>> items;
   final ValueChanged<T?> onChanged;
   final String? hint;
+  final Widget? prefixIcon;
   final double? menuMaxHeight;
   final double? width;
 
@@ -725,6 +726,7 @@ class BoxyArtDropdownField<T> extends ConsumerWidget {
     required this.items,
     required this.onChanged,
     this.hint,
+    this.prefixIcon,
     this.menuMaxHeight = 400,
     this.width,
   });
@@ -772,6 +774,7 @@ class BoxyArtDropdownField<T> extends ConsumerWidget {
                 color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
                 fontSize: AppTypography.sizeBody,
               ),
+              prefixIcon: prefixIcon,
               filled: true,
               fillColor: theme.colorScheme.surface,
               border: OutlineInputBorder(

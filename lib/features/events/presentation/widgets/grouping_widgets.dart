@@ -1,4 +1,3 @@
-import 'dart:math' as math;
 import 'package:intl/intl.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:golf_society/design_system/design_system.dart';
@@ -148,15 +147,12 @@ class GroupingPlayerTile extends ConsumerWidget {
     }
 
     final theme = Theme.of(context);
-    final spacing = theme.extension<AppSpacingTokens>();
-    final double vPadding = (spacing?.cardVerticalPadding ?? AppSpacing.lg) * 0.8;
-    final double hPadding = (spacing?.cardHorizontalPadding ?? AppSpacing.lg) * 0.8;
-    final double cardHeight = vPadding * 4.5; // Standardized with Leaderboard
 
     // Score Text Formatting (v4.0 standardized)
     final bool isScramble = rules?.format == CompetitionFormat.scramble;
     final bool hasScore = isScoreMode && (scoreDisplay != null && scoreDisplay != '-') && !isScramble;
-    final String rawScore = hasScore ? scoreDisplay! : '';
+
+    final teeColor = AppColors.getTeeColor(player.teeName, courseConfig?.tees);
 
     return BoxyArtMemberRow(
       name: player.name,
@@ -177,6 +173,9 @@ class GroupingPlayerTile extends ConsumerWidget {
       score: hasScore ? scoreDisplay : null,
       isStableford: isStableford,
       scoreColor: null,
+      teeName: player.teeName,
+      teeColor: teeColor,
+      onTeeTap: isAdmin ? () => onAction?.call('tee', player, group) : null,
       onTap: onTap,
       isSelected: isSelected,
       useCard: useCard,
@@ -199,6 +198,16 @@ class GroupingPlayerTile extends ConsumerWidget {
                     Icon(Icons.drive_file_move_outlined, size: AppShapes.iconSm),
                     const SizedBox(width: AppSpacing.md),
                     const Text('Move to Group...'),
+                  ],
+                ),
+              ),
+              PopupMenuItem(
+                value: 'tee',
+                child: Row(
+                  children: [
+                    Icon(Icons.flag_circle_outlined, size: AppShapes.iconSm),
+                    const SizedBox(width: AppSpacing.md),
+                    const Text('Change Tee...'),
                   ],
                 ),
               ),
@@ -648,13 +657,14 @@ class GroupingCard extends ConsumerWidget {
                     processedIds.add(id);
                     final tile = buildParticipantTile(p, id, 'A');
                     children.add(isAdmin ? _wrapWithDraggable(context, p, tile) : tile);
-                    if (p != sideA.last)
+                    if (p != sideA.last) {
                       children.add(Divider(
                         height: 1,
                         indent: hPadding,
                         endIndent: hPadding,
                         color: Theme.of(context).dividerColor.withValues(alpha: 0.1),
                       ));
+                    }
                   }
 
                   // Add "v" Separator
@@ -682,13 +692,14 @@ class GroupingCard extends ConsumerWidget {
                     processedIds.add(id);
                     final tile = buildParticipantTile(p, id, 'B');
                     children.add(isAdmin ? _wrapWithDraggable(context, p, tile) : tile);
-                    if (p != sideB.last)
+                    if (p != sideB.last) {
                       children.add(Divider(
                         height: 1,
                         indent: hPadding,
                         endIndent: hPadding,
                         color: Theme.of(context).dividerColor.withValues(alpha: 0.1),
                       ));
+                    }
                   }
 
                   matchIndex++;
@@ -982,7 +993,6 @@ class GroupingPodiumHeader extends ConsumerWidget {
 
   Widget _buildPodiumCard(BuildContext context, WidgetRef ref, PodiumEntry entry) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bool isFirst = entry.rank == 1;
 
     Color rankColor = isDark ? AppColors.dark400 : AppColors.dark300;
     if (entry.rank == 1) rankColor = AppColors.amber500;

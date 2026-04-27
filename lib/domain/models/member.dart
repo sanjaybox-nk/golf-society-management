@@ -96,6 +96,7 @@ abstract class Member with _$Member {
     @Default(MemberRenewalStatus.none) MemberRenewalStatus renewalStatus, // [NEW] Member renewal choice
     @Default(false) bool allowSocialEventsOnly, // [NEW] Master switch for suspended members
     @OptionalTimestampConverter() DateTime? lastNudgedAt, // [NEW] Track recent renewal nudges
+    @Default(0) int nudgeCount, // [NEW] Track frequency of nudges
   }) = _Member;
 
   String get displayName => '$firstName $lastName';

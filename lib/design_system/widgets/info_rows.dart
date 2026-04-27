@@ -35,7 +35,6 @@ class ModernInfoRow extends ConsumerWidget {
     final theme = Theme.of(context);
     final textPrimary = theme.textTheme.bodyLarge?.color;
     final textSecondary = theme.textTheme.bodySmall?.color;
-    final config = ref.watch(themeControllerProvider);
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,

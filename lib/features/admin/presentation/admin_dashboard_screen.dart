@@ -21,7 +21,7 @@ class AdminDashboardScreen extends ConsumerWidget {
       child: HeadlessScaffold(
         title: 'Admin Console',
         subtitle: 'Command Center',
-        titleSuffix: BoxyArtPill.committee(label: 'ADMIN'),
+        topPill: BoxyArtPill.committee(label: 'ADMIN'),
         leading: Align(
           alignment: Alignment.centerLeft,
           child: Padding(
@@ -171,8 +171,9 @@ class _OperationsSlivers extends ConsumerWidget {
       ),
       sliver: SliverList(
         delegate: SliverChildListDelegate([
+          // Group 1: Season & Competition
           const BoxyArtSectionTitle(
-            title: 'Daily Operations',
+            title: 'Season & Competition',
             isPeeking: true,
           ),
           BoxyArtCard(
@@ -201,12 +202,25 @@ class _OperationsSlivers extends ConsumerWidget {
                 ),
                 const BoxyArtDivider(),
                 BoxyArtNavTile(
-                  icon: Icons.handshake_outlined,
-                  title: 'Sponsorships & Donations',
-                  subtitle: 'Manage partners, supporters & revenue',
-                  onTap: () => context.pushNamed('admin-sponsorship-hub'),
+                  icon: Icons.content_cut_rounded,
+                  title: 'Society Cuts',
+                  subtitle: 'Global handicap adjustment rules',
+                  onTap: () => context.pushNamed('admin-settings-cuts'),
                 ),
-                const BoxyArtDivider(),
+              ],
+            ),
+          ),
+          SizedBox(height: spacing?.cardToCard ?? AppSpacing.standard),
+
+          // Group 2: Members & Community
+          const BoxyArtSectionTitle(
+            title: 'Members & Community',
+            isPeeking: true,
+          ),
+          BoxyArtCard(
+            padding: EdgeInsets.zero,
+            child: Column(
+              children: [
                 BoxyArtNavTile(
                   icon: Icons.autorenew_rounded,
                   title: 'Member Renewals',
@@ -215,24 +229,10 @@ class _OperationsSlivers extends ConsumerWidget {
                 ),
                 const BoxyArtDivider(),
                 BoxyArtNavTile(
-                  icon: Icons.quiz_outlined,
-                  title: 'Society Surveys',
-                  subtitle: 'Draft and publish polls',
-                  onTap: () => context.pushNamed('admin-surveys'),
-                ),
-                const BoxyArtDivider(),
-                BoxyArtNavTile(
-                  icon: Icons.account_balance_wallet_outlined,
-                  title: 'Debt Ledger',
-                  subtitle: 'Financial oversight & balances',
-                  onTap: () => context.pushNamed('admin-debt-ledger'),
-                ),
-                const BoxyArtDivider(),
-                BoxyArtNavTile(
-                  icon: Icons.analytics_outlined,
-                  title: 'Reports & Insights',
-                  subtitle: 'Financials, engagement & trends',
-                  onTap: () => context.goNamed('admin-reports'),
+                  icon: Icons.person_add_alt_1_rounded,
+                  title: 'Add New Member',
+                  subtitle: 'Onboard and assign credentials',
+                  onTap: () => context.pushNamed('admin-member-new'),
                 ),
                 const BoxyArtDivider(),
                 BoxyArtNavTile(
@@ -243,10 +243,44 @@ class _OperationsSlivers extends ConsumerWidget {
                 ),
                 const BoxyArtDivider(),
                 BoxyArtNavTile(
-                  icon: Icons.content_cut_rounded,
-                  title: 'Society Cuts',
-                  subtitle: 'Global handicap adjustment rules',
-                  onTap: () => context.pushNamed('admin-settings-cuts'),
+                  icon: Icons.quiz_outlined,
+                  title: 'Society Surveys',
+                  subtitle: 'Draft and publish polls',
+                  onTap: () => context.pushNamed('admin-surveys'),
+                ),
+              ],
+            ),
+          ),
+          SizedBox(height: spacing?.cardToCard ?? AppSpacing.standard),
+
+          // Group 3: Finance & Analytics
+          const BoxyArtSectionTitle(
+            title: 'Finance & Analytics',
+            isPeeking: true,
+          ),
+          BoxyArtCard(
+            padding: EdgeInsets.zero,
+            child: Column(
+              children: [
+                BoxyArtNavTile(
+                  icon: Icons.account_balance_wallet_outlined,
+                  title: 'Debt Ledger',
+                  subtitle: 'Financial oversight & balances',
+                  onTap: () => context.pushNamed('admin-debt-ledger'),
+                ),
+                const BoxyArtDivider(),
+                BoxyArtNavTile(
+                  icon: Icons.handshake_outlined,
+                  title: 'Sponsorships & Donations',
+                  subtitle: 'Manage partners, supporters & revenue',
+                  onTap: () => context.pushNamed('admin-sponsorship-hub'),
+                ),
+                const BoxyArtDivider(),
+                BoxyArtNavTile(
+                  icon: Icons.analytics_outlined,
+                  title: 'Reports & Insights',
+                  subtitle: 'Financials, engagement & trends',
+                  onTap: () => context.goNamed('admin-reports'),
                 ),
               ],
             ),

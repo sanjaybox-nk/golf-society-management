@@ -29,7 +29,6 @@ class BoxyArtEventCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final primary = theme.primaryColor;
     final spacing = theme.extension<AppSpacingTokens>();
     final config = ref.watch(themeControllerProvider);
 

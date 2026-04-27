@@ -40,7 +40,8 @@ mixin _$Member {
   MemberRenewalStatus get renewalStatus; // [NEW] Member renewal choice
   bool get allowSocialEventsOnly; // [NEW] Master switch for suspended members
   @OptionalTimestampConverter()
-  DateTime? get lastNudgedAt;
+  DateTime? get lastNudgedAt; // [NEW] Track recent renewal nudges
+  int get nudgeCount;
 
   /// Create a copy of Member
   /// with the given fields replaced by the non-null parameter values.
@@ -95,7 +96,9 @@ mixin _$Member {
             (identical(other.allowSocialEventsOnly, allowSocialEventsOnly) ||
                 other.allowSocialEventsOnly == allowSocialEventsOnly) &&
             (identical(other.lastNudgedAt, lastNudgedAt) ||
-                other.lastNudgedAt == lastNudgedAt));
+                other.lastNudgedAt == lastNudgedAt) &&
+            (identical(other.nudgeCount, nudgeCount) ||
+                other.nudgeCount == nudgeCount));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -125,12 +128,13 @@ mixin _$Member {
         membershipEndDate,
         renewalStatus,
         allowSocialEventsOnly,
-        lastNudgedAt
+        lastNudgedAt,
+        nudgeCount
       ]);
 
   @override
   String toString() {
-    return 'Member(id: $id, firstName: $firstName, lastName: $lastName, email: $email, nickname: $nickname, phone: $phone, address: $address, bio: $bio, avatarUrl: $avatarUrl, handicap: $handicap, handicapId: $handicapId, isHandicapLocked: $isHandicapLocked, role: $role, societyRole: $societyRole, status: $status, hasPaid: $hasPaid, isArchived: $isArchived, accountCredit: $accountCredit, gender: $gender, joinedDate: $joinedDate, membershipEndDate: $membershipEndDate, renewalStatus: $renewalStatus, allowSocialEventsOnly: $allowSocialEventsOnly, lastNudgedAt: $lastNudgedAt)';
+    return 'Member(id: $id, firstName: $firstName, lastName: $lastName, email: $email, nickname: $nickname, phone: $phone, address: $address, bio: $bio, avatarUrl: $avatarUrl, handicap: $handicap, handicapId: $handicapId, isHandicapLocked: $isHandicapLocked, role: $role, societyRole: $societyRole, status: $status, hasPaid: $hasPaid, isArchived: $isArchived, accountCredit: $accountCredit, gender: $gender, joinedDate: $joinedDate, membershipEndDate: $membershipEndDate, renewalStatus: $renewalStatus, allowSocialEventsOnly: $allowSocialEventsOnly, lastNudgedAt: $lastNudgedAt, nudgeCount: $nudgeCount)';
   }
 }
 
@@ -163,7 +167,8 @@ abstract mixin class $MemberCopyWith<$Res> {
       @OptionalTimestampConverter() DateTime? membershipEndDate,
       MemberRenewalStatus renewalStatus,
       bool allowSocialEventsOnly,
-      @OptionalTimestampConverter() DateTime? lastNudgedAt});
+      @OptionalTimestampConverter() DateTime? lastNudgedAt,
+      int nudgeCount});
 }
 
 /// @nodoc
@@ -202,6 +207,7 @@ class _$MemberCopyWithImpl<$Res> implements $MemberCopyWith<$Res> {
     Object? renewalStatus = null,
     Object? allowSocialEventsOnly = null,
     Object? lastNudgedAt = freezed,
+    Object? nudgeCount = null,
   }) {
     return _then(_self.copyWith(
       id: null == id
@@ -300,6 +306,10 @@ class _$MemberCopyWithImpl<$Res> implements $MemberCopyWith<$Res> {
           ? _self.lastNudgedAt
           : lastNudgedAt // ignore: cast_nullable_to_non_nullable
               as DateTime?,
+      nudgeCount: null == nudgeCount
+          ? _self.nudgeCount
+          : nudgeCount // ignore: cast_nullable_to_non_nullable
+              as int,
     ));
   }
 }
@@ -421,7 +431,8 @@ extension MemberPatterns on Member {
             @OptionalTimestampConverter() DateTime? membershipEndDate,
             MemberRenewalStatus renewalStatus,
             bool allowSocialEventsOnly,
-            @OptionalTimestampConverter() DateTime? lastNudgedAt)?
+            @OptionalTimestampConverter() DateTime? lastNudgedAt,
+            int nudgeCount)?
         $default, {
     required TResult orElse(),
   }) {
@@ -452,7 +463,8 @@ extension MemberPatterns on Member {
             _that.membershipEndDate,
             _that.renewalStatus,
             _that.allowSocialEventsOnly,
-            _that.lastNudgedAt);
+            _that.lastNudgedAt,
+            _that.nudgeCount);
       case _:
         return orElse();
     }
@@ -497,7 +509,8 @@ extension MemberPatterns on Member {
             @OptionalTimestampConverter() DateTime? membershipEndDate,
             MemberRenewalStatus renewalStatus,
             bool allowSocialEventsOnly,
-            @OptionalTimestampConverter() DateTime? lastNudgedAt)
+            @OptionalTimestampConverter() DateTime? lastNudgedAt,
+            int nudgeCount)
         $default,
   ) {
     final _that = this;
@@ -527,7 +540,8 @@ extension MemberPatterns on Member {
             _that.membershipEndDate,
             _that.renewalStatus,
             _that.allowSocialEventsOnly,
-            _that.lastNudgedAt);
+            _that.lastNudgedAt,
+            _that.nudgeCount);
       case _:
         throw StateError('Unexpected subclass');
     }
@@ -571,7 +585,8 @@ extension MemberPatterns on Member {
             @OptionalTimestampConverter() DateTime? membershipEndDate,
             MemberRenewalStatus renewalStatus,
             bool allowSocialEventsOnly,
-            @OptionalTimestampConverter() DateTime? lastNudgedAt)?
+            @OptionalTimestampConverter() DateTime? lastNudgedAt,
+            int nudgeCount)?
         $default,
   ) {
     final _that = this;
@@ -601,7 +616,8 @@ extension MemberPatterns on Member {
             _that.membershipEndDate,
             _that.renewalStatus,
             _that.allowSocialEventsOnly,
-            _that.lastNudgedAt);
+            _that.lastNudgedAt,
+            _that.nudgeCount);
       case _:
         return null;
     }
@@ -635,7 +651,8 @@ class _Member extends Member {
       @OptionalTimestampConverter() this.membershipEndDate,
       this.renewalStatus = MemberRenewalStatus.none,
       this.allowSocialEventsOnly = false,
-      @OptionalTimestampConverter() this.lastNudgedAt})
+      @OptionalTimestampConverter() this.lastNudgedAt,
+      this.nudgeCount = 0})
       : super._();
   factory _Member.fromJson(Map<String, dynamic> json) => _$MemberFromJson(json);
 
@@ -705,6 +722,10 @@ class _Member extends Member {
   @override
   @OptionalTimestampConverter()
   final DateTime? lastNudgedAt;
+// [NEW] Track recent renewal nudges
+  @override
+  @JsonKey()
+  final int nudgeCount;
 
   /// Create a copy of Member
   /// with the given fields replaced by the non-null parameter values.
@@ -764,7 +785,9 @@ class _Member extends Member {
             (identical(other.allowSocialEventsOnly, allowSocialEventsOnly) ||
                 other.allowSocialEventsOnly == allowSocialEventsOnly) &&
             (identical(other.lastNudgedAt, lastNudgedAt) ||
-                other.lastNudgedAt == lastNudgedAt));
+                other.lastNudgedAt == lastNudgedAt) &&
+            (identical(other.nudgeCount, nudgeCount) ||
+                other.nudgeCount == nudgeCount));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -794,12 +817,13 @@ class _Member extends Member {
         membershipEndDate,
         renewalStatus,
         allowSocialEventsOnly,
-        lastNudgedAt
+        lastNudgedAt,
+        nudgeCount
       ]);
 
   @override
   String toString() {
-    return 'Member(id: $id, firstName: $firstName, lastName: $lastName, email: $email, nickname: $nickname, phone: $phone, address: $address, bio: $bio, avatarUrl: $avatarUrl, handicap: $handicap, handicapId: $handicapId, isHandicapLocked: $isHandicapLocked, role: $role, societyRole: $societyRole, status: $status, hasPaid: $hasPaid, isArchived: $isArchived, accountCredit: $accountCredit, gender: $gender, joinedDate: $joinedDate, membershipEndDate: $membershipEndDate, renewalStatus: $renewalStatus, allowSocialEventsOnly: $allowSocialEventsOnly, lastNudgedAt: $lastNudgedAt)';
+    return 'Member(id: $id, firstName: $firstName, lastName: $lastName, email: $email, nickname: $nickname, phone: $phone, address: $address, bio: $bio, avatarUrl: $avatarUrl, handicap: $handicap, handicapId: $handicapId, isHandicapLocked: $isHandicapLocked, role: $role, societyRole: $societyRole, status: $status, hasPaid: $hasPaid, isArchived: $isArchived, accountCredit: $accountCredit, gender: $gender, joinedDate: $joinedDate, membershipEndDate: $membershipEndDate, renewalStatus: $renewalStatus, allowSocialEventsOnly: $allowSocialEventsOnly, lastNudgedAt: $lastNudgedAt, nudgeCount: $nudgeCount)';
   }
 }
 
@@ -833,7 +857,8 @@ abstract mixin class _$MemberCopyWith<$Res> implements $MemberCopyWith<$Res> {
       @OptionalTimestampConverter() DateTime? membershipEndDate,
       MemberRenewalStatus renewalStatus,
       bool allowSocialEventsOnly,
-      @OptionalTimestampConverter() DateTime? lastNudgedAt});
+      @OptionalTimestampConverter() DateTime? lastNudgedAt,
+      int nudgeCount});
 }
 
 /// @nodoc
@@ -872,6 +897,7 @@ class __$MemberCopyWithImpl<$Res> implements _$MemberCopyWith<$Res> {
     Object? renewalStatus = null,
     Object? allowSocialEventsOnly = null,
     Object? lastNudgedAt = freezed,
+    Object? nudgeCount = null,
   }) {
     return _then(_Member(
       id: null == id
@@ -970,6 +996,10 @@ class __$MemberCopyWithImpl<$Res> implements _$MemberCopyWith<$Res> {
           ? _self.lastNudgedAt
           : lastNudgedAt // ignore: cast_nullable_to_non_nullable
               as DateTime?,
+      nudgeCount: null == nudgeCount
+          ? _self.nudgeCount
+          : nudgeCount // ignore: cast_nullable_to_non_nullable
+              as int,
     ));
   }
 }

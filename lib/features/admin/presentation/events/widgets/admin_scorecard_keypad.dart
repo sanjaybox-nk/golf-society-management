@@ -30,7 +30,7 @@ class AdminScorecardKeypad extends StatelessWidget {
           onHoleChanged: onHoleChanged,
         ),
         
-        const SizedBox(height: AppSpacing.md),
+        const SizedBox(height: AppSpacing.sm),
 
         // 2. Number Keypad Row (3, 4, 5, 6, 7+)
         Row(
@@ -57,7 +57,7 @@ class AdminScorecardKeypad extends StatelessWidget {
           ],
         ),
 
-        const SizedBox(height: AppSpacing.lg),
+        const SizedBox(height: AppSpacing.sm),
 
         // 3. Action Row ([-] [NEXT HOLE] [+])
         Row(
@@ -68,6 +68,7 @@ class AdminScorecardKeypad extends StatelessWidget {
                 title: '',
                 icon: Icons.remove,
                 isSecondary: true,
+                isSmall: true,
                 onTap: currentScore > 1 
                     ? () => onSetScore(currentHole, currentScore - 1) 
                     : null,
@@ -79,6 +80,7 @@ class AdminScorecardKeypad extends StatelessWidget {
               child: BoxyArtButton(
                 title: 'NEXT HOLE',
                 isPrimary: true,
+                isSmall: true,
                 onTap: () {
                   if (currentHole < 18) {
                     onHoleChanged(currentHole + 1);
@@ -93,6 +95,7 @@ class AdminScorecardKeypad extends StatelessWidget {
                 title: '',
                 icon: Icons.add,
                 isSecondary: true,
+                isSmall: true,
                 onTap: (cap == null || currentScore < cap!) 
                     ? () => onSetScore(currentHole, currentScore + 1) 
                     : null,
@@ -113,12 +116,12 @@ class AdminScorecardKeypad extends StatelessWidget {
       behavior: HitTestBehavior.opaque,
       child: AnimatedContainer(
         duration: AppAnimations.fast,
-        height: 54,
+        height: 46,
         decoration: BoxDecoration(
           color: isSelected 
               ? theme.primaryColor 
               : (isDark ? AppColors.dark700 : AppColors.dark50),
-          borderRadius: AppShapes.lg,
+          borderRadius: AppShapes.md, // Switched to MD for better proportions at 46px
           border: Border.all(
             color: isSelected 
                 ? theme.primaryColor 
@@ -140,7 +143,7 @@ class AdminScorecardKeypad extends StatelessWidget {
               color: isSelected 
                   ? AppColors.pureWhite 
                   : (isDark ? AppColors.dark100 : AppColors.dark800),
-              fontSize: AppTypography.sizeDisplaySubPage,
+              fontSize: 18, // Reduced from sizeDisplaySubPage
               fontWeight: AppTypography.weightBlack,
             ),
           ),

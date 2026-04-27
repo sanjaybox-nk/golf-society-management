@@ -18,7 +18,7 @@ class _TreasurySettingsScreenState extends ConsumerState<TreasurySettingsScreen>
     return HeadlessScaffold(
       title: 'Starting Balance',
       subtitle: 'Set opening bank balance',
-      titleSuffix: BoxyArtPill.committee(label: 'ADMIN'),
+      topPill: BoxyArtPill.committee(label: 'ADMIN'),
       actions: const [],
       showBack: true,
       onBack: () => Navigator.of(context).pop(),

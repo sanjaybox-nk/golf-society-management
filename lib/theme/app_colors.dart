@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:golf_society/domain/models/society_config.dart';
-import 'package:collection/collection.dart';
-import '../domain/models/course_config.dart';
 
 /// Fairway Design System v3.1 Primitives and Semantic Colors
 class AppColors {
@@ -124,20 +122,25 @@ class AppColors {
   }
 
   /// Returns the brand color associated with a Tee name, prioritizing dynamic config
-  static Color getTeeColor(String? teeName, [List<TeeConfig>? teeConfigs]) {
+  static Color getTeeColor(String? teeName, [List<dynamic>? teeConfigs]) {
     if (teeName == null) return textSecondary;
     
     // 1. Try to find dynamic color from course config
     if (teeConfigs != null) {
-      final config = teeConfigs.firstWhereOrNull((t) => t.name.toLowerCase() == teeName.toLowerCase());
-      if (config != null && config.color != null && config.color!.isNotEmpty) {
-        try {
-          final hex = config.color!.replaceAll('#', '').padLeft(8, 'F');
-          return Color(int.parse(hex, radix: 16));
-        } catch (e) {
-          debugPrint('Error parsing tee color: ${config.color}');
-        }
-      }
+       for (var t in teeConfigs) {
+         final String? tName = (t is Map) ? t['name'] : (t.name as String?);
+         if (tName?.toLowerCase() == teeName.toLowerCase()) {
+           final String? tColor = (t is Map) ? t['color'] : (t.color as String?);
+           if (tColor != null && tColor.isNotEmpty) {
+             try {
+               final hex = tColor.replaceAll('#', '').padLeft(8, 'F');
+               return Color(int.parse(hex, radix: 16));
+             } catch (e) {
+               debugPrint('Error parsing tee color: $tColor');
+             }
+           }
+         }
+       }
     }
 
     // 2. Fallback to hardcoded brand colors

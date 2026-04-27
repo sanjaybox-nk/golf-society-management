@@ -169,15 +169,6 @@ class _PairsControlState extends BaseCompetitionControlState<PairsControl> {
     if (_scoringFormat == CompetitionFormat.stableford) return const SizedBox.shrink();
 
     final isFourball = widget.subtype == CompetitionSubtype.fourball;
-    if (false) {
-      return buildInfoCard([
-        ('Goal', isFourball ? 'Win more holes as a pair against the opposing pair.' : 'Your pair wins more holes playing one ball alternately.'),
-        ('Scoring', 'Lowest score on a hole wins it. Halved means both pairs share the hole.'),
-        ('Concessions', 'Putts and holes can be conceded. No need to hole out when conceded.'),
-        ('Result', 'Match ends when holes up > holes remaining (e.g. 2 & 1).'),
-        ('Handicap', isFourball ? '90–100% of the difference from the lowest handicap.' : '50% of the combined team handicap.'),
-      ]);
-    }
     return buildInfoCard([
       ('Goal', isFourball ? 'Lowest combined net/gross total over 18 holes.' : 'Partners alternate hitting the same ball every shot.'),
       ('Scoring', isFourball ? 'Best ball per hole counts for the pair\'s score.' : 'One combined score per hole — every stroke counts.'),

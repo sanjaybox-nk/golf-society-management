@@ -14,7 +14,6 @@ import 'package:golf_society/features/events/presentation/events_provider.dart';
 import 'package:golf_society/features/events/domain/registration_logic.dart';
 import 'package:golf_society/domain/scoring/handicap_calculator.dart';
 import 'package:golf_society/domain/grouping/grouping_service.dart';
-import 'package:golf_society/domain/grouping/tee_group.dart';
 import 'package:golf_society/features/matchplay/domain/match_definition.dart';
 import 'package:golf_society/features/events/logic/event_analysis_engine.dart';
 import 'data_constants.dart';
@@ -312,12 +311,12 @@ class EventSeeder {
             final teeName = (member?.gender == 'Female') ? 'Red' : 'Yellow';
             final tee = course!.tees.firstWhere((t) => t.name == teeName, orElse: () => course.tees.first);
             final phc = HandicapCalculator.calculatePlayingHandicap(
-                handicapIndex: index, rules: rules, 
-                courseConfig: cfg.CourseConfig(
-                  rating: tee.rating, slope: tee.slope, 
-                  par: tee.holePars.fold<int>(0, (a, b) => a + b), 
-                  holes: tee.holePars.asMap().entries.map((e) => cfg.CourseHole(hole: e.key + 1, par: e.value, si: tee.holeSIs[e.key])).toList(),
-                ),
+              handicapIndex: index, rules: rules, 
+              courseConfig: cfg.CourseConfig(
+                rating: tee.rating, slope: tee.slope, 
+                par: tee.holePars.fold<int>(0, (a, b) => a + b), 
+                holes: tee.holePars.asMap().entries.map((e) => cfg.CourseHole(hole: e.key + 1, par: e.value, si: tee.holeSIs[e.key])).toList(),
+              ),
             );
 
             final holeScores = <int?>[];
@@ -630,13 +629,13 @@ class EventSeeder {
         final holesLeft = random.nextInt(3);
         
         if (holesLeft > 0) {
-          status1 = team1Wins ? 'WIN ${winValue} & ${holesLeft}' : 'LOSS ${winValue} & ${holesLeft}';
-          status2 = team1Wins ? 'LOSS ${winValue} & ${holesLeft}' : 'WIN ${winValue} & ${holesLeft}';
+          status1 = team1Wins ? 'WIN $winValue & $holesLeft' : 'LOSS $winValue & $holesLeft';
+          status2 = team1Wins ? 'LOSS $winValue & $holesLeft' : 'WIN $winValue & $holesLeft';
           matchScore = team1Wins ? winValue : -winValue;
         } else {
           final upVal = random.nextInt(2) + 1;
-          status1 = team1Wins ? 'WIN ${upVal} UP' : 'LOSS ${upVal} UP';
-          status2 = team1Wins ? 'LOSS ${upVal} UP' : 'WIN ${upVal} UP';
+          status1 = team1Wins ? 'WIN $upVal UP' : 'LOSS $upVal UP';
+          status2 = team1Wins ? 'LOSS $upVal UP' : 'WIN $upVal UP';
           matchScore = team1Wins ? upVal : -upVal;
         }
       }
@@ -644,14 +643,14 @@ class EventSeeder {
       // Apply to all participants in this match
       for (var pid in t1Ids) {
         final resIdx = updatedResults.indexWhere((r) => (r['memberId'] ?? r['playerId']) == pid);
-        if (resIdx != null && resIdx != -1) {
+        if (resIdx != -1) {
           updatedResults[resIdx]['status'] = status1;
           updatedResults[resIdx]['matchScore'] = matchScore;
         }
       }
       for (var pid in t2Ids) {
         final resIdx = updatedResults.indexWhere((r) => (r['memberId'] ?? r['playerId']) == pid);
-        if (resIdx != null && resIdx != -1) {
+        if (resIdx != -1) {
           updatedResults[resIdx]['status'] = status2;
           updatedResults[resIdx]['matchScore'] = -matchScore;
         }

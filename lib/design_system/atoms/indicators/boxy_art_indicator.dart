@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:golf_society/design_system/design_system.dart';
 
 /// A sleek status indicator using the 'Legend' pattern (Circle + Text).
@@ -10,6 +9,7 @@ class BoxyArtIndicator extends StatelessWidget {
   final bool hasHorizontalMargin;
   final double? fontSize;
   final Color? textColor;
+  final IconData? customActionIcon;
 
   const BoxyArtIndicator({
     super.key,
@@ -19,6 +19,7 @@ class BoxyArtIndicator extends StatelessWidget {
     this.hasHorizontalMargin = true,
     this.fontSize,
     this.textColor,
+    this.customActionIcon,
   });
 
   /// Factory for World Handicap System Index (HC)
@@ -54,12 +55,14 @@ class BoxyArtIndicator extends StatelessWidget {
   factory BoxyArtIndicator.tee({
     required String label,
     required Color teeColor,
+    VoidCallback? onTap,
     bool hasHorizontalMargin = true,
     double? fontSize,
   }) {
     return BoxyArtIndicator(
       label: label,
       dotColor: teeColor,
+      onTap: onTap,
       hasHorizontalMargin: hasHorizontalMargin,
       fontSize: fontSize ?? 11.0,
     );
@@ -68,12 +71,18 @@ class BoxyArtIndicator extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isInteractive = onTap != null;
     
-    final Widget content = Padding(
+    final Widget content = Container(
       padding: EdgeInsets.symmetric(
-        horizontal: hasHorizontalMargin ? AppSpacing.xs : 0,
-        vertical: 2,
+        horizontal: hasHorizontalMargin ? (isInteractive ? AppSpacing.md : AppSpacing.xs) : 0,
+        vertical: isInteractive ? 4 : 2,
       ),
+      decoration: isInteractive ? BoxDecoration(
+        color: dotColor.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(100),
+        border: Border.all(color: dotColor.withValues(alpha: 0.15)),
+      ) : null,
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -100,11 +109,20 @@ class BoxyArtIndicator extends StatelessWidget {
               maxLines: 1,
             ),
           ),
+
+          if (isInteractive) ...[
+            const SizedBox(width: AppSpacing.xs),
+            Icon(
+              customActionIcon ?? Icons.edit_rounded,
+              size: 11,
+              color: textColor ?? (theme.brightness == Brightness.dark ? AppColors.dark300 : AppColors.dark400),
+            ),
+          ],
         ],
       ),
     );
 
-    if (onTap != null) {
+    if (isInteractive) {
       return GestureDetector(
         onTap: onTap,
         behavior: HitTestBehavior.opaque,

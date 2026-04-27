@@ -18,16 +18,8 @@ class AdminSeasonsScreen extends ConsumerWidget {
     return HeadlessScaffold(
       title: 'Seasons',
       subtitle: 'Archive and setup event seasons',
-      titleSuffix: BoxyArtPill.committee(label: 'ADMIN'),
-      actions: [
-        BoxyArtGlassIconButton(
-          icon: Icons.add_rounded,
-          iconSize: 24,
-          onPressed: () => context.push('/admin/settings/seasons/new'),
-          tooltip: 'Add New Season',
-        ),
-        const SizedBox(width: AppSpacing.sm),
-      ],
+      topPill: BoxyArtPill.committee(label: 'ADMIN'),
+
       showBack: true,
       onBack: () => context.pop(),
       slivers: [
@@ -49,10 +41,21 @@ class AdminSeasonsScreen extends ConsumerWidget {
                     );
                   }
                   return Column(
-                    children: seasons.map((season) => Padding(
-                      padding: const EdgeInsets.only(bottom: AppSpacing.standard),
-                      child: _SeasonCard(season: season),
-                    )).toList(),
+                    children: [
+                      ...seasons.map((season) => Padding(
+                        padding: const EdgeInsets.only(bottom: AppSpacing.standard),
+                        child: _SeasonCard(season: season),
+                      )),
+                      const SizedBox(height: AppSpacing.xl),
+                      SizedBox(
+                        width: double.infinity,
+                        child: BoxyArtButton(
+                          title: 'Create New Season',
+                          icon: Icons.add_rounded,
+                          onTap: () => context.push('/admin/settings/seasons/new'),
+                        ),
+                      ),
+                    ],
                   );
                 },
                 loading: () => const Padding(
@@ -81,7 +84,6 @@ class _SeasonCard extends ConsumerWidget {
     final isDark = theme.brightness == Brightness.dark;
     const identityColor = AppColors.lime500;
     final iconColor = isActive ? identityColor : (isDark ? AppColors.dark400 : AppColors.dark300);
-    final bgColor = isActive ? identityColor.withValues(alpha: AppColors.opacityLow) : (isDark ? AppColors.dark800 : AppColors.dark50);
 
     return Dismissible(
       key: Key(season.id),
@@ -141,11 +143,11 @@ class _SeasonCard extends ConsumerWidget {
                     ),
                   ),
                   if (season.isCurrent) ...[
-                    const SizedBox(height: AppSpacing.sm),
-                    BoxyArtPill.status(
+                    const SizedBox(height: AppSpacing.xs),
+                    const BoxyArtIndicator(
                       label: 'CURRENT SEASON',
-                      icon: Icons.star_rounded,
-                      color: AppColors.lime500,
+                      dotColor: AppColors.lime500,
+                      hasHorizontalMargin: false,
                     ),
                   ],
                 ],
@@ -159,33 +161,13 @@ class _SeasonCard extends ConsumerWidget {
                 iconSize: 20,
                 onPressed: () => ref.read(seasonsRepositoryProvider).setCurrentSeason(season.id),
               ),
+
             if (isActive)
               BoxyArtGlassIconButton(
-                icon: Icons.refresh_rounded,
-                iconSize: 20,
-                onPressed: () async {
-                  final result = await showBoxyArtDialog(
-                    context: context,
-                    title: 'Recalculate Standings?',
-                    message: 'This will re-calculate all standings for this season across all leaderboards. This might take a few seconds.',
-                    confirmText: 'Recalculate',
-                  );
-                  if (result == true) {
-                    await ref.read(leaderboardInvokerServiceProvider).recalculateAll(season.id);
-                    if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Standings recalculated successfully')),
-                      );
-                    }
-                  }
-                },
-              ),
-            if (isActive)
-              BoxyArtGlassIconButton(
-                icon: Icons.archive_outlined,
+                icon: Icons.lock_outline_rounded,
                 iconSize: 20,
                 onPressed: () => _showCloseSeasonDialog(context, ref),
-                tooltip: 'Archive Season',
+                tooltip: 'Close & Lock Season',
               ),
             Icon(
               Icons.arrow_forward_ios_rounded, 

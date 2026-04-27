@@ -42,6 +42,7 @@ abstract class CourseConfig with _$CourseConfig {
     int? par,
     String? selectedTeeName,
     @Default(true) bool isGlobal,
+    String? selectedTeeColor, // [NEW]
   }) = _CourseConfig;
 
   factory CourseConfig.fromJson(Map<String, dynamic> json) => _$CourseConfigFromJson(json);

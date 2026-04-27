@@ -34,7 +34,7 @@ class _CommitteeRolesScreenState extends ConsumerState<CommitteeRolesScreen> {
     return HeadlessScaffold(
       title: 'Committee Roles',
       subtitle: 'Society specific titles',
-      titleSuffix: BoxyArtPill.committee(label: 'ADMIN'),
+      topPill: BoxyArtPill.committee(label: 'ADMIN'),
       actions: const [],
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       showBack: true,

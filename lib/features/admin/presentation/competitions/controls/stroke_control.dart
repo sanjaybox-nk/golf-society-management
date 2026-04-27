@@ -42,7 +42,6 @@ class _StrokePlayControlState extends BaseCompetitionControlState<StrokePlayCont
 
   @override
   Widget buildSpecificFields(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

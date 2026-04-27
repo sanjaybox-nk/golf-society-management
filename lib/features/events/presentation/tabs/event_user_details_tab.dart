@@ -131,7 +131,7 @@ class _EventDetailsContentState extends ConsumerState<EventDetailsContent> {
     return HeadlessScaffold(
         title: event.title,
         subtitle: 'Event Info Hub',
-        titleSuffix: widget.isAdminMode ? BoxyArtPill.committee(label: 'ADMIN') : null,
+        topPill: widget.isAdminMode ? BoxyArtPill.committee(label: 'ADMIN') : null,
         showAdminShortcut: false, // Explicitly removed as requested
   
         leading: widget.isPreview ? Center(
@@ -1067,7 +1067,6 @@ class _EventDetailsContentState extends ConsumerState<EventDetailsContent> {
         BoxyArtCard(
           child: Column(
             children: widget.event.awards.map((award) {
-              final isLast = award == widget.event.awards.last;
               IconData icon;
               
               switch (award.type.toLowerCase()) {

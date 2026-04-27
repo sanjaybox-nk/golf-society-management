@@ -46,6 +46,8 @@ abstract class EventRegistration with _$EventRegistration {
     @Default([]) List<EventFine> fines,
     @Default(0.0) double fineAmount,
     @Default(false) bool finePaid,
+    String? teeName, // [NEW] Player-specific tee override
+    String? guestTeeName, // [NEW] Guest-specific tee override
   }) = _EventRegistration;
 
   factory EventRegistration.fromJson(Map<String, dynamic> json) => _$EventRegistrationFromJson(json);

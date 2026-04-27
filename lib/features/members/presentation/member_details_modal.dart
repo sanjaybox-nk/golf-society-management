@@ -13,7 +13,6 @@ import 'widgets/member_role_picker.dart';
 import 'widgets/member_status_picker.dart';
 import 'widgets/society_role_picker.dart';
 import 'widgets/personal_details_form.dart';
-import 'package:golf_society/utils/string_utils.dart';
 import 'package:golf_society/domain/models/handicap_system.dart';
 
 class MemberDetailsModal extends ConsumerStatefulWidget {
@@ -337,7 +336,7 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
             child: Form(
               key: _formKey,
             child: BoxyArtFormColumn(
-                spacing: spacing?.cardToLabel ?? AppSpacing.cardToLabel,
+                spacing: 0,
                 children: [
                   ListenableBuilder(
                     listenable: Listenable.merge([
@@ -377,7 +376,7 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
                     // Performance Stats Section
                     const BoxyArtSectionTitle(
                       title: 'Member Performance', 
-                      isPeeking: false,
+                      followsCard: true,
                     ),
                     Consumer(
                       builder: (context, ref, _) {
@@ -414,10 +413,11 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
                         final society = ref.watch(themeControllerProvider);
                         final system = society.handicapSystem;
                         return BoxyArtFormColumn(
-                          spacing: spacing?.cardToLabel ?? AppSpacing.cardToLabel,
+                          spacing: 0,
                           children: [
                             const BoxyArtSectionTitle(
                               title: 'Membership Details',
+                              followsCard: true,
                             ),
                             BoxyArtCard(
                               child: BoxyArtFormColumn(
@@ -481,7 +481,10 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
 
                             // Admin Controls Section
                             if (isAdmin) ...[
-                              const BoxyArtSectionTitle(title: 'Administrative Controls'),
+                              const BoxyArtSectionTitle(
+                                title: 'Administrative Controls',
+                                followsCard: true,
+                              ),
                               BoxyArtCard(
                                 child: Row(
                                   children: [
@@ -522,7 +525,10 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
                   ],
 
                   // Title handles its own padding
-                  const BoxyArtSectionTitle(title: 'Personal Details'),
+                  const BoxyArtSectionTitle(
+                    title: 'Personal Details',
+                    followsCard: true,
+                  ),
                   BoxyArtCard(
                     child: PersonalDetailsForm(
                       isEditing: _isEditing,
@@ -556,14 +562,15 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
                     ),
                   ),
 
-                  // [DEV/ADMIN] Impersonation / Peek Mode
+                  const SizedBox(height: AppSpacing.section),
+
                   if (isAdmin && widget.member != null && widget.member!.id != currentUser.id)
                     BoxyArtButton(
                       title: 'View As This Member',
                       isPrimary: false,
                       isSecondary: true,
-                      isSmall: true,
-                      icon: Icons.remove_red_eye_rounded,
+                      fullWidth: true,
+                      icon: Icons.visibility_outlined,
                       onTap: () {
                         ref.read(impersonationProvider.notifier).set(widget.member);
                         Navigator.of(context).pop();

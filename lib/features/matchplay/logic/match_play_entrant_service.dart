@@ -1,9 +1,7 @@
 import 'package:golf_society/domain/models/golf_event.dart';
 import 'package:golf_society/domain/models/member.dart';
-import 'package:golf_society/domain/models/event_registration.dart';
 import '../domain/match_play_tournament.dart';
 import 'package:golf_society/features/events/domain/registration_logic.dart';
-import '../../../../domain/scoring/handicap_calculator.dart';
 import 'package:uuid/uuid.dart';
 
 class MatchPlayEntrantService {

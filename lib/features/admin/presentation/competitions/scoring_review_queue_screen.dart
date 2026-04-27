@@ -11,7 +11,7 @@ class ScoringReviewQueueScreen extends ConsumerWidget {
 
     return HeadlessScaffold(
       title: 'Review Queue',
-      titleSuffix: BoxyArtPill.committee(label: 'ADMIN'),
+      topPill: BoxyArtPill.committee(label: 'ADMIN'),
       subtitle: 'Pending scorecards awaiting approval',
       slivers: [
         pendingAsync.when(

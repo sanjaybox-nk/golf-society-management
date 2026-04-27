@@ -208,7 +208,6 @@ class _PodiumSpot extends StatelessWidget {
   final bool isMe;
 
   const _PodiumSpot({
-    super.key,
     required this.standing,
     required this.rank,
     this.isWinner = false,
@@ -337,7 +336,6 @@ class _StandingRow extends StatelessWidget {
   final bool isMe;
 
   const _StandingRow({
-    super.key,
     required this.standing,
     required this.rank,
     required this.isMe,
@@ -422,7 +420,6 @@ class _StandingDetailSheet extends StatelessWidget {
   final LeaderboardStanding standing;
   
   const _StandingDetailSheet({
-    super.key,
     required this.standing,
   });
 

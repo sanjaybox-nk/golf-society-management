@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -17,6 +16,7 @@ class MemberTile extends ConsumerWidget {
   final bool showFeeStatus;
   final String? secondaryMetricLabel; 
   final String? secondaryMetricValue;
+  final int? eventCount;
   final bool isAdminContext;
   final bool isEventPaymentContext;
   final VoidCallback? onFeeToggle;
@@ -32,6 +32,7 @@ class MemberTile extends ConsumerWidget {
     this.onFeeToggle,
     this.secondaryMetricLabel,
     this.secondaryMetricValue,
+    this.eventCount,
     this.isAdminContext = false,
   });
 
@@ -70,7 +71,7 @@ class MemberTile extends ConsumerWidget {
               initials: (member.firstName.isNotEmpty ? member.firstName[0] : '') + (member.lastName.isNotEmpty ? member.lastName[0] : ''),
               radius: 32,
               isCircle: true,
-              borderColor: Colors.transparent, // Cleaner, borderless standard
+              borderColor: Colors.transparent, 
               borderWidth: 0,
             ),
             if (member.joinedDate != null) ...[
@@ -85,13 +86,13 @@ class MemberTile extends ConsumerWidget {
                 ),
               ),
             ],
-            const SizedBox(height: 4), // Increased from 2
+            const SizedBox(height: 4), 
             FittedBox(
               child: Text(
-                '${secondaryMetricLabel ?? 'Events'} ${secondaryMetricValue ?? '0'}',
+                '${secondaryMetricLabel ?? 'Events'} ${secondaryMetricValue ?? eventCount ?? '0'}',
                 style: AppTypography.micro.copyWith(
-                  color: theme.brightness == Brightness.dark ? AppColors.dark200 : AppColors.dark800, // Darker contrast
-                  fontSize: 10, // One size bigger
+                  color: theme.brightness == Brightness.dark ? AppColors.dark200 : AppColors.dark800, 
+                  fontSize: 10, 
                   fontWeight: AppTypography.weightRegular,
                 ),
               ),
@@ -100,8 +101,8 @@ class MemberTile extends ConsumerWidget {
         ),
       ),
       
-      // Trailing Slot: Admin Actions & Statuses
-      trailing: Row(
+      // Footer Slot: Admin Status Pills (Moved here to free up horizontal space for name)
+      footer: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           if (canSeeFees)
@@ -112,7 +113,6 @@ class MemberTile extends ConsumerWidget {
                 final repo = ref.read(membersRepositoryProvider);
                 final nextPaidState = !member.hasPaid;
                 
-                // Renewal Trigger: Auto-promote Expired/Grace members to Member status when fees are marked as paid
                 final newStatus = nextPaidState && (member.status == MemberStatus.expired || member.status == MemberStatus.gracePeriod)
                     ? MemberStatus.member 
                     : member.status;
@@ -126,19 +126,18 @@ class MemberTile extends ConsumerWidget {
           if (isAdminContext && member.status != MemberStatus.active && member.status != MemberStatus.member)
             if (member.status != MemberStatus.expired || isAdminContext)
               Padding(
-                padding: const EdgeInsets.only(left: 8),
+                padding: EdgeInsets.only(left: canSeeFees ? 8 : 0),
                 child: BoxyArtIndicator(
                   label: member.status.displayName,
                   dotColor: member.status.color,
                   hasHorizontalMargin: false,
                 ),
               ),
-          if (trailing != null) ...[
-            const SizedBox(width: 8),
-            trailing!,
-          ],
         ],
       ),
+
+      // Trailing Slot: Optional custom trailing widgets
+      trailing: trailing,
     );
   }
 }

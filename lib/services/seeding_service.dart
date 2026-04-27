@@ -10,12 +10,9 @@ import 'package:golf_society/domain/models/society_config.dart';
 
 import 'package:golf_society/domain/models/season.dart';
 import 'package:golf_society/domain/models/competition.dart';
-import 'package:golf_society/domain/models/course.dart';
-import 'package:golf_society/domain/models/event_registration.dart';
 import 'package:golf_society/domain/models/golf_event.dart';
 import 'package:golf_society/domain/models/leaderboard_config.dart';
-import 'package:golf_society/domain/models/course_config.dart';
-import 'package:collection/collection.dart';
+import 'package:golf_society/domain/models/course.dart';
 
 import 'package:golf_society/features/competitions/presentation/competitions_provider.dart';
 import 'package:golf_society/features/members/presentation/members_provider.dart';
@@ -178,8 +175,8 @@ class SeedingService {
       ];
       
       for (int i = 0; i < min(events.length, eventSponsorLogos.length); i++) {
-         final event = events[i];
-         final spon = eventSponsorLogos[i];
+        final event = events[i];
+        final spon = eventSponsorLogos[i];
          ledgerEntries.add(FinancialEntry(
            id: 'spon_evt_$i',
            type: 'Sponsorship',
@@ -246,6 +243,10 @@ class SeedingService {
   /// Refactored to use the new Lab Seeder at Stage 1.
   Future<void> seedMatchPlayTestEvent() async {
     await seedMatchPlayTestLab(MatchPlayStage.registration);
+  }
+
+  Future<void> seedVerificationScenario() async {
+    await ScenarioSeeder(ref, _random).seedVerificationScenario();
   }
 
   Future<void> clearActivityData() async {

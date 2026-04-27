@@ -8,7 +8,25 @@ The registration system in Golf Society Management follows a **Fair Play, Confir
 2.  **FCFS (First-Come, First-Served)**: Within their respective tiers (Members vs. Guests), participants are prioritized by the time they registered.
 3.  **Confirmation-Driven Availability**: A participant is only considered "Playing" once they are **Confirmed** (usually after payment).
 4.  **Waitlist Accuracy**: "Waitlist" status is only triggered when the event's capacity is fully reached by *Confirmed* players.
+5.  **Automatic Tee Assignment**: Every participant is automatically assigned a tee box upon registration based on gender-aware event defaults (e.g., White for Men, Red for Ladies).
 
+---
+
+## Smart Tee Defaults & Automatic Assignment
+
+To streamline the grouping and scoring process, the system automatically assigns tees during the registration flow.
+
+### 1. Gender-Aware Defaults
+When creating an event, admins define the **Default Tee** (usually for men) and the **Default Female Tee**. 
+- **Auto-Logic**: Upon registration, the system checks the member's gender from their profile.
+- **Assignment**: Males are assigned the `defaultTeeName`; Females are assigned the `selectedFemaleTeeName`.
+- **Guests**: Guests are assigned the default event tee unless overridden.
+
+### 2. Manual User Override
+Players can review and override their assigned tee in the **Scorecard Start-up** screen before they begin their round. This ensures that a player who usually plays from a different tee box can correct their assignment without admin intervention.
+
+### 3. Administrative Overrides
+Admins have the final authority to override any player's tee box within the **Grouping Hub**. This is useful for last-minute changes or specialized tournament requirements.
 ---
 
 ## Registration Statuses

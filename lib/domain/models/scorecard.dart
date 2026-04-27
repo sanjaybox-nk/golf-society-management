@@ -42,6 +42,7 @@ abstract class Scorecard with _$Scorecard {
     int? points,
     double? handicapIndex,
     int? playingHandicap,
+    String? assignedTeeName, // [NEW] Snapshotted tee for this specific scorecard
     AdminEditAudit? adminEditAudit,
     @Default(false) bool adminOverridePublish,
     @TimestampConverter() DateTime? submittedAt,

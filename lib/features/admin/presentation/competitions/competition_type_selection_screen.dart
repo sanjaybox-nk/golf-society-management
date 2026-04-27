@@ -18,8 +18,6 @@ class CompetitionTypeSelectionScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
     final title = (isTemplate || isPicker) ? 'Select Game Type' : 'New Template Type';
 
     return HeadlessScaffold(

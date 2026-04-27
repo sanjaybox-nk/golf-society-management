@@ -43,7 +43,7 @@ class _SystemRoleMembersScreenState extends ConsumerState<SystemRoleMembersScree
     return HeadlessScaffold(
       title: widget.role.displayName,
       subtitle: 'Manage assignments',
-      titleSuffix: BoxyArtPill.committee(label: 'ADMIN'),
+      topPill: BoxyArtPill.committee(label: 'ADMIN'),
       actions: const [],
       showBack: true,
       backgroundColor: theme.scaffoldBackgroundColor,

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+// ignore_for_file: deprecated_member_use
 import '../../../../../design_system/design_system.dart';
 
 class BoxyArtThemeModeTile extends StatelessWidget {

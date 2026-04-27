@@ -12,9 +12,11 @@ import '../../../../domain/models/course_config.dart';
 import '../../../matchplay/domain/match_play_calculator.dart';
 import '../../../matchplay/domain/match_definition.dart';
 import 'course_info_card.dart';
-import '../../../competitions/data/scorecard_repository.dart';
 import '../../../competitions/presentation/competitions_provider.dart';
 import '../../../members/presentation/profile_provider.dart';
+import '../../../courses/presentation/courses_provider.dart';
+import 'package:golf_society/domain/models/event_registration.dart';
+import '../events_provider.dart';
 
 
 class ScorecardModal {
@@ -340,7 +342,46 @@ class ScorecardModal {
                                       BoxyArtIndicator.phc(context: context, label: '${entry.playingHandicap}'),
                                     ],
                                     const Spacer(),
-                                    BoxyArtIndicator.tee(label: teeName, teeColor: teeColor),
+                                    BoxyArtIndicator.tee(
+                                      label: teeName, 
+                                      teeColor: teeColor,
+                                      onTap: (isAdmin || activeMarkerId == currentUserId) ? () {
+                                        _showTeeSelector(
+                                          context: context,
+                                          ref: ref,
+                                          event: event,
+                                          memberId: effectiveFocusId,
+                                          currentTeeName: teeName,
+                                          membersList: membersList,
+                                          onTeeSelected: (newTee) async {
+                                            // 1. Update local state for immediate feedback if possible
+                                            // Actually, since this is a static modal, we better just update Firestore and let the parent refresh
+                                            
+                                            // 2. Update EventRegistration in Firestore
+                                            final registrations = List<EventRegistration>.from(event.registrations);
+                                            final idx = registrations.indexWhere((r) => r.memberId == effectiveFocusId);
+                                            if (idx >= 0) {
+                                              final reg = registrations[idx];
+                                              // Determine if guest or member
+                                              final isGuestId = effectiveFocusId.contains('_guest');
+                                              final updatedReg = isGuestId 
+                                                  ? reg.copyWith(guestTeeName: newTee)
+                                                  : reg.copyWith(teeName: newTee);
+                                              
+                                              registrations[idx] = updatedReg;
+                                              
+                                              final updatedEvent = event.copyWith(registrations: registrations);
+                                              await ref.read(eventsRepositoryProvider).updateEvent(updatedEvent);
+                                              
+                                              // Trigger a rebuild of the modal by calling setModalState (passed down)
+                                              setModalState(() {
+                                                // This will trigger a re-resolve of teeName in the build method
+                                              });
+                                            }
+                                          },
+                                        );
+                                      } : null,
+                                    ),
                                   ],
                                 ),
                                 if (entry.thruLabel != null || entry.tieBreakLabel != null) ...[
@@ -379,12 +420,12 @@ class ScorecardModal {
                       List<CourseScoreRow> additionalRows = [];
                       List<int?>? bestBallPoints;
                       
-                      final isFourball = comp?.rules.subtype == CompetitionSubtype.fourball;
-                      final isTeam = comp?.rules.mode == CompetitionMode.teams;
-                      final isStableford = comp?.rules.format == CompetitionFormat.stableford;
-                      final isScrambleFormat = comp?.rules.format == CompetitionFormat.scramble;
+                      final isFourball = comp.rules.subtype == CompetitionSubtype.fourball;
+                      final isTeam = comp.rules.mode == CompetitionMode.teams;
+                      final isStableford = comp.rules.format == CompetitionFormat.stableford;
+                      final isScrambleFormat = comp.rules.format == CompetitionFormat.scramble;
                       
-                      if ((isStableford || comp?.rules.scoringType == 'STABLEFORD') && (isFourball || isTeam)) {
+                      if ((isStableford || comp.rules.scoringType == 'STABLEFORD') && (isFourball || isTeam)) {
                         bestBallPoints = entry.holePoints;
                       }
 
@@ -394,7 +435,7 @@ class ScorecardModal {
                       List<String>? matchPlayResults;
                       String? matchPlaySummary;
                       int? conclusionHole;
-                      if (comp?.rules.isMatchPlay == true) {
+                      if (comp.rules.isMatchPlay == true) {
                         final myIds = entry.teamMemberIds ?? [entry.entryId];
                         List<String>? myGroupIds;
                         final groupsData = event.grouping["groups"] as List? ?? [];
@@ -434,7 +475,7 @@ class ScorecardModal {
                               playerIds: myGroupIds,
                               playerIndices: playerIndices,
                               courseConfigs: courseConfigs,
-                              rules: comp!.rules,
+                              rules: comp.rules,
                               baseRating: baseRating,
                             );
 
@@ -516,7 +557,7 @@ class ScorecardModal {
                                courseConfig: playerTeeConfig,
                                selectedTeeName: playerTeeName,
                                isStableford: isStableford,
-                               isNet: comp?.rules.scoringType != 'GROSS',
+                               isNet: comp.rules.scoringType != 'GROSS',
                                format: currentFormat,
                                maxScoreConfig: effectiveMaxScore,
                                holeScores: entry.holeScores,
@@ -544,7 +585,7 @@ class ScorecardModal {
                             playerName: isFourball == true ? 'TEAM BEST BALL' : (isTeam == true ? 'TEAM SCORE' : entry.playerName),
                             matchPlayResults: matchPlayResults,
                             matchPlaySummary: matchPlaySummary,
-                            mode: comp?.rules.mode,
+                            mode: comp.rules.mode,
                             pointsColor: pointsColor,
                           ),
                         ],
@@ -827,6 +868,95 @@ class ScorecardModal {
 
   static Color _getTeeColor(String teeName, [List<TeeConfig>? teeConfigs]) {
     return AppColors.getTeeColor(teeName, teeConfigs);
+  }
+
+  static void _showTeeSelector({
+    required BuildContext context,
+    required WidgetRef ref,
+    required GolfEvent event,
+    required String memberId,
+    required String currentTeeName,
+    required List<Member> membersList,
+    required Function(String) onTeeSelected,
+  }) {
+    // Try to get course from provider if possible
+    final courseDetail = event.courseId != null 
+        ? ref.read(courseDetailProvider(event.courseId!)).value 
+        : null;
+    
+    final tees = courseDetail?.tees ?? [];
+    
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        decoration: BoxDecoration(
+          color: Theme.of(context).scaffoldBackgroundColor,
+          borderRadius: AppShapes.sheet,
+        ),
+        padding: const EdgeInsets.all(AppSpacing.xl),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const BoxyArtSectionTitle(title: 'SELECT TEE'),
+            const SizedBox(height: AppSpacing.md),
+            if (tees.isEmpty)
+              Padding(
+                padding: const EdgeInsets.all(AppSpacing.lg),
+                child: Text(
+                  'NO TEES DEFINED FOR THIS COURSE. PLEASE ENSURE THE COURSE CONFIGURATION IS COMPLETE.',
+                  style: TextStyle(
+                    fontSize: AppTypography.sizeCaption,
+                    color: AppColors.dark400,
+                    fontWeight: AppTypography.weightBold,
+                  ),
+                ),
+              )
+            else
+              ConstrainedBox(
+                constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.4),
+                child: SingleChildScrollView(
+                  child: Column(
+                    children: tees.map((t) => BoxyArtCard(
+                      margin: const EdgeInsets.only(bottom: AppSpacing.sm),
+                      onTap: () {
+                         onTeeSelected(t.name);
+                         Navigator.pop(context);
+                      },
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 12,
+                            height: 12,
+                            decoration: BoxDecoration(
+                              color: AppColors.getTeeColor(t.name, tees),
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                          const SizedBox(width: AppSpacing.md),
+                          Text(
+                            t.name.toUpperCase(), 
+                            style: const TextStyle(
+                              fontWeight: AppTypography.weightBlack,
+                              fontSize: AppTypography.sizeButton,
+                              letterSpacing: 0.5,
+                            )
+                          ),
+                          const Spacer(),
+                          if (t.name == currentTeeName)
+                            const Icon(Icons.check_circle_rounded, color: AppColors.lime500),
+                        ],
+                      ),
+                    )).toList(),
+                  ),
+                ),
+              ),
+            const SizedBox(height: AppSpacing.xl),
+          ],
+        ),
+      ),
+    );
   }
 }
 

@@ -46,7 +46,7 @@ class GroupingStrategySelectionScreen extends ConsumerWidget {
     return HeadlessScaffold(
       title: 'Grouping Strategy',
       subtitle: 'Select automatic pairing logic',
-      titleSuffix: BoxyArtPill.committee(label: 'ADMIN'),
+      topPill: BoxyArtPill.committee(label: 'ADMIN'),
       showBack: true,
       onBack: () => context.pop(),
       actions: const [],

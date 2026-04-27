@@ -1138,7 +1138,7 @@ class HoleComparisonHeatmap extends StatelessWidget {
         children: [
           Text(
             '${i + 1}',
-            style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontWeight: AppTypography.weightBlack, fontSize: AppTypography.sizeCaptionStrong),
+            style: AppTypography.microSmall.copyWith(color: Theme.of(context).colorScheme.onSurface),
           ),
           Icon(
             beatField ? Icons.star : Icons.remove,

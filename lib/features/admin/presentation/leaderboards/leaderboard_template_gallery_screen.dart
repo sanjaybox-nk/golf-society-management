@@ -28,7 +28,7 @@ class LeaderboardTemplateGalleryScreen extends ConsumerWidget {
     return HeadlessScaffold(
       title: '$typeName Library',
       subtitle: isPicker ? 'Assign to current season' : 'Manage format blueprints',
-      titleSuffix: BoxyArtPill.committee(label: 'ADMIN'),
+      topPill: BoxyArtPill.committee(label: 'ADMIN'),
       actions: const [],
       showBack: true,
       onBack: () => context.pop(),

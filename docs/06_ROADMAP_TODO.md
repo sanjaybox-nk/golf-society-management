@@ -87,9 +87,11 @@ This document tracks the remaining work required to take **Golf Society Manageme
     - [ ] **Management UI**: Dedicated Admin screen for defining society-wide divisions.
     - [ ] **Member Assignment**: Easy allocation of members to one or more divisions.
     - [ ] **Per-Division Leaderboards**: Filterable OOM and Eclectic reports targeting specific player categories.
-- [x] **Member Hub Modernization (Design 4.x)** (Completed 2026-04-13)
+- [x] **Member Hub Modernization (Design 4.x)** (Completed 2026-04-27)
     - [x] **Universal Tokenization**: Purged all legacy `Colors.*` constants in favor of branded `AppColors` tokens across all member-facing interfaces.
     - [x] **Branded Async Patterns**: Standardized loading and error states using `BoxyArtLoadingCard` and `BoxyArtEmptyState` components.
+    - [x] **Screen Unification (v4.6)**: Merged `MembersScreen` and `AdminMembersScreen` into a single, adaptive component. This eliminated ~350 lines of redundant code and ensures 100% feature parity.
+    - [x] **Hardening & Stability**: Resolved critical runtime regressions (`Null` subtype errors) and optimized filtered list calculation for production performance.
     - [x] **Standardized Architecture**: Migrated all member landing pages to the `HeadlessScaffold` pattern for consistent vertical rhythm and navigation shell persistence.
     - [x] **Identity Hub Modernization**: Refactored the `MemberDetailsModal` and `PersonalDetailsForm` with Design 4.x spacing and accessibility standards.
 - [x] **Edit Profile**: Form to update handicap, phone, etc.
@@ -165,6 +167,7 @@ This document tracks the remaining work required to take **Golf Society Manageme
     - [x] **Infrastructure Hierarchy**: Implemented a clear 3-tier action system (Clear Activity / Master Seed / Factory Reset) with high-fidelity administrative toggles.
     - [x] **UI Responsiveness & Layout**: Refactored `BoxyArtDialog` with `OverflowBar` to prevent button truncation. Standardized "Boxy Art" v4.x tokens across the settings hub.
     - [x] **Typography Hardening**: Applied ALL-CAPS metadata standards and corrected button text fit (e.g. "CLEAR").
+    - [x] **Tournament Switchboard**: Controlled via the `showMatchPlayOverlay` toggle in Society Config.
 - [x] **Stableford Points Tokenization & Branding Integration (v4.x)** (Completed 2026-04-23):
     - [x] **Dynamic Branding Token**: Added `pointsColor` to `SocietyConfig` for centralized scoring accent control.
     - [x] **Administrative UI**: Integrated the "Points Emphasis" color picker into the Branding Console.
@@ -177,6 +180,11 @@ This document tracks the remaining work required to take **Golf Society Manageme
     - [x] **Data Integrity**: Expanded the scoring processor to include all players present in event groups, ensuring admins see results for the entire field.
     - [x] **Responsive Navigation**: Hardened the `HoleByHoleScoringWidget` with flexible layouts to eliminate horizontal overflow regressions.
 - [x] **Society Cuts Restructure (Apr 2026)**: Moved global configuration to Admin Dashboard and implemented conditional manual workbench in Event Controls.
+- [x] **Smart Tee Visibility & Navigation Fix (v4.x)** (Completed 2026-04-26):
+    - [x] **Smart Tee Resolution**: Refactored `ScoringCalculator` to provide authoritative tee resolution (Admin Override > Player Override > Registration > Event Default).
+    - [x] **Visual Indicators**: Integrated player-specific tee color markers into the Leaderboard (`BoxyArtMemberRow`) and Grouping (`GroupingPlayerTile`) views.
+    - [x] **Navigation Bug Fix**: Resolved the "Page Not Found" error for the Admin Scorecard Editor by defining the missing sub-route in `app_router.dart`.
+    - [x] **Code Hardening**: Eliminated ambiguous imports and duplicate code in multiple scoring and grouping widgets.
 - [x] **Matchplay Engine Integration**: Independent knockouts and event-layered hybrid competitions fully integrated into the seeding engine and leaderboard UI.
 
 ## 3. Architecture & Patterns
@@ -211,7 +219,8 @@ Cuts follow a dual-accessibility pattern based on administrative context:
     - [x] **Phase 4 (Hardening)**: Stress-test for ties and countbacks.
     - [x] **Match Play Simulation**: Automated match outcomes and standings verification.
     - [x] **Code Quality Hardening**: Achievement of "Zero Error" state across the entire codebase (Feb 2026).
-    - [x] **Admin Console Zero-Errors Initiative (Apr 2026)**: Full v4.0/4.1 standardisation across all admin hubs. Resolved all syntax corruption, undefined identifiers, deprecated API usages (`activeColor`, `value`), unused elements, and async-gap context violations. Project exits `flutter analyze` with **exit code 0**.
+- [x] **Admin Console Zero-Errors Initiative (Apr 2026)**: Full v4.0/4.1 standardisation across all admin hubs. Resolved all syntax corruption, undefined identifiers, deprecated API usages (`activeColor`, `value`), unused elements, and async-gap context violations. Project exits `flutter analyze` with **exit code 0**.
+- [x] **Seeding & Scenario Hardening (Apr 2026)**: Finalized the `VerificationScenario` engine in `ScenarioSeeder`. Implemented surgical data pruning in `MatchPlaySeeder` and resolved all remaining unused variable and import warnings across the seeding suite.
     - [x] **Administrative UI Const Hygiene (v6.2)**: Resolved project-wide compilation errors caused by non-const factory usage (`BoxyArtPill.committee`) in `actions` lists across 16+ administrative screens.
     - [x] **Scaling Verification**: Simulation of 60+ member seasons with realistic data distribution.
     - [x] **Scoring Hardening (Apr 2026)**: Finalized administrative result verification workflow. Implemented Verification Hub in `EventAdminScoresScreen`, bulk scorecard approval, and strict scoring lock enforcement (`isScoringLocked`) in the UI. Overhauled Match Play UI containers with premium BoxyArt components.

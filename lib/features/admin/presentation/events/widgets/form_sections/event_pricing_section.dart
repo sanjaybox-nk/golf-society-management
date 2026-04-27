@@ -12,7 +12,6 @@ class EventPricingSection extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final stateAsync = ref.watch(eventFormNotifierProvider);
     final societyConfig = ref.watch(themeControllerProvider);
-    final spacing = Theme.of(context).extension<AppSpacingTokens>();
     final currency = societyConfig.currencySymbol;
 
     return stateAsync.when(

@@ -36,7 +36,7 @@ class CompetitionTemplateGalleryScreen extends ConsumerWidget {
     return HeadlessScaffold(
       title: 'Create $gameName Game',
       subtitle: 'Templates and blank formats',
-      titleSuffix: BoxyArtPill.committee(label: 'ADMIN'),
+      topPill: BoxyArtPill.committee(label: 'ADMIN'),
       actions: const [],
       showBack: true,
       onBack: () => context.pop(),

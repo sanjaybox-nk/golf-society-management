@@ -56,7 +56,8 @@ class _MarkerCounterControlState extends ConsumerState<MarkerCounterControl>
 
     return Form(
       key: _formKey,
-      child: BoxyArtFormColumn(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           // ── IDENTITY ─────────────────────────────────────────
           const BoxyArtSectionTitle(title: 'LEADERBOARD DETAILS', isPeeking: true),
@@ -70,6 +71,7 @@ class _MarkerCounterControlState extends ConsumerState<MarkerCounterControl>
                   prefixIcon: Icon(Icons.park_rounded),
                   validator: (v) => (v == null || v.isEmpty) ? 'Required' : null,
                 ),
+                const BoxyArtDivider(),
                 buildScopeSelector(
                   value: _scope,
                   onChanged: (v) => setState(() => _scope = v as LeaderboardScope),
@@ -79,7 +81,11 @@ class _MarkerCounterControlState extends ConsumerState<MarkerCounterControl>
           ),
 
           // ── TRACKING RULES ────────────────────────────────────
-          const BoxyArtSectionTitle(title: 'TRACKING RULES'),
+          const BoxyArtSectionTitle(
+            title: 'TRACKING RULES',
+            isPeeking: true,
+            followsCard: true,
+          ),
           BoxyArtCard(
             child: BoxyArtFormColumn(
               children: [
@@ -146,6 +152,7 @@ class _MarkerCounterControlState extends ConsumerState<MarkerCounterControl>
                 const BoxyArtDivider(),
                 BoxyArtDropdownField<HoleFilter>(
                   label: 'Hole Filter',
+                  prefixIcon: const Icon(Icons.adjust_rounded),
                   value: _holeFilter,
                   items: HoleFilter.values
                       .map((v) => DropdownMenuItem(
@@ -158,6 +165,7 @@ class _MarkerCounterControlState extends ConsumerState<MarkerCounterControl>
                 const BoxyArtDivider(),
                 BoxyArtDropdownField<MarkerRankingMethod>(
                   label: 'Ranking Basis',
+                  prefixIcon: const Icon(Icons.sort_rounded),
                   value: _rankingMethod,
                   items: MarkerRankingMethod.values
                       .map((v) => DropdownMenuItem(
@@ -188,13 +196,14 @@ class _MarkerCounterControlState extends ConsumerState<MarkerCounterControl>
             ),
           ),
 
-          BoxyArtButton(
-            title: widget.existingConfig == null ? 'Create leaderboard' : 'Save changes',
-            onTap: _isSaving ? null : _save,
-            isLoading: _isSaving,
-            fullWidth: true,
-            backgroundColor: Theme.of(context).primaryColor,
-            textColor: AppColors.pureWhite,
+          Padding(
+            padding: const EdgeInsets.only(top: AppSpacing.x2l, bottom: AppSpacing.xl),
+            child: BoxyArtButton(
+              title: widget.existingConfig == null ? 'Create leaderboard' : 'Save changes',
+              onTap: _isSaving ? null : _save,
+              isLoading: _isSaving,
+              fullWidth: true,
+            ),
           ),
         ],
       ),

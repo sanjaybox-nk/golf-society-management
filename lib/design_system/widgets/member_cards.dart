@@ -23,6 +23,7 @@ class BoxyArtMemberHeaderCard extends ConsumerWidget {
   final DateTime? joinedDate;
   final VoidCallback? onActionTap;
   final bool showFeeIndicator;
+  final bool isAdminContext;
 
   const BoxyArtMemberHeaderCard({
     super.key,
@@ -47,12 +48,9 @@ class BoxyArtMemberHeaderCard extends ConsumerWidget {
     this.isAdminContext = true,
   });
 
-  final bool isAdminContext;
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
-    final config = ref.watch(themeControllerProvider);
     final textColor = theme.colorScheme.onSurface;
     
     // Determine status display label
@@ -169,11 +167,12 @@ class BoxyArtMemberHeaderCard extends ConsumerWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           mainAxisAlignment: MainAxisAlignment.end,
                           children: [
-                            // 1. Status (Expired, etc.)
-                            if (status != MemberStatus.active && status != MemberStatus.member) ...[
+                            // 1. Status (Expired, etc.) - Always show for admins to allow editing
+                            if (isAdminContext || (status != MemberStatus.active && status != MemberStatus.member)) ...[
                               BoxyArtIndicator(
                                 label: statusLabel,
                                 dotColor: status.color,
+                                onTap: onStatusChanged != null ? () => onStatusChanged!(status) : null,
                                 hasHorizontalMargin: false,
                               ),
                               const SizedBox(height: AppSpacing.xs),
@@ -195,6 +194,7 @@ class BoxyArtMemberHeaderCard extends ConsumerWidget {
                               BoxyArtIndicator(
                                 label: role!.displayName,
                                 dotColor: theme.colorScheme.primary,
+                                onTap: onRoleTap,
                                 hasHorizontalMargin: false,
                               ),
                           ],
@@ -220,23 +220,5 @@ class BoxyArtMemberHeaderCard extends ConsumerWidget {
         ],
       ),
     );
-  }
-
-  Color _getStatusColor(MemberStatus status, ThemeData theme) {
-    switch (status) {
-      case MemberStatus.member:
-      case MemberStatus.active:
-        return theme.colorScheme.primary;
-      case MemberStatus.pending:
-      case MemberStatus.gracePeriod:
-        return AppColors.amber500;
-      case MemberStatus.suspended:
-      case MemberStatus.expired:
-        return AppColors.amber500;
-      case MemberStatus.left:
-      case MemberStatus.archived:
-      case MemberStatus.inactive:
-        return theme.colorScheme.error;
-    }
   }
 }
