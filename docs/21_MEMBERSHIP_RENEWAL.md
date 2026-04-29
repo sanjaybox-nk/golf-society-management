@@ -21,7 +21,10 @@ Renewal alerts are restricted to the **Home Screen** only. This prevents UI clut
 
 ### 4. Admin Renewal Hub
 The central command center for processing submissions, accessed via the **RENEWALS** tile in the Admin Dashboard.
-- **Architecture**: Implemented using a **Branch Navigator** to ensure the global bottom navigation remains persistent and interactive.
+- **Architecture**: (April 2026 Refactor) Implemented using the **Thin Shell Presentation** pattern.
+    - **Controllers**: Logic resides in `RenewalController` (Riverpod 2.0 Notifier) for selection, filtering, and bulk processing.
+    - **Service Layer**: Nudges and notifications are delegated to the shared `AdminActionService`.
+    - **Modular Widgets**: UI elements (tiles, sheets) are isolated in `renewal_widgets.dart` for atomic maintainability.
 - **Terminology (Design 4.x)**: 
     - **Pending**: Members who have been sent a reminder but have not yet chosen a status.
     - **Renewing**: Members who have chosen to renew but have not yet been marked as "Paid".

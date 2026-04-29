@@ -11,12 +11,12 @@ class AdminAudienceHubScreen extends ConsumerWidget {
   const AdminAudienceHubScreen({super.key});
 
   void _showCreateListDialog(BuildContext context, WidgetRef ref, {DistributionList? listToEdit}) {
-    showModalBottomSheet(
+    BoxyArtBottomSheet.show(
       context: context,
-      isScrollControlled: true,
-      useRootNavigator: false,
-      backgroundColor: Colors.transparent,
-      builder: (context) => DistributionListModal(listToEdit: listToEdit),
+      title: listToEdit != null ? 'Edit Audience' : 'New Audience',
+      initialChildSize: 0.85,
+      maxChildSize: 0.95,
+      child: DistributionListModal(listToEdit: listToEdit),
     );
   }
 
@@ -53,10 +53,27 @@ class AdminAudienceHubScreen extends ConsumerWidget {
       slivers: [
         const SliverToBoxAdapter(
           child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: AppSpacing.xl),
-            child: BoxyArtSectionTitle(
-              title: 'Mailing lists',
-              isPeeking: true,
+            padding: EdgeInsets.fromLTRB(AppSpacing.xl, AppSpacing.sm, AppSpacing.xl, AppSpacing.xl),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                BoxyArtSectionTitle(
+                  title: 'Mailing lists',
+                  isPeeking: true,
+                ),
+              ],
+            ),
+          ),
+        ),
+
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(AppSpacing.xl, 0, AppSpacing.xl, AppSpacing.lg),
+            child: BoxyArtButton(
+              title: 'Create Mailing List',
+              icon: Icons.add_rounded,
+              onTap: () => _showCreateListDialog(context, ref),
+              fullWidth: true,
             ),
           ),
         ),

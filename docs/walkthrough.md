@@ -1,18 +1,18 @@
-# Walkthrough: Administrative Design Hardening & Navigation Refinements (v8.0)
+# Walkthrough: Design 4.x Layout Hardening & Administrative Controls (v8.1)
 
-I have successfully implemented the latest hardening of the administrative design tokens and navigation behavior to provide a more intuitive and high-fidelity management experience.
+I have successfully implemented the latest design hardening, focusing on layout integrity for bottom sheets and standardizing administrative input controls to meet Design 4.x premium monochromatic standards.
 
 ## Changes Implemented
 
-### 1. Navigation Refinement: "Reset-on-Tap"
-- **Fresh Entry Logic**: Refactored the `GlobalAppShell` navigation logic to force a branch reset whenever a bottom navigation item is tapped.
-- **Improved Flow**: Switching between layouts (e.g., Members -> Dashboard) now always lands the user at the root screen of the target section, eliminating the confusion of getting "stuck" in deep sub-menus.
+### 1. Bottom Sheet Layout Hardening: "Clipping Prevention"
+- **Dynamic Nav Bar Padding**: Modified the base `BoxyArtBottomSheet` to automatically detect and add bottom padding (100px) when displayed within the application shell's non-root navigator.
+- **Improved Visibility**: Content in slide-up menus (like "Renewal Settings") is now fully visible and scrollable above the floating global bottom navigation bar, eliminating clipping on all device sizes.
+- **Standardized Spacing**: Unified the bottom breathing room across all bottom sheets, providing a consistent "Boxy Art" aesthetic.
 
-### 2. Renewal Hub & Status Hardening
-- **Terminology Update**: Renamed renewal states to **Pending** (idle) and **Renewing** (active intent/unpaid) to improve lifecycle clarity.
-- **Nudge Tracking**: Implemented a dynamic outreach counter on the Nudge pill (e.g., `NUDGE (3)`). 
-- **Action Icons**: Updated the Nudge action icon to a **Notification Bell (🔔)** to distinguish communication from state editing.
-- **Tab Optimization**: Removed icons from the Renewal Hub filter bar to ensure long labels like "RENEWING" fit perfectly on mobile devices without truncation.
+### 2. Administrative Slider Compliance: "Neutral Hardening"
+- **BoxyArtSlider Integration**: Replaced all standard Flutter `Slider` widgets in the **Branding Settings** and other administrative screens with the tokenized `BoxyArtSlider`.
+- **Monochromatic Aesthetic**: Enforced the `isNeutral: true` design token for administrative controls, adopting a professional greyscale palette that distinguishes configuration tools from user-facing feature accents.
+- **Premium Interaction**: Unified slider track heights, thumb shapes, and value indicators to follow the society's structural "Style Preference" (radii, shadows, and borders).
 
 ### 3. Indicator System: "Status Button" Affordance
 - **Interactive Elevation**: Modified the base `BoxyArtIndicator` to automatically adopt a button-like aesthetic when an `onTap` callback is provided.
@@ -25,16 +25,16 @@ I have successfully implemented the latest hardening of the administrative desig
 
 ## Document Updates
 The following guides have been updated to reflect these 4.x/4.5 standards:
-- [09_SHARED_UI_LIBRARY.md](file:///Users/sanjaypatel/Documents/Projects/Golf%20Society%20Management/docs/09_SHARED_UI_LIBRARY.md) (Indicator patterns & Nav behavior)
+- [09_SHARED_UI_LIBRARY.md](file:///Users/sanjaypatel/Documents/Projects/Golf%20Society%20Management/docs/09_SHARED_UI_LIBRARY.md) (Indicator patterns, Nav behavior & Slider standards)
 - [13_GAMES_AND_COMPETITIONS.md](file:///Users/sanjaypatel/Documents/Projects/Golf%20Society%20Management/docs/13_GAMES_AND_COMPETITIONS.md) (Leaderboard Builder logic)
 - [21_MEMBERSHIP_RENEWAL.md](file:///Users/sanjaypatel/Documents/Projects/Golf%20Society%20Management/docs/21_MEMBERSHIP_RENEWAL.md) (Renewal terminology & Nudge tracking)
 
 ---
 
 ### 🍙 Key Accomplishments
-*   **Navigation Predictability**: Eliminated the "Sticky State" issue when switching between functional areas.
+*   **Layout Integrity**: Guaranteed content visibility in all "slide-up" menus by accounting for floating shell elements.
+*   **Admin Professionalism**: Standardized administrative controls to a neutral, high-fidelity palette.
+*   **Navigation Predictability**: Branch-reset logic ensures consistent entry points for all functional areas.
 *   **Communication Tracking**: Admins can now monitor outreach frequency via the Nudge counter.
-*   **Affordance Consistency**: Clear visual distinction between passive labels and interactive status buttons.
-*   **Builder Efficiency**: Reduced manual rank re-entry via automated re-indexing.
 
-**Status**: Administrative Design Hardening & Navigation Refinements Complete & Verified.
+**Status**: Design 4.x Layout Hardening & Administrative Control Refinements Complete & Verified.

@@ -31,7 +31,7 @@ class MemberSeeder {
       gender: 'Male',
       bio: 'The Society Founder. Passionate about technology and bringing the digital edge to the game of golf.',
       phone: '+44 7700 900000',
-      avatarUrl: SeedingData.avatarUrls[1], // Sanjay
+      avatarUrl: SeedingData.maleAvatarUrls[0], // Sanjay (First Male Avatar)
       allowSocialEventsOnly: false,
     ));
 
@@ -56,7 +56,10 @@ class MemberSeeder {
       'Senior statesman. Plays the percentages with deadly accuracy.',
     ];
 
-    for (int i = 0; i < 92; i++) { // Increased to 92 to add 18 status-test members (3 per exception status)
+    int maleCounter = 1; // Start from 1 as Sanjay is 0
+    int femaleCounter = 0;
+
+    for (int i = 0; i < 92; i++) {
         bool isFemale = i < 25;
         final fNameList = isFemale ? SeedingData.femaleFirstNames : SeedingData.maleFirstNames;
         final fName = fNameList[i % fNameList.length];
@@ -118,6 +121,15 @@ class MemberSeeder {
           initialCredit = -1 * (10.0 + random.nextInt(90).toDouble());
         }
 
+        String avatarUrl;
+        if (isFemale) {
+          avatarUrl = SeedingData.femaleAvatarUrls[femaleCounter % SeedingData.femaleAvatarUrls.length];
+          femaleCounter++;
+        } else {
+          avatarUrl = SeedingData.maleAvatarUrls[maleCounter % SeedingData.maleAvatarUrls.length];
+          maleCounter++;
+        }
+
         await repo.addMember(Member(
           id: 'demo_m_$i',
           firstName: fName,
@@ -135,7 +147,7 @@ class MemberSeeder {
           gender: isFemale ? 'Female' : 'Male',
           phone: '+44 7${100000000 + i}',
           bio: i >= 74 ? 'Demo member for ${currentStatus.name} status testing.' : bio,
-          avatarUrl: SeedingData.avatarUrls[i % SeedingData.avatarUrls.length],
+          avatarUrl: avatarUrl,
           allowSocialEventsOnly: false,
           accountCredit: initialCredit,
         ));

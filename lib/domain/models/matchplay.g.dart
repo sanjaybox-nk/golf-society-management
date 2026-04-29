@@ -10,7 +10,8 @@ _MatchplayResult _$MatchplayResultFromJson(Map<String, dynamic> json) =>
     _MatchplayResult(
       winnerId: json['winnerId'] as String,
       scoreDisplay: json['scoreDisplay'] as String,
-      holeWins: (json['holeWins'] as List<dynamic>?)
+      holeWins:
+          (json['holeWins'] as List<dynamic>?)
               ?.map((e) => (e as num).toInt())
               .toList() ??
           const [],
@@ -35,32 +36,34 @@ _MatchplayMatch _$MatchplayMatchFromJson(Map<String, dynamic> json) =>
       playerAHandicap: (json['playerAHandicap'] as num).toDouble(),
       playerBHandicap: (json['playerBHandicap'] as num).toDouble(),
       strokesReceived: (json['strokesReceived'] as num).toInt(),
-      status: $enumDecodeNullable(_$MatchplayStatusEnumMap, json['status']) ??
+      status:
+          $enumDecodeNullable(_$MatchplayStatusEnumMap, json['status']) ??
           MatchplayStatus.scheduled,
       result: json['result'] == null
           ? null
           : MatchplayResult.fromJson(json['result'] as Map<String, dynamic>),
       eventId: json['eventId'] as String?,
-      playedDate:
-          const OptionalTimestampConverter().fromJson(json['playedDate']),
+      playedDate: const OptionalTimestampConverter().fromJson(
+        json['playedDate'],
+      ),
     );
 
-Map<String, dynamic> _$MatchplayMatchToJson(_MatchplayMatch instance) =>
-    <String, dynamic>{
-      'id': instance.id,
-      'playerAId': instance.playerAId,
-      'playerBId': instance.playerBId,
-      'playerAName': instance.playerAName,
-      'playerBName': instance.playerBName,
-      'playerAHandicap': instance.playerAHandicap,
-      'playerBHandicap': instance.playerBHandicap,
-      'strokesReceived': instance.strokesReceived,
-      'status': _$MatchplayStatusEnumMap[instance.status]!,
-      'result': instance.result?.toJson(),
-      'eventId': instance.eventId,
-      'playedDate':
-          const OptionalTimestampConverter().toJson(instance.playedDate),
-    };
+Map<String, dynamic> _$MatchplayMatchToJson(
+  _MatchplayMatch instance,
+) => <String, dynamic>{
+  'id': instance.id,
+  'playerAId': instance.playerAId,
+  'playerBId': instance.playerBId,
+  'playerAName': instance.playerAName,
+  'playerBName': instance.playerBName,
+  'playerAHandicap': instance.playerAHandicap,
+  'playerBHandicap': instance.playerBHandicap,
+  'strokesReceived': instance.strokesReceived,
+  'status': _$MatchplayStatusEnumMap[instance.status]!,
+  'result': instance.result?.toJson(),
+  'eventId': instance.eventId,
+  'playedDate': const OptionalTimestampConverter().toJson(instance.playedDate),
+};
 
 const _$MatchplayStatusEnumMap = {
   MatchplayStatus.scheduled: 'scheduled',
@@ -74,7 +77,8 @@ _MatchplayRound _$MatchplayRoundFromJson(Map<String, dynamic> json) =>
     _MatchplayRound(
       id: json['id'] as String,
       name: json['name'] as String,
-      matches: (json['matches'] as List<dynamic>?)
+      matches:
+          (json['matches'] as List<dynamic>?)
               ?.map((e) => MatchplayMatch.fromJson(e as Map<String, dynamic>))
               .toList() ??
           const [],
@@ -94,7 +98,8 @@ _MatchplayComp _$MatchplayCompFromJson(Map<String, dynamic> json) =>
       id: json['id'] as String,
       title: json['title'] as String,
       isActive: json['isActive'] as bool? ?? true,
-      rounds: (json['rounds'] as List<dynamic>?)
+      rounds:
+          (json['rounds'] as List<dynamic>?)
               ?.map((e) => MatchplayRound.fromJson(e as Map<String, dynamic>))
               .toList() ??
           const [],

@@ -120,6 +120,7 @@ abstract class SocietyConfig with _$SocietyConfig {
     @Default(<FinancialEntry>[]) List<FinancialEntry> ledgerEntries, // [NEW] Society-level sponsorships & donations
     @Default(<Sponsor>[]) List<Sponsor> sponsors, // [NEW] Central sponsorship hub
     int? pointsColor, // [NEW] Stableford points emphasis color
+    @Default(0xFFF7D354) int heroGradientColor, // [NEW] Hero card graduated background color
   }) = _SocietyConfig;
 
   const SocietyConfig._();

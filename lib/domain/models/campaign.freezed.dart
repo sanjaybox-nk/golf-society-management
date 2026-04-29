@@ -14,630 +14,314 @@ T _$identity<T>(T value) => value;
 
 /// @nodoc
 mixin _$Campaign {
-  String get id;
-  String get title;
-  String? get message; // Keep for legacy but optional now
-  List<EventNote> get notes; // Multi-section support
-  String get category; // Urgent, Event, News
-  String get targetType; // All Members, Groups, Individual
-  int get recipientCount;
-  CampaignStatus get status;
-  DateTime get timestamp;
-  String? get sentByUserId; // Admin ID who sent it
-  String? get actionUrl;
-  String? get targetDescription;
 
-  /// Create a copy of Campaign
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  @pragma('vm:prefer-inline')
-  $CampaignCopyWith<Campaign> get copyWith =>
-      _$CampaignCopyWithImpl<Campaign>(this as Campaign, _$identity);
+ String get id; String get title; String? get message;// Keep for legacy but optional now
+ List<EventNote> get notes;// Multi-section support
+ String get category;// Urgent, Event, News
+ String get targetType;// All Members, Groups, Individual
+ int get recipientCount; CampaignStatus get status; DateTime get timestamp; String? get sentByUserId;// Admin ID who sent it
+ String? get actionUrl; String? get targetDescription;
+/// Create a copy of Campaign
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$CampaignCopyWith<Campaign> get copyWith => _$CampaignCopyWithImpl<Campaign>(this as Campaign, _$identity);
 
   /// Serializes this Campaign to a JSON map.
   Map<String, dynamic> toJson();
 
-  @override
-  bool operator ==(Object other) {
-    return identical(this, other) ||
-        (other.runtimeType == runtimeType &&
-            other is Campaign &&
-            (identical(other.id, id) || other.id == id) &&
-            (identical(other.title, title) || other.title == title) &&
-            (identical(other.message, message) || other.message == message) &&
-            const DeepCollectionEquality().equals(other.notes, notes) &&
-            (identical(other.category, category) ||
-                other.category == category) &&
-            (identical(other.targetType, targetType) ||
-                other.targetType == targetType) &&
-            (identical(other.recipientCount, recipientCount) ||
-                other.recipientCount == recipientCount) &&
-            (identical(other.status, status) || other.status == status) &&
-            (identical(other.timestamp, timestamp) ||
-                other.timestamp == timestamp) &&
-            (identical(other.sentByUserId, sentByUserId) ||
-                other.sentByUserId == sentByUserId) &&
-            (identical(other.actionUrl, actionUrl) ||
-                other.actionUrl == actionUrl) &&
-            (identical(other.targetDescription, targetDescription) ||
-                other.targetDescription == targetDescription));
-  }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  @override
-  int get hashCode => Object.hash(
-      runtimeType,
-      id,
-      title,
-      message,
-      const DeepCollectionEquality().hash(notes),
-      category,
-      targetType,
-      recipientCount,
-      status,
-      timestamp,
-      sentByUserId,
-      actionUrl,
-      targetDescription);
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Campaign&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&(identical(other.message, message) || other.message == message)&&const DeepCollectionEquality().equals(other.notes, notes)&&(identical(other.category, category) || other.category == category)&&(identical(other.targetType, targetType) || other.targetType == targetType)&&(identical(other.recipientCount, recipientCount) || other.recipientCount == recipientCount)&&(identical(other.status, status) || other.status == status)&&(identical(other.timestamp, timestamp) || other.timestamp == timestamp)&&(identical(other.sentByUserId, sentByUserId) || other.sentByUserId == sentByUserId)&&(identical(other.actionUrl, actionUrl) || other.actionUrl == actionUrl)&&(identical(other.targetDescription, targetDescription) || other.targetDescription == targetDescription));
+}
 
-  @override
-  String toString() {
-    return 'Campaign(id: $id, title: $title, message: $message, notes: $notes, category: $category, targetType: $targetType, recipientCount: $recipientCount, status: $status, timestamp: $timestamp, sentByUserId: $sentByUserId, actionUrl: $actionUrl, targetDescription: $targetDescription)';
-  }
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,id,title,message,const DeepCollectionEquality().hash(notes),category,targetType,recipientCount,status,timestamp,sentByUserId,actionUrl,targetDescription);
+
+@override
+String toString() {
+  return 'Campaign(id: $id, title: $title, message: $message, notes: $notes, category: $category, targetType: $targetType, recipientCount: $recipientCount, status: $status, timestamp: $timestamp, sentByUserId: $sentByUserId, actionUrl: $actionUrl, targetDescription: $targetDescription)';
+}
+
+
 }
 
 /// @nodoc
-abstract mixin class $CampaignCopyWith<$Res> {
-  factory $CampaignCopyWith(Campaign value, $Res Function(Campaign) _then) =
-      _$CampaignCopyWithImpl;
-  @useResult
-  $Res call(
-      {String id,
-      String title,
-      String? message,
-      List<EventNote> notes,
-      String category,
-      String targetType,
-      int recipientCount,
-      CampaignStatus status,
-      DateTime timestamp,
-      String? sentByUserId,
-      String? actionUrl,
-      String? targetDescription});
-}
+abstract mixin class $CampaignCopyWith<$Res>  {
+  factory $CampaignCopyWith(Campaign value, $Res Function(Campaign) _then) = _$CampaignCopyWithImpl;
+@useResult
+$Res call({
+ String id, String title, String? message, List<EventNote> notes, String category, String targetType, int recipientCount, CampaignStatus status, DateTime timestamp, String? sentByUserId, String? actionUrl, String? targetDescription
+});
 
+
+
+
+}
 /// @nodoc
-class _$CampaignCopyWithImpl<$Res> implements $CampaignCopyWith<$Res> {
+class _$CampaignCopyWithImpl<$Res>
+    implements $CampaignCopyWith<$Res> {
   _$CampaignCopyWithImpl(this._self, this._then);
 
   final Campaign _self;
   final $Res Function(Campaign) _then;
 
-  /// Create a copy of Campaign
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({
-    Object? id = null,
-    Object? title = null,
-    Object? message = freezed,
-    Object? notes = null,
-    Object? category = null,
-    Object? targetType = null,
-    Object? recipientCount = null,
-    Object? status = null,
-    Object? timestamp = null,
-    Object? sentByUserId = freezed,
-    Object? actionUrl = freezed,
-    Object? targetDescription = freezed,
-  }) {
-    return _then(_self.copyWith(
-      id: null == id
-          ? _self.id
-          : id // ignore: cast_nullable_to_non_nullable
-              as String,
-      title: null == title
-          ? _self.title
-          : title // ignore: cast_nullable_to_non_nullable
-              as String,
-      message: freezed == message
-          ? _self.message
-          : message // ignore: cast_nullable_to_non_nullable
-              as String?,
-      notes: null == notes
-          ? _self.notes
-          : notes // ignore: cast_nullable_to_non_nullable
-              as List<EventNote>,
-      category: null == category
-          ? _self.category
-          : category // ignore: cast_nullable_to_non_nullable
-              as String,
-      targetType: null == targetType
-          ? _self.targetType
-          : targetType // ignore: cast_nullable_to_non_nullable
-              as String,
-      recipientCount: null == recipientCount
-          ? _self.recipientCount
-          : recipientCount // ignore: cast_nullable_to_non_nullable
-              as int,
-      status: null == status
-          ? _self.status
-          : status // ignore: cast_nullable_to_non_nullable
-              as CampaignStatus,
-      timestamp: null == timestamp
-          ? _self.timestamp
-          : timestamp // ignore: cast_nullable_to_non_nullable
-              as DateTime,
-      sentByUserId: freezed == sentByUserId
-          ? _self.sentByUserId
-          : sentByUserId // ignore: cast_nullable_to_non_nullable
-              as String?,
-      actionUrl: freezed == actionUrl
-          ? _self.actionUrl
-          : actionUrl // ignore: cast_nullable_to_non_nullable
-              as String?,
-      targetDescription: freezed == targetDescription
-          ? _self.targetDescription
-          : targetDescription // ignore: cast_nullable_to_non_nullable
-              as String?,
-    ));
-  }
+/// Create a copy of Campaign
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? title = null,Object? message = freezed,Object? notes = null,Object? category = null,Object? targetType = null,Object? recipientCount = null,Object? status = null,Object? timestamp = null,Object? sentByUserId = freezed,Object? actionUrl = freezed,Object? targetDescription = freezed,}) {
+  return _then(_self.copyWith(
+id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as String,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
+as String,message: freezed == message ? _self.message : message // ignore: cast_nullable_to_non_nullable
+as String?,notes: null == notes ? _self.notes : notes // ignore: cast_nullable_to_non_nullable
+as List<EventNote>,category: null == category ? _self.category : category // ignore: cast_nullable_to_non_nullable
+as String,targetType: null == targetType ? _self.targetType : targetType // ignore: cast_nullable_to_non_nullable
+as String,recipientCount: null == recipientCount ? _self.recipientCount : recipientCount // ignore: cast_nullable_to_non_nullable
+as int,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
+as CampaignStatus,timestamp: null == timestamp ? _self.timestamp : timestamp // ignore: cast_nullable_to_non_nullable
+as DateTime,sentByUserId: freezed == sentByUserId ? _self.sentByUserId : sentByUserId // ignore: cast_nullable_to_non_nullable
+as String?,actionUrl: freezed == actionUrl ? _self.actionUrl : actionUrl // ignore: cast_nullable_to_non_nullable
+as String?,targetDescription: freezed == targetDescription ? _self.targetDescription : targetDescription // ignore: cast_nullable_to_non_nullable
+as String?,
+  ));
 }
+
+}
+
 
 /// Adds pattern-matching-related methods to [Campaign].
 extension CampaignPatterns on Campaign {
-  /// A variant of `map` that fallback to returning `orElse`.
-  ///
-  /// It is equivalent to doing:
-  /// ```dart
-  /// switch (sealedClass) {
-  ///   case final Subclass value:
-  ///     return ...;
-  ///   case _:
-  ///     return orElse();
-  /// }
-  /// ```
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
 
-  @optionalTypeArgs
-  TResult maybeMap<TResult extends Object?>(
-    TResult Function(_Campaign value)? $default, {
-    required TResult orElse(),
-  }) {
-    final _that = this;
-    switch (_that) {
-      case _Campaign() when $default != null:
-        return $default(_that);
-      case _:
-        return orElse();
-    }
-  }
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _Campaign value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _Campaign() when $default != null:
+return $default(_that);case _:
+  return orElse();
 
-  /// A `switch`-like method, using callbacks.
-  ///
-  /// Callbacks receives the raw object, upcasted.
-  /// It is equivalent to doing:
-  /// ```dart
-  /// switch (sealedClass) {
-  ///   case final Subclass value:
-  ///     return ...;
-  ///   case final Subclass2 value:
-  ///     return ...;
-  /// }
-  /// ```
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
 
-  @optionalTypeArgs
-  TResult map<TResult extends Object?>(
-    TResult Function(_Campaign value) $default,
-  ) {
-    final _that = this;
-    switch (_that) {
-      case _Campaign():
-        return $default(_that);
-      case _:
-        throw StateError('Unexpected subclass');
-    }
-  }
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _Campaign value)  $default,){
+final _that = this;
+switch (_that) {
+case _Campaign():
+return $default(_that);case _:
+  throw StateError('Unexpected subclass');
 
-  /// A variant of `map` that fallback to returning `null`.
-  ///
-  /// It is equivalent to doing:
-  /// ```dart
-  /// switch (sealedClass) {
-  ///   case final Subclass value:
-  ///     return ...;
-  ///   case _:
-  ///     return null;
-  /// }
-  /// ```
+}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
 
-  @optionalTypeArgs
-  TResult? mapOrNull<TResult extends Object?>(
-    TResult? Function(_Campaign value)? $default,
-  ) {
-    final _that = this;
-    switch (_that) {
-      case _Campaign() when $default != null:
-        return $default(_that);
-      case _:
-        return null;
-    }
-  }
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _Campaign value)?  $default,){
+final _that = this;
+switch (_that) {
+case _Campaign() when $default != null:
+return $default(_that);case _:
+  return null;
 
-  /// A variant of `when` that fallback to an `orElse` callback.
-  ///
-  /// It is equivalent to doing:
-  /// ```dart
-  /// switch (sealedClass) {
-  ///   case Subclass(:final field):
-  ///     return ...;
-  ///   case _:
-  ///     return orElse();
-  /// }
-  /// ```
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
 
-  @optionalTypeArgs
-  TResult maybeWhen<TResult extends Object?>(
-    TResult Function(
-            String id,
-            String title,
-            String? message,
-            List<EventNote> notes,
-            String category,
-            String targetType,
-            int recipientCount,
-            CampaignStatus status,
-            DateTime timestamp,
-            String? sentByUserId,
-            String? actionUrl,
-            String? targetDescription)?
-        $default, {
-    required TResult orElse(),
-  }) {
-    final _that = this;
-    switch (_that) {
-      case _Campaign() when $default != null:
-        return $default(
-            _that.id,
-            _that.title,
-            _that.message,
-            _that.notes,
-            _that.category,
-            _that.targetType,
-            _that.recipientCount,
-            _that.status,
-            _that.timestamp,
-            _that.sentByUserId,
-            _that.actionUrl,
-            _that.targetDescription);
-      case _:
-        return orElse();
-    }
-  }
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String title,  String? message,  List<EventNote> notes,  String category,  String targetType,  int recipientCount,  CampaignStatus status,  DateTime timestamp,  String? sentByUserId,  String? actionUrl,  String? targetDescription)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _Campaign() when $default != null:
+return $default(_that.id,_that.title,_that.message,_that.notes,_that.category,_that.targetType,_that.recipientCount,_that.status,_that.timestamp,_that.sentByUserId,_that.actionUrl,_that.targetDescription);case _:
+  return orElse();
 
-  /// A `switch`-like method, using callbacks.
-  ///
-  /// As opposed to `map`, this offers destructuring.
-  /// It is equivalent to doing:
-  /// ```dart
-  /// switch (sealedClass) {
-  ///   case Subclass(:final field):
-  ///     return ...;
-  ///   case Subclass2(:final field2):
-  ///     return ...;
-  /// }
-  /// ```
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
 
-  @optionalTypeArgs
-  TResult when<TResult extends Object?>(
-    TResult Function(
-            String id,
-            String title,
-            String? message,
-            List<EventNote> notes,
-            String category,
-            String targetType,
-            int recipientCount,
-            CampaignStatus status,
-            DateTime timestamp,
-            String? sentByUserId,
-            String? actionUrl,
-            String? targetDescription)
-        $default,
-  ) {
-    final _that = this;
-    switch (_that) {
-      case _Campaign():
-        return $default(
-            _that.id,
-            _that.title,
-            _that.message,
-            _that.notes,
-            _that.category,
-            _that.targetType,
-            _that.recipientCount,
-            _that.status,
-            _that.timestamp,
-            _that.sentByUserId,
-            _that.actionUrl,
-            _that.targetDescription);
-      case _:
-        throw StateError('Unexpected subclass');
-    }
-  }
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String title,  String? message,  List<EventNote> notes,  String category,  String targetType,  int recipientCount,  CampaignStatus status,  DateTime timestamp,  String? sentByUserId,  String? actionUrl,  String? targetDescription)  $default,) {final _that = this;
+switch (_that) {
+case _Campaign():
+return $default(_that.id,_that.title,_that.message,_that.notes,_that.category,_that.targetType,_that.recipientCount,_that.status,_that.timestamp,_that.sentByUserId,_that.actionUrl,_that.targetDescription);case _:
+  throw StateError('Unexpected subclass');
 
-  /// A variant of `when` that fallback to returning `null`
-  ///
-  /// It is equivalent to doing:
-  /// ```dart
-  /// switch (sealedClass) {
-  ///   case Subclass(:final field):
-  ///     return ...;
-  ///   case _:
-  ///     return null;
-  /// }
-  /// ```
+}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
 
-  @optionalTypeArgs
-  TResult? whenOrNull<TResult extends Object?>(
-    TResult? Function(
-            String id,
-            String title,
-            String? message,
-            List<EventNote> notes,
-            String category,
-            String targetType,
-            int recipientCount,
-            CampaignStatus status,
-            DateTime timestamp,
-            String? sentByUserId,
-            String? actionUrl,
-            String? targetDescription)?
-        $default,
-  ) {
-    final _that = this;
-    switch (_that) {
-      case _Campaign() when $default != null:
-        return $default(
-            _that.id,
-            _that.title,
-            _that.message,
-            _that.notes,
-            _that.category,
-            _that.targetType,
-            _that.recipientCount,
-            _that.status,
-            _that.timestamp,
-            _that.sentByUserId,
-            _that.actionUrl,
-            _that.targetDescription);
-      case _:
-        return null;
-    }
-  }
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String title,  String? message,  List<EventNote> notes,  String category,  String targetType,  int recipientCount,  CampaignStatus status,  DateTime timestamp,  String? sentByUserId,  String? actionUrl,  String? targetDescription)?  $default,) {final _that = this;
+switch (_that) {
+case _Campaign() when $default != null:
+return $default(_that.id,_that.title,_that.message,_that.notes,_that.category,_that.targetType,_that.recipientCount,_that.status,_that.timestamp,_that.sentByUserId,_that.actionUrl,_that.targetDescription);case _:
+  return null;
+
+}
+}
+
 }
 
 /// @nodoc
 @JsonSerializable()
-class _Campaign extends Campaign {
-  const _Campaign(
-      {required this.id,
-      required this.title,
-      this.message,
-      final List<EventNote> notes = const [],
-      required this.category,
-      required this.targetType,
-      required this.recipientCount,
-      this.status = CampaignStatus.sent,
-      required this.timestamp,
-      this.sentByUserId,
-      this.actionUrl,
-      this.targetDescription})
-      : _notes = notes,
-        super._();
-  factory _Campaign.fromJson(Map<String, dynamic> json) =>
-      _$CampaignFromJson(json);
 
-  @override
-  final String id;
-  @override
-  final String title;
-  @override
-  final String? message;
+class _Campaign extends Campaign {
+  const _Campaign({required this.id, required this.title, this.message, final  List<EventNote> notes = const [], required this.category, required this.targetType, required this.recipientCount, this.status = CampaignStatus.sent, required this.timestamp, this.sentByUserId, this.actionUrl, this.targetDescription}): _notes = notes,super._();
+  factory _Campaign.fromJson(Map<String, dynamic> json) => _$CampaignFromJson(json);
+
+@override final  String id;
+@override final  String title;
+@override final  String? message;
 // Keep for legacy but optional now
-  final List<EventNote> _notes;
+ final  List<EventNote> _notes;
 // Keep for legacy but optional now
-  @override
-  @JsonKey()
-  List<EventNote> get notes {
-    if (_notes is EqualUnmodifiableListView) return _notes;
-    // ignore: implicit_dynamic_type
-    return EqualUnmodifiableListView(_notes);
-  }
+@override@JsonKey() List<EventNote> get notes {
+  if (_notes is EqualUnmodifiableListView) return _notes;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_notes);
+}
 
 // Multi-section support
-  @override
-  final String category;
+@override final  String category;
 // Urgent, Event, News
-  @override
-  final String targetType;
+@override final  String targetType;
 // All Members, Groups, Individual
-  @override
-  final int recipientCount;
-  @override
-  @JsonKey()
-  final CampaignStatus status;
-  @override
-  final DateTime timestamp;
-  @override
-  final String? sentByUserId;
+@override final  int recipientCount;
+@override@JsonKey() final  CampaignStatus status;
+@override final  DateTime timestamp;
+@override final  String? sentByUserId;
 // Admin ID who sent it
-  @override
-  final String? actionUrl;
-  @override
-  final String? targetDescription;
+@override final  String? actionUrl;
+@override final  String? targetDescription;
 
-  /// Create a copy of Campaign
-  /// with the given fields replaced by the non-null parameter values.
-  @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  @pragma('vm:prefer-inline')
-  _$CampaignCopyWith<_Campaign> get copyWith =>
-      __$CampaignCopyWithImpl<_Campaign>(this, _$identity);
+/// Create a copy of Campaign
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$CampaignCopyWith<_Campaign> get copyWith => __$CampaignCopyWithImpl<_Campaign>(this, _$identity);
 
-  @override
-  Map<String, dynamic> toJson() {
-    return _$CampaignToJson(
-      this,
-    );
-  }
+@override
+Map<String, dynamic> toJson() {
+  return _$CampaignToJson(this, );
+}
 
-  @override
-  bool operator ==(Object other) {
-    return identical(this, other) ||
-        (other.runtimeType == runtimeType &&
-            other is _Campaign &&
-            (identical(other.id, id) || other.id == id) &&
-            (identical(other.title, title) || other.title == title) &&
-            (identical(other.message, message) || other.message == message) &&
-            const DeepCollectionEquality().equals(other._notes, _notes) &&
-            (identical(other.category, category) ||
-                other.category == category) &&
-            (identical(other.targetType, targetType) ||
-                other.targetType == targetType) &&
-            (identical(other.recipientCount, recipientCount) ||
-                other.recipientCount == recipientCount) &&
-            (identical(other.status, status) || other.status == status) &&
-            (identical(other.timestamp, timestamp) ||
-                other.timestamp == timestamp) &&
-            (identical(other.sentByUserId, sentByUserId) ||
-                other.sentByUserId == sentByUserId) &&
-            (identical(other.actionUrl, actionUrl) ||
-                other.actionUrl == actionUrl) &&
-            (identical(other.targetDescription, targetDescription) ||
-                other.targetDescription == targetDescription));
-  }
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Campaign&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&(identical(other.message, message) || other.message == message)&&const DeepCollectionEquality().equals(other._notes, _notes)&&(identical(other.category, category) || other.category == category)&&(identical(other.targetType, targetType) || other.targetType == targetType)&&(identical(other.recipientCount, recipientCount) || other.recipientCount == recipientCount)&&(identical(other.status, status) || other.status == status)&&(identical(other.timestamp, timestamp) || other.timestamp == timestamp)&&(identical(other.sentByUserId, sentByUserId) || other.sentByUserId == sentByUserId)&&(identical(other.actionUrl, actionUrl) || other.actionUrl == actionUrl)&&(identical(other.targetDescription, targetDescription) || other.targetDescription == targetDescription));
+}
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  @override
-  int get hashCode => Object.hash(
-      runtimeType,
-      id,
-      title,
-      message,
-      const DeepCollectionEquality().hash(_notes),
-      category,
-      targetType,
-      recipientCount,
-      status,
-      timestamp,
-      sentByUserId,
-      actionUrl,
-      targetDescription);
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,id,title,message,const DeepCollectionEquality().hash(_notes),category,targetType,recipientCount,status,timestamp,sentByUserId,actionUrl,targetDescription);
 
-  @override
-  String toString() {
-    return 'Campaign(id: $id, title: $title, message: $message, notes: $notes, category: $category, targetType: $targetType, recipientCount: $recipientCount, status: $status, timestamp: $timestamp, sentByUserId: $sentByUserId, actionUrl: $actionUrl, targetDescription: $targetDescription)';
-  }
+@override
+String toString() {
+  return 'Campaign(id: $id, title: $title, message: $message, notes: $notes, category: $category, targetType: $targetType, recipientCount: $recipientCount, status: $status, timestamp: $timestamp, sentByUserId: $sentByUserId, actionUrl: $actionUrl, targetDescription: $targetDescription)';
+}
+
+
 }
 
 /// @nodoc
-abstract mixin class _$CampaignCopyWith<$Res>
-    implements $CampaignCopyWith<$Res> {
-  factory _$CampaignCopyWith(_Campaign value, $Res Function(_Campaign) _then) =
-      __$CampaignCopyWithImpl;
-  @override
-  @useResult
-  $Res call(
-      {String id,
-      String title,
-      String? message,
-      List<EventNote> notes,
-      String category,
-      String targetType,
-      int recipientCount,
-      CampaignStatus status,
-      DateTime timestamp,
-      String? sentByUserId,
-      String? actionUrl,
-      String? targetDescription});
-}
+abstract mixin class _$CampaignCopyWith<$Res> implements $CampaignCopyWith<$Res> {
+  factory _$CampaignCopyWith(_Campaign value, $Res Function(_Campaign) _then) = __$CampaignCopyWithImpl;
+@override @useResult
+$Res call({
+ String id, String title, String? message, List<EventNote> notes, String category, String targetType, int recipientCount, CampaignStatus status, DateTime timestamp, String? sentByUserId, String? actionUrl, String? targetDescription
+});
 
+
+
+
+}
 /// @nodoc
-class __$CampaignCopyWithImpl<$Res> implements _$CampaignCopyWith<$Res> {
+class __$CampaignCopyWithImpl<$Res>
+    implements _$CampaignCopyWith<$Res> {
   __$CampaignCopyWithImpl(this._self, this._then);
 
   final _Campaign _self;
   final $Res Function(_Campaign) _then;
 
-  /// Create a copy of Campaign
-  /// with the given fields replaced by the non-null parameter values.
-  @override
-  @pragma('vm:prefer-inline')
-  $Res call({
-    Object? id = null,
-    Object? title = null,
-    Object? message = freezed,
-    Object? notes = null,
-    Object? category = null,
-    Object? targetType = null,
-    Object? recipientCount = null,
-    Object? status = null,
-    Object? timestamp = null,
-    Object? sentByUserId = freezed,
-    Object? actionUrl = freezed,
-    Object? targetDescription = freezed,
-  }) {
-    return _then(_Campaign(
-      id: null == id
-          ? _self.id
-          : id // ignore: cast_nullable_to_non_nullable
-              as String,
-      title: null == title
-          ? _self.title
-          : title // ignore: cast_nullable_to_non_nullable
-              as String,
-      message: freezed == message
-          ? _self.message
-          : message // ignore: cast_nullable_to_non_nullable
-              as String?,
-      notes: null == notes
-          ? _self._notes
-          : notes // ignore: cast_nullable_to_non_nullable
-              as List<EventNote>,
-      category: null == category
-          ? _self.category
-          : category // ignore: cast_nullable_to_non_nullable
-              as String,
-      targetType: null == targetType
-          ? _self.targetType
-          : targetType // ignore: cast_nullable_to_non_nullable
-              as String,
-      recipientCount: null == recipientCount
-          ? _self.recipientCount
-          : recipientCount // ignore: cast_nullable_to_non_nullable
-              as int,
-      status: null == status
-          ? _self.status
-          : status // ignore: cast_nullable_to_non_nullable
-              as CampaignStatus,
-      timestamp: null == timestamp
-          ? _self.timestamp
-          : timestamp // ignore: cast_nullable_to_non_nullable
-              as DateTime,
-      sentByUserId: freezed == sentByUserId
-          ? _self.sentByUserId
-          : sentByUserId // ignore: cast_nullable_to_non_nullable
-              as String?,
-      actionUrl: freezed == actionUrl
-          ? _self.actionUrl
-          : actionUrl // ignore: cast_nullable_to_non_nullable
-              as String?,
-      targetDescription: freezed == targetDescription
-          ? _self.targetDescription
-          : targetDescription // ignore: cast_nullable_to_non_nullable
-              as String?,
-    ));
-  }
+/// Create a copy of Campaign
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? title = null,Object? message = freezed,Object? notes = null,Object? category = null,Object? targetType = null,Object? recipientCount = null,Object? status = null,Object? timestamp = null,Object? sentByUserId = freezed,Object? actionUrl = freezed,Object? targetDescription = freezed,}) {
+  return _then(_Campaign(
+id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as String,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
+as String,message: freezed == message ? _self.message : message // ignore: cast_nullable_to_non_nullable
+as String?,notes: null == notes ? _self._notes : notes // ignore: cast_nullable_to_non_nullable
+as List<EventNote>,category: null == category ? _self.category : category // ignore: cast_nullable_to_non_nullable
+as String,targetType: null == targetType ? _self.targetType : targetType // ignore: cast_nullable_to_non_nullable
+as String,recipientCount: null == recipientCount ? _self.recipientCount : recipientCount // ignore: cast_nullable_to_non_nullable
+as int,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
+as CampaignStatus,timestamp: null == timestamp ? _self.timestamp : timestamp // ignore: cast_nullable_to_non_nullable
+as DateTime,sentByUserId: freezed == sentByUserId ? _self.sentByUserId : sentByUserId // ignore: cast_nullable_to_non_nullable
+as String?,actionUrl: freezed == actionUrl ? _self.actionUrl : actionUrl // ignore: cast_nullable_to_non_nullable
+as String?,targetDescription: freezed == targetDescription ? _self.targetDescription : targetDescription // ignore: cast_nullable_to_non_nullable
+as String?,
+  ));
+}
+
+
 }
 
 // dart format on

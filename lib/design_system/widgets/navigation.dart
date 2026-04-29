@@ -254,59 +254,64 @@ class _UnderlinedTabItem extends StatelessWidget {
         topRight: Radius.circular(AppShapes.rMd),
       ),
       child: Container(
-        height: 48,
         padding: const EdgeInsets.symmetric(horizontal: AppSpacing.standard),
         alignment: Alignment.center,
-        child: Stack(
-          alignment: Alignment.bottomCenter,
-          children: [
-            // Label Content
-            Center(
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  if (icon != null) ...[
-                    Icon(
-                      icon,
-                      size: AppShapes.iconSm,
-                      color: isSelected ? activeTextColor : inactiveTextColor,
-                    ),
-                    const SizedBox(width: AppSpacing.sm),
-                  ],
-                  Flexible(
-                    child: Text(
-                      label.toUpperCase(),
-                      style: AppTypography.micro.copyWith(
-                        fontSize: 12,
-                        fontWeight: isSelected ? AppTypography.weightExtraBold : AppTypography.weightBold,
+        child: IntrinsicWidth(
+          child: Stack(
+            alignment: Alignment.bottomCenter,
+            children: [
+              // Label Content
+              Container(
+                height: 48,
+                alignment: Alignment.center,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    if (icon != null) ...[
+                      Icon(
+                        icon,
+                        size: AppShapes.iconSm,
                         color: isSelected ? activeTextColor : inactiveTextColor,
-                        letterSpacing: 1.0,
                       ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                      const SizedBox(width: AppSpacing.sm),
+                    ],
+                    Flexible(
+                      child: Text(
+                        label.toUpperCase(),
+                        style: AppTypography.micro.copyWith(
+                          fontSize: 12,
+                          fontWeight: isSelected ? AppTypography.weightExtraBold : AppTypography.weightBold,
+                          color: isSelected ? activeTextColor : inactiveTextColor,
+                          letterSpacing: 1.0,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-            // Indicator
-            Positioned(
-              bottom: 0,
-              width: indicatorWidth ?? 80, // Default to 80 if not specified
-              height: 4,
-              child: AnimatedOpacity(
-                duration: AppAnimations.fast,
-                opacity: isSelected ? 1.0 : 0.0,
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.primary,
-                    borderRadius: BorderRadius.circular(2),
+              // Indicator
+              Positioned(
+                bottom: 0,
+                left: indicatorWidth == null ? 0 : null,
+                right: indicatorWidth == null ? 0 : null,
+                width: indicatorWidth,
+                height: 4,
+                child: AnimatedOpacity(
+                  duration: AppAnimations.fast,
+                  opacity: isSelected ? 1.0 : 0.0,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.primary,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
                   ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

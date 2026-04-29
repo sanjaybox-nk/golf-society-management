@@ -157,6 +157,13 @@ class ThemeController extends Notifier<SocietyConfig> {
     await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
   }
 
+  Future<void> setHeroGradientColor(Color color) async {
+    final hex = color.toARGB32();
+    final newConfig = state.copyWith(heroGradientColor: hex);
+    state = newConfig;
+    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
+  }
+
   Future<void> setBackgroundColor(Color color) async {
     final hex = color.toARGB32();
     final newConfig = state.copyWith(backgroundColor: hex);
@@ -586,6 +593,12 @@ class ThemeController extends Notifier<SocietyConfig> {
     final newConfig = state.copyWith(
       sponsors: state.sponsors.where((s) => s.id != id).toList(),
     );
+    state = newConfig;
+    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
+  }
+
+  Future<void> setCardTintIntensity(double intensity) async {
+    final newConfig = state.copyWith(cardTintIntensity: intensity);
     state = newConfig;
     await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
   }

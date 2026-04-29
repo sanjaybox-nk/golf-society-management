@@ -8,6 +8,9 @@ The project follows a **Feature-First** architecture combined with **Riverpod** 
 lib/
 ├── design_system/          # Clean UI system (Atoms, Widgets, Theme)
 │   ├── atoms/              # Base components (Buttons, Inputs, Badges)
+│   │   ├── inputs/         # Specialized input fields (Search, Metric, Date)
+│   │   ├── badges/         # Status indicators (Pill, Indicator, Avatar)
+│   │   └── layout/         # Structural atoms (Dividers, Spacing)
 │   ├── widgets/            # Complex layouts (Cards, Scaffolds, Section Titles)
 │   ├── theme/              # AppTheme, Shadows, Palettes (True Minimal v4.1)
 │   └── design_system.dart  # Central export layer (single import for all UI)
@@ -17,14 +20,19 @@ lib/
 │   ├── members/            # Members Directory & Profiles
 │   ├── surveys/            # Member-facing Survey screens
 │   ├── admin/              # Administrative Console
+│   │   ├── application/    # Shared admin application services (AdminActionService)
 │   │   ├── competitions/   # Competition setup, templates, scoring review
 │   │   ├── events/         # Event management, grouping, registrations
 │   │   ├── members/        # Member admin (debt, renewals)
+│   │   │   ├── controllers/# Riverpod 2.0 Notifiers for domain logic
+│   │   │   └── widgets/    # Atomic feature-specific widgets
 │   │   ├── notifications/  # Communications Hub
 │   │   ├── reports/        # Reporting Hub (finances, engagement)
 │   │   ├── settings/       # Branding, sponsorship, roles
 │   │   ├── surveys/        # Survey admin (editor, results)
 │   │   └── treasury/       # Debt ledger, fines, charity
+│   │       ├── controllers/# Settlement and ledger logic
+│   │       └── widgets/    # Specialized finance widgets
 │   └── matchplay/          # Specialized Match Play Module (Standalone logic)
 ├── domain/                 # Core Business Logic & Entities
 │   ├── models/             # Shared Data Models (Freezed + JsonSerializable)
@@ -58,8 +66,9 @@ All repositories use `.withConverter` for type-safe JSON mapping:
 - `LeaderboardInvokerService` (Season Standings Calculator)
 
 ### Provider Patterns
-- **Defined in**: `feature/presentation/provider_name.dart`
-- **Consumed via**: `ref.watch(provider)` on `ConsumerWidget` / `ConsumerStatefulWidget`
+- **Defined in**: `feature/presentation/provider_name.dart` or `feature/presentation/controllers/feature_controller.dart`
+- **Consumed via**: `ref.watch(provider)` or `ref.watch(featureControllerProvider)`
+- **Controller-Based Logic (v8.0)**: (April 2026) Administrative hubs use the **Thin Shell Presentation** pattern. Business logic is moved to `Notifier` controllers, and large screens are decomposed into atomic functional widgets.
 - **Cache invalidation**: `ref.invalidate(provider(id))` after successful saves to prevent stale data in deep-linked routes.
 
 ## Domain Logic
@@ -74,6 +83,7 @@ Complex business rules are encapsulated in standalone classes in `domain/`:
 - **Automated Financials**:
   - **Club Bill**: Auto-calculated from confirmed registrations and meal preferences.
   - **Indicative Costs** (e.g. Buggy): Treated as member-direct and excluded from society treasury.
+- **`SmartAudienceEvaluator`**: Central logic for dynamic audience membership. Handles AND-logic filtering across member status, handicap, debt, and next-event registration status.
 
 ## Complex Form Architecture
 
@@ -110,6 +120,8 @@ All models are immutable, generated with `freezed` and `JsonSerializable`:
   | `FinancialEntry` | Treasury ledger items (sponsorship, donation, expense) |
   | `LeaderboardEntry` | Pre-calculated scoring vehicle — SSOT for all display |
   | `SocietyConfig` | Comprehensive Branding SSOT (Tokens, radii, spacing, mechanicals) |
+  | `DistributionList` | Target audience definition with `isDynamic` and `filterCriteria` support |
+  | `AudienceFilterRule` | Schema for dynamic filtering (Property, Operator, Value) |
 
 ## Code Quality & Hardening
 

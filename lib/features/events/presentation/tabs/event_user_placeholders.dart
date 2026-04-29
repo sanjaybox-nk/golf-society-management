@@ -206,6 +206,12 @@ class EventGroupingUserTab extends ConsumerWidget {
                                    showScoring: event.isGroupingPublished, // Surface results once groups are public
                                    computedEntries: computedEntries,
                                    matches: event.matches,
+                                   onTapParticipant: (p, g) => SharedTournamentLogic.handleParticipantTap(
+                                     context: context,
+                                     ref: ref,
+                                     event: event,
+                                     participant: p,
+                                   ),
                                 ),
                             );
                          },
@@ -1967,6 +1973,12 @@ class __TournamentGroupScoresViewState extends ConsumerState<_TournamentGroupSco
       rules: widget.rules,
       playerHoleLimits: const {},
       teeOverrides: widget.markerSelection.teeOverrides,
+      onTapParticipant: (p, g) => SharedTournamentLogic.handleParticipantTap(
+        context: context,
+        ref: ref,
+        event: widget.event,
+        participant: p,
+      ),
     );
   }
 }
@@ -2009,6 +2021,83 @@ class SharedTournamentLogic {
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (e, s) => Center(child: Text('Error: $e')),
     );
+  }
+
+  static void handleParticipantTap({
+    required BuildContext context,
+    required WidgetRef ref,
+    required GolfEvent event,
+    required TeeGroupParticipant participant,
+  }) {
+    final scoringData = ref.read(eventScoringControllerProvider(event.id));
+    final entryId = participant.isGuest ? '${participant.registrationMemberId}_guest' : participant.registrationMemberId;
+    final processedEntry = scoringData.leaderboard.firstWhereOrNull((e) => e.entryId == entryId);
+
+    if (processedEntry != null) {
+      final scorecards = ref.read(scorecardsListProvider(event.id)).value ?? [];
+      final members = ref.read(allMembersProvider).value ?? [];
+      final comp = ref.read(competitionDetailProvider(event.id)).value;
+      
+      final memberMap = {for (final m in members) m.id: m};
+      final isMatchPlay = (comp?.rules.isMatchPlay ?? false) || event.matches.isNotEmpty;
+      
+      final String? playerId = processedEntry.teamMemberIds.firstOrNull;
+      final member = playerId != null ? memberMap[playerId] : null;
+
+      String? hostName;
+      bool hasGuest = false;
+
+      if (processedEntry.isGuest) {
+        final reg = event.registrations.where((r) => r.guestName == processedEntry.playerName).firstOrNull;
+        hostName = reg?.memberName;
+      } else if (playerId != null) {
+        hasGuest = event.registrations.any((r) => r.memberId == playerId && r.guestName != null);
+      }
+
+      final entry = LeaderboardEntry(
+        entryId: processedEntry.entryId,
+        playerName: processedEntry.playerName,
+        score: isMatchPlay ? (processedEntry.matchScore ?? 0) : processedEntry.score,
+        scoreLabel: isMatchPlay ? processedEntry.matchStatus : processedEntry.scoreLabel,
+        handicap: (processedEntry.handicapIndex ?? 0.0).round(),
+        handicapIndex: processedEntry.handicapIndex ?? 0.0,
+        playingHandicap: processedEntry.individualPlayingHandicaps.firstOrNull,
+        holesPlayed: processedEntry.holesPlayed,
+        isGuest: processedEntry.isGuest,
+        hasGuest: hasGuest,
+        initials: (comp?.rules.isUnifiedTeamFormat ?? false) ? (processedEntry.teamMemberNames.firstOrNull ?? processedEntry.playerName) : processedEntry.playerName,
+        avatarUrl: member?.avatarUrl,
+        hostName: hostName,
+        hasSocietyCut: processedEntry.hasSocietyCut,
+        holeScores: processedEntry.holeScores,
+        holeNetScores: processedEntry.holeNetScores,
+        holePoints: processedEntry.holePoints,
+        individualHoleScores: processedEntry.individualHoleScores,
+        individualHoleNetScores: processedEntry.individualHoleNetScores,
+        individualHolePoints: processedEntry.individualHolePoints,
+        teamMemberIds: processedEntry.teamMemberIds,
+        teamMemberNames: processedEntry.teamMemberNames,
+        position: processedEntry.position,
+        tieBreakDetails: processedEntry.tieBreakLabel,
+        tieBreakMetrics: processedEntry.tieBreakMetrics,
+        scoringStatus: processedEntry.scoringStatus,
+        mode: comp?.rules.mode ?? CompetitionMode.singles,
+        isCaptain: comp?.rules.isUnifiedTeamFormat ?? false,
+        teeName: processedEntry.teeName,
+        teeColor: AppColors.getTeeColor(processedEntry.teeName, event.courseConfig.tees),
+      );
+      
+      ScorecardModal.show(
+        context, 
+        ref,
+        entry: entry,
+        scorecards: scorecards,
+        event: event,
+        comp: comp,
+        membersList: members,
+        teeOverrides: ref.read(markerSelectionProvider).teeOverrides,
+      );
+    }
   }
 }
 

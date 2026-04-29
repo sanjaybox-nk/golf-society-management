@@ -23,45 +23,47 @@ Map<String, dynamic> _$AdminEditAuditToJson(_AdminEditAudit instance) =>
     };
 
 _Scorecard _$ScorecardFromJson(Map<String, dynamic> json) => _Scorecard(
-      id: json['id'] as String,
-      competitionId: json['competitionId'] as String,
-      roundId: json['roundId'] as String,
-      entryId: json['entryId'] as String,
-      submittedByUserId: json['submittedByUserId'] as String,
-      status: $enumDecodeNullable(_$ScorecardStatusEnumMap, json['status']) ??
-          ScorecardStatus.draft,
-      scoringStatus:
-          $enumDecodeNullable(_$ScoringStatusEnumMap, json['scoringStatus']) ??
-              ScoringStatus.ok,
-      holeScores: (json['holeScores'] as List<dynamic>?)
-              ?.map((e) => (e as num?)?.toInt())
-              .toList() ??
-          const [],
-      playerVerifierScores: (json['playerVerifierScores'] as List<dynamic>?)
-              ?.map((e) => (e as num?)?.toInt())
-              .toList() ??
-          const [],
-      markerId: json['markerId'] as String?,
-      shotAttributions:
-          (json['shotAttributions'] as Map<String, dynamic>?)?.map(
-                (k, e) => MapEntry(int.parse(k), e as String?),
-              ) ??
-              const {},
-      grossTotal: (json['grossTotal'] as num?)?.toInt(),
-      netTotal: (json['netTotal'] as num?)?.toInt(),
-      points: (json['points'] as num?)?.toInt(),
-      handicapIndex: (json['handicapIndex'] as num?)?.toDouble(),
-      playingHandicap: (json['playingHandicap'] as num?)?.toInt(),
-      assignedTeeName: json['assignedTeeName'] as String?,
-      adminEditAudit: json['adminEditAudit'] == null
-          ? null
-          : AdminEditAudit.fromJson(
-              json['adminEditAudit'] as Map<String, dynamic>),
-      adminOverridePublish: json['adminOverridePublish'] as bool? ?? false,
-      submittedAt: const TimestampConverter().fromJson(json['submittedAt']),
-      createdAt: const TimestampConverter().fromJson(json['createdAt']),
-      updatedAt: const TimestampConverter().fromJson(json['updatedAt']),
-    );
+  id: json['id'] as String,
+  competitionId: json['competitionId'] as String,
+  roundId: json['roundId'] as String,
+  entryId: json['entryId'] as String,
+  submittedByUserId: json['submittedByUserId'] as String,
+  status:
+      $enumDecodeNullable(_$ScorecardStatusEnumMap, json['status']) ??
+      ScorecardStatus.draft,
+  scoringStatus:
+      $enumDecodeNullable(_$ScoringStatusEnumMap, json['scoringStatus']) ??
+      ScoringStatus.ok,
+  holeScores:
+      (json['holeScores'] as List<dynamic>?)
+          ?.map((e) => (e as num?)?.toInt())
+          .toList() ??
+      const [],
+  playerVerifierScores:
+      (json['playerVerifierScores'] as List<dynamic>?)
+          ?.map((e) => (e as num?)?.toInt())
+          .toList() ??
+      const [],
+  markerId: json['markerId'] as String?,
+  shotAttributions:
+      (json['shotAttributions'] as Map<String, dynamic>?)?.map(
+        (k, e) => MapEntry(int.parse(k), e as String?),
+      ) ??
+      const {},
+  grossTotal: (json['grossTotal'] as num?)?.toInt(),
+  netTotal: (json['netTotal'] as num?)?.toInt(),
+  points: (json['points'] as num?)?.toInt(),
+  handicapIndex: (json['handicapIndex'] as num?)?.toDouble(),
+  playingHandicap: (json['playingHandicap'] as num?)?.toInt(),
+  assignedTeeName: json['assignedTeeName'] as String?,
+  adminEditAudit: json['adminEditAudit'] == null
+      ? null
+      : AdminEditAudit.fromJson(json['adminEditAudit'] as Map<String, dynamic>),
+  adminOverridePublish: json['adminOverridePublish'] as bool? ?? false,
+  submittedAt: const TimestampConverter().fromJson(json['submittedAt']),
+  createdAt: const TimestampConverter().fromJson(json['createdAt']),
+  updatedAt: const TimestampConverter().fromJson(json['updatedAt']),
+);
 
 Map<String, dynamic> _$ScorecardToJson(_Scorecard instance) =>
     <String, dynamic>{
@@ -75,8 +77,9 @@ Map<String, dynamic> _$ScorecardToJson(_Scorecard instance) =>
       'holeScores': instance.holeScores,
       'playerVerifierScores': instance.playerVerifierScores,
       'markerId': instance.markerId,
-      'shotAttributions':
-          instance.shotAttributions.map((k, e) => MapEntry(k.toString(), e)),
+      'shotAttributions': instance.shotAttributions.map(
+        (k, e) => MapEntry(k.toString(), e),
+      ),
       'grossTotal': instance.grossTotal,
       'netTotal': instance.netTotal,
       'points': instance.points,
@@ -86,7 +89,9 @@ Map<String, dynamic> _$ScorecardToJson(_Scorecard instance) =>
       'adminEditAudit': instance.adminEditAudit?.toJson(),
       'adminOverridePublish': instance.adminOverridePublish,
       'submittedAt': _$JsonConverterToJson<Object?, DateTime>(
-          instance.submittedAt, const TimestampConverter().toJson),
+        instance.submittedAt,
+        const TimestampConverter().toJson,
+      ),
       'createdAt': const TimestampConverter().toJson(instance.createdAt),
       'updatedAt': const TimestampConverter().toJson(instance.updatedAt),
     };
@@ -109,5 +114,4 @@ const _$ScoringStatusEnumMap = {
 Json? _$JsonConverterToJson<Json, Value>(
   Value? value,
   Json? Function(Value value) toJson,
-) =>
-    value == null ? null : toJson(value);
+) => value == null ? null : toJson(value);

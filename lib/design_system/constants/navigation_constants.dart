@@ -11,7 +11,7 @@ class NavigationConstants {
     BoxyArtBottomNavItem(
       icon: Icons.calendar_month_outlined,
       activeIcon: Icons.calendar_month,
-      label: 'Events',
+      label: 'Golf Events',
     ),
     BoxyArtBottomNavItem(
       icon: Icons.people_outline,
@@ -39,7 +39,7 @@ class NavigationConstants {
     BoxyArtBottomNavItem(
       icon: Icons.calendar_month_outlined,
       activeIcon: Icons.calendar_month,
-      label: 'Events',
+      label: 'Golf Events',
     ),
     BoxyArtBottomNavItem(
       icon: Icons.people_outline,

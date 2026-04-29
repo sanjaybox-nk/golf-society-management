@@ -14,6 +14,7 @@ import 'dart:convert';
 import 'package:image_picker/image_picker.dart';
 import 'package:golf_society/services/storage_service.dart';
 import 'package:golf_society/domain/models/campaign.dart';
+import 'smart_audience_evaluator.dart';
 
 class NotificationSectionController {
   final TextEditingController titleController;
@@ -68,9 +69,7 @@ class _ComposeNotificationScreenState extends ConsumerState<ComposeNotificationS
   final _formKey = GlobalKey<FormState>();
   
   // Targeting
-  String _targetType = 'All Members'; // 'All Members', 'Groups', 'Individual'
-  DistributionList? _selectedCustomList;
-  Member? _selectedMember; // For Individual targets
+  DistributionList? _selectedAudience; // Null = All Members (System Default)
   String? _selectedEventId;
   
   // Message
@@ -79,8 +78,6 @@ class _ComposeNotificationScreenState extends ConsumerState<ComposeNotificationS
   final List<String> _categories = ['Announcement', 'Note', 'Urgent Alert', 'Event Update', 'Social'];
   bool _isSending = false;
   bool _isUploading = false;
-  
-  final List<String> _targetOptions = ['All Members', 'Groups', 'Individual'];
 
   @override
   void initState() {
@@ -141,7 +138,12 @@ class _ComposeNotificationScreenState extends ConsumerState<ComposeNotificationS
       if (mounted) {
         setState(() {
           if (category != null) _category = category;
-          if (targetType != null) _targetType = targetType;
+          if (targetType != null) {
+            // Map legacy targetType to _selectedAudience if possible
+            if (targetType == 'All Members') {
+              _selectedAudience = null;
+            }
+          }
           
           _sections.clear();
           if (notes.isEmpty) {
@@ -181,23 +183,41 @@ class _ComposeNotificationScreenState extends ConsumerState<ComposeNotificationS
     }
 
     // Logic to calculate count based on target
-    int recipientCount = 0;
     final members = ref.read(allMembersProvider).value ?? [];
+    final events = ref.read(eventsProvider).value ?? [];
     
-    if (_targetType == 'All Members') {
-      recipientCount = members.length;
-    } else if (_targetType == 'Groups') {
-      if (_selectedCustomList != null) {
-          recipientCount = _selectedCustomList!.memberIds.length;
+    List<String> recipientIds = [];
+    String targetDesc = '';
+
+    if (_selectedEventId != null) {
+      final selectedEvent = ref.read(adminEventsProvider).value?.firstWhereOrNull((e) => e.id == _selectedEventId);
+      if (selectedEvent != null) {
+        recipientIds = selectedEvent.registrations.map((r) => r.memberId).toSet().toList();
+        targetDesc = 'Event Registrants (${selectedEvent.title})';
       }
-    } else if (_targetType == 'Individual') {
-      recipientCount = 1;
+    } else {
+      if (_selectedAudience == null) {
+        recipientIds = members.map((m) => m.id).toList();
+        targetDesc = 'All Members';
+      } else if (_selectedAudience!.isDynamic) {
+        recipientIds = SmartAudienceEvaluator.evaluate(
+          members: members,
+          rules: _selectedAudience!.filterCriteria,
+          events: events,
+        );
+        targetDesc = 'Smart List: ${_selectedAudience!.name}';
+      } else {
+        recipientIds = _selectedAudience!.memberIds;
+        targetDesc = 'Group: ${_selectedAudience!.name}';
+      }
     }
+
+    final recipientCount = recipientIds.length;
 
     showBoxyArtDialog(
       context: context,
       title: 'Confirm Send',
-      message: 'You are about to message $recipientCount people. This action will broadcast to the entire target audience. Confirm?',
+      message: 'You are about to message $recipientCount people ($targetDesc). Confirm?',
       onCancel: () => Navigator.of(context, rootNavigator: true).pop(),
       onConfirm: () async {
         Navigator.of(context, rootNavigator: true).pop();
@@ -207,33 +227,7 @@ class _ComposeNotificationScreenState extends ConsumerState<ComposeNotificationS
         final firestore = FirebaseFirestore.instance;
         final batch = firestore.batch();
         
-        // 1. Identify Recipients
-        List<String> recipientIds = [];
-        String targetDesc = '';
-
-        if (_selectedEventId != null) {
-          final events = ref.read(adminEventsProvider).value ?? [];
-          final selectedEvent = events.firstWhereOrNull((e) => e.id == _selectedEventId);
-          if (selectedEvent != null) {
-            recipientIds = selectedEvent.registrations.map((r) => r.memberId).toSet().toList();
-            targetDesc = 'All Event Registrants (${selectedEvent.title})';
-          }
-        } else {
-          if (_targetType == 'All Members') {
-            recipientIds = members.map((m) => m.id).toList();
-            targetDesc = 'All Members';
-          } else if (_targetType == 'Groups') {
-            if (_selectedCustomList != null) {
-               recipientIds = _selectedCustomList!.memberIds;
-               targetDesc = _selectedCustomList!.name;
-            }
-          } else if (_targetType == 'Individual') {
-             if (_selectedMember != null) {
-               recipientIds = [_selectedMember!.id];
-               targetDesc = '${_selectedMember!.firstName} ${_selectedMember!.lastName}';
-             }
-          }
-        }
+        // Use the recipientIds and targetDesc we already calculated
 
         if (recipientIds.isEmpty) {
            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('No recipients found.')));
@@ -259,7 +253,7 @@ class _ComposeNotificationScreenState extends ConsumerState<ComposeNotificationS
                 ? _sections.first.titleController.text 
                 : 'Untitled Notification',
             category: _category,
-            targetType: _targetType,
+            targetType: _selectedAudience?.name ?? 'All Members',
             recipientCount: recipientCount,
             timestamp: DateTime.now(),
             targetDescription: targetDesc,
@@ -365,10 +359,10 @@ class _ComposeNotificationScreenState extends ConsumerState<ComposeNotificationS
             ? _sections.first.titleController.text 
             : 'Draft: $_category',
         category: _category,
-        targetType: _targetType,
+        targetType: _selectedAudience == null ? 'All Members' : (_selectedAudience!.isDynamic ? 'Smart List' : 'Group'),
         recipientCount: 0, // Not determined for drafts
         timestamp: DateTime.now(),
-        targetDescription: _targetType,
+        targetDescription: _selectedAudience?.name ?? 'All Members',
         status: CampaignStatus.draft,
         notes: notes,
       );
@@ -459,15 +453,28 @@ class _ComposeNotificationScreenState extends ConsumerState<ComposeNotificationS
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final membersAsync = ref.watch(allMembersProvider);
     final eventsAsync = ref.watch(adminEventsProvider);
+    final events = ref.watch(eventsProvider).value ?? [];
     
     int totalRecipients = 0;
     if (_selectedEventId != null) {
       final selectedEvent = eventsAsync.value?.firstWhereOrNull((e) => e.id == _selectedEventId);
       totalRecipients = selectedEvent?.registrations.length ?? 0;
     } else {
-      totalRecipients = membersAsync.value?.length ?? 0;
+      final members = membersAsync.value ?? [];
+      if (_selectedAudience == null) {
+        totalRecipients = members.length;
+      } else if (_selectedAudience!.isDynamic) {
+        totalRecipients = SmartAudienceEvaluator.evaluate(
+          members: members, 
+          rules: _selectedAudience!.filterCriteria,
+          events: events,
+        ).length;
+      } else {
+        totalRecipients = _selectedAudience!.memberIds.length;
+      }
     }
 
     final spacing = Theme.of(context).extension<AppSpacingTokens>();
@@ -479,12 +486,12 @@ class _ComposeNotificationScreenState extends ConsumerState<ComposeNotificationS
         children: [
           const BoxyArtSectionTitle(title: 'Event', isPeeking: true),
           BoxyArtCard(
-            padding: const EdgeInsets.all(AppSpacing.xl), // Increased to xl for standard admin padding
+            padding: const EdgeInsets.all(AppSpacing.xl),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 _buildEventPicker(),
-                _buildTargetSelector(totalRecipients),
+                _buildAudienceCard(totalRecipients),
               ],
             ),
           ),
@@ -551,17 +558,17 @@ class _ComposeNotificationScreenState extends ConsumerState<ComposeNotificationS
   }
 
 
-  Widget _buildTargetSelector(int totalCount) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final customListsAsync = ref.watch(distributionListProvider);
-    final customLists = customListsAsync.value ?? [];
-    final members = ref.watch(allMembersProvider).value ?? [];
+  Widget _buildAudienceCard(int totalCount) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final audienceName = _selectedAudience?.name ?? 'All Members';
+    final isSmart = _selectedAudience?.isDynamic ?? false;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        const SizedBox(height: AppSpacing.lg),
         if (_selectedEventId != null) ...[
-          const SizedBox(height: AppSpacing.lg),
           const BoxyArtDivider(),
           const SizedBox(height: AppSpacing.lg),
           Row(
@@ -576,7 +583,7 @@ class _ComposeNotificationScreenState extends ConsumerState<ComposeNotificationS
                       style: AppTypography.micro.copyWith(
                         color: AppColors.dark400,
                         fontWeight: AppTypography.weightBold,
-                        letterSpacing: 0.1, // Softer than legacy all-caps
+                        letterSpacing: 0.1,
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -611,116 +618,195 @@ class _ComposeNotificationScreenState extends ConsumerState<ComposeNotificationS
             ],
           ),
         ] else ...[
-          const SizedBox(height: AppSpacing.md),
-          BoxyArtCard(
-            padding: const EdgeInsets.all(AppSpacing.xs),
-            backgroundColor: Theme.of(context).scaffoldBackgroundColor.withValues(alpha: 0.5),
-            child: Row(
-              children: _targetOptions.map((opt) {
-                final isSelected = _targetType == opt;
-                final color = isSelected ? AppColors.teamA : AppColors.dark400;
-
-                return Expanded(
-                  child: GestureDetector(
-                    onTap: () => setState(() => _targetType = opt),
-                    child: AnimatedContainer(
-                      duration: AppAnimations.fast,
-                      padding: const EdgeInsets.symmetric(vertical: 10),
-                      decoration: BoxDecoration(
-                        color: isSelected ? color.withValues(alpha: 0.15) : Colors.transparent,
-                        borderRadius: BorderRadius.circular(AppShapes.rMd),
-                        border: Border.all(
-                          color: isSelected ? color : Colors.transparent,
-                          width: 2,
-                        ),
-                      ),
-                      child: Text(
-                        opt, // Removed toUpperCase()
-                        textAlign: TextAlign.center,
-                        style: AppTypography.labelStrong.copyWith(
-                          fontSize: 10,
-                          color: isSelected ? color : Theme.of(context).textTheme.bodyMedium?.color?.withValues(alpha: 0.5),
-                        ),
-                      ),
-                    ),
-                  ),
-                );
-              }).toList(),
-            ),
-          ),
-          if (_targetType == 'All Members' && _selectedEventId == null) ...[
-            const SizedBox(height: AppSpacing.md),
-            BoxyArtCard(
-              padding: const EdgeInsets.all(AppSpacing.standard),
-              backgroundColor: AppColors.teamA.withValues(alpha: 0.1),
-              borderRadius: ref.read(themeControllerProvider).cardRadius,
+          InkWell(
+            onTap: _showAudiencePicker,
+            borderRadius: AppShapes.lg,
+            child: Container(
+              padding: const EdgeInsets.all(AppSpacing.lg),
+              decoration: BoxDecoration(
+                color: isDark ? AppColors.dark800 : AppColors.dark50,
+                borderRadius: AppShapes.lg,
+                border: Border.all(color: theme.dividerColor.withValues(alpha: 0.1)),
+              ),
               child: Row(
                 children: [
+                  BoxyArtIconBadge(
+                    icon: isSmart ? Icons.auto_awesome_rounded : Icons.group_rounded,
+                    isPrimary: true,
+                    size: 48,
+                    iconSize: 24,
+                  ),
+                  const SizedBox(width: AppSpacing.lg),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'AUDIENCE',
+                          style: AppTypography.micro.copyWith(
+                            color: isDark ? AppColors.dark400 : AppColors.dark500,
+                            fontWeight: AppTypography.weightBold,
+                            letterSpacing: 1.5,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          audienceName,
+                          style: AppTypography.labelStrong.copyWith(
+                            fontSize: 18,
+                            color: theme.colorScheme.onSurface,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(
+                        '$totalCount',
+                        style: AppTypography.displayHeading.copyWith(
+                          color: AppColors.lime500,
+                          fontSize: 24,
+                        ),
+                      ),
+                      Text(
+                        'REACH',
+                        style: AppTypography.micro.copyWith(
+                          fontSize: 9,
+                          fontWeight: AppTypography.weightBold,
+                          color: isDark ? AppColors.dark400 : AppColors.dark500,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(width: AppSpacing.md),
+                  Icon(
+                    Icons.chevron_right_rounded,
+                    color: isDark ? AppColors.dark400 : AppColors.dark300,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  void _showAudiencePicker() {
+    final customLists = ref.read(distributionListProvider).value ?? [];
+    final members = ref.read(allMembersProvider).value ?? [];
+    final events = ref.read(eventsProvider).value ?? [];
+
+    BoxyArtBottomSheet.show(
+      context: context,
+      title: 'Select Audience',
+      child: Column(
+        children: [
+          // System Defaults
+          _buildPickerTile(
+            title: 'All Members',
+            subtitle: 'Broadcast to everyone in the society',
+            icon: Icons.groups_rounded,
+            isSelected: _selectedAudience == null,
+            count: members.length,
+            onTap: () {
+              setState(() => _selectedAudience = null);
+              Navigator.pop(context);
+            },
+          ),
+          const BoxyArtDivider(),
+          const SizedBox(height: AppSpacing.md),
+          const BoxyArtSectionTitle(title: 'Saved Lists', isPeeking: true),
+          if (customLists.isEmpty)
+             Padding(
+               padding: const EdgeInsets.all(AppSpacing.xl),
+               child: Center(
+                 child: Text('No saved lists found', style: AppTypography.caption),
+               ),
+             )
+          else
+            ...customLists.map((list) {
+              final int count = list.isDynamic 
+                  ? SmartAudienceEvaluator.evaluate(members: members, rules: list.filterCriteria, events: events).length
+                  : list.memberIds.length;
+                  
+              return _buildPickerTile(
+                title: list.name,
+                subtitle: list.isDynamic ? 'Smart List (Auto-updates)' : 'Static List (${list.memberIds.length} members)',
+                icon: list.isDynamic ? Icons.auto_awesome_rounded : Icons.group_rounded,
+                isSelected: _selectedAudience?.id == list.id,
+                count: count,
+                onTap: () {
+                  setState(() => _selectedAudience = list);
+                  Navigator.pop(context);
+                },
+              );
+            }),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPickerTile({
+    required String title,
+    required String subtitle,
+    required IconData icon,
+    required bool isSelected,
+    required int count,
+    required VoidCallback onTap,
+  }) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    
+    return InkWell(
+      onTap: onTap,
+      borderRadius: AppShapes.md,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: AppSpacing.md, horizontal: AppSpacing.sm),
+        child: Row(
+          children: [
+            BoxyArtIconBadge(
+              icon: icon,
+              isPrimary: isSelected,
+              size: 40,
+              iconSize: 20,
+            ),
+            const SizedBox(width: AppSpacing.md),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
                   Text(
-                    'REACH: approx. $totalCount members',
+                    title,
                     style: AppTypography.labelStrong.copyWith(
-                      color: AppColors.dark400,
-                      fontSize: 11,
+                      color: isSelected ? theme.primaryColor : theme.colorScheme.onSurface,
+                    ),
+                  ),
+                  Text(
+                    subtitle,
+                    style: AppTypography.caption.copyWith(
+                      color: isDark ? AppColors.dark400 : AppColors.dark300,
                     ),
                   ),
                 ],
               ),
             ),
-          ],
-          if (_targetType == 'Groups') ...[
-            const SizedBox(height: AppSpacing.md),
-            if (customLists.isEmpty)
-              Container(
-                padding: const EdgeInsets.all(AppSpacing.xl),
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  color: Theme.of(context).dividerColor.withValues(alpha: AppColors.opacitySubtle),
-                  borderRadius: AppShapes.lg,
-                  border: Border.all(color: Theme.of(context).dividerColor.withValues(alpha: AppColors.opacityLow)),
-                ),
-                child: Column(
-                  children: [
-                    Icon(Icons.group_off_rounded, size: AppShapes.iconXl, color: Theme.of(context).dividerColor.withValues(alpha: AppColors.opacityMuted)),
-                    const SizedBox(height: AppSpacing.md),
-                    Text(
-                      'No audience groups found',
-                      style: AppTypography.bodySmall.copyWith(color: AppColors.dark300),
-                    ),
-                  ],
-                ),
-              )
-            else
-              BoxyArtDropdownField<DistributionList>(
-                label: 'Target Group',
-                value: _selectedCustomList,
-                hint: 'Select Audience Group',
-                items: customLists.map((l) => DropdownMenuItem(value: l, child: Text(l.name))).toList(),
-                onChanged: (v) => setState(() => _selectedCustomList = v),
+            Text(
+              '$count',
+              style: AppTypography.labelStrong.copyWith(
+                color: isSelected ? AppColors.lime500 : theme.colorScheme.onSurfaceVariant,
               ),
-          ],
-          if (_targetType == 'Individual') ...[
-            const SizedBox(height: AppSpacing.md),
-            Autocomplete<Member>(
-              displayStringForOption: (m) => '${m.firstName} ${m.lastName}',
-              optionsBuilder: (TextEditingValue textEditingValue) {
-                if (textEditingValue.text == '') return const Iterable<Member>.empty();
-                return members.where((m) => 
-                  '${m.firstName} ${m.lastName}'.toLowerCase().contains(textEditingValue.text.toLowerCase())
-                );
-              },
-              onSelected: (Member s) => setState(() => _selectedMember = s),
-              fieldViewBuilder: (context, controller, focusNode, onFieldSubmitted) {
-                return BoxyArtInputField(
-                  label: 'Search Member',
-                  hint: 'Start typing name...',
-                  controller: controller,
-                  focusNode: focusNode,
-                );
-              },
             ),
+            const SizedBox(width: AppSpacing.md),
+            if (isSelected)
+              Icon(Icons.check_circle_rounded, color: theme.primaryColor, size: 20)
+            else
+              const SizedBox(width: 20),
           ],
-        ],
-      ],
+        ),
+      ),
     );
   }
 
@@ -736,13 +822,13 @@ class _ComposeNotificationScreenState extends ConsumerState<ComposeNotificationS
           Row(
              crossAxisAlignment: CrossAxisAlignment.start,
              children: [
-               Expanded(
-                 child: BoxyArtInputField(
-                   label: 'Subject',
-                   hint: 'Enter subject here...',
-                   controller: section.titleController,
-                 ),
-               ),
+                Expanded(
+                  child: BoxyArtInputField(
+                    label: 'Subject',
+                    hint: 'Enter subject here...',
+                    controller: section.titleController,
+                  ),
+                ),
                const SizedBox(width: AppSpacing.md),
                Padding(
                  padding: const EdgeInsets.only(top: 26), 
@@ -869,9 +955,6 @@ class _ComposeNotificationScreenState extends ConsumerState<ComposeNotificationS
           ],
           onChanged: (v) => setState(() {
             _selectedEventId = v;
-            if (v == null) {
-              _targetType = 'All Members';
-            }
           }),
         );
       },

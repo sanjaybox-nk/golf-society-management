@@ -549,12 +549,24 @@ class GroupingCard extends ConsumerWidget {
             ],
           ),
           SizedBox(height: spacing?.labelToCard ?? AppSpacing.md),
-          BoxyArtCard(
-            padding: EdgeInsets.zero,
-            child: Column(
+          IntrinsicHeight(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
+                // The vertical bracket / timeline
+                Container(
+                  width: 1, // Made thinner
+                  margin: const EdgeInsets.only(left: AppSpacing.sm, right: AppSpacing.md, top: AppSpacing.sm, bottom: AppSpacing.sm),
+                  decoration: BoxDecoration(
+                    color: isDark ? AppColors.dark500 : AppColors.lightBorder,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                Expanded(
+                  child: Column(
+                    children: [
                 ...() {
-                  Widget buildParticipantTile(TeeGroupParticipant p, String id, String? side, {bool useCard = false}) {
+                  Widget buildParticipantTile(TeeGroupParticipant p, String id, String? side, {bool useCard = true}) {
               final bool hasGuestInGroupP = !p.isGuest && group.players.any((other) => other.isGuest && other.registrationMemberId == p.registrationMemberId);
               
               return GroupingPlayerTile(
@@ -601,14 +613,9 @@ class GroupingCard extends ConsumerWidget {
 
                 return Column(
                   children: [
-                    buildParticipantTile(p, id, null, useCard: false),
+                    buildParticipantTile(p, id, null, useCard: true),
                     if (!isLast)
-                      Divider(
-                        height: 1,
-                        indent: hPadding,
-                        endIndent: hPadding,
-                        color: Theme.of(context).dividerColor.withValues(alpha: 0.1),
-                      ),
+                      SizedBox(height: spacing?.cardToCard ?? AppSpacing.md),
                   ],
                 );
               }).toList();
@@ -658,12 +665,7 @@ class GroupingCard extends ConsumerWidget {
                     final tile = buildParticipantTile(p, id, 'A');
                     children.add(isAdmin ? _wrapWithDraggable(context, p, tile) : tile);
                     if (p != sideA.last) {
-                      children.add(Divider(
-                        height: 1,
-                        indent: hPadding,
-                        endIndent: hPadding,
-                        color: Theme.of(context).dividerColor.withValues(alpha: 0.1),
-                      ));
+                      children.add(SizedBox(height: spacing?.cardToCard ?? AppSpacing.sm));
                     }
                   }
 
@@ -693,12 +695,7 @@ class GroupingCard extends ConsumerWidget {
                     final tile = buildParticipantTile(p, id, 'B');
                     children.add(isAdmin ? _wrapWithDraggable(context, p, tile) : tile);
                     if (p != sideB.last) {
-                      children.add(Divider(
-                        height: 1,
-                        indent: hPadding,
-                        endIndent: hPadding,
-                        color: Theme.of(context).dividerColor.withValues(alpha: 0.1),
-                      ));
+                      children.add(SizedBox(height: spacing?.cardToCard ?? AppSpacing.sm));
                     }
                   }
 
@@ -747,7 +744,7 @@ class GroupingCard extends ConsumerWidget {
                   onTap: () => onTapParticipant?.call(p, group),
                   hasSocietyCut: p.hasSocietyCut,
                   hasGuestInGroup: !p.isGuest && group.players.any((other) => other.isGuest && other.registrationMemberId == p.registrationMemberId),
-                  useCard: false,
+                  useCard: true,
                   phcOverride: (isScramble || rules?.subtype == CompetitionSubtype.foursomes)
                       ? displayTotalHandicap.toInt()
                       : (isScoreMode ? relativePhcMap[id] : null),
@@ -806,18 +803,16 @@ class GroupingCard extends ConsumerWidget {
                   children.add(Column(mainAxisSize: MainAxisSize.min, children: [
                     playerWidget,
                     if (index != group.players.length - 1)
-                      Divider(
-                        height: 1,
-                        indent: hPadding,
-                        endIndent: hPadding,
-                        color: Theme.of(context).dividerColor.withValues(alpha: 0.1),
-                      ),
+                      SizedBox(height: spacing?.cardToCard ?? AppSpacing.md),
                   ]));
                 }
               }
             }
             return children;
           }(),
+                    ],
+                  ),
+                ),
               ],
             ),
           ),

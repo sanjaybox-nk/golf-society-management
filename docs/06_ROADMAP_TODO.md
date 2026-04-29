@@ -186,6 +186,12 @@ This document tracks the remaining work required to take **Golf Society Manageme
     - [x] **Navigation Bug Fix**: Resolved the "Page Not Found" error for the Admin Scorecard Editor by defining the missing sub-route in `app_router.dart`.
     - [x] **Code Hardening**: Eliminated ambiguous imports and duplicate code in multiple scoring and grouping widgets.
 - [x] **Matchplay Engine Integration**: Independent knockouts and event-layered hybrid competitions fully integrated into the seeding engine and leaderboard UI.
+- [x] **Administrative Modularization & Architecture Hardening (v8.0)** (Completed 2026-04-29):
+    - [x] **Design System Verticalization**: Refactored atoms into specialized directories (Inputs, Badges, Layout).
+    - [x] **Domain Logic Separation**: Modularized Renewal Hub and Debt Ledger Hub with Riverpod 2.0 Notifiers.
+    - [x] **Admin Action Consolidation**: Created shared `AdminActionService` for nudges, audits, and exports.
+    - [x] **Reports Hub Refactor**: Simplified reports screen and introduced `ReportsController`.
+    - [x] **Quality Gate**: Achieving 100% `flutter analyze` pass across all administrative feature modules.
 
 ## 3. Architecture & Patterns
 #### Society Cuts Access Logic

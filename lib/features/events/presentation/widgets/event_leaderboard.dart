@@ -157,7 +157,7 @@ class _EventLeaderboardState extends ConsumerState<EventLeaderboard> {
         if (memberEntries.isNotEmpty) ...[
           if (widget.showTitles) ...[
             BoxyArtSectionTitle(
-              title: hasGuests ? 'Society Members' : 'Live Standings',
+              title: hasGuests ? 'Members' : 'Live Standings',
               count: hasGuests ? memberEntries.length : null,
               topPadding: 0,
             ),

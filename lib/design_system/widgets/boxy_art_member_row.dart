@@ -361,23 +361,32 @@ class BoxyArtMemberRow extends ConsumerWidget {
                 label: '$playingHandicap${hasSocietyCut ? '*' : ''}',
                 hasHorizontalMargin: false,
               ),
-            
-            if (teeName != null)
-              BoxyArtIndicator.tee(
-                label: teeName!,
-                teeColor: teeColor ?? AppColors.textSecondary,
-                onTap: onTeeTap,
-                hasHorizontalMargin: false,
-              ),
-            
-            if (thruLabel != null)
-              _buildLegendItem(
-                label: thruLabel!,
-                color: AppColors.lime500,
-                style: metaStyle,
-              ),
           ],
         ),
+        if (teeName != null || thruLabel != null) ...[
+          const SizedBox(height: 2),
+          Wrap(
+            spacing: 8,
+            runSpacing: 2,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              if (teeName != null)
+                BoxyArtIndicator.tee(
+                  label: teeName!,
+                  teeColor: teeColor ?? AppColors.textSecondary,
+                  onTap: onTeeTap,
+                  hasHorizontalMargin: false,
+                ),
+              
+              if (thruLabel != null)
+                _buildLegendItem(
+                  label: thruLabel!,
+                  color: AppColors.lime500,
+                  style: metaStyle,
+                ),
+            ],
+          ),
+        ],
       ],
     );
   }

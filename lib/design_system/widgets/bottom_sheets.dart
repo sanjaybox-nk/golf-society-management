@@ -6,6 +6,7 @@ class BoxyArtBottomSheet extends StatelessWidget {
   final Widget child;
   final ScrollController? scrollController;
   final VoidCallback? onClose;
+  final bool addNavBarPadding;
 
   const BoxyArtBottomSheet({
     super.key,
@@ -13,6 +14,7 @@ class BoxyArtBottomSheet extends StatelessWidget {
     required this.child,
     this.scrollController,
     this.onClose,
+    this.addNavBarPadding = false,
   });
 
   @override
@@ -71,11 +73,20 @@ class BoxyArtBottomSheet extends StatelessWidget {
                 AppSpacing.xl,
                 AppSpacing.x2l,
                 AppSpacing.xl,
-                AppSpacing.x2l, // Standard bottom breathing room (SafeArea handles device inset)
+                0, // Bottom padding handled by child/nav bar padding
               ),
               child: SafeArea(
                 top: false,
-                child: child,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    child,
+                    if (addNavBarPadding)
+                      const SizedBox(height: 120.0) // Account for floating bottom nav bar (86px + safe area)
+                    else
+                      const SizedBox(height: AppSpacing.x2l), // Standard breathing room
+                  ],
+                ),
               ),
             ),
           ),
@@ -111,6 +122,7 @@ class BoxyArtBottomSheet extends StatelessWidget {
           title: title,
           scrollController: scrollController,
           child: child,
+          addNavBarPadding: !useRootNavigator,
         ),
       ),
     );

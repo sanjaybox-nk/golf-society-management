@@ -1,5 +1,7 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+import 'audience_filter_rule.dart';
+
 part 'distribution_list.freezed.dart';
 part 'distribution_list.g.dart';
 
@@ -9,6 +11,8 @@ abstract class DistributionList with _$DistributionList {
     required String id,
     required String name,
     required List<String> memberIds,
+    @Default(false) bool isDynamic,
+    @Default([]) List<AudienceFilterRule> filterCriteria,
     required DateTime createdAt,
   }) = _DistributionList;
 

@@ -50,7 +50,7 @@ class ModernMetricStat extends ConsumerWidget {
     final config = ref.watch(themeControllerProvider);
     
     // 1. Universal Badge Token Logic
-    final Color badgeFill = Color(config.iconBadgeFillColor);
+    final Color badgeFill = color ?? Color(config.iconBadgeFillColor);
     final Color badgeContent = AppColors.dark800;
     final double badgeOpacity = config.iconBadgeOpacity;
 
@@ -81,7 +81,7 @@ class ModernMetricStat extends ConsumerWidget {
                 Icon(
                   icon, 
                   size: isCompact ? 18 : 22, 
-                  color: AppColors.pureWhite,
+                  color: iconColor ?? badgeFill,
                 ),
                 const SizedBox(width: AppSpacing.xs),
               ],

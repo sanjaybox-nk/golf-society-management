@@ -7,7 +7,7 @@ import 'package:golf_society/design_system/design_system.dart';
 import 'package:golf_society/domain/models/competition.dart';
 import 'package:golf_society/domain/models/event_registration.dart';
 import '../../../members/presentation/profile_provider.dart';
-import '../widgets/rich_stats_widgets.dart';
+import '../widgets/rich_stats/rich_stats.dart';
 import '../../../../domain/scoring/handicap_calculator.dart';
 import 'package:collection/collection.dart';
 import '../../logic/event_scoring_controller.dart';
@@ -275,17 +275,23 @@ class _EventStatsContent extends ConsumerWidget {
             title: 'Society Hero Recap',
             topPadding: 0,
           ),
-          if (eclecticRound.any((s) => s != null))
-            StaggeredEntrance(
-              index: 0,
-              child: FieldEclecticCard(
-                eclecticScores: eclecticRound, 
-                holes: holes,
-              ),
+          StaggeredEntrance(
+            index: 0,
+            child: SocietyHeroRecapCard(
+              eclecticScores: eclecticRound, 
+              holes: holes,
+              totalPlayers: totalPlayers, 
+              totalHolesPlayed: totalPlayers * holes.length, 
+              topHoleName: toughestName, 
+              topHoleDiff: maxDiff,
+              totalBirdies: fieldBirdies,
+              totalEagles: fieldEagles,
+              fieldAvgNet: fieldAvgNetScore,
             ),
+          ),
           const BoxyArtSectionTitle(title: 'Field Competitiveness'),
           StaggeredEntrance(
-            index: 1,
+            index: 2,
             child: ScoringTypeDistributionChart(counts: {
               'EAGLE': fieldEagles, 'BIRDIE': fieldBirdies, 'PAR': fieldPars, 'BOGEY': fieldBogeys, 'DBL BOGEY': fieldDoubleBogeys, 'BLOB': fieldBlobs,
             }),
@@ -293,7 +299,7 @@ class _EventStatsContent extends ConsumerWidget {
           if (isStableford) ...[
             SizedBox(height: spacing?.cardToCard ?? AppSpacing.md),
             StaggeredEntrance(
-              index: 2,
+              index: 3,
               child: StablefordDistributionChart(bucketCounts: stablefordBuckets),
             ),
           ],
@@ -302,12 +308,12 @@ class _EventStatsContent extends ConsumerWidget {
             followsCard: true,
           ),
           StaggeredEntrance(
-            index: 3,
+            index: 4,
             child: SplitPerformanceCard(front9Avg: front9AvgVal, back9Avg: back9AvgVal, isStableford: isStableford),
           ),
           SizedBox(height: spacing?.cardToCard ?? AppSpacing.md),
           StaggeredEntrance(
-            index: 4,
+            index: 5,
             child: ParTypeBreakdown(parTypeAverages: parTypeAverages),
           ),
           const BoxyArtSectionTitle(
@@ -315,12 +321,12 @@ class _EventStatsContent extends ConsumerWidget {
             followsCard: true,
           ),
           StaggeredEntrance(
-            index: 5,
+            index: 6,
             child: DifficultyHeatmap(holeAverages: holeAverages, holes: holes),
           ),
           SizedBox(height: spacing?.cardToCard ?? AppSpacing.md),
           StaggeredEntrance(
-            index: 6,
+            index: 7,
             child: HoleDifficultyChart(holeAverages: holeAverages, holes: holes),
           ),
           const BoxyArtSectionTitle(
@@ -329,7 +335,7 @@ class _EventStatsContent extends ConsumerWidget {
           ),
           if (maxStreak > 0)
             StaggeredEntrance(
-              index: 7,
+              index: 8,
               child: AchievementTile(
                 title: 'HOT STREAK', 
                 playerName: hotStreakPlayer, 
@@ -342,7 +348,7 @@ class _EventStatsContent extends ConsumerWidget {
           if (maxBounceBacks > 0) ...[
             SizedBox(height: spacing?.cardToCard ?? AppSpacing.md),
             StaggeredEntrance(
-              index: 8,
+              index: 9,
               child: AchievementTile(
                 title: 'BOUNCE BACK', 
                 playerName: bounceBackPlayer, 
@@ -356,7 +362,7 @@ class _EventStatsContent extends ConsumerWidget {
           if (finisherPlayer != 'None') ...[
             SizedBox(height: spacing?.cardToCard ?? AppSpacing.md),
             StaggeredEntrance(
-              index: 9,
+              index: 10,
               child: AchievementTile(
                 title: 'TOP FINISHER', 
                 playerName: finisherPlayer, 
@@ -373,7 +379,7 @@ class _EventStatsContent extends ConsumerWidget {
           ),
           if (maxBlobs > 0)
             StaggeredEntrance(
-              index: 10,
+              index: 11,
               child: AchievementTile(
                 title: 'THE BLOB KING', 
                 playerName: blobKingPlayer, 
@@ -386,7 +392,7 @@ class _EventStatsContent extends ConsumerWidget {
           if (maxParsPlayer > 0) ...[
             SizedBox(height: spacing?.cardToCard ?? AppSpacing.md),
             StaggeredEntrance(
-              index: 11,
+              index: 12,
               child: AchievementTile(
                 title: 'THE GRINDER', 
                 playerName: grinderPlayer, 
@@ -400,7 +406,7 @@ class _EventStatsContent extends ConsumerWidget {
           if (maxBirdsPlayer > 0) ...[
             SizedBox(height: spacing?.cardToCard ?? AppSpacing.md),
             StaggeredEntrance(
-              index: 12,
+              index: 13,
               child: AchievementTile(
                 title: 'THE SNIPER', 
                 playerName: sniperPlayer, 
@@ -414,7 +420,7 @@ class _EventStatsContent extends ConsumerWidget {
           if (maxVariance > 3.0) ...[
             SizedBox(height: spacing?.cardToCard ?? AppSpacing.md),
             StaggeredEntrance(
-              index: 13,
+              index: 14,
               child: AchievementTile(
                 title: 'THE ROLLERCOASTER', 
                 playerName: rollercoasterPlayer, 
@@ -426,9 +432,9 @@ class _EventStatsContent extends ConsumerWidget {
             ),
           ],
           SizedBox(height: spacing?.cardToCard ?? AppSpacing.md),
-          StaggeredEntrance(
-            index: 14,
-            child: SocietyRecapSummaryCard(totalPlayers: totalPlayers, totalHolesPlayed: totalPlayers * holes.length, topHoleName: toughestName, topHoleDiff: maxDiff),
+          const StaggeredEntrance(
+            index: 15,
+            child: SocietyQuoteCard(),
           ),
         ] else ...[
           if (myScoreEntry == null)

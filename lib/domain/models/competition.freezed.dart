@@ -14,48 +14,47 @@ T _$identity<T>(T value) => value;
 
 /// @nodoc
 mixin _$MaxScoreConfig {
-  MaxScoreType get type;
-  int get value;
 
-  /// Create a copy of MaxScoreConfig
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  @pragma('vm:prefer-inline')
-  $MaxScoreConfigCopyWith<MaxScoreConfig> get copyWith =>
-      _$MaxScoreConfigCopyWithImpl<MaxScoreConfig>(
-          this as MaxScoreConfig, _$identity);
+ MaxScoreType get type; int get value;
+/// Create a copy of MaxScoreConfig
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$MaxScoreConfigCopyWith<MaxScoreConfig> get copyWith => _$MaxScoreConfigCopyWithImpl<MaxScoreConfig>(this as MaxScoreConfig, _$identity);
 
   /// Serializes this MaxScoreConfig to a JSON map.
   Map<String, dynamic> toJson();
 
-  @override
-  bool operator ==(Object other) {
-    return identical(this, other) ||
-        (other.runtimeType == runtimeType &&
-            other is MaxScoreConfig &&
-            (identical(other.type, type) || other.type == type) &&
-            (identical(other.value, value) || other.value == value));
-  }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  @override
-  int get hashCode => Object.hash(runtimeType, type, value);
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is MaxScoreConfig&&(identical(other.type, type) || other.type == type)&&(identical(other.value, value) || other.value == value));
+}
 
-  @override
-  String toString() {
-    return 'MaxScoreConfig(type: $type, value: $value)';
-  }
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,type,value);
+
+@override
+String toString() {
+  return 'MaxScoreConfig(type: $type, value: $value)';
+}
+
+
 }
 
 /// @nodoc
-abstract mixin class $MaxScoreConfigCopyWith<$Res> {
-  factory $MaxScoreConfigCopyWith(
-          MaxScoreConfig value, $Res Function(MaxScoreConfig) _then) =
-      _$MaxScoreConfigCopyWithImpl;
-  @useResult
-  $Res call({MaxScoreType type, int value});
-}
+abstract mixin class $MaxScoreConfigCopyWith<$Res>  {
+  factory $MaxScoreConfigCopyWith(MaxScoreConfig value, $Res Function(MaxScoreConfig) _then) = _$MaxScoreConfigCopyWithImpl;
+@useResult
+$Res call({
+ MaxScoreType type, int value
+});
 
+
+
+
+}
 /// @nodoc
 class _$MaxScoreConfigCopyWithImpl<$Res>
     implements $MaxScoreConfigCopyWith<$Res> {
@@ -64,243 +63,199 @@ class _$MaxScoreConfigCopyWithImpl<$Res>
   final MaxScoreConfig _self;
   final $Res Function(MaxScoreConfig) _then;
 
-  /// Create a copy of MaxScoreConfig
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({
-    Object? type = null,
-    Object? value = null,
-  }) {
-    return _then(_self.copyWith(
-      type: null == type
-          ? _self.type
-          : type // ignore: cast_nullable_to_non_nullable
-              as MaxScoreType,
-      value: null == value
-          ? _self.value
-          : value // ignore: cast_nullable_to_non_nullable
-              as int,
-    ));
-  }
+/// Create a copy of MaxScoreConfig
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? type = null,Object? value = null,}) {
+  return _then(_self.copyWith(
+type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
+as MaxScoreType,value: null == value ? _self.value : value // ignore: cast_nullable_to_non_nullable
+as int,
+  ));
 }
+
+}
+
 
 /// Adds pattern-matching-related methods to [MaxScoreConfig].
 extension MaxScoreConfigPatterns on MaxScoreConfig {
-  /// A variant of `map` that fallback to returning `orElse`.
-  ///
-  /// It is equivalent to doing:
-  /// ```dart
-  /// switch (sealedClass) {
-  ///   case final Subclass value:
-  ///     return ...;
-  ///   case _:
-  ///     return orElse();
-  /// }
-  /// ```
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
 
-  @optionalTypeArgs
-  TResult maybeMap<TResult extends Object?>(
-    TResult Function(_MaxScoreConfig value)? $default, {
-    required TResult orElse(),
-  }) {
-    final _that = this;
-    switch (_that) {
-      case _MaxScoreConfig() when $default != null:
-        return $default(_that);
-      case _:
-        return orElse();
-    }
-  }
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _MaxScoreConfig value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _MaxScoreConfig() when $default != null:
+return $default(_that);case _:
+  return orElse();
 
-  /// A `switch`-like method, using callbacks.
-  ///
-  /// Callbacks receives the raw object, upcasted.
-  /// It is equivalent to doing:
-  /// ```dart
-  /// switch (sealedClass) {
-  ///   case final Subclass value:
-  ///     return ...;
-  ///   case final Subclass2 value:
-  ///     return ...;
-  /// }
-  /// ```
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
 
-  @optionalTypeArgs
-  TResult map<TResult extends Object?>(
-    TResult Function(_MaxScoreConfig value) $default,
-  ) {
-    final _that = this;
-    switch (_that) {
-      case _MaxScoreConfig():
-        return $default(_that);
-      case _:
-        throw StateError('Unexpected subclass');
-    }
-  }
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _MaxScoreConfig value)  $default,){
+final _that = this;
+switch (_that) {
+case _MaxScoreConfig():
+return $default(_that);case _:
+  throw StateError('Unexpected subclass');
 
-  /// A variant of `map` that fallback to returning `null`.
-  ///
-  /// It is equivalent to doing:
-  /// ```dart
-  /// switch (sealedClass) {
-  ///   case final Subclass value:
-  ///     return ...;
-  ///   case _:
-  ///     return null;
-  /// }
-  /// ```
+}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
 
-  @optionalTypeArgs
-  TResult? mapOrNull<TResult extends Object?>(
-    TResult? Function(_MaxScoreConfig value)? $default,
-  ) {
-    final _that = this;
-    switch (_that) {
-      case _MaxScoreConfig() when $default != null:
-        return $default(_that);
-      case _:
-        return null;
-    }
-  }
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _MaxScoreConfig value)?  $default,){
+final _that = this;
+switch (_that) {
+case _MaxScoreConfig() when $default != null:
+return $default(_that);case _:
+  return null;
 
-  /// A variant of `when` that fallback to an `orElse` callback.
-  ///
-  /// It is equivalent to doing:
-  /// ```dart
-  /// switch (sealedClass) {
-  ///   case Subclass(:final field):
-  ///     return ...;
-  ///   case _:
-  ///     return orElse();
-  /// }
-  /// ```
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
 
-  @optionalTypeArgs
-  TResult maybeWhen<TResult extends Object?>(
-    TResult Function(MaxScoreType type, int value)? $default, {
-    required TResult orElse(),
-  }) {
-    final _that = this;
-    switch (_that) {
-      case _MaxScoreConfig() when $default != null:
-        return $default(_that.type, _that.value);
-      case _:
-        return orElse();
-    }
-  }
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( MaxScoreType type,  int value)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _MaxScoreConfig() when $default != null:
+return $default(_that.type,_that.value);case _:
+  return orElse();
 
-  /// A `switch`-like method, using callbacks.
-  ///
-  /// As opposed to `map`, this offers destructuring.
-  /// It is equivalent to doing:
-  /// ```dart
-  /// switch (sealedClass) {
-  ///   case Subclass(:final field):
-  ///     return ...;
-  ///   case Subclass2(:final field2):
-  ///     return ...;
-  /// }
-  /// ```
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
 
-  @optionalTypeArgs
-  TResult when<TResult extends Object?>(
-    TResult Function(MaxScoreType type, int value) $default,
-  ) {
-    final _that = this;
-    switch (_that) {
-      case _MaxScoreConfig():
-        return $default(_that.type, _that.value);
-      case _:
-        throw StateError('Unexpected subclass');
-    }
-  }
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( MaxScoreType type,  int value)  $default,) {final _that = this;
+switch (_that) {
+case _MaxScoreConfig():
+return $default(_that.type,_that.value);case _:
+  throw StateError('Unexpected subclass');
 
-  /// A variant of `when` that fallback to returning `null`
-  ///
-  /// It is equivalent to doing:
-  /// ```dart
-  /// switch (sealedClass) {
-  ///   case Subclass(:final field):
-  ///     return ...;
-  ///   case _:
-  ///     return null;
-  /// }
-  /// ```
+}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
 
-  @optionalTypeArgs
-  TResult? whenOrNull<TResult extends Object?>(
-    TResult? Function(MaxScoreType type, int value)? $default,
-  ) {
-    final _that = this;
-    switch (_that) {
-      case _MaxScoreConfig() when $default != null:
-        return $default(_that.type, _that.value);
-      case _:
-        return null;
-    }
-  }
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( MaxScoreType type,  int value)?  $default,) {final _that = this;
+switch (_that) {
+case _MaxScoreConfig() when $default != null:
+return $default(_that.type,_that.value);case _:
+  return null;
+
+}
+}
+
 }
 
 /// @nodoc
 @JsonSerializable()
+
 class _MaxScoreConfig implements MaxScoreConfig {
   const _MaxScoreConfig({this.type = MaxScoreType.parPlusX, this.value = 5});
-  factory _MaxScoreConfig.fromJson(Map<String, dynamic> json) =>
-      _$MaxScoreConfigFromJson(json);
+  factory _MaxScoreConfig.fromJson(Map<String, dynamic> json) => _$MaxScoreConfigFromJson(json);
 
-  @override
-  @JsonKey()
-  final MaxScoreType type;
-  @override
-  @JsonKey()
-  final int value;
+@override@JsonKey() final  MaxScoreType type;
+@override@JsonKey() final  int value;
 
-  /// Create a copy of MaxScoreConfig
-  /// with the given fields replaced by the non-null parameter values.
-  @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  @pragma('vm:prefer-inline')
-  _$MaxScoreConfigCopyWith<_MaxScoreConfig> get copyWith =>
-      __$MaxScoreConfigCopyWithImpl<_MaxScoreConfig>(this, _$identity);
+/// Create a copy of MaxScoreConfig
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$MaxScoreConfigCopyWith<_MaxScoreConfig> get copyWith => __$MaxScoreConfigCopyWithImpl<_MaxScoreConfig>(this, _$identity);
 
-  @override
-  Map<String, dynamic> toJson() {
-    return _$MaxScoreConfigToJson(
-      this,
-    );
-  }
+@override
+Map<String, dynamic> toJson() {
+  return _$MaxScoreConfigToJson(this, );
+}
 
-  @override
-  bool operator ==(Object other) {
-    return identical(this, other) ||
-        (other.runtimeType == runtimeType &&
-            other is _MaxScoreConfig &&
-            (identical(other.type, type) || other.type == type) &&
-            (identical(other.value, value) || other.value == value));
-  }
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _MaxScoreConfig&&(identical(other.type, type) || other.type == type)&&(identical(other.value, value) || other.value == value));
+}
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  @override
-  int get hashCode => Object.hash(runtimeType, type, value);
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,type,value);
 
-  @override
-  String toString() {
-    return 'MaxScoreConfig(type: $type, value: $value)';
-  }
+@override
+String toString() {
+  return 'MaxScoreConfig(type: $type, value: $value)';
+}
+
+
 }
 
 /// @nodoc
-abstract mixin class _$MaxScoreConfigCopyWith<$Res>
-    implements $MaxScoreConfigCopyWith<$Res> {
-  factory _$MaxScoreConfigCopyWith(
-          _MaxScoreConfig value, $Res Function(_MaxScoreConfig) _then) =
-      __$MaxScoreConfigCopyWithImpl;
-  @override
-  @useResult
-  $Res call({MaxScoreType type, int value});
-}
+abstract mixin class _$MaxScoreConfigCopyWith<$Res> implements $MaxScoreConfigCopyWith<$Res> {
+  factory _$MaxScoreConfigCopyWith(_MaxScoreConfig value, $Res Function(_MaxScoreConfig) _then) = __$MaxScoreConfigCopyWithImpl;
+@override @useResult
+$Res call({
+ MaxScoreType type, int value
+});
 
+
+
+
+}
 /// @nodoc
 class __$MaxScoreConfigCopyWithImpl<$Res>
     implements _$MaxScoreConfigCopyWith<$Res> {
@@ -309,205 +264,68 @@ class __$MaxScoreConfigCopyWithImpl<$Res>
   final _MaxScoreConfig _self;
   final $Res Function(_MaxScoreConfig) _then;
 
-  /// Create a copy of MaxScoreConfig
-  /// with the given fields replaced by the non-null parameter values.
-  @override
-  @pragma('vm:prefer-inline')
-  $Res call({
-    Object? type = null,
-    Object? value = null,
-  }) {
-    return _then(_MaxScoreConfig(
-      type: null == type
-          ? _self.type
-          : type // ignore: cast_nullable_to_non_nullable
-              as MaxScoreType,
-      value: null == value
-          ? _self.value
-          : value // ignore: cast_nullable_to_non_nullable
-              as int,
-    ));
-  }
+/// Create a copy of MaxScoreConfig
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? type = null,Object? value = null,}) {
+  return _then(_MaxScoreConfig(
+type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
+as MaxScoreType,value: null == value ? _self.value : value // ignore: cast_nullable_to_non_nullable
+as int,
+  ));
 }
+
+
+}
+
 
 /// @nodoc
 mixin _$CompetitionRules {
-  CompetitionFormat get format;
-  CompetitionSubtype get subtype;
-  CompetitionMode get mode;
-  HandicapMode get handicapMode;
-  int get handicapCap;
-  double get handicapAllowance;
-  int? get teamHandicapCap; // [NEW] For Scramble/Team capping
-  CompetitionFormat get underlyingFormat; // [NEW] For Scramble base logic
-  bool get useCourseAllowance;
-  MaxScoreConfig? get maxScoreConfig;
-  int get roundsCount;
-  AggregationMethod get aggregation;
-  TieBreakMethod get tieBreak;
-  bool get holeByHoleRequired;
-  int get minDrivesPerPlayer;
-  bool get useWHSScrambleAllowance;
-  bool get trackShotAttributions;
-  bool get applyCapToIndex;
-  int get teamBestXCount;
-  int get teamSize;
-  bool get useMixedTeeAdjustment; // [NEW] C.R. - Par adjustment
-  TeamHandicapMethod get teamHandicapMethod; // [NEW] Scramble method
-  List<String>
-      get oomExcludedRoundIds; // [NEW] Rounds to skip in season standings
-  TournamentFormat get tournamentFormat;
-  SeedingLogic get seedingLogic;
-  MatchPlayProgression get progressionMode;
-  bool get hasMatchPlayOverlay;
 
-  /// Create a copy of CompetitionRules
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  @pragma('vm:prefer-inline')
-  $CompetitionRulesCopyWith<CompetitionRules> get copyWith =>
-      _$CompetitionRulesCopyWithImpl<CompetitionRules>(
-          this as CompetitionRules, _$identity);
+ CompetitionFormat get format; CompetitionSubtype get subtype; CompetitionMode get mode; HandicapMode get handicapMode; int get handicapCap; double get handicapAllowance; int? get teamHandicapCap;// [NEW] For Scramble/Team capping
+ CompetitionFormat get underlyingFormat;// [NEW] For Scramble base logic
+ bool get useCourseAllowance; MaxScoreConfig? get maxScoreConfig; int get roundsCount; AggregationMethod get aggregation; TieBreakMethod get tieBreak; bool get holeByHoleRequired; int get minDrivesPerPlayer; bool get useWHSScrambleAllowance; bool get trackShotAttributions; bool get applyCapToIndex; int get teamBestXCount; int get teamSize; bool get useMixedTeeAdjustment;// [NEW] C.R. - Par adjustment
+ TeamHandicapMethod get teamHandicapMethod;// [NEW] Scramble method
+ List<String> get oomExcludedRoundIds;// [NEW] Rounds to skip in season standings
+ TournamentFormat get tournamentFormat; SeedingLogic get seedingLogic; MatchPlayProgression get progressionMode; bool get hasMatchPlayOverlay;
+/// Create a copy of CompetitionRules
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$CompetitionRulesCopyWith<CompetitionRules> get copyWith => _$CompetitionRulesCopyWithImpl<CompetitionRules>(this as CompetitionRules, _$identity);
 
   /// Serializes this CompetitionRules to a JSON map.
   Map<String, dynamic> toJson();
 
-  @override
-  bool operator ==(Object other) {
-    return identical(this, other) ||
-        (other.runtimeType == runtimeType &&
-            other is CompetitionRules &&
-            (identical(other.format, format) || other.format == format) &&
-            (identical(other.subtype, subtype) || other.subtype == subtype) &&
-            (identical(other.mode, mode) || other.mode == mode) &&
-            (identical(other.handicapMode, handicapMode) ||
-                other.handicapMode == handicapMode) &&
-            (identical(other.handicapCap, handicapCap) ||
-                other.handicapCap == handicapCap) &&
-            (identical(other.handicapAllowance, handicapAllowance) ||
-                other.handicapAllowance == handicapAllowance) &&
-            (identical(other.teamHandicapCap, teamHandicapCap) ||
-                other.teamHandicapCap == teamHandicapCap) &&
-            (identical(other.underlyingFormat, underlyingFormat) ||
-                other.underlyingFormat == underlyingFormat) &&
-            (identical(other.useCourseAllowance, useCourseAllowance) ||
-                other.useCourseAllowance == useCourseAllowance) &&
-            (identical(other.maxScoreConfig, maxScoreConfig) ||
-                other.maxScoreConfig == maxScoreConfig) &&
-            (identical(other.roundsCount, roundsCount) ||
-                other.roundsCount == roundsCount) &&
-            (identical(other.aggregation, aggregation) ||
-                other.aggregation == aggregation) &&
-            (identical(other.tieBreak, tieBreak) ||
-                other.tieBreak == tieBreak) &&
-            (identical(other.holeByHoleRequired, holeByHoleRequired) ||
-                other.holeByHoleRequired == holeByHoleRequired) &&
-            (identical(other.minDrivesPerPlayer, minDrivesPerPlayer) ||
-                other.minDrivesPerPlayer == minDrivesPerPlayer) &&
-            (identical(
-                    other.useWHSScrambleAllowance, useWHSScrambleAllowance) ||
-                other.useWHSScrambleAllowance == useWHSScrambleAllowance) &&
-            (identical(other.trackShotAttributions, trackShotAttributions) ||
-                other.trackShotAttributions == trackShotAttributions) &&
-            (identical(other.applyCapToIndex, applyCapToIndex) ||
-                other.applyCapToIndex == applyCapToIndex) &&
-            (identical(other.teamBestXCount, teamBestXCount) ||
-                other.teamBestXCount == teamBestXCount) &&
-            (identical(other.teamSize, teamSize) ||
-                other.teamSize == teamSize) &&
-            (identical(other.useMixedTeeAdjustment, useMixedTeeAdjustment) ||
-                other.useMixedTeeAdjustment == useMixedTeeAdjustment) &&
-            (identical(other.teamHandicapMethod, teamHandicapMethod) ||
-                other.teamHandicapMethod == teamHandicapMethod) &&
-            const DeepCollectionEquality()
-                .equals(other.oomExcludedRoundIds, oomExcludedRoundIds) &&
-            (identical(other.tournamentFormat, tournamentFormat) ||
-                other.tournamentFormat == tournamentFormat) &&
-            (identical(other.seedingLogic, seedingLogic) ||
-                other.seedingLogic == seedingLogic) &&
-            (identical(other.progressionMode, progressionMode) ||
-                other.progressionMode == progressionMode) &&
-            (identical(other.hasMatchPlayOverlay, hasMatchPlayOverlay) ||
-                other.hasMatchPlayOverlay == hasMatchPlayOverlay));
-  }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  @override
-  int get hashCode => Object.hashAll([
-        runtimeType,
-        format,
-        subtype,
-        mode,
-        handicapMode,
-        handicapCap,
-        handicapAllowance,
-        teamHandicapCap,
-        underlyingFormat,
-        useCourseAllowance,
-        maxScoreConfig,
-        roundsCount,
-        aggregation,
-        tieBreak,
-        holeByHoleRequired,
-        minDrivesPerPlayer,
-        useWHSScrambleAllowance,
-        trackShotAttributions,
-        applyCapToIndex,
-        teamBestXCount,
-        teamSize,
-        useMixedTeeAdjustment,
-        teamHandicapMethod,
-        const DeepCollectionEquality().hash(oomExcludedRoundIds),
-        tournamentFormat,
-        seedingLogic,
-        progressionMode,
-        hasMatchPlayOverlay
-      ]);
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is CompetitionRules&&(identical(other.format, format) || other.format == format)&&(identical(other.subtype, subtype) || other.subtype == subtype)&&(identical(other.mode, mode) || other.mode == mode)&&(identical(other.handicapMode, handicapMode) || other.handicapMode == handicapMode)&&(identical(other.handicapCap, handicapCap) || other.handicapCap == handicapCap)&&(identical(other.handicapAllowance, handicapAllowance) || other.handicapAllowance == handicapAllowance)&&(identical(other.teamHandicapCap, teamHandicapCap) || other.teamHandicapCap == teamHandicapCap)&&(identical(other.underlyingFormat, underlyingFormat) || other.underlyingFormat == underlyingFormat)&&(identical(other.useCourseAllowance, useCourseAllowance) || other.useCourseAllowance == useCourseAllowance)&&(identical(other.maxScoreConfig, maxScoreConfig) || other.maxScoreConfig == maxScoreConfig)&&(identical(other.roundsCount, roundsCount) || other.roundsCount == roundsCount)&&(identical(other.aggregation, aggregation) || other.aggregation == aggregation)&&(identical(other.tieBreak, tieBreak) || other.tieBreak == tieBreak)&&(identical(other.holeByHoleRequired, holeByHoleRequired) || other.holeByHoleRequired == holeByHoleRequired)&&(identical(other.minDrivesPerPlayer, minDrivesPerPlayer) || other.minDrivesPerPlayer == minDrivesPerPlayer)&&(identical(other.useWHSScrambleAllowance, useWHSScrambleAllowance) || other.useWHSScrambleAllowance == useWHSScrambleAllowance)&&(identical(other.trackShotAttributions, trackShotAttributions) || other.trackShotAttributions == trackShotAttributions)&&(identical(other.applyCapToIndex, applyCapToIndex) || other.applyCapToIndex == applyCapToIndex)&&(identical(other.teamBestXCount, teamBestXCount) || other.teamBestXCount == teamBestXCount)&&(identical(other.teamSize, teamSize) || other.teamSize == teamSize)&&(identical(other.useMixedTeeAdjustment, useMixedTeeAdjustment) || other.useMixedTeeAdjustment == useMixedTeeAdjustment)&&(identical(other.teamHandicapMethod, teamHandicapMethod) || other.teamHandicapMethod == teamHandicapMethod)&&const DeepCollectionEquality().equals(other.oomExcludedRoundIds, oomExcludedRoundIds)&&(identical(other.tournamentFormat, tournamentFormat) || other.tournamentFormat == tournamentFormat)&&(identical(other.seedingLogic, seedingLogic) || other.seedingLogic == seedingLogic)&&(identical(other.progressionMode, progressionMode) || other.progressionMode == progressionMode)&&(identical(other.hasMatchPlayOverlay, hasMatchPlayOverlay) || other.hasMatchPlayOverlay == hasMatchPlayOverlay));
+}
 
-  @override
-  String toString() {
-    return 'CompetitionRules(format: $format, subtype: $subtype, mode: $mode, handicapMode: $handicapMode, handicapCap: $handicapCap, handicapAllowance: $handicapAllowance, teamHandicapCap: $teamHandicapCap, underlyingFormat: $underlyingFormat, useCourseAllowance: $useCourseAllowance, maxScoreConfig: $maxScoreConfig, roundsCount: $roundsCount, aggregation: $aggregation, tieBreak: $tieBreak, holeByHoleRequired: $holeByHoleRequired, minDrivesPerPlayer: $minDrivesPerPlayer, useWHSScrambleAllowance: $useWHSScrambleAllowance, trackShotAttributions: $trackShotAttributions, applyCapToIndex: $applyCapToIndex, teamBestXCount: $teamBestXCount, teamSize: $teamSize, useMixedTeeAdjustment: $useMixedTeeAdjustment, teamHandicapMethod: $teamHandicapMethod, oomExcludedRoundIds: $oomExcludedRoundIds, tournamentFormat: $tournamentFormat, seedingLogic: $seedingLogic, progressionMode: $progressionMode, hasMatchPlayOverlay: $hasMatchPlayOverlay)';
-  }
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hashAll([runtimeType,format,subtype,mode,handicapMode,handicapCap,handicapAllowance,teamHandicapCap,underlyingFormat,useCourseAllowance,maxScoreConfig,roundsCount,aggregation,tieBreak,holeByHoleRequired,minDrivesPerPlayer,useWHSScrambleAllowance,trackShotAttributions,applyCapToIndex,teamBestXCount,teamSize,useMixedTeeAdjustment,teamHandicapMethod,const DeepCollectionEquality().hash(oomExcludedRoundIds),tournamentFormat,seedingLogic,progressionMode,hasMatchPlayOverlay]);
+
+@override
+String toString() {
+  return 'CompetitionRules(format: $format, subtype: $subtype, mode: $mode, handicapMode: $handicapMode, handicapCap: $handicapCap, handicapAllowance: $handicapAllowance, teamHandicapCap: $teamHandicapCap, underlyingFormat: $underlyingFormat, useCourseAllowance: $useCourseAllowance, maxScoreConfig: $maxScoreConfig, roundsCount: $roundsCount, aggregation: $aggregation, tieBreak: $tieBreak, holeByHoleRequired: $holeByHoleRequired, minDrivesPerPlayer: $minDrivesPerPlayer, useWHSScrambleAllowance: $useWHSScrambleAllowance, trackShotAttributions: $trackShotAttributions, applyCapToIndex: $applyCapToIndex, teamBestXCount: $teamBestXCount, teamSize: $teamSize, useMixedTeeAdjustment: $useMixedTeeAdjustment, teamHandicapMethod: $teamHandicapMethod, oomExcludedRoundIds: $oomExcludedRoundIds, tournamentFormat: $tournamentFormat, seedingLogic: $seedingLogic, progressionMode: $progressionMode, hasMatchPlayOverlay: $hasMatchPlayOverlay)';
+}
+
+
 }
 
 /// @nodoc
-abstract mixin class $CompetitionRulesCopyWith<$Res> {
-  factory $CompetitionRulesCopyWith(
-          CompetitionRules value, $Res Function(CompetitionRules) _then) =
-      _$CompetitionRulesCopyWithImpl;
-  @useResult
-  $Res call(
-      {CompetitionFormat format,
-      CompetitionSubtype subtype,
-      CompetitionMode mode,
-      HandicapMode handicapMode,
-      int handicapCap,
-      double handicapAllowance,
-      int? teamHandicapCap,
-      CompetitionFormat underlyingFormat,
-      bool useCourseAllowance,
-      MaxScoreConfig? maxScoreConfig,
-      int roundsCount,
-      AggregationMethod aggregation,
-      TieBreakMethod tieBreak,
-      bool holeByHoleRequired,
-      int minDrivesPerPlayer,
-      bool useWHSScrambleAllowance,
-      bool trackShotAttributions,
-      bool applyCapToIndex,
-      int teamBestXCount,
-      int teamSize,
-      bool useMixedTeeAdjustment,
-      TeamHandicapMethod teamHandicapMethod,
-      List<String> oomExcludedRoundIds,
-      TournamentFormat tournamentFormat,
-      SeedingLogic seedingLogic,
-      MatchPlayProgression progressionMode,
-      bool hasMatchPlayOverlay});
+abstract mixin class $CompetitionRulesCopyWith<$Res>  {
+  factory $CompetitionRulesCopyWith(CompetitionRules value, $Res Function(CompetitionRules) _then) = _$CompetitionRulesCopyWithImpl;
+@useResult
+$Res call({
+ CompetitionFormat format, CompetitionSubtype subtype, CompetitionMode mode, HandicapMode handicapMode, int handicapCap, double handicapAllowance, int? teamHandicapCap, CompetitionFormat underlyingFormat, bool useCourseAllowance, MaxScoreConfig? maxScoreConfig, int roundsCount, AggregationMethod aggregation, TieBreakMethod tieBreak, bool holeByHoleRequired, int minDrivesPerPlayer, bool useWHSScrambleAllowance, bool trackShotAttributions, bool applyCapToIndex, int teamBestXCount, int teamSize, bool useMixedTeeAdjustment, TeamHandicapMethod teamHandicapMethod, List<String> oomExcludedRoundIds, TournamentFormat tournamentFormat, SeedingLogic seedingLogic, MatchPlayProgression progressionMode, bool hasMatchPlayOverlay
+});
 
-  $MaxScoreConfigCopyWith<$Res>? get maxScoreConfig;
+
+$MaxScoreConfigCopyWith<$Res>? get maxScoreConfig;
+
 }
-
 /// @nodoc
 class _$CompetitionRulesCopyWithImpl<$Res>
     implements $CompetitionRulesCopyWith<$Res> {
@@ -516,770 +334,273 @@ class _$CompetitionRulesCopyWithImpl<$Res>
   final CompetitionRules _self;
   final $Res Function(CompetitionRules) _then;
 
-  /// Create a copy of CompetitionRules
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({
-    Object? format = null,
-    Object? subtype = null,
-    Object? mode = null,
-    Object? handicapMode = null,
-    Object? handicapCap = null,
-    Object? handicapAllowance = null,
-    Object? teamHandicapCap = freezed,
-    Object? underlyingFormat = null,
-    Object? useCourseAllowance = null,
-    Object? maxScoreConfig = freezed,
-    Object? roundsCount = null,
-    Object? aggregation = null,
-    Object? tieBreak = null,
-    Object? holeByHoleRequired = null,
-    Object? minDrivesPerPlayer = null,
-    Object? useWHSScrambleAllowance = null,
-    Object? trackShotAttributions = null,
-    Object? applyCapToIndex = null,
-    Object? teamBestXCount = null,
-    Object? teamSize = null,
-    Object? useMixedTeeAdjustment = null,
-    Object? teamHandicapMethod = null,
-    Object? oomExcludedRoundIds = null,
-    Object? tournamentFormat = null,
-    Object? seedingLogic = null,
-    Object? progressionMode = null,
-    Object? hasMatchPlayOverlay = null,
-  }) {
-    return _then(_self.copyWith(
-      format: null == format
-          ? _self.format
-          : format // ignore: cast_nullable_to_non_nullable
-              as CompetitionFormat,
-      subtype: null == subtype
-          ? _self.subtype
-          : subtype // ignore: cast_nullable_to_non_nullable
-              as CompetitionSubtype,
-      mode: null == mode
-          ? _self.mode
-          : mode // ignore: cast_nullable_to_non_nullable
-              as CompetitionMode,
-      handicapMode: null == handicapMode
-          ? _self.handicapMode
-          : handicapMode // ignore: cast_nullable_to_non_nullable
-              as HandicapMode,
-      handicapCap: null == handicapCap
-          ? _self.handicapCap
-          : handicapCap // ignore: cast_nullable_to_non_nullable
-              as int,
-      handicapAllowance: null == handicapAllowance
-          ? _self.handicapAllowance
-          : handicapAllowance // ignore: cast_nullable_to_non_nullable
-              as double,
-      teamHandicapCap: freezed == teamHandicapCap
-          ? _self.teamHandicapCap
-          : teamHandicapCap // ignore: cast_nullable_to_non_nullable
-              as int?,
-      underlyingFormat: null == underlyingFormat
-          ? _self.underlyingFormat
-          : underlyingFormat // ignore: cast_nullable_to_non_nullable
-              as CompetitionFormat,
-      useCourseAllowance: null == useCourseAllowance
-          ? _self.useCourseAllowance
-          : useCourseAllowance // ignore: cast_nullable_to_non_nullable
-              as bool,
-      maxScoreConfig: freezed == maxScoreConfig
-          ? _self.maxScoreConfig
-          : maxScoreConfig // ignore: cast_nullable_to_non_nullable
-              as MaxScoreConfig?,
-      roundsCount: null == roundsCount
-          ? _self.roundsCount
-          : roundsCount // ignore: cast_nullable_to_non_nullable
-              as int,
-      aggregation: null == aggregation
-          ? _self.aggregation
-          : aggregation // ignore: cast_nullable_to_non_nullable
-              as AggregationMethod,
-      tieBreak: null == tieBreak
-          ? _self.tieBreak
-          : tieBreak // ignore: cast_nullable_to_non_nullable
-              as TieBreakMethod,
-      holeByHoleRequired: null == holeByHoleRequired
-          ? _self.holeByHoleRequired
-          : holeByHoleRequired // ignore: cast_nullable_to_non_nullable
-              as bool,
-      minDrivesPerPlayer: null == minDrivesPerPlayer
-          ? _self.minDrivesPerPlayer
-          : minDrivesPerPlayer // ignore: cast_nullable_to_non_nullable
-              as int,
-      useWHSScrambleAllowance: null == useWHSScrambleAllowance
-          ? _self.useWHSScrambleAllowance
-          : useWHSScrambleAllowance // ignore: cast_nullable_to_non_nullable
-              as bool,
-      trackShotAttributions: null == trackShotAttributions
-          ? _self.trackShotAttributions
-          : trackShotAttributions // ignore: cast_nullable_to_non_nullable
-              as bool,
-      applyCapToIndex: null == applyCapToIndex
-          ? _self.applyCapToIndex
-          : applyCapToIndex // ignore: cast_nullable_to_non_nullable
-              as bool,
-      teamBestXCount: null == teamBestXCount
-          ? _self.teamBestXCount
-          : teamBestXCount // ignore: cast_nullable_to_non_nullable
-              as int,
-      teamSize: null == teamSize
-          ? _self.teamSize
-          : teamSize // ignore: cast_nullable_to_non_nullable
-              as int,
-      useMixedTeeAdjustment: null == useMixedTeeAdjustment
-          ? _self.useMixedTeeAdjustment
-          : useMixedTeeAdjustment // ignore: cast_nullable_to_non_nullable
-              as bool,
-      teamHandicapMethod: null == teamHandicapMethod
-          ? _self.teamHandicapMethod
-          : teamHandicapMethod // ignore: cast_nullable_to_non_nullable
-              as TeamHandicapMethod,
-      oomExcludedRoundIds: null == oomExcludedRoundIds
-          ? _self.oomExcludedRoundIds
-          : oomExcludedRoundIds // ignore: cast_nullable_to_non_nullable
-              as List<String>,
-      tournamentFormat: null == tournamentFormat
-          ? _self.tournamentFormat
-          : tournamentFormat // ignore: cast_nullable_to_non_nullable
-              as TournamentFormat,
-      seedingLogic: null == seedingLogic
-          ? _self.seedingLogic
-          : seedingLogic // ignore: cast_nullable_to_non_nullable
-              as SeedingLogic,
-      progressionMode: null == progressionMode
-          ? _self.progressionMode
-          : progressionMode // ignore: cast_nullable_to_non_nullable
-              as MatchPlayProgression,
-      hasMatchPlayOverlay: null == hasMatchPlayOverlay
-          ? _self.hasMatchPlayOverlay
-          : hasMatchPlayOverlay // ignore: cast_nullable_to_non_nullable
-              as bool,
-    ));
-  }
-
-  /// Create a copy of CompetitionRules
-  /// with the given fields replaced by the non-null parameter values.
-  @override
-  @pragma('vm:prefer-inline')
-  $MaxScoreConfigCopyWith<$Res>? get maxScoreConfig {
-    if (_self.maxScoreConfig == null) {
-      return null;
-    }
-
-    return $MaxScoreConfigCopyWith<$Res>(_self.maxScoreConfig!, (value) {
-      return _then(_self.copyWith(maxScoreConfig: value));
-    });
-  }
+/// Create a copy of CompetitionRules
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? format = null,Object? subtype = null,Object? mode = null,Object? handicapMode = null,Object? handicapCap = null,Object? handicapAllowance = null,Object? teamHandicapCap = freezed,Object? underlyingFormat = null,Object? useCourseAllowance = null,Object? maxScoreConfig = freezed,Object? roundsCount = null,Object? aggregation = null,Object? tieBreak = null,Object? holeByHoleRequired = null,Object? minDrivesPerPlayer = null,Object? useWHSScrambleAllowance = null,Object? trackShotAttributions = null,Object? applyCapToIndex = null,Object? teamBestXCount = null,Object? teamSize = null,Object? useMixedTeeAdjustment = null,Object? teamHandicapMethod = null,Object? oomExcludedRoundIds = null,Object? tournamentFormat = null,Object? seedingLogic = null,Object? progressionMode = null,Object? hasMatchPlayOverlay = null,}) {
+  return _then(_self.copyWith(
+format: null == format ? _self.format : format // ignore: cast_nullable_to_non_nullable
+as CompetitionFormat,subtype: null == subtype ? _self.subtype : subtype // ignore: cast_nullable_to_non_nullable
+as CompetitionSubtype,mode: null == mode ? _self.mode : mode // ignore: cast_nullable_to_non_nullable
+as CompetitionMode,handicapMode: null == handicapMode ? _self.handicapMode : handicapMode // ignore: cast_nullable_to_non_nullable
+as HandicapMode,handicapCap: null == handicapCap ? _self.handicapCap : handicapCap // ignore: cast_nullable_to_non_nullable
+as int,handicapAllowance: null == handicapAllowance ? _self.handicapAllowance : handicapAllowance // ignore: cast_nullable_to_non_nullable
+as double,teamHandicapCap: freezed == teamHandicapCap ? _self.teamHandicapCap : teamHandicapCap // ignore: cast_nullable_to_non_nullable
+as int?,underlyingFormat: null == underlyingFormat ? _self.underlyingFormat : underlyingFormat // ignore: cast_nullable_to_non_nullable
+as CompetitionFormat,useCourseAllowance: null == useCourseAllowance ? _self.useCourseAllowance : useCourseAllowance // ignore: cast_nullable_to_non_nullable
+as bool,maxScoreConfig: freezed == maxScoreConfig ? _self.maxScoreConfig : maxScoreConfig // ignore: cast_nullable_to_non_nullable
+as MaxScoreConfig?,roundsCount: null == roundsCount ? _self.roundsCount : roundsCount // ignore: cast_nullable_to_non_nullable
+as int,aggregation: null == aggregation ? _self.aggregation : aggregation // ignore: cast_nullable_to_non_nullable
+as AggregationMethod,tieBreak: null == tieBreak ? _self.tieBreak : tieBreak // ignore: cast_nullable_to_non_nullable
+as TieBreakMethod,holeByHoleRequired: null == holeByHoleRequired ? _self.holeByHoleRequired : holeByHoleRequired // ignore: cast_nullable_to_non_nullable
+as bool,minDrivesPerPlayer: null == minDrivesPerPlayer ? _self.minDrivesPerPlayer : minDrivesPerPlayer // ignore: cast_nullable_to_non_nullable
+as int,useWHSScrambleAllowance: null == useWHSScrambleAllowance ? _self.useWHSScrambleAllowance : useWHSScrambleAllowance // ignore: cast_nullable_to_non_nullable
+as bool,trackShotAttributions: null == trackShotAttributions ? _self.trackShotAttributions : trackShotAttributions // ignore: cast_nullable_to_non_nullable
+as bool,applyCapToIndex: null == applyCapToIndex ? _self.applyCapToIndex : applyCapToIndex // ignore: cast_nullable_to_non_nullable
+as bool,teamBestXCount: null == teamBestXCount ? _self.teamBestXCount : teamBestXCount // ignore: cast_nullable_to_non_nullable
+as int,teamSize: null == teamSize ? _self.teamSize : teamSize // ignore: cast_nullable_to_non_nullable
+as int,useMixedTeeAdjustment: null == useMixedTeeAdjustment ? _self.useMixedTeeAdjustment : useMixedTeeAdjustment // ignore: cast_nullable_to_non_nullable
+as bool,teamHandicapMethod: null == teamHandicapMethod ? _self.teamHandicapMethod : teamHandicapMethod // ignore: cast_nullable_to_non_nullable
+as TeamHandicapMethod,oomExcludedRoundIds: null == oomExcludedRoundIds ? _self.oomExcludedRoundIds : oomExcludedRoundIds // ignore: cast_nullable_to_non_nullable
+as List<String>,tournamentFormat: null == tournamentFormat ? _self.tournamentFormat : tournamentFormat // ignore: cast_nullable_to_non_nullable
+as TournamentFormat,seedingLogic: null == seedingLogic ? _self.seedingLogic : seedingLogic // ignore: cast_nullable_to_non_nullable
+as SeedingLogic,progressionMode: null == progressionMode ? _self.progressionMode : progressionMode // ignore: cast_nullable_to_non_nullable
+as MatchPlayProgression,hasMatchPlayOverlay: null == hasMatchPlayOverlay ? _self.hasMatchPlayOverlay : hasMatchPlayOverlay // ignore: cast_nullable_to_non_nullable
+as bool,
+  ));
 }
+/// Create a copy of CompetitionRules
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$MaxScoreConfigCopyWith<$Res>? get maxScoreConfig {
+    if (_self.maxScoreConfig == null) {
+    return null;
+  }
+
+  return $MaxScoreConfigCopyWith<$Res>(_self.maxScoreConfig!, (value) {
+    return _then(_self.copyWith(maxScoreConfig: value));
+  });
+}
+}
+
 
 /// Adds pattern-matching-related methods to [CompetitionRules].
 extension CompetitionRulesPatterns on CompetitionRules {
-  /// A variant of `map` that fallback to returning `orElse`.
-  ///
-  /// It is equivalent to doing:
-  /// ```dart
-  /// switch (sealedClass) {
-  ///   case final Subclass value:
-  ///     return ...;
-  ///   case _:
-  ///     return orElse();
-  /// }
-  /// ```
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
 
-  @optionalTypeArgs
-  TResult maybeMap<TResult extends Object?>(
-    TResult Function(_CompetitionRules value)? $default, {
-    required TResult orElse(),
-  }) {
-    final _that = this;
-    switch (_that) {
-      case _CompetitionRules() when $default != null:
-        return $default(_that);
-      case _:
-        return orElse();
-    }
-  }
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _CompetitionRules value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _CompetitionRules() when $default != null:
+return $default(_that);case _:
+  return orElse();
 
-  /// A `switch`-like method, using callbacks.
-  ///
-  /// Callbacks receives the raw object, upcasted.
-  /// It is equivalent to doing:
-  /// ```dart
-  /// switch (sealedClass) {
-  ///   case final Subclass value:
-  ///     return ...;
-  ///   case final Subclass2 value:
-  ///     return ...;
-  /// }
-  /// ```
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
 
-  @optionalTypeArgs
-  TResult map<TResult extends Object?>(
-    TResult Function(_CompetitionRules value) $default,
-  ) {
-    final _that = this;
-    switch (_that) {
-      case _CompetitionRules():
-        return $default(_that);
-      case _:
-        throw StateError('Unexpected subclass');
-    }
-  }
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _CompetitionRules value)  $default,){
+final _that = this;
+switch (_that) {
+case _CompetitionRules():
+return $default(_that);case _:
+  throw StateError('Unexpected subclass');
 
-  /// A variant of `map` that fallback to returning `null`.
-  ///
-  /// It is equivalent to doing:
-  /// ```dart
-  /// switch (sealedClass) {
-  ///   case final Subclass value:
-  ///     return ...;
-  ///   case _:
-  ///     return null;
-  /// }
-  /// ```
+}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
 
-  @optionalTypeArgs
-  TResult? mapOrNull<TResult extends Object?>(
-    TResult? Function(_CompetitionRules value)? $default,
-  ) {
-    final _that = this;
-    switch (_that) {
-      case _CompetitionRules() when $default != null:
-        return $default(_that);
-      case _:
-        return null;
-    }
-  }
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _CompetitionRules value)?  $default,){
+final _that = this;
+switch (_that) {
+case _CompetitionRules() when $default != null:
+return $default(_that);case _:
+  return null;
 
-  /// A variant of `when` that fallback to an `orElse` callback.
-  ///
-  /// It is equivalent to doing:
-  /// ```dart
-  /// switch (sealedClass) {
-  ///   case Subclass(:final field):
-  ///     return ...;
-  ///   case _:
-  ///     return orElse();
-  /// }
-  /// ```
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
 
-  @optionalTypeArgs
-  TResult maybeWhen<TResult extends Object?>(
-    TResult Function(
-            CompetitionFormat format,
-            CompetitionSubtype subtype,
-            CompetitionMode mode,
-            HandicapMode handicapMode,
-            int handicapCap,
-            double handicapAllowance,
-            int? teamHandicapCap,
-            CompetitionFormat underlyingFormat,
-            bool useCourseAllowance,
-            MaxScoreConfig? maxScoreConfig,
-            int roundsCount,
-            AggregationMethod aggregation,
-            TieBreakMethod tieBreak,
-            bool holeByHoleRequired,
-            int minDrivesPerPlayer,
-            bool useWHSScrambleAllowance,
-            bool trackShotAttributions,
-            bool applyCapToIndex,
-            int teamBestXCount,
-            int teamSize,
-            bool useMixedTeeAdjustment,
-            TeamHandicapMethod teamHandicapMethod,
-            List<String> oomExcludedRoundIds,
-            TournamentFormat tournamentFormat,
-            SeedingLogic seedingLogic,
-            MatchPlayProgression progressionMode,
-            bool hasMatchPlayOverlay)?
-        $default, {
-    required TResult orElse(),
-  }) {
-    final _that = this;
-    switch (_that) {
-      case _CompetitionRules() when $default != null:
-        return $default(
-            _that.format,
-            _that.subtype,
-            _that.mode,
-            _that.handicapMode,
-            _that.handicapCap,
-            _that.handicapAllowance,
-            _that.teamHandicapCap,
-            _that.underlyingFormat,
-            _that.useCourseAllowance,
-            _that.maxScoreConfig,
-            _that.roundsCount,
-            _that.aggregation,
-            _that.tieBreak,
-            _that.holeByHoleRequired,
-            _that.minDrivesPerPlayer,
-            _that.useWHSScrambleAllowance,
-            _that.trackShotAttributions,
-            _that.applyCapToIndex,
-            _that.teamBestXCount,
-            _that.teamSize,
-            _that.useMixedTeeAdjustment,
-            _that.teamHandicapMethod,
-            _that.oomExcludedRoundIds,
-            _that.tournamentFormat,
-            _that.seedingLogic,
-            _that.progressionMode,
-            _that.hasMatchPlayOverlay);
-      case _:
-        return orElse();
-    }
-  }
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( CompetitionFormat format,  CompetitionSubtype subtype,  CompetitionMode mode,  HandicapMode handicapMode,  int handicapCap,  double handicapAllowance,  int? teamHandicapCap,  CompetitionFormat underlyingFormat,  bool useCourseAllowance,  MaxScoreConfig? maxScoreConfig,  int roundsCount,  AggregationMethod aggregation,  TieBreakMethod tieBreak,  bool holeByHoleRequired,  int minDrivesPerPlayer,  bool useWHSScrambleAllowance,  bool trackShotAttributions,  bool applyCapToIndex,  int teamBestXCount,  int teamSize,  bool useMixedTeeAdjustment,  TeamHandicapMethod teamHandicapMethod,  List<String> oomExcludedRoundIds,  TournamentFormat tournamentFormat,  SeedingLogic seedingLogic,  MatchPlayProgression progressionMode,  bool hasMatchPlayOverlay)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _CompetitionRules() when $default != null:
+return $default(_that.format,_that.subtype,_that.mode,_that.handicapMode,_that.handicapCap,_that.handicapAllowance,_that.teamHandicapCap,_that.underlyingFormat,_that.useCourseAllowance,_that.maxScoreConfig,_that.roundsCount,_that.aggregation,_that.tieBreak,_that.holeByHoleRequired,_that.minDrivesPerPlayer,_that.useWHSScrambleAllowance,_that.trackShotAttributions,_that.applyCapToIndex,_that.teamBestXCount,_that.teamSize,_that.useMixedTeeAdjustment,_that.teamHandicapMethod,_that.oomExcludedRoundIds,_that.tournamentFormat,_that.seedingLogic,_that.progressionMode,_that.hasMatchPlayOverlay);case _:
+  return orElse();
 
-  /// A `switch`-like method, using callbacks.
-  ///
-  /// As opposed to `map`, this offers destructuring.
-  /// It is equivalent to doing:
-  /// ```dart
-  /// switch (sealedClass) {
-  ///   case Subclass(:final field):
-  ///     return ...;
-  ///   case Subclass2(:final field2):
-  ///     return ...;
-  /// }
-  /// ```
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
 
-  @optionalTypeArgs
-  TResult when<TResult extends Object?>(
-    TResult Function(
-            CompetitionFormat format,
-            CompetitionSubtype subtype,
-            CompetitionMode mode,
-            HandicapMode handicapMode,
-            int handicapCap,
-            double handicapAllowance,
-            int? teamHandicapCap,
-            CompetitionFormat underlyingFormat,
-            bool useCourseAllowance,
-            MaxScoreConfig? maxScoreConfig,
-            int roundsCount,
-            AggregationMethod aggregation,
-            TieBreakMethod tieBreak,
-            bool holeByHoleRequired,
-            int minDrivesPerPlayer,
-            bool useWHSScrambleAllowance,
-            bool trackShotAttributions,
-            bool applyCapToIndex,
-            int teamBestXCount,
-            int teamSize,
-            bool useMixedTeeAdjustment,
-            TeamHandicapMethod teamHandicapMethod,
-            List<String> oomExcludedRoundIds,
-            TournamentFormat tournamentFormat,
-            SeedingLogic seedingLogic,
-            MatchPlayProgression progressionMode,
-            bool hasMatchPlayOverlay)
-        $default,
-  ) {
-    final _that = this;
-    switch (_that) {
-      case _CompetitionRules():
-        return $default(
-            _that.format,
-            _that.subtype,
-            _that.mode,
-            _that.handicapMode,
-            _that.handicapCap,
-            _that.handicapAllowance,
-            _that.teamHandicapCap,
-            _that.underlyingFormat,
-            _that.useCourseAllowance,
-            _that.maxScoreConfig,
-            _that.roundsCount,
-            _that.aggregation,
-            _that.tieBreak,
-            _that.holeByHoleRequired,
-            _that.minDrivesPerPlayer,
-            _that.useWHSScrambleAllowance,
-            _that.trackShotAttributions,
-            _that.applyCapToIndex,
-            _that.teamBestXCount,
-            _that.teamSize,
-            _that.useMixedTeeAdjustment,
-            _that.teamHandicapMethod,
-            _that.oomExcludedRoundIds,
-            _that.tournamentFormat,
-            _that.seedingLogic,
-            _that.progressionMode,
-            _that.hasMatchPlayOverlay);
-      case _:
-        throw StateError('Unexpected subclass');
-    }
-  }
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( CompetitionFormat format,  CompetitionSubtype subtype,  CompetitionMode mode,  HandicapMode handicapMode,  int handicapCap,  double handicapAllowance,  int? teamHandicapCap,  CompetitionFormat underlyingFormat,  bool useCourseAllowance,  MaxScoreConfig? maxScoreConfig,  int roundsCount,  AggregationMethod aggregation,  TieBreakMethod tieBreak,  bool holeByHoleRequired,  int minDrivesPerPlayer,  bool useWHSScrambleAllowance,  bool trackShotAttributions,  bool applyCapToIndex,  int teamBestXCount,  int teamSize,  bool useMixedTeeAdjustment,  TeamHandicapMethod teamHandicapMethod,  List<String> oomExcludedRoundIds,  TournamentFormat tournamentFormat,  SeedingLogic seedingLogic,  MatchPlayProgression progressionMode,  bool hasMatchPlayOverlay)  $default,) {final _that = this;
+switch (_that) {
+case _CompetitionRules():
+return $default(_that.format,_that.subtype,_that.mode,_that.handicapMode,_that.handicapCap,_that.handicapAllowance,_that.teamHandicapCap,_that.underlyingFormat,_that.useCourseAllowance,_that.maxScoreConfig,_that.roundsCount,_that.aggregation,_that.tieBreak,_that.holeByHoleRequired,_that.minDrivesPerPlayer,_that.useWHSScrambleAllowance,_that.trackShotAttributions,_that.applyCapToIndex,_that.teamBestXCount,_that.teamSize,_that.useMixedTeeAdjustment,_that.teamHandicapMethod,_that.oomExcludedRoundIds,_that.tournamentFormat,_that.seedingLogic,_that.progressionMode,_that.hasMatchPlayOverlay);case _:
+  throw StateError('Unexpected subclass');
 
-  /// A variant of `when` that fallback to returning `null`
-  ///
-  /// It is equivalent to doing:
-  /// ```dart
-  /// switch (sealedClass) {
-  ///   case Subclass(:final field):
-  ///     return ...;
-  ///   case _:
-  ///     return null;
-  /// }
-  /// ```
+}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
 
-  @optionalTypeArgs
-  TResult? whenOrNull<TResult extends Object?>(
-    TResult? Function(
-            CompetitionFormat format,
-            CompetitionSubtype subtype,
-            CompetitionMode mode,
-            HandicapMode handicapMode,
-            int handicapCap,
-            double handicapAllowance,
-            int? teamHandicapCap,
-            CompetitionFormat underlyingFormat,
-            bool useCourseAllowance,
-            MaxScoreConfig? maxScoreConfig,
-            int roundsCount,
-            AggregationMethod aggregation,
-            TieBreakMethod tieBreak,
-            bool holeByHoleRequired,
-            int minDrivesPerPlayer,
-            bool useWHSScrambleAllowance,
-            bool trackShotAttributions,
-            bool applyCapToIndex,
-            int teamBestXCount,
-            int teamSize,
-            bool useMixedTeeAdjustment,
-            TeamHandicapMethod teamHandicapMethod,
-            List<String> oomExcludedRoundIds,
-            TournamentFormat tournamentFormat,
-            SeedingLogic seedingLogic,
-            MatchPlayProgression progressionMode,
-            bool hasMatchPlayOverlay)?
-        $default,
-  ) {
-    final _that = this;
-    switch (_that) {
-      case _CompetitionRules() when $default != null:
-        return $default(
-            _that.format,
-            _that.subtype,
-            _that.mode,
-            _that.handicapMode,
-            _that.handicapCap,
-            _that.handicapAllowance,
-            _that.teamHandicapCap,
-            _that.underlyingFormat,
-            _that.useCourseAllowance,
-            _that.maxScoreConfig,
-            _that.roundsCount,
-            _that.aggregation,
-            _that.tieBreak,
-            _that.holeByHoleRequired,
-            _that.minDrivesPerPlayer,
-            _that.useWHSScrambleAllowance,
-            _that.trackShotAttributions,
-            _that.applyCapToIndex,
-            _that.teamBestXCount,
-            _that.teamSize,
-            _that.useMixedTeeAdjustment,
-            _that.teamHandicapMethod,
-            _that.oomExcludedRoundIds,
-            _that.tournamentFormat,
-            _that.seedingLogic,
-            _that.progressionMode,
-            _that.hasMatchPlayOverlay);
-      case _:
-        return null;
-    }
-  }
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( CompetitionFormat format,  CompetitionSubtype subtype,  CompetitionMode mode,  HandicapMode handicapMode,  int handicapCap,  double handicapAllowance,  int? teamHandicapCap,  CompetitionFormat underlyingFormat,  bool useCourseAllowance,  MaxScoreConfig? maxScoreConfig,  int roundsCount,  AggregationMethod aggregation,  TieBreakMethod tieBreak,  bool holeByHoleRequired,  int minDrivesPerPlayer,  bool useWHSScrambleAllowance,  bool trackShotAttributions,  bool applyCapToIndex,  int teamBestXCount,  int teamSize,  bool useMixedTeeAdjustment,  TeamHandicapMethod teamHandicapMethod,  List<String> oomExcludedRoundIds,  TournamentFormat tournamentFormat,  SeedingLogic seedingLogic,  MatchPlayProgression progressionMode,  bool hasMatchPlayOverlay)?  $default,) {final _that = this;
+switch (_that) {
+case _CompetitionRules() when $default != null:
+return $default(_that.format,_that.subtype,_that.mode,_that.handicapMode,_that.handicapCap,_that.handicapAllowance,_that.teamHandicapCap,_that.underlyingFormat,_that.useCourseAllowance,_that.maxScoreConfig,_that.roundsCount,_that.aggregation,_that.tieBreak,_that.holeByHoleRequired,_that.minDrivesPerPlayer,_that.useWHSScrambleAllowance,_that.trackShotAttributions,_that.applyCapToIndex,_that.teamBestXCount,_that.teamSize,_that.useMixedTeeAdjustment,_that.teamHandicapMethod,_that.oomExcludedRoundIds,_that.tournamentFormat,_that.seedingLogic,_that.progressionMode,_that.hasMatchPlayOverlay);case _:
+  return null;
+
+}
+}
+
 }
 
 /// @nodoc
 @JsonSerializable()
-class _CompetitionRules implements CompetitionRules {
-  const _CompetitionRules(
-      {this.format = CompetitionFormat.stableford,
-      this.subtype = CompetitionSubtype.none,
-      this.mode = CompetitionMode.singles,
-      this.handicapMode = HandicapMode.whs,
-      this.handicapCap = 28,
-      this.handicapAllowance = 1.0,
-      this.teamHandicapCap,
-      this.underlyingFormat = CompetitionFormat.stroke,
-      this.useCourseAllowance = true,
-      this.maxScoreConfig,
-      this.roundsCount = 1,
-      this.aggregation = AggregationMethod.totalSum,
-      this.tieBreak = TieBreakMethod.back9,
-      this.holeByHoleRequired = true,
-      this.minDrivesPerPlayer = 0,
-      this.useWHSScrambleAllowance = true,
-      this.trackShotAttributions = true,
-      this.applyCapToIndex = true,
-      this.teamBestXCount = 2,
-      this.teamSize = 4,
-      this.useMixedTeeAdjustment = false,
-      this.teamHandicapMethod = TeamHandicapMethod.whs,
-      final List<String> oomExcludedRoundIds = const [],
-      this.tournamentFormat = TournamentFormat.knockout,
-      this.seedingLogic = SeedingLogic.random,
-      this.progressionMode = MatchPlayProgression.bracketed,
-      this.hasMatchPlayOverlay = false})
-      : _oomExcludedRoundIds = oomExcludedRoundIds;
-  factory _CompetitionRules.fromJson(Map<String, dynamic> json) =>
-      _$CompetitionRulesFromJson(json);
 
-  @override
-  @JsonKey()
-  final CompetitionFormat format;
-  @override
-  @JsonKey()
-  final CompetitionSubtype subtype;
-  @override
-  @JsonKey()
-  final CompetitionMode mode;
-  @override
-  @JsonKey()
-  final HandicapMode handicapMode;
-  @override
-  @JsonKey()
-  final int handicapCap;
-  @override
-  @JsonKey()
-  final double handicapAllowance;
-  @override
-  final int? teamHandicapCap;
+class _CompetitionRules implements CompetitionRules {
+  const _CompetitionRules({this.format = CompetitionFormat.stableford, this.subtype = CompetitionSubtype.none, this.mode = CompetitionMode.singles, this.handicapMode = HandicapMode.whs, this.handicapCap = 28, this.handicapAllowance = 1.0, this.teamHandicapCap, this.underlyingFormat = CompetitionFormat.stroke, this.useCourseAllowance = true, this.maxScoreConfig, this.roundsCount = 1, this.aggregation = AggregationMethod.totalSum, this.tieBreak = TieBreakMethod.back9, this.holeByHoleRequired = true, this.minDrivesPerPlayer = 0, this.useWHSScrambleAllowance = true, this.trackShotAttributions = true, this.applyCapToIndex = true, this.teamBestXCount = 2, this.teamSize = 4, this.useMixedTeeAdjustment = false, this.teamHandicapMethod = TeamHandicapMethod.whs, final  List<String> oomExcludedRoundIds = const [], this.tournamentFormat = TournamentFormat.knockout, this.seedingLogic = SeedingLogic.random, this.progressionMode = MatchPlayProgression.bracketed, this.hasMatchPlayOverlay = false}): _oomExcludedRoundIds = oomExcludedRoundIds;
+  factory _CompetitionRules.fromJson(Map<String, dynamic> json) => _$CompetitionRulesFromJson(json);
+
+@override@JsonKey() final  CompetitionFormat format;
+@override@JsonKey() final  CompetitionSubtype subtype;
+@override@JsonKey() final  CompetitionMode mode;
+@override@JsonKey() final  HandicapMode handicapMode;
+@override@JsonKey() final  int handicapCap;
+@override@JsonKey() final  double handicapAllowance;
+@override final  int? teamHandicapCap;
 // [NEW] For Scramble/Team capping
-  @override
-  @JsonKey()
-  final CompetitionFormat underlyingFormat;
+@override@JsonKey() final  CompetitionFormat underlyingFormat;
 // [NEW] For Scramble base logic
-  @override
-  @JsonKey()
-  final bool useCourseAllowance;
-  @override
-  final MaxScoreConfig? maxScoreConfig;
-  @override
-  @JsonKey()
-  final int roundsCount;
-  @override
-  @JsonKey()
-  final AggregationMethod aggregation;
-  @override
-  @JsonKey()
-  final TieBreakMethod tieBreak;
-  @override
-  @JsonKey()
-  final bool holeByHoleRequired;
-  @override
-  @JsonKey()
-  final int minDrivesPerPlayer;
-  @override
-  @JsonKey()
-  final bool useWHSScrambleAllowance;
-  @override
-  @JsonKey()
-  final bool trackShotAttributions;
-  @override
-  @JsonKey()
-  final bool applyCapToIndex;
-  @override
-  @JsonKey()
-  final int teamBestXCount;
-  @override
-  @JsonKey()
-  final int teamSize;
-  @override
-  @JsonKey()
-  final bool useMixedTeeAdjustment;
+@override@JsonKey() final  bool useCourseAllowance;
+@override final  MaxScoreConfig? maxScoreConfig;
+@override@JsonKey() final  int roundsCount;
+@override@JsonKey() final  AggregationMethod aggregation;
+@override@JsonKey() final  TieBreakMethod tieBreak;
+@override@JsonKey() final  bool holeByHoleRequired;
+@override@JsonKey() final  int minDrivesPerPlayer;
+@override@JsonKey() final  bool useWHSScrambleAllowance;
+@override@JsonKey() final  bool trackShotAttributions;
+@override@JsonKey() final  bool applyCapToIndex;
+@override@JsonKey() final  int teamBestXCount;
+@override@JsonKey() final  int teamSize;
+@override@JsonKey() final  bool useMixedTeeAdjustment;
 // [NEW] C.R. - Par adjustment
-  @override
-  @JsonKey()
-  final TeamHandicapMethod teamHandicapMethod;
+@override@JsonKey() final  TeamHandicapMethod teamHandicapMethod;
 // [NEW] Scramble method
-  final List<String> _oomExcludedRoundIds;
+ final  List<String> _oomExcludedRoundIds;
 // [NEW] Scramble method
-  @override
-  @JsonKey()
-  List<String> get oomExcludedRoundIds {
-    if (_oomExcludedRoundIds is EqualUnmodifiableListView)
-      return _oomExcludedRoundIds;
-    // ignore: implicit_dynamic_type
-    return EqualUnmodifiableListView(_oomExcludedRoundIds);
-  }
+@override@JsonKey() List<String> get oomExcludedRoundIds {
+  if (_oomExcludedRoundIds is EqualUnmodifiableListView) return _oomExcludedRoundIds;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_oomExcludedRoundIds);
+}
 
 // [NEW] Rounds to skip in season standings
-  @override
-  @JsonKey()
-  final TournamentFormat tournamentFormat;
-  @override
-  @JsonKey()
-  final SeedingLogic seedingLogic;
-  @override
-  @JsonKey()
-  final MatchPlayProgression progressionMode;
-  @override
-  @JsonKey()
-  final bool hasMatchPlayOverlay;
+@override@JsonKey() final  TournamentFormat tournamentFormat;
+@override@JsonKey() final  SeedingLogic seedingLogic;
+@override@JsonKey() final  MatchPlayProgression progressionMode;
+@override@JsonKey() final  bool hasMatchPlayOverlay;
 
-  /// Create a copy of CompetitionRules
-  /// with the given fields replaced by the non-null parameter values.
-  @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  @pragma('vm:prefer-inline')
-  _$CompetitionRulesCopyWith<_CompetitionRules> get copyWith =>
-      __$CompetitionRulesCopyWithImpl<_CompetitionRules>(this, _$identity);
+/// Create a copy of CompetitionRules
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$CompetitionRulesCopyWith<_CompetitionRules> get copyWith => __$CompetitionRulesCopyWithImpl<_CompetitionRules>(this, _$identity);
 
-  @override
-  Map<String, dynamic> toJson() {
-    return _$CompetitionRulesToJson(
-      this,
-    );
-  }
+@override
+Map<String, dynamic> toJson() {
+  return _$CompetitionRulesToJson(this, );
+}
 
-  @override
-  bool operator ==(Object other) {
-    return identical(this, other) ||
-        (other.runtimeType == runtimeType &&
-            other is _CompetitionRules &&
-            (identical(other.format, format) || other.format == format) &&
-            (identical(other.subtype, subtype) || other.subtype == subtype) &&
-            (identical(other.mode, mode) || other.mode == mode) &&
-            (identical(other.handicapMode, handicapMode) ||
-                other.handicapMode == handicapMode) &&
-            (identical(other.handicapCap, handicapCap) ||
-                other.handicapCap == handicapCap) &&
-            (identical(other.handicapAllowance, handicapAllowance) ||
-                other.handicapAllowance == handicapAllowance) &&
-            (identical(other.teamHandicapCap, teamHandicapCap) ||
-                other.teamHandicapCap == teamHandicapCap) &&
-            (identical(other.underlyingFormat, underlyingFormat) ||
-                other.underlyingFormat == underlyingFormat) &&
-            (identical(other.useCourseAllowance, useCourseAllowance) ||
-                other.useCourseAllowance == useCourseAllowance) &&
-            (identical(other.maxScoreConfig, maxScoreConfig) ||
-                other.maxScoreConfig == maxScoreConfig) &&
-            (identical(other.roundsCount, roundsCount) ||
-                other.roundsCount == roundsCount) &&
-            (identical(other.aggregation, aggregation) ||
-                other.aggregation == aggregation) &&
-            (identical(other.tieBreak, tieBreak) ||
-                other.tieBreak == tieBreak) &&
-            (identical(other.holeByHoleRequired, holeByHoleRequired) ||
-                other.holeByHoleRequired == holeByHoleRequired) &&
-            (identical(other.minDrivesPerPlayer, minDrivesPerPlayer) ||
-                other.minDrivesPerPlayer == minDrivesPerPlayer) &&
-            (identical(
-                    other.useWHSScrambleAllowance, useWHSScrambleAllowance) ||
-                other.useWHSScrambleAllowance == useWHSScrambleAllowance) &&
-            (identical(other.trackShotAttributions, trackShotAttributions) ||
-                other.trackShotAttributions == trackShotAttributions) &&
-            (identical(other.applyCapToIndex, applyCapToIndex) ||
-                other.applyCapToIndex == applyCapToIndex) &&
-            (identical(other.teamBestXCount, teamBestXCount) ||
-                other.teamBestXCount == teamBestXCount) &&
-            (identical(other.teamSize, teamSize) ||
-                other.teamSize == teamSize) &&
-            (identical(other.useMixedTeeAdjustment, useMixedTeeAdjustment) ||
-                other.useMixedTeeAdjustment == useMixedTeeAdjustment) &&
-            (identical(other.teamHandicapMethod, teamHandicapMethod) ||
-                other.teamHandicapMethod == teamHandicapMethod) &&
-            const DeepCollectionEquality()
-                .equals(other._oomExcludedRoundIds, _oomExcludedRoundIds) &&
-            (identical(other.tournamentFormat, tournamentFormat) ||
-                other.tournamentFormat == tournamentFormat) &&
-            (identical(other.seedingLogic, seedingLogic) ||
-                other.seedingLogic == seedingLogic) &&
-            (identical(other.progressionMode, progressionMode) ||
-                other.progressionMode == progressionMode) &&
-            (identical(other.hasMatchPlayOverlay, hasMatchPlayOverlay) ||
-                other.hasMatchPlayOverlay == hasMatchPlayOverlay));
-  }
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _CompetitionRules&&(identical(other.format, format) || other.format == format)&&(identical(other.subtype, subtype) || other.subtype == subtype)&&(identical(other.mode, mode) || other.mode == mode)&&(identical(other.handicapMode, handicapMode) || other.handicapMode == handicapMode)&&(identical(other.handicapCap, handicapCap) || other.handicapCap == handicapCap)&&(identical(other.handicapAllowance, handicapAllowance) || other.handicapAllowance == handicapAllowance)&&(identical(other.teamHandicapCap, teamHandicapCap) || other.teamHandicapCap == teamHandicapCap)&&(identical(other.underlyingFormat, underlyingFormat) || other.underlyingFormat == underlyingFormat)&&(identical(other.useCourseAllowance, useCourseAllowance) || other.useCourseAllowance == useCourseAllowance)&&(identical(other.maxScoreConfig, maxScoreConfig) || other.maxScoreConfig == maxScoreConfig)&&(identical(other.roundsCount, roundsCount) || other.roundsCount == roundsCount)&&(identical(other.aggregation, aggregation) || other.aggregation == aggregation)&&(identical(other.tieBreak, tieBreak) || other.tieBreak == tieBreak)&&(identical(other.holeByHoleRequired, holeByHoleRequired) || other.holeByHoleRequired == holeByHoleRequired)&&(identical(other.minDrivesPerPlayer, minDrivesPerPlayer) || other.minDrivesPerPlayer == minDrivesPerPlayer)&&(identical(other.useWHSScrambleAllowance, useWHSScrambleAllowance) || other.useWHSScrambleAllowance == useWHSScrambleAllowance)&&(identical(other.trackShotAttributions, trackShotAttributions) || other.trackShotAttributions == trackShotAttributions)&&(identical(other.applyCapToIndex, applyCapToIndex) || other.applyCapToIndex == applyCapToIndex)&&(identical(other.teamBestXCount, teamBestXCount) || other.teamBestXCount == teamBestXCount)&&(identical(other.teamSize, teamSize) || other.teamSize == teamSize)&&(identical(other.useMixedTeeAdjustment, useMixedTeeAdjustment) || other.useMixedTeeAdjustment == useMixedTeeAdjustment)&&(identical(other.teamHandicapMethod, teamHandicapMethod) || other.teamHandicapMethod == teamHandicapMethod)&&const DeepCollectionEquality().equals(other._oomExcludedRoundIds, _oomExcludedRoundIds)&&(identical(other.tournamentFormat, tournamentFormat) || other.tournamentFormat == tournamentFormat)&&(identical(other.seedingLogic, seedingLogic) || other.seedingLogic == seedingLogic)&&(identical(other.progressionMode, progressionMode) || other.progressionMode == progressionMode)&&(identical(other.hasMatchPlayOverlay, hasMatchPlayOverlay) || other.hasMatchPlayOverlay == hasMatchPlayOverlay));
+}
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  @override
-  int get hashCode => Object.hashAll([
-        runtimeType,
-        format,
-        subtype,
-        mode,
-        handicapMode,
-        handicapCap,
-        handicapAllowance,
-        teamHandicapCap,
-        underlyingFormat,
-        useCourseAllowance,
-        maxScoreConfig,
-        roundsCount,
-        aggregation,
-        tieBreak,
-        holeByHoleRequired,
-        minDrivesPerPlayer,
-        useWHSScrambleAllowance,
-        trackShotAttributions,
-        applyCapToIndex,
-        teamBestXCount,
-        teamSize,
-        useMixedTeeAdjustment,
-        teamHandicapMethod,
-        const DeepCollectionEquality().hash(_oomExcludedRoundIds),
-        tournamentFormat,
-        seedingLogic,
-        progressionMode,
-        hasMatchPlayOverlay
-      ]);
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hashAll([runtimeType,format,subtype,mode,handicapMode,handicapCap,handicapAllowance,teamHandicapCap,underlyingFormat,useCourseAllowance,maxScoreConfig,roundsCount,aggregation,tieBreak,holeByHoleRequired,minDrivesPerPlayer,useWHSScrambleAllowance,trackShotAttributions,applyCapToIndex,teamBestXCount,teamSize,useMixedTeeAdjustment,teamHandicapMethod,const DeepCollectionEquality().hash(_oomExcludedRoundIds),tournamentFormat,seedingLogic,progressionMode,hasMatchPlayOverlay]);
 
-  @override
-  String toString() {
-    return 'CompetitionRules(format: $format, subtype: $subtype, mode: $mode, handicapMode: $handicapMode, handicapCap: $handicapCap, handicapAllowance: $handicapAllowance, teamHandicapCap: $teamHandicapCap, underlyingFormat: $underlyingFormat, useCourseAllowance: $useCourseAllowance, maxScoreConfig: $maxScoreConfig, roundsCount: $roundsCount, aggregation: $aggregation, tieBreak: $tieBreak, holeByHoleRequired: $holeByHoleRequired, minDrivesPerPlayer: $minDrivesPerPlayer, useWHSScrambleAllowance: $useWHSScrambleAllowance, trackShotAttributions: $trackShotAttributions, applyCapToIndex: $applyCapToIndex, teamBestXCount: $teamBestXCount, teamSize: $teamSize, useMixedTeeAdjustment: $useMixedTeeAdjustment, teamHandicapMethod: $teamHandicapMethod, oomExcludedRoundIds: $oomExcludedRoundIds, tournamentFormat: $tournamentFormat, seedingLogic: $seedingLogic, progressionMode: $progressionMode, hasMatchPlayOverlay: $hasMatchPlayOverlay)';
-  }
+@override
+String toString() {
+  return 'CompetitionRules(format: $format, subtype: $subtype, mode: $mode, handicapMode: $handicapMode, handicapCap: $handicapCap, handicapAllowance: $handicapAllowance, teamHandicapCap: $teamHandicapCap, underlyingFormat: $underlyingFormat, useCourseAllowance: $useCourseAllowance, maxScoreConfig: $maxScoreConfig, roundsCount: $roundsCount, aggregation: $aggregation, tieBreak: $tieBreak, holeByHoleRequired: $holeByHoleRequired, minDrivesPerPlayer: $minDrivesPerPlayer, useWHSScrambleAllowance: $useWHSScrambleAllowance, trackShotAttributions: $trackShotAttributions, applyCapToIndex: $applyCapToIndex, teamBestXCount: $teamBestXCount, teamSize: $teamSize, useMixedTeeAdjustment: $useMixedTeeAdjustment, teamHandicapMethod: $teamHandicapMethod, oomExcludedRoundIds: $oomExcludedRoundIds, tournamentFormat: $tournamentFormat, seedingLogic: $seedingLogic, progressionMode: $progressionMode, hasMatchPlayOverlay: $hasMatchPlayOverlay)';
+}
+
+
 }
 
 /// @nodoc
-abstract mixin class _$CompetitionRulesCopyWith<$Res>
-    implements $CompetitionRulesCopyWith<$Res> {
-  factory _$CompetitionRulesCopyWith(
-          _CompetitionRules value, $Res Function(_CompetitionRules) _then) =
-      __$CompetitionRulesCopyWithImpl;
-  @override
-  @useResult
-  $Res call(
-      {CompetitionFormat format,
-      CompetitionSubtype subtype,
-      CompetitionMode mode,
-      HandicapMode handicapMode,
-      int handicapCap,
-      double handicapAllowance,
-      int? teamHandicapCap,
-      CompetitionFormat underlyingFormat,
-      bool useCourseAllowance,
-      MaxScoreConfig? maxScoreConfig,
-      int roundsCount,
-      AggregationMethod aggregation,
-      TieBreakMethod tieBreak,
-      bool holeByHoleRequired,
-      int minDrivesPerPlayer,
-      bool useWHSScrambleAllowance,
-      bool trackShotAttributions,
-      bool applyCapToIndex,
-      int teamBestXCount,
-      int teamSize,
-      bool useMixedTeeAdjustment,
-      TeamHandicapMethod teamHandicapMethod,
-      List<String> oomExcludedRoundIds,
-      TournamentFormat tournamentFormat,
-      SeedingLogic seedingLogic,
-      MatchPlayProgression progressionMode,
-      bool hasMatchPlayOverlay});
+abstract mixin class _$CompetitionRulesCopyWith<$Res> implements $CompetitionRulesCopyWith<$Res> {
+  factory _$CompetitionRulesCopyWith(_CompetitionRules value, $Res Function(_CompetitionRules) _then) = __$CompetitionRulesCopyWithImpl;
+@override @useResult
+$Res call({
+ CompetitionFormat format, CompetitionSubtype subtype, CompetitionMode mode, HandicapMode handicapMode, int handicapCap, double handicapAllowance, int? teamHandicapCap, CompetitionFormat underlyingFormat, bool useCourseAllowance, MaxScoreConfig? maxScoreConfig, int roundsCount, AggregationMethod aggregation, TieBreakMethod tieBreak, bool holeByHoleRequired, int minDrivesPerPlayer, bool useWHSScrambleAllowance, bool trackShotAttributions, bool applyCapToIndex, int teamBestXCount, int teamSize, bool useMixedTeeAdjustment, TeamHandicapMethod teamHandicapMethod, List<String> oomExcludedRoundIds, TournamentFormat tournamentFormat, SeedingLogic seedingLogic, MatchPlayProgression progressionMode, bool hasMatchPlayOverlay
+});
 
-  @override
-  $MaxScoreConfigCopyWith<$Res>? get maxScoreConfig;
+
+@override $MaxScoreConfigCopyWith<$Res>? get maxScoreConfig;
+
 }
-
 /// @nodoc
 class __$CompetitionRulesCopyWithImpl<$Res>
     implements _$CompetitionRulesCopyWith<$Res> {
@@ -1288,844 +609,377 @@ class __$CompetitionRulesCopyWithImpl<$Res>
   final _CompetitionRules _self;
   final $Res Function(_CompetitionRules) _then;
 
-  /// Create a copy of CompetitionRules
-  /// with the given fields replaced by the non-null parameter values.
-  @override
-  @pragma('vm:prefer-inline')
-  $Res call({
-    Object? format = null,
-    Object? subtype = null,
-    Object? mode = null,
-    Object? handicapMode = null,
-    Object? handicapCap = null,
-    Object? handicapAllowance = null,
-    Object? teamHandicapCap = freezed,
-    Object? underlyingFormat = null,
-    Object? useCourseAllowance = null,
-    Object? maxScoreConfig = freezed,
-    Object? roundsCount = null,
-    Object? aggregation = null,
-    Object? tieBreak = null,
-    Object? holeByHoleRequired = null,
-    Object? minDrivesPerPlayer = null,
-    Object? useWHSScrambleAllowance = null,
-    Object? trackShotAttributions = null,
-    Object? applyCapToIndex = null,
-    Object? teamBestXCount = null,
-    Object? teamSize = null,
-    Object? useMixedTeeAdjustment = null,
-    Object? teamHandicapMethod = null,
-    Object? oomExcludedRoundIds = null,
-    Object? tournamentFormat = null,
-    Object? seedingLogic = null,
-    Object? progressionMode = null,
-    Object? hasMatchPlayOverlay = null,
-  }) {
-    return _then(_CompetitionRules(
-      format: null == format
-          ? _self.format
-          : format // ignore: cast_nullable_to_non_nullable
-              as CompetitionFormat,
-      subtype: null == subtype
-          ? _self.subtype
-          : subtype // ignore: cast_nullable_to_non_nullable
-              as CompetitionSubtype,
-      mode: null == mode
-          ? _self.mode
-          : mode // ignore: cast_nullable_to_non_nullable
-              as CompetitionMode,
-      handicapMode: null == handicapMode
-          ? _self.handicapMode
-          : handicapMode // ignore: cast_nullable_to_non_nullable
-              as HandicapMode,
-      handicapCap: null == handicapCap
-          ? _self.handicapCap
-          : handicapCap // ignore: cast_nullable_to_non_nullable
-              as int,
-      handicapAllowance: null == handicapAllowance
-          ? _self.handicapAllowance
-          : handicapAllowance // ignore: cast_nullable_to_non_nullable
-              as double,
-      teamHandicapCap: freezed == teamHandicapCap
-          ? _self.teamHandicapCap
-          : teamHandicapCap // ignore: cast_nullable_to_non_nullable
-              as int?,
-      underlyingFormat: null == underlyingFormat
-          ? _self.underlyingFormat
-          : underlyingFormat // ignore: cast_nullable_to_non_nullable
-              as CompetitionFormat,
-      useCourseAllowance: null == useCourseAllowance
-          ? _self.useCourseAllowance
-          : useCourseAllowance // ignore: cast_nullable_to_non_nullable
-              as bool,
-      maxScoreConfig: freezed == maxScoreConfig
-          ? _self.maxScoreConfig
-          : maxScoreConfig // ignore: cast_nullable_to_non_nullable
-              as MaxScoreConfig?,
-      roundsCount: null == roundsCount
-          ? _self.roundsCount
-          : roundsCount // ignore: cast_nullable_to_non_nullable
-              as int,
-      aggregation: null == aggregation
-          ? _self.aggregation
-          : aggregation // ignore: cast_nullable_to_non_nullable
-              as AggregationMethod,
-      tieBreak: null == tieBreak
-          ? _self.tieBreak
-          : tieBreak // ignore: cast_nullable_to_non_nullable
-              as TieBreakMethod,
-      holeByHoleRequired: null == holeByHoleRequired
-          ? _self.holeByHoleRequired
-          : holeByHoleRequired // ignore: cast_nullable_to_non_nullable
-              as bool,
-      minDrivesPerPlayer: null == minDrivesPerPlayer
-          ? _self.minDrivesPerPlayer
-          : minDrivesPerPlayer // ignore: cast_nullable_to_non_nullable
-              as int,
-      useWHSScrambleAllowance: null == useWHSScrambleAllowance
-          ? _self.useWHSScrambleAllowance
-          : useWHSScrambleAllowance // ignore: cast_nullable_to_non_nullable
-              as bool,
-      trackShotAttributions: null == trackShotAttributions
-          ? _self.trackShotAttributions
-          : trackShotAttributions // ignore: cast_nullable_to_non_nullable
-              as bool,
-      applyCapToIndex: null == applyCapToIndex
-          ? _self.applyCapToIndex
-          : applyCapToIndex // ignore: cast_nullable_to_non_nullable
-              as bool,
-      teamBestXCount: null == teamBestXCount
-          ? _self.teamBestXCount
-          : teamBestXCount // ignore: cast_nullable_to_non_nullable
-              as int,
-      teamSize: null == teamSize
-          ? _self.teamSize
-          : teamSize // ignore: cast_nullable_to_non_nullable
-              as int,
-      useMixedTeeAdjustment: null == useMixedTeeAdjustment
-          ? _self.useMixedTeeAdjustment
-          : useMixedTeeAdjustment // ignore: cast_nullable_to_non_nullable
-              as bool,
-      teamHandicapMethod: null == teamHandicapMethod
-          ? _self.teamHandicapMethod
-          : teamHandicapMethod // ignore: cast_nullable_to_non_nullable
-              as TeamHandicapMethod,
-      oomExcludedRoundIds: null == oomExcludedRoundIds
-          ? _self._oomExcludedRoundIds
-          : oomExcludedRoundIds // ignore: cast_nullable_to_non_nullable
-              as List<String>,
-      tournamentFormat: null == tournamentFormat
-          ? _self.tournamentFormat
-          : tournamentFormat // ignore: cast_nullable_to_non_nullable
-              as TournamentFormat,
-      seedingLogic: null == seedingLogic
-          ? _self.seedingLogic
-          : seedingLogic // ignore: cast_nullable_to_non_nullable
-              as SeedingLogic,
-      progressionMode: null == progressionMode
-          ? _self.progressionMode
-          : progressionMode // ignore: cast_nullable_to_non_nullable
-              as MatchPlayProgression,
-      hasMatchPlayOverlay: null == hasMatchPlayOverlay
-          ? _self.hasMatchPlayOverlay
-          : hasMatchPlayOverlay // ignore: cast_nullable_to_non_nullable
-              as bool,
-    ));
-  }
-
-  /// Create a copy of CompetitionRules
-  /// with the given fields replaced by the non-null parameter values.
-  @override
-  @pragma('vm:prefer-inline')
-  $MaxScoreConfigCopyWith<$Res>? get maxScoreConfig {
-    if (_self.maxScoreConfig == null) {
-      return null;
-    }
-
-    return $MaxScoreConfigCopyWith<$Res>(_self.maxScoreConfig!, (value) {
-      return _then(_self.copyWith(maxScoreConfig: value));
-    });
-  }
+/// Create a copy of CompetitionRules
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? format = null,Object? subtype = null,Object? mode = null,Object? handicapMode = null,Object? handicapCap = null,Object? handicapAllowance = null,Object? teamHandicapCap = freezed,Object? underlyingFormat = null,Object? useCourseAllowance = null,Object? maxScoreConfig = freezed,Object? roundsCount = null,Object? aggregation = null,Object? tieBreak = null,Object? holeByHoleRequired = null,Object? minDrivesPerPlayer = null,Object? useWHSScrambleAllowance = null,Object? trackShotAttributions = null,Object? applyCapToIndex = null,Object? teamBestXCount = null,Object? teamSize = null,Object? useMixedTeeAdjustment = null,Object? teamHandicapMethod = null,Object? oomExcludedRoundIds = null,Object? tournamentFormat = null,Object? seedingLogic = null,Object? progressionMode = null,Object? hasMatchPlayOverlay = null,}) {
+  return _then(_CompetitionRules(
+format: null == format ? _self.format : format // ignore: cast_nullable_to_non_nullable
+as CompetitionFormat,subtype: null == subtype ? _self.subtype : subtype // ignore: cast_nullable_to_non_nullable
+as CompetitionSubtype,mode: null == mode ? _self.mode : mode // ignore: cast_nullable_to_non_nullable
+as CompetitionMode,handicapMode: null == handicapMode ? _self.handicapMode : handicapMode // ignore: cast_nullable_to_non_nullable
+as HandicapMode,handicapCap: null == handicapCap ? _self.handicapCap : handicapCap // ignore: cast_nullable_to_non_nullable
+as int,handicapAllowance: null == handicapAllowance ? _self.handicapAllowance : handicapAllowance // ignore: cast_nullable_to_non_nullable
+as double,teamHandicapCap: freezed == teamHandicapCap ? _self.teamHandicapCap : teamHandicapCap // ignore: cast_nullable_to_non_nullable
+as int?,underlyingFormat: null == underlyingFormat ? _self.underlyingFormat : underlyingFormat // ignore: cast_nullable_to_non_nullable
+as CompetitionFormat,useCourseAllowance: null == useCourseAllowance ? _self.useCourseAllowance : useCourseAllowance // ignore: cast_nullable_to_non_nullable
+as bool,maxScoreConfig: freezed == maxScoreConfig ? _self.maxScoreConfig : maxScoreConfig // ignore: cast_nullable_to_non_nullable
+as MaxScoreConfig?,roundsCount: null == roundsCount ? _self.roundsCount : roundsCount // ignore: cast_nullable_to_non_nullable
+as int,aggregation: null == aggregation ? _self.aggregation : aggregation // ignore: cast_nullable_to_non_nullable
+as AggregationMethod,tieBreak: null == tieBreak ? _self.tieBreak : tieBreak // ignore: cast_nullable_to_non_nullable
+as TieBreakMethod,holeByHoleRequired: null == holeByHoleRequired ? _self.holeByHoleRequired : holeByHoleRequired // ignore: cast_nullable_to_non_nullable
+as bool,minDrivesPerPlayer: null == minDrivesPerPlayer ? _self.minDrivesPerPlayer : minDrivesPerPlayer // ignore: cast_nullable_to_non_nullable
+as int,useWHSScrambleAllowance: null == useWHSScrambleAllowance ? _self.useWHSScrambleAllowance : useWHSScrambleAllowance // ignore: cast_nullable_to_non_nullable
+as bool,trackShotAttributions: null == trackShotAttributions ? _self.trackShotAttributions : trackShotAttributions // ignore: cast_nullable_to_non_nullable
+as bool,applyCapToIndex: null == applyCapToIndex ? _self.applyCapToIndex : applyCapToIndex // ignore: cast_nullable_to_non_nullable
+as bool,teamBestXCount: null == teamBestXCount ? _self.teamBestXCount : teamBestXCount // ignore: cast_nullable_to_non_nullable
+as int,teamSize: null == teamSize ? _self.teamSize : teamSize // ignore: cast_nullable_to_non_nullable
+as int,useMixedTeeAdjustment: null == useMixedTeeAdjustment ? _self.useMixedTeeAdjustment : useMixedTeeAdjustment // ignore: cast_nullable_to_non_nullable
+as bool,teamHandicapMethod: null == teamHandicapMethod ? _self.teamHandicapMethod : teamHandicapMethod // ignore: cast_nullable_to_non_nullable
+as TeamHandicapMethod,oomExcludedRoundIds: null == oomExcludedRoundIds ? _self._oomExcludedRoundIds : oomExcludedRoundIds // ignore: cast_nullable_to_non_nullable
+as List<String>,tournamentFormat: null == tournamentFormat ? _self.tournamentFormat : tournamentFormat // ignore: cast_nullable_to_non_nullable
+as TournamentFormat,seedingLogic: null == seedingLogic ? _self.seedingLogic : seedingLogic // ignore: cast_nullable_to_non_nullable
+as SeedingLogic,progressionMode: null == progressionMode ? _self.progressionMode : progressionMode // ignore: cast_nullable_to_non_nullable
+as MatchPlayProgression,hasMatchPlayOverlay: null == hasMatchPlayOverlay ? _self.hasMatchPlayOverlay : hasMatchPlayOverlay // ignore: cast_nullable_to_non_nullable
+as bool,
+  ));
 }
+
+/// Create a copy of CompetitionRules
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$MaxScoreConfigCopyWith<$Res>? get maxScoreConfig {
+    if (_self.maxScoreConfig == null) {
+    return null;
+  }
+
+  return $MaxScoreConfigCopyWith<$Res>(_self.maxScoreConfig!, (value) {
+    return _then(_self.copyWith(maxScoreConfig: value));
+  });
+}
+}
+
 
 /// @nodoc
 mixin _$Competition {
-  String get id;
-  String? get name;
-  String? get templateId;
-  CompetitionType get type;
-  CompetitionStatus get status;
-  CompetitionRules get rules;
-  @TimestampConverter()
-  DateTime get startDate;
-  @TimestampConverter()
-  DateTime get endDate;
-  Map<String, dynamic> get publishSettings;
-  bool get isDirty;
-  int? get computeVersion;
-  @OptionalTimestampConverter()
-  DateTime? get lastComputedAt;
-  String? get lastComputedBy;
 
-  /// Create a copy of Competition
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  @pragma('vm:prefer-inline')
-  $CompetitionCopyWith<Competition> get copyWith =>
-      _$CompetitionCopyWithImpl<Competition>(this as Competition, _$identity);
+ String get id; String? get name; String? get templateId; CompetitionType get type; CompetitionStatus get status; CompetitionRules get rules;@TimestampConverter() DateTime get startDate;@TimestampConverter() DateTime get endDate; Map<String, dynamic> get publishSettings; bool get isDirty; int? get computeVersion;@OptionalTimestampConverter() DateTime? get lastComputedAt; String? get lastComputedBy;
+/// Create a copy of Competition
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$CompetitionCopyWith<Competition> get copyWith => _$CompetitionCopyWithImpl<Competition>(this as Competition, _$identity);
 
   /// Serializes this Competition to a JSON map.
   Map<String, dynamic> toJson();
 
-  @override
-  bool operator ==(Object other) {
-    return identical(this, other) ||
-        (other.runtimeType == runtimeType &&
-            other is Competition &&
-            (identical(other.id, id) || other.id == id) &&
-            (identical(other.name, name) || other.name == name) &&
-            (identical(other.templateId, templateId) ||
-                other.templateId == templateId) &&
-            (identical(other.type, type) || other.type == type) &&
-            (identical(other.status, status) || other.status == status) &&
-            (identical(other.rules, rules) || other.rules == rules) &&
-            (identical(other.startDate, startDate) ||
-                other.startDate == startDate) &&
-            (identical(other.endDate, endDate) || other.endDate == endDate) &&
-            const DeepCollectionEquality()
-                .equals(other.publishSettings, publishSettings) &&
-            (identical(other.isDirty, isDirty) || other.isDirty == isDirty) &&
-            (identical(other.computeVersion, computeVersion) ||
-                other.computeVersion == computeVersion) &&
-            (identical(other.lastComputedAt, lastComputedAt) ||
-                other.lastComputedAt == lastComputedAt) &&
-            (identical(other.lastComputedBy, lastComputedBy) ||
-                other.lastComputedBy == lastComputedBy));
-  }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  @override
-  int get hashCode => Object.hash(
-      runtimeType,
-      id,
-      name,
-      templateId,
-      type,
-      status,
-      rules,
-      startDate,
-      endDate,
-      const DeepCollectionEquality().hash(publishSettings),
-      isDirty,
-      computeVersion,
-      lastComputedAt,
-      lastComputedBy);
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Competition&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.templateId, templateId) || other.templateId == templateId)&&(identical(other.type, type) || other.type == type)&&(identical(other.status, status) || other.status == status)&&(identical(other.rules, rules) || other.rules == rules)&&(identical(other.startDate, startDate) || other.startDate == startDate)&&(identical(other.endDate, endDate) || other.endDate == endDate)&&const DeepCollectionEquality().equals(other.publishSettings, publishSettings)&&(identical(other.isDirty, isDirty) || other.isDirty == isDirty)&&(identical(other.computeVersion, computeVersion) || other.computeVersion == computeVersion)&&(identical(other.lastComputedAt, lastComputedAt) || other.lastComputedAt == lastComputedAt)&&(identical(other.lastComputedBy, lastComputedBy) || other.lastComputedBy == lastComputedBy));
+}
 
-  @override
-  String toString() {
-    return 'Competition(id: $id, name: $name, templateId: $templateId, type: $type, status: $status, rules: $rules, startDate: $startDate, endDate: $endDate, publishSettings: $publishSettings, isDirty: $isDirty, computeVersion: $computeVersion, lastComputedAt: $lastComputedAt, lastComputedBy: $lastComputedBy)';
-  }
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,id,name,templateId,type,status,rules,startDate,endDate,const DeepCollectionEquality().hash(publishSettings),isDirty,computeVersion,lastComputedAt,lastComputedBy);
+
+@override
+String toString() {
+  return 'Competition(id: $id, name: $name, templateId: $templateId, type: $type, status: $status, rules: $rules, startDate: $startDate, endDate: $endDate, publishSettings: $publishSettings, isDirty: $isDirty, computeVersion: $computeVersion, lastComputedAt: $lastComputedAt, lastComputedBy: $lastComputedBy)';
+}
+
+
 }
 
 /// @nodoc
-abstract mixin class $CompetitionCopyWith<$Res> {
-  factory $CompetitionCopyWith(
-          Competition value, $Res Function(Competition) _then) =
-      _$CompetitionCopyWithImpl;
-  @useResult
-  $Res call(
-      {String id,
-      String? name,
-      String? templateId,
-      CompetitionType type,
-      CompetitionStatus status,
-      CompetitionRules rules,
-      @TimestampConverter() DateTime startDate,
-      @TimestampConverter() DateTime endDate,
-      Map<String, dynamic> publishSettings,
-      bool isDirty,
-      int? computeVersion,
-      @OptionalTimestampConverter() DateTime? lastComputedAt,
-      String? lastComputedBy});
+abstract mixin class $CompetitionCopyWith<$Res>  {
+  factory $CompetitionCopyWith(Competition value, $Res Function(Competition) _then) = _$CompetitionCopyWithImpl;
+@useResult
+$Res call({
+ String id, String? name, String? templateId, CompetitionType type, CompetitionStatus status, CompetitionRules rules,@TimestampConverter() DateTime startDate,@TimestampConverter() DateTime endDate, Map<String, dynamic> publishSettings, bool isDirty, int? computeVersion,@OptionalTimestampConverter() DateTime? lastComputedAt, String? lastComputedBy
+});
 
-  $CompetitionRulesCopyWith<$Res> get rules;
+
+$CompetitionRulesCopyWith<$Res> get rules;
+
 }
-
 /// @nodoc
-class _$CompetitionCopyWithImpl<$Res> implements $CompetitionCopyWith<$Res> {
+class _$CompetitionCopyWithImpl<$Res>
+    implements $CompetitionCopyWith<$Res> {
   _$CompetitionCopyWithImpl(this._self, this._then);
 
   final Competition _self;
   final $Res Function(Competition) _then;
 
-  /// Create a copy of Competition
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({
-    Object? id = null,
-    Object? name = freezed,
-    Object? templateId = freezed,
-    Object? type = null,
-    Object? status = null,
-    Object? rules = null,
-    Object? startDate = null,
-    Object? endDate = null,
-    Object? publishSettings = null,
-    Object? isDirty = null,
-    Object? computeVersion = freezed,
-    Object? lastComputedAt = freezed,
-    Object? lastComputedBy = freezed,
-  }) {
-    return _then(_self.copyWith(
-      id: null == id
-          ? _self.id
-          : id // ignore: cast_nullable_to_non_nullable
-              as String,
-      name: freezed == name
-          ? _self.name
-          : name // ignore: cast_nullable_to_non_nullable
-              as String?,
-      templateId: freezed == templateId
-          ? _self.templateId
-          : templateId // ignore: cast_nullable_to_non_nullable
-              as String?,
-      type: null == type
-          ? _self.type
-          : type // ignore: cast_nullable_to_non_nullable
-              as CompetitionType,
-      status: null == status
-          ? _self.status
-          : status // ignore: cast_nullable_to_non_nullable
-              as CompetitionStatus,
-      rules: null == rules
-          ? _self.rules
-          : rules // ignore: cast_nullable_to_non_nullable
-              as CompetitionRules,
-      startDate: null == startDate
-          ? _self.startDate
-          : startDate // ignore: cast_nullable_to_non_nullable
-              as DateTime,
-      endDate: null == endDate
-          ? _self.endDate
-          : endDate // ignore: cast_nullable_to_non_nullable
-              as DateTime,
-      publishSettings: null == publishSettings
-          ? _self.publishSettings
-          : publishSettings // ignore: cast_nullable_to_non_nullable
-              as Map<String, dynamic>,
-      isDirty: null == isDirty
-          ? _self.isDirty
-          : isDirty // ignore: cast_nullable_to_non_nullable
-              as bool,
-      computeVersion: freezed == computeVersion
-          ? _self.computeVersion
-          : computeVersion // ignore: cast_nullable_to_non_nullable
-              as int?,
-      lastComputedAt: freezed == lastComputedAt
-          ? _self.lastComputedAt
-          : lastComputedAt // ignore: cast_nullable_to_non_nullable
-              as DateTime?,
-      lastComputedBy: freezed == lastComputedBy
-          ? _self.lastComputedBy
-          : lastComputedBy // ignore: cast_nullable_to_non_nullable
-              as String?,
-    ));
-  }
-
-  /// Create a copy of Competition
-  /// with the given fields replaced by the non-null parameter values.
-  @override
-  @pragma('vm:prefer-inline')
-  $CompetitionRulesCopyWith<$Res> get rules {
-    return $CompetitionRulesCopyWith<$Res>(_self.rules, (value) {
-      return _then(_self.copyWith(rules: value));
-    });
-  }
+/// Create a copy of Competition
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = freezed,Object? templateId = freezed,Object? type = null,Object? status = null,Object? rules = null,Object? startDate = null,Object? endDate = null,Object? publishSettings = null,Object? isDirty = null,Object? computeVersion = freezed,Object? lastComputedAt = freezed,Object? lastComputedBy = freezed,}) {
+  return _then(_self.copyWith(
+id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as String,name: freezed == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
+as String?,templateId: freezed == templateId ? _self.templateId : templateId // ignore: cast_nullable_to_non_nullable
+as String?,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
+as CompetitionType,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
+as CompetitionStatus,rules: null == rules ? _self.rules : rules // ignore: cast_nullable_to_non_nullable
+as CompetitionRules,startDate: null == startDate ? _self.startDate : startDate // ignore: cast_nullable_to_non_nullable
+as DateTime,endDate: null == endDate ? _self.endDate : endDate // ignore: cast_nullable_to_non_nullable
+as DateTime,publishSettings: null == publishSettings ? _self.publishSettings : publishSettings // ignore: cast_nullable_to_non_nullable
+as Map<String, dynamic>,isDirty: null == isDirty ? _self.isDirty : isDirty // ignore: cast_nullable_to_non_nullable
+as bool,computeVersion: freezed == computeVersion ? _self.computeVersion : computeVersion // ignore: cast_nullable_to_non_nullable
+as int?,lastComputedAt: freezed == lastComputedAt ? _self.lastComputedAt : lastComputedAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,lastComputedBy: freezed == lastComputedBy ? _self.lastComputedBy : lastComputedBy // ignore: cast_nullable_to_non_nullable
+as String?,
+  ));
 }
+/// Create a copy of Competition
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$CompetitionRulesCopyWith<$Res> get rules {
+  
+  return $CompetitionRulesCopyWith<$Res>(_self.rules, (value) {
+    return _then(_self.copyWith(rules: value));
+  });
+}
+}
+
 
 /// Adds pattern-matching-related methods to [Competition].
 extension CompetitionPatterns on Competition {
-  /// A variant of `map` that fallback to returning `orElse`.
-  ///
-  /// It is equivalent to doing:
-  /// ```dart
-  /// switch (sealedClass) {
-  ///   case final Subclass value:
-  ///     return ...;
-  ///   case _:
-  ///     return orElse();
-  /// }
-  /// ```
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
 
-  @optionalTypeArgs
-  TResult maybeMap<TResult extends Object?>(
-    TResult Function(_Competition value)? $default, {
-    required TResult orElse(),
-  }) {
-    final _that = this;
-    switch (_that) {
-      case _Competition() when $default != null:
-        return $default(_that);
-      case _:
-        return orElse();
-    }
-  }
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _Competition value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _Competition() when $default != null:
+return $default(_that);case _:
+  return orElse();
 
-  /// A `switch`-like method, using callbacks.
-  ///
-  /// Callbacks receives the raw object, upcasted.
-  /// It is equivalent to doing:
-  /// ```dart
-  /// switch (sealedClass) {
-  ///   case final Subclass value:
-  ///     return ...;
-  ///   case final Subclass2 value:
-  ///     return ...;
-  /// }
-  /// ```
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
 
-  @optionalTypeArgs
-  TResult map<TResult extends Object?>(
-    TResult Function(_Competition value) $default,
-  ) {
-    final _that = this;
-    switch (_that) {
-      case _Competition():
-        return $default(_that);
-      case _:
-        throw StateError('Unexpected subclass');
-    }
-  }
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _Competition value)  $default,){
+final _that = this;
+switch (_that) {
+case _Competition():
+return $default(_that);case _:
+  throw StateError('Unexpected subclass');
 
-  /// A variant of `map` that fallback to returning `null`.
-  ///
-  /// It is equivalent to doing:
-  /// ```dart
-  /// switch (sealedClass) {
-  ///   case final Subclass value:
-  ///     return ...;
-  ///   case _:
-  ///     return null;
-  /// }
-  /// ```
+}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
 
-  @optionalTypeArgs
-  TResult? mapOrNull<TResult extends Object?>(
-    TResult? Function(_Competition value)? $default,
-  ) {
-    final _that = this;
-    switch (_that) {
-      case _Competition() when $default != null:
-        return $default(_that);
-      case _:
-        return null;
-    }
-  }
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _Competition value)?  $default,){
+final _that = this;
+switch (_that) {
+case _Competition() when $default != null:
+return $default(_that);case _:
+  return null;
 
-  /// A variant of `when` that fallback to an `orElse` callback.
-  ///
-  /// It is equivalent to doing:
-  /// ```dart
-  /// switch (sealedClass) {
-  ///   case Subclass(:final field):
-  ///     return ...;
-  ///   case _:
-  ///     return orElse();
-  /// }
-  /// ```
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
 
-  @optionalTypeArgs
-  TResult maybeWhen<TResult extends Object?>(
-    TResult Function(
-            String id,
-            String? name,
-            String? templateId,
-            CompetitionType type,
-            CompetitionStatus status,
-            CompetitionRules rules,
-            @TimestampConverter() DateTime startDate,
-            @TimestampConverter() DateTime endDate,
-            Map<String, dynamic> publishSettings,
-            bool isDirty,
-            int? computeVersion,
-            @OptionalTimestampConverter() DateTime? lastComputedAt,
-            String? lastComputedBy)?
-        $default, {
-    required TResult orElse(),
-  }) {
-    final _that = this;
-    switch (_that) {
-      case _Competition() when $default != null:
-        return $default(
-            _that.id,
-            _that.name,
-            _that.templateId,
-            _that.type,
-            _that.status,
-            _that.rules,
-            _that.startDate,
-            _that.endDate,
-            _that.publishSettings,
-            _that.isDirty,
-            _that.computeVersion,
-            _that.lastComputedAt,
-            _that.lastComputedBy);
-      case _:
-        return orElse();
-    }
-  }
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String? name,  String? templateId,  CompetitionType type,  CompetitionStatus status,  CompetitionRules rules, @TimestampConverter()  DateTime startDate, @TimestampConverter()  DateTime endDate,  Map<String, dynamic> publishSettings,  bool isDirty,  int? computeVersion, @OptionalTimestampConverter()  DateTime? lastComputedAt,  String? lastComputedBy)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _Competition() when $default != null:
+return $default(_that.id,_that.name,_that.templateId,_that.type,_that.status,_that.rules,_that.startDate,_that.endDate,_that.publishSettings,_that.isDirty,_that.computeVersion,_that.lastComputedAt,_that.lastComputedBy);case _:
+  return orElse();
 
-  /// A `switch`-like method, using callbacks.
-  ///
-  /// As opposed to `map`, this offers destructuring.
-  /// It is equivalent to doing:
-  /// ```dart
-  /// switch (sealedClass) {
-  ///   case Subclass(:final field):
-  ///     return ...;
-  ///   case Subclass2(:final field2):
-  ///     return ...;
-  /// }
-  /// ```
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
 
-  @optionalTypeArgs
-  TResult when<TResult extends Object?>(
-    TResult Function(
-            String id,
-            String? name,
-            String? templateId,
-            CompetitionType type,
-            CompetitionStatus status,
-            CompetitionRules rules,
-            @TimestampConverter() DateTime startDate,
-            @TimestampConverter() DateTime endDate,
-            Map<String, dynamic> publishSettings,
-            bool isDirty,
-            int? computeVersion,
-            @OptionalTimestampConverter() DateTime? lastComputedAt,
-            String? lastComputedBy)
-        $default,
-  ) {
-    final _that = this;
-    switch (_that) {
-      case _Competition():
-        return $default(
-            _that.id,
-            _that.name,
-            _that.templateId,
-            _that.type,
-            _that.status,
-            _that.rules,
-            _that.startDate,
-            _that.endDate,
-            _that.publishSettings,
-            _that.isDirty,
-            _that.computeVersion,
-            _that.lastComputedAt,
-            _that.lastComputedBy);
-      case _:
-        throw StateError('Unexpected subclass');
-    }
-  }
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String? name,  String? templateId,  CompetitionType type,  CompetitionStatus status,  CompetitionRules rules, @TimestampConverter()  DateTime startDate, @TimestampConverter()  DateTime endDate,  Map<String, dynamic> publishSettings,  bool isDirty,  int? computeVersion, @OptionalTimestampConverter()  DateTime? lastComputedAt,  String? lastComputedBy)  $default,) {final _that = this;
+switch (_that) {
+case _Competition():
+return $default(_that.id,_that.name,_that.templateId,_that.type,_that.status,_that.rules,_that.startDate,_that.endDate,_that.publishSettings,_that.isDirty,_that.computeVersion,_that.lastComputedAt,_that.lastComputedBy);case _:
+  throw StateError('Unexpected subclass');
 
-  /// A variant of `when` that fallback to returning `null`
-  ///
-  /// It is equivalent to doing:
-  /// ```dart
-  /// switch (sealedClass) {
-  ///   case Subclass(:final field):
-  ///     return ...;
-  ///   case _:
-  ///     return null;
-  /// }
-  /// ```
+}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
 
-  @optionalTypeArgs
-  TResult? whenOrNull<TResult extends Object?>(
-    TResult? Function(
-            String id,
-            String? name,
-            String? templateId,
-            CompetitionType type,
-            CompetitionStatus status,
-            CompetitionRules rules,
-            @TimestampConverter() DateTime startDate,
-            @TimestampConverter() DateTime endDate,
-            Map<String, dynamic> publishSettings,
-            bool isDirty,
-            int? computeVersion,
-            @OptionalTimestampConverter() DateTime? lastComputedAt,
-            String? lastComputedBy)?
-        $default,
-  ) {
-    final _that = this;
-    switch (_that) {
-      case _Competition() when $default != null:
-        return $default(
-            _that.id,
-            _that.name,
-            _that.templateId,
-            _that.type,
-            _that.status,
-            _that.rules,
-            _that.startDate,
-            _that.endDate,
-            _that.publishSettings,
-            _that.isDirty,
-            _that.computeVersion,
-            _that.lastComputedAt,
-            _that.lastComputedBy);
-      case _:
-        return null;
-    }
-  }
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String? name,  String? templateId,  CompetitionType type,  CompetitionStatus status,  CompetitionRules rules, @TimestampConverter()  DateTime startDate, @TimestampConverter()  DateTime endDate,  Map<String, dynamic> publishSettings,  bool isDirty,  int? computeVersion, @OptionalTimestampConverter()  DateTime? lastComputedAt,  String? lastComputedBy)?  $default,) {final _that = this;
+switch (_that) {
+case _Competition() when $default != null:
+return $default(_that.id,_that.name,_that.templateId,_that.type,_that.status,_that.rules,_that.startDate,_that.endDate,_that.publishSettings,_that.isDirty,_that.computeVersion,_that.lastComputedAt,_that.lastComputedBy);case _:
+  return null;
+
+}
+}
+
 }
 
 /// @nodoc
 @JsonSerializable()
+
 class _Competition extends Competition {
-  const _Competition(
-      {required this.id,
-      this.name,
-      this.templateId,
-      required this.type,
-      this.status = CompetitionStatus.draft,
-      required this.rules,
-      @TimestampConverter() required this.startDate,
-      @TimestampConverter() required this.endDate,
-      final Map<String, dynamic> publishSettings = const {},
-      this.isDirty = false,
-      this.computeVersion,
-      @OptionalTimestampConverter() this.lastComputedAt,
-      this.lastComputedBy})
-      : _publishSettings = publishSettings,
-        super._();
-  factory _Competition.fromJson(Map<String, dynamic> json) =>
-      _$CompetitionFromJson(json);
+  const _Competition({required this.id, this.name, this.templateId, required this.type, this.status = CompetitionStatus.draft, required this.rules, @TimestampConverter() required this.startDate, @TimestampConverter() required this.endDate, final  Map<String, dynamic> publishSettings = const {}, this.isDirty = false, this.computeVersion, @OptionalTimestampConverter() this.lastComputedAt, this.lastComputedBy}): _publishSettings = publishSettings,super._();
+  factory _Competition.fromJson(Map<String, dynamic> json) => _$CompetitionFromJson(json);
 
-  @override
-  final String id;
-  @override
-  final String? name;
-  @override
-  final String? templateId;
-  @override
-  final CompetitionType type;
-  @override
-  @JsonKey()
-  final CompetitionStatus status;
-  @override
-  final CompetitionRules rules;
-  @override
-  @TimestampConverter()
-  final DateTime startDate;
-  @override
-  @TimestampConverter()
-  final DateTime endDate;
-  final Map<String, dynamic> _publishSettings;
-  @override
-  @JsonKey()
-  Map<String, dynamic> get publishSettings {
-    if (_publishSettings is EqualUnmodifiableMapView) return _publishSettings;
-    // ignore: implicit_dynamic_type
-    return EqualUnmodifiableMapView(_publishSettings);
-  }
+@override final  String id;
+@override final  String? name;
+@override final  String? templateId;
+@override final  CompetitionType type;
+@override@JsonKey() final  CompetitionStatus status;
+@override final  CompetitionRules rules;
+@override@TimestampConverter() final  DateTime startDate;
+@override@TimestampConverter() final  DateTime endDate;
+ final  Map<String, dynamic> _publishSettings;
+@override@JsonKey() Map<String, dynamic> get publishSettings {
+  if (_publishSettings is EqualUnmodifiableMapView) return _publishSettings;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableMapView(_publishSettings);
+}
 
-  @override
-  @JsonKey()
-  final bool isDirty;
-  @override
-  final int? computeVersion;
-  @override
-  @OptionalTimestampConverter()
-  final DateTime? lastComputedAt;
-  @override
-  final String? lastComputedBy;
+@override@JsonKey() final  bool isDirty;
+@override final  int? computeVersion;
+@override@OptionalTimestampConverter() final  DateTime? lastComputedAt;
+@override final  String? lastComputedBy;
 
-  /// Create a copy of Competition
-  /// with the given fields replaced by the non-null parameter values.
-  @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  @pragma('vm:prefer-inline')
-  _$CompetitionCopyWith<_Competition> get copyWith =>
-      __$CompetitionCopyWithImpl<_Competition>(this, _$identity);
+/// Create a copy of Competition
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$CompetitionCopyWith<_Competition> get copyWith => __$CompetitionCopyWithImpl<_Competition>(this, _$identity);
 
-  @override
-  Map<String, dynamic> toJson() {
-    return _$CompetitionToJson(
-      this,
-    );
-  }
+@override
+Map<String, dynamic> toJson() {
+  return _$CompetitionToJson(this, );
+}
 
-  @override
-  bool operator ==(Object other) {
-    return identical(this, other) ||
-        (other.runtimeType == runtimeType &&
-            other is _Competition &&
-            (identical(other.id, id) || other.id == id) &&
-            (identical(other.name, name) || other.name == name) &&
-            (identical(other.templateId, templateId) ||
-                other.templateId == templateId) &&
-            (identical(other.type, type) || other.type == type) &&
-            (identical(other.status, status) || other.status == status) &&
-            (identical(other.rules, rules) || other.rules == rules) &&
-            (identical(other.startDate, startDate) ||
-                other.startDate == startDate) &&
-            (identical(other.endDate, endDate) || other.endDate == endDate) &&
-            const DeepCollectionEquality()
-                .equals(other._publishSettings, _publishSettings) &&
-            (identical(other.isDirty, isDirty) || other.isDirty == isDirty) &&
-            (identical(other.computeVersion, computeVersion) ||
-                other.computeVersion == computeVersion) &&
-            (identical(other.lastComputedAt, lastComputedAt) ||
-                other.lastComputedAt == lastComputedAt) &&
-            (identical(other.lastComputedBy, lastComputedBy) ||
-                other.lastComputedBy == lastComputedBy));
-  }
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Competition&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.templateId, templateId) || other.templateId == templateId)&&(identical(other.type, type) || other.type == type)&&(identical(other.status, status) || other.status == status)&&(identical(other.rules, rules) || other.rules == rules)&&(identical(other.startDate, startDate) || other.startDate == startDate)&&(identical(other.endDate, endDate) || other.endDate == endDate)&&const DeepCollectionEquality().equals(other._publishSettings, _publishSettings)&&(identical(other.isDirty, isDirty) || other.isDirty == isDirty)&&(identical(other.computeVersion, computeVersion) || other.computeVersion == computeVersion)&&(identical(other.lastComputedAt, lastComputedAt) || other.lastComputedAt == lastComputedAt)&&(identical(other.lastComputedBy, lastComputedBy) || other.lastComputedBy == lastComputedBy));
+}
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  @override
-  int get hashCode => Object.hash(
-      runtimeType,
-      id,
-      name,
-      templateId,
-      type,
-      status,
-      rules,
-      startDate,
-      endDate,
-      const DeepCollectionEquality().hash(_publishSettings),
-      isDirty,
-      computeVersion,
-      lastComputedAt,
-      lastComputedBy);
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,id,name,templateId,type,status,rules,startDate,endDate,const DeepCollectionEquality().hash(_publishSettings),isDirty,computeVersion,lastComputedAt,lastComputedBy);
 
-  @override
-  String toString() {
-    return 'Competition(id: $id, name: $name, templateId: $templateId, type: $type, status: $status, rules: $rules, startDate: $startDate, endDate: $endDate, publishSettings: $publishSettings, isDirty: $isDirty, computeVersion: $computeVersion, lastComputedAt: $lastComputedAt, lastComputedBy: $lastComputedBy)';
-  }
+@override
+String toString() {
+  return 'Competition(id: $id, name: $name, templateId: $templateId, type: $type, status: $status, rules: $rules, startDate: $startDate, endDate: $endDate, publishSettings: $publishSettings, isDirty: $isDirty, computeVersion: $computeVersion, lastComputedAt: $lastComputedAt, lastComputedBy: $lastComputedBy)';
+}
+
+
 }
 
 /// @nodoc
-abstract mixin class _$CompetitionCopyWith<$Res>
-    implements $CompetitionCopyWith<$Res> {
-  factory _$CompetitionCopyWith(
-          _Competition value, $Res Function(_Competition) _then) =
-      __$CompetitionCopyWithImpl;
-  @override
-  @useResult
-  $Res call(
-      {String id,
-      String? name,
-      String? templateId,
-      CompetitionType type,
-      CompetitionStatus status,
-      CompetitionRules rules,
-      @TimestampConverter() DateTime startDate,
-      @TimestampConverter() DateTime endDate,
-      Map<String, dynamic> publishSettings,
-      bool isDirty,
-      int? computeVersion,
-      @OptionalTimestampConverter() DateTime? lastComputedAt,
-      String? lastComputedBy});
+abstract mixin class _$CompetitionCopyWith<$Res> implements $CompetitionCopyWith<$Res> {
+  factory _$CompetitionCopyWith(_Competition value, $Res Function(_Competition) _then) = __$CompetitionCopyWithImpl;
+@override @useResult
+$Res call({
+ String id, String? name, String? templateId, CompetitionType type, CompetitionStatus status, CompetitionRules rules,@TimestampConverter() DateTime startDate,@TimestampConverter() DateTime endDate, Map<String, dynamic> publishSettings, bool isDirty, int? computeVersion,@OptionalTimestampConverter() DateTime? lastComputedAt, String? lastComputedBy
+});
 
-  @override
-  $CompetitionRulesCopyWith<$Res> get rules;
+
+@override $CompetitionRulesCopyWith<$Res> get rules;
+
 }
-
 /// @nodoc
-class __$CompetitionCopyWithImpl<$Res> implements _$CompetitionCopyWith<$Res> {
+class __$CompetitionCopyWithImpl<$Res>
+    implements _$CompetitionCopyWith<$Res> {
   __$CompetitionCopyWithImpl(this._self, this._then);
 
   final _Competition _self;
   final $Res Function(_Competition) _then;
 
-  /// Create a copy of Competition
-  /// with the given fields replaced by the non-null parameter values.
-  @override
-  @pragma('vm:prefer-inline')
-  $Res call({
-    Object? id = null,
-    Object? name = freezed,
-    Object? templateId = freezed,
-    Object? type = null,
-    Object? status = null,
-    Object? rules = null,
-    Object? startDate = null,
-    Object? endDate = null,
-    Object? publishSettings = null,
-    Object? isDirty = null,
-    Object? computeVersion = freezed,
-    Object? lastComputedAt = freezed,
-    Object? lastComputedBy = freezed,
-  }) {
-    return _then(_Competition(
-      id: null == id
-          ? _self.id
-          : id // ignore: cast_nullable_to_non_nullable
-              as String,
-      name: freezed == name
-          ? _self.name
-          : name // ignore: cast_nullable_to_non_nullable
-              as String?,
-      templateId: freezed == templateId
-          ? _self.templateId
-          : templateId // ignore: cast_nullable_to_non_nullable
-              as String?,
-      type: null == type
-          ? _self.type
-          : type // ignore: cast_nullable_to_non_nullable
-              as CompetitionType,
-      status: null == status
-          ? _self.status
-          : status // ignore: cast_nullable_to_non_nullable
-              as CompetitionStatus,
-      rules: null == rules
-          ? _self.rules
-          : rules // ignore: cast_nullable_to_non_nullable
-              as CompetitionRules,
-      startDate: null == startDate
-          ? _self.startDate
-          : startDate // ignore: cast_nullable_to_non_nullable
-              as DateTime,
-      endDate: null == endDate
-          ? _self.endDate
-          : endDate // ignore: cast_nullable_to_non_nullable
-              as DateTime,
-      publishSettings: null == publishSettings
-          ? _self._publishSettings
-          : publishSettings // ignore: cast_nullable_to_non_nullable
-              as Map<String, dynamic>,
-      isDirty: null == isDirty
-          ? _self.isDirty
-          : isDirty // ignore: cast_nullable_to_non_nullable
-              as bool,
-      computeVersion: freezed == computeVersion
-          ? _self.computeVersion
-          : computeVersion // ignore: cast_nullable_to_non_nullable
-              as int?,
-      lastComputedAt: freezed == lastComputedAt
-          ? _self.lastComputedAt
-          : lastComputedAt // ignore: cast_nullable_to_non_nullable
-              as DateTime?,
-      lastComputedBy: freezed == lastComputedBy
-          ? _self.lastComputedBy
-          : lastComputedBy // ignore: cast_nullable_to_non_nullable
-              as String?,
-    ));
-  }
+/// Create a copy of Competition
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = freezed,Object? templateId = freezed,Object? type = null,Object? status = null,Object? rules = null,Object? startDate = null,Object? endDate = null,Object? publishSettings = null,Object? isDirty = null,Object? computeVersion = freezed,Object? lastComputedAt = freezed,Object? lastComputedBy = freezed,}) {
+  return _then(_Competition(
+id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as String,name: freezed == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
+as String?,templateId: freezed == templateId ? _self.templateId : templateId // ignore: cast_nullable_to_non_nullable
+as String?,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
+as CompetitionType,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
+as CompetitionStatus,rules: null == rules ? _self.rules : rules // ignore: cast_nullable_to_non_nullable
+as CompetitionRules,startDate: null == startDate ? _self.startDate : startDate // ignore: cast_nullable_to_non_nullable
+as DateTime,endDate: null == endDate ? _self.endDate : endDate // ignore: cast_nullable_to_non_nullable
+as DateTime,publishSettings: null == publishSettings ? _self._publishSettings : publishSettings // ignore: cast_nullable_to_non_nullable
+as Map<String, dynamic>,isDirty: null == isDirty ? _self.isDirty : isDirty // ignore: cast_nullable_to_non_nullable
+as bool,computeVersion: freezed == computeVersion ? _self.computeVersion : computeVersion // ignore: cast_nullable_to_non_nullable
+as int?,lastComputedAt: freezed == lastComputedAt ? _self.lastComputedAt : lastComputedAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,lastComputedBy: freezed == lastComputedBy ? _self.lastComputedBy : lastComputedBy // ignore: cast_nullable_to_non_nullable
+as String?,
+  ));
+}
 
-  /// Create a copy of Competition
-  /// with the given fields replaced by the non-null parameter values.
-  @override
-  @pragma('vm:prefer-inline')
-  $CompetitionRulesCopyWith<$Res> get rules {
-    return $CompetitionRulesCopyWith<$Res>(_self.rules, (value) {
-      return _then(_self.copyWith(rules: value));
-    });
-  }
+/// Create a copy of Competition
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$CompetitionRulesCopyWith<$Res> get rules {
+  
+  return $CompetitionRulesCopyWith<$Res>(_self.rules, (value) {
+    return _then(_self.copyWith(rules: value));
+  });
+}
 }
 
 // dart format on

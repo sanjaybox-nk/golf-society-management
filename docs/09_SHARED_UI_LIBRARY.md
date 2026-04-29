@@ -3,7 +3,11 @@
 The BoxyArt UI Library is the canonical source of all visual components in Golf Society Management. It is fully tokenised, premium-first, and enforces Design 4.x standards throughout.
 
 **Central Export**: `package:golf_society/design_system/design_system.dart`
-**Location**: `lib/design_system/widgets/`
+**Central Export**: `package:golf_society/design_system/design_system.dart`
+**Location**: `lib/design_system/`
+- `atoms/`: Small, reusable components (Inputs, Badges, Layout)
+- `widgets/`: Complex, structural layouts (Cards, Scaffolds)
+- `theme/`: Design tokens and system configuration
 
 > [!IMPORTANT]
 > All feature code must import ONLY via the central barrel. Never import individual design system files directly.
@@ -83,9 +87,10 @@ Label + `Switch` in a single row layout. Active state uses `activeTrackColor` (n
 Vertical column wrapper with standardised gap between form fields.
 
 ### `BoxyArtSlider`
-Premium configuration slider with dynamic range support.
-- **Monochromatic Mode**: Set `isNeutral: true` to use the professional administrative greyscale palette instead of branded colors.
-- **Key Parameters**: `value`, `min`, `max`, `divisions`, `label`, `isNeutral`.
+Premium configuration slider with dynamic range support and Design 4.x compliance.
+- **Monochromatic Mode**: Set `isNeutral: true` to use the professional administrative greyscale palette (darker tracks, high-contrast thumbs) instead of branded colors. **Mandatory** for all administrative configuration screens (e.g. Branding, Rule Settings).
+- **Style Sync**: Automatically inherits the society's structural tokens for `shadows`, `borders`, and `radius`.
+- **Key Parameters**: `value`, `min`, `max`, `divisions`, `label`, `isNeutral`, `onChanged`.
 
 ### `BoxyArtFormActionRow`
 Standard "Save / Cancel" row for form footers.
@@ -268,6 +273,9 @@ BoxyArtBottomSheet.show(
   // useRootNavigator defaults to FALSE
 );
 ```
+
+- **Clipping Prevention (v4.x)**: Automatically accounts for the floating bottom navigation bar when `useRootNavigator` is false. It injects a 100px bottom spacer to ensure the entire layout is scrollable and visible above the shell's navigation bar.
+- **`addNavBarPadding`**: Manual override flag available if custom padding is required.
 
 > [!CAUTION]
 > **ALL `showModalBottomSheet` calls MUST use `useRootNavigator: false`.**

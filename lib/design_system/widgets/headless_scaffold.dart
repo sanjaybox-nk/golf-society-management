@@ -167,6 +167,7 @@ class HeadlessScaffold extends StatelessWidget {
                         ),
 
                       Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
                           // Leading slot
                           SizedBox(
@@ -199,9 +200,10 @@ class HeadlessScaffold extends StatelessWidget {
                           // Actions slot
                           if (actions != null || showAdminShortcut)
                             Padding(
-                              padding: const EdgeInsets.only(right: AppSpacing.xl),
+                              padding: const EdgeInsets.only(right: 20.0), // Symmetrical to leading icon (72 width / 32 icon = 20)
                               child: Row(
                                 mainAxisSize: MainAxisSize.min,
+                                crossAxisAlignment: CrossAxisAlignment.center,
                                 children: [
                                   if (showAdminShortcut)
                                     Builder(
@@ -226,7 +228,7 @@ class HeadlessScaffold extends StatelessWidget {
                                         padding: EdgeInsets.only(
                                           right: isLast ? 0 : AppSpacing.sm,
                                         ),
-                                        child: widget,
+                                        child: Center(child: widget),
                                       );
                                     }),
                                 ],

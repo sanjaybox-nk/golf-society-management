@@ -55,7 +55,7 @@ class EventsScreen extends ConsumerWidget {
     final spacing = Theme.of(context).extension<AppSpacingTokens>();
 
     return HeadlessScaffold(
-      title: 'Events',
+      title: 'Golf Events',
       subtitle: subtitle,
       topPill: isAdminContext ? BoxyArtPill.committee(label: 'ADMIN') : null,
       showAdminShortcut: false,
@@ -85,7 +85,7 @@ class EventsScreen extends ConsumerWidget {
         SliverToBoxAdapter(
           child: ModernUnderlinedFilterBar<EventFilter>(
             tabs: const [
-              ModernFilterTab(label: 'Events', value: EventFilter.season, icon: Icons.sports_golf_rounded),
+              ModernFilterTab(label: 'Golf Events', value: EventFilter.season, icon: Icons.sports_golf_rounded),
               ModernFilterTab(label: 'Social', value: EventFilter.social, icon: Icons.groups_rounded),
             ],
             selectedValue: filter,

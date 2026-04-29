@@ -10,18 +10,20 @@ OrderOfMeritConfig _$OrderOfMeritConfigFromJson(Map<String, dynamic> json) =>
     OrderOfMeritConfig(
       id: json['id'] as String,
       name: json['name'] as String,
-      scope: $enumDecodeNullable(_$LeaderboardScopeEnumMap, json['scope']) ??
+      scope:
+          $enumDecodeNullable(_$LeaderboardScopeEnumMap, json['scope']) ??
           LeaderboardScope.seasonOnly,
-      source: $enumDecodeNullable(_$OOMSourceEnumMap, json['source']) ??
+      source:
+          $enumDecodeNullable(_$OOMSourceEnumMap, json['source']) ??
           OOMSource.position,
       rankingBasis:
           $enumDecodeNullable(_$OOMRankingBasisEnumMap, json['rankingBasis']) ??
-              OOMRankingBasis.stableford,
+          OOMRankingBasis.stableford,
       positionPointsMap:
           (json['positionPointsMap'] as Map<String, dynamic>?)?.map(
-                (k, e) => MapEntry(int.parse(k), (e as num).toInt()),
-              ) ??
-              const {},
+            (k, e) => MapEntry(int.parse(k), (e as num).toInt()),
+          ) ??
+          const {},
       appearancePoints: (json['appearancePoints'] as num?)?.toInt() ?? 0,
       bestN: (json['bestN'] as num?)?.toInt() ?? 0,
       $type: json['runtimeType'] as String?,
@@ -34,8 +36,9 @@ Map<String, dynamic> _$OrderOfMeritConfigToJson(OrderOfMeritConfig instance) =>
       'scope': _$LeaderboardScopeEnumMap[instance.scope]!,
       'source': _$OOMSourceEnumMap[instance.source]!,
       'rankingBasis': _$OOMRankingBasisEnumMap[instance.rankingBasis]!,
-      'positionPointsMap':
-          instance.positionPointsMap.map((k, e) => MapEntry(k.toString(), e)),
+      'positionPointsMap': instance.positionPointsMap.map(
+        (k, e) => MapEntry(k.toString(), e),
+      ),
       'appearancePoints': instance.appearancePoints,
       'bestN': instance.bestN,
       'runtimeType': instance.$type,
@@ -62,21 +65,24 @@ BestOfSeriesConfig _$BestOfSeriesConfigFromJson(Map<String, dynamic> json) =>
     BestOfSeriesConfig(
       id: json['id'] as String,
       name: json['name'] as String,
-      scope: $enumDecodeNullable(_$LeaderboardScopeEnumMap, json['scope']) ??
+      scope:
+          $enumDecodeNullable(_$LeaderboardScopeEnumMap, json['scope']) ??
           LeaderboardScope.seasonOnly,
       bestN: (json['bestN'] as num?)?.toInt() ?? 8,
-      metric: $enumDecodeNullable(_$BestOfMetricEnumMap, json['metric']) ??
+      metric:
+          $enumDecodeNullable(_$BestOfMetricEnumMap, json['metric']) ??
           BestOfMetric.stableford,
       scoringType:
           $enumDecodeNullable(_$ScoringTypeEnumMap, json['scoringType']) ??
-              ScoringType.accumulative,
-      tiePolicy: $enumDecodeNullable(_$TiePolicyEnumMap, json['tiePolicy']) ??
+          ScoringType.accumulative,
+      tiePolicy:
+          $enumDecodeNullable(_$TiePolicyEnumMap, json['tiePolicy']) ??
           TiePolicy.countback,
       positionPointsMap:
           (json['positionPointsMap'] as Map<String, dynamic>?)?.map(
-                (k, e) => MapEntry(int.parse(k), (e as num).toInt()),
-              ) ??
-              const {},
+            (k, e) => MapEntry(int.parse(k), (e as num).toInt()),
+          ) ??
+          const {},
       appearancePoints: (json['appearancePoints'] as num?)?.toInt() ?? 0,
       $type: json['runtimeType'] as String?,
     );
@@ -90,8 +96,9 @@ Map<String, dynamic> _$BestOfSeriesConfigToJson(BestOfSeriesConfig instance) =>
       'metric': _$BestOfMetricEnumMap[instance.metric]!,
       'scoringType': _$ScoringTypeEnumMap[instance.scoringType]!,
       'tiePolicy': _$TiePolicyEnumMap[instance.tiePolicy]!,
-      'positionPointsMap':
-          instance.positionPointsMap.map((k, e) => MapEntry(k.toString(), e)),
+      'positionPointsMap': instance.positionPointsMap.map(
+        (k, e) => MapEntry(k.toString(), e),
+      ),
       'appearancePoints': instance.appearancePoints,
       'runtimeType': instance.$type,
     };
@@ -118,9 +125,11 @@ EclecticConfig _$EclecticConfigFromJson(Map<String, dynamic> json) =>
     EclecticConfig(
       id: json['id'] as String,
       name: json['name'] as String,
-      scope: $enumDecodeNullable(_$LeaderboardScopeEnumMap, json['scope']) ??
+      scope:
+          $enumDecodeNullable(_$LeaderboardScopeEnumMap, json['scope']) ??
           LeaderboardScope.seasonOnly,
-      metric: $enumDecodeNullable(_$EclecticMetricEnumMap, json['metric']) ??
+      metric:
+          $enumDecodeNullable(_$EclecticMetricEnumMap, json['metric']) ??
           EclecticMetric.strokes,
       handicapPercentage: (json['handicapPercentage'] as num?)?.toInt() ?? 0,
       $type: json['runtimeType'] as String?,
@@ -145,34 +154,39 @@ MarkerCounterConfig _$MarkerCounterConfigFromJson(Map<String, dynamic> json) =>
     MarkerCounterConfig(
       id: json['id'] as String,
       name: json['name'] as String,
-      scope: $enumDecodeNullable(_$LeaderboardScopeEnumMap, json['scope']) ??
+      scope:
+          $enumDecodeNullable(_$LeaderboardScopeEnumMap, json['scope']) ??
           LeaderboardScope.seasonOnly,
       targetTypes: (json['targetTypes'] as List<dynamic>)
           .map((e) => $enumDecode(_$MarkerTypeEnumMap, e))
           .toSet(),
       holeFilter:
           $enumDecodeNullable(_$HoleFilterEnumMap, json['holeFilter']) ??
-              HoleFilter.all,
-      rankingMethod: $enumDecodeNullable(
-              _$MarkerRankingMethodEnumMap, json['rankingMethod']) ??
+          HoleFilter.all,
+      rankingMethod:
+          $enumDecodeNullable(
+            _$MarkerRankingMethodEnumMap,
+            json['rankingMethod'],
+          ) ??
           MarkerRankingMethod.count,
       bestN: (json['bestN'] as num?)?.toInt() ?? 0,
       $type: json['runtimeType'] as String?,
     );
 
 Map<String, dynamic> _$MarkerCounterConfigToJson(
-        MarkerCounterConfig instance) =>
-    <String, dynamic>{
-      'id': instance.id,
-      'name': instance.name,
-      'scope': _$LeaderboardScopeEnumMap[instance.scope]!,
-      'targetTypes':
-          instance.targetTypes.map((e) => _$MarkerTypeEnumMap[e]!).toList(),
-      'holeFilter': _$HoleFilterEnumMap[instance.holeFilter]!,
-      'rankingMethod': _$MarkerRankingMethodEnumMap[instance.rankingMethod]!,
-      'bestN': instance.bestN,
-      'runtimeType': instance.$type,
-    };
+  MarkerCounterConfig instance,
+) => <String, dynamic>{
+  'id': instance.id,
+  'name': instance.name,
+  'scope': _$LeaderboardScopeEnumMap[instance.scope]!,
+  'targetTypes': instance.targetTypes
+      .map((e) => _$MarkerTypeEnumMap[e]!)
+      .toList(),
+  'holeFilter': _$HoleFilterEnumMap[instance.holeFilter]!,
+  'rankingMethod': _$MarkerRankingMethodEnumMap[instance.rankingMethod]!,
+  'bestN': instance.bestN,
+  'runtimeType': instance.$type,
+};
 
 const _$MarkerTypeEnumMap = {
   MarkerType.birdie: 'birdie',
