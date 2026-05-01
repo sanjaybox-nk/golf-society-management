@@ -18,10 +18,17 @@ class BrandingLayoutSettings extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const BoxyArtSectionTitle(title: 'Spacing & Rhythm'),
+        const BoxyArtSectionTitle(title: 'Spacing & Rhythm', followsCard: true),
         BoxyArtCard(
           child: BoxyArtFormColumn(
             children: [
+              Text(
+                'Configure the vertical and horizontal "beats" of the application. This ensures consistent information density.',
+                style: AppTypography.bodySmall.copyWith(
+                  color: AppColors.dark600,
+                  fontWeight: AppTypography.weightMedium,
+                ),
+              ),
               _buildSliderRow(
                 label: 'Label to Card',
                 value: config.labelToCardSpacing,
@@ -77,6 +84,45 @@ class BrandingLayoutSettings extends StatelessWidget {
                 max: 60.0,
                 divisions: 20,
                 onChanged: (v) => controller.setGroupFooterToLabelSpacing(v),
+              ),
+            ],
+          ),
+        ),
+
+        const BoxyArtSectionTitle(title: 'Component Geometry', followsCard: true),
+        BoxyArtCard(
+          child: BoxyArtFormColumn(
+            children: [
+              Text(
+                'Define the authoritative physical dimensions for primary UI elements.',
+                style: AppTypography.bodySmall.copyWith(
+                  color: AppColors.dark600,
+                  fontWeight: AppTypography.weightMedium,
+                ),
+              ),
+              _buildSliderRow(
+                label: 'Button Height',
+                value: config.buttonHeight,
+                min: 32.0,
+                max: 64.0,
+                divisions: 16,
+                onChanged: (v) => controller.setButtonHeight(v),
+              ),
+              _buildSliderRow(
+                label: 'Slider Track',
+                value: config.sliderTrackHeight,
+                min: 2.0,
+                max: 12.0,
+                divisions: 10,
+                onChanged: (v) => controller.setSliderTrackHeight(v),
+              ),
+              _buildSliderRow(
+                label: 'Header Height',
+                value: config.surfaceHeightLarge,
+                min: 40.0,
+                max: 100.0,
+                divisions: 12,
+                onChanged: (v) => controller.setSurfaceHeightLarge(v),
               ),
             ],
           ),

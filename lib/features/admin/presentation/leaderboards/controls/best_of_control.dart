@@ -65,7 +65,6 @@ class _BestOfSeriesControlState extends State<BestOfSeriesControl>
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final displayMetrics =
         BestOfMetric.values.where((m) => m != BestOfMetric.position).toList();
 

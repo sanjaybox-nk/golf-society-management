@@ -261,11 +261,25 @@ To maintain the professional integrity of matchplay competitions, the seeding en
 
 To ensure data integrity, Admin's have granular control over when scoring is available.
 
-| State | Variable | Effect |
-| :--- | :--- | :--- |
-| **Pending** | Default | Scoring is hidden until the event date. |
-| **Live (Manual)** | `scoringForceActive` | Scoring is enabled regardless of the current date. |
 | **Locked** | `isScoringLocked` | Scorecards are read-only; final positions are frozen. |
+
+## 11. Story-Based Scoring (Penalties & Gimmes)
+
+To enrich member progress tracking and auditability, the scorecard system supports "Hole Story" attributes that go beyond raw numbers.
+
+### Penalty Tracking
+Members can record ad-hoc penalties (Stroke and Distance, Water Hazard, etc.) for each hole.
+- **Audit Ledger**: Penalties are stored as time-stamped tags within the `Scorecard` model.
+- **Financial Integration**: If the **Charity Fine System** is enabled in `SocietyConfig`, these penalties are automatically totaled and reflected in the event's financial summary as "Suggested Donations."
+
+### Gimmes & Pick Ups
+- **Gimme Tracking**: Optional "Gimme" tag for non-competitive recording.
+- **Pick Up (X)**: Standardized logic for "Pick Up" holes (X). The score is automatically set to the Max Hole Score (if configured) or marked as NR for the hole.
+- **Not Played (-)**: Used for shortened rounds or injury withdrawals mid-round.
+
+### Visual Summaries
+- **Live Summary**: The `SlidingCourseInfoCard` displays an aggregated total of Penalties and Gimmes at the bottom of the grid.
+- **Hole Stories**: A detailed line-by-line breakdown of these attributes is surfaced in the **Verification Tab** for final audit before submission.
 
 ## 11. Scoring Accuracy & Verification
 

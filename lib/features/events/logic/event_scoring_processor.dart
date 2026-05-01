@@ -43,7 +43,7 @@ class EventScoringProcessor {
       ...event.registrations.where((r) => r.guestName != null).map((r) => '${r.memberId}_guest'),
       ...event.results.map((r) => (r['memberId'] ?? r['userId'] ?? r['playerId'] ?? '').toString()),
       ...liveScorecards.map((s) => s.entryId),
-      if (currentUserId != null) currentUserId,
+      if (currentUserId case String id) id,
     }..remove('');
 
     for (var effectivePid in allPlayerIds) {
@@ -165,8 +165,8 @@ class EventScoringProcessor {
         holeScores: holeScores,
         result: result,
         tieBreakLabel: calculateTieBreakLabel(result, null),
-        thruLabel: (result.holesPlayed > 0 && result.holesPlayed < 18)
-            ? 'Thru ${result.holesPlayed}'
+        thruLabel: (result.holesPlayed > 0)
+            ? (result.holesPlayed < 18 ? 'Thru ${result.holesPlayed}' : 'F')
             : null,
         scoringStatus: _resolveScoringStatus(liveCard),
       ));
@@ -362,12 +362,15 @@ class EventScoringProcessor {
           tieBreakMetrics: _calculateTieBreakMetrics(p.result),
           handicapIndex: p.handicapIndex,
           tieBreakLabel: p.tieBreakLabel,
+          thruLabel: p.thruLabel,
           scoringStatus: _resolveScoringStatus(liveScorecards.firstWhereOrNull((s) => s.entryId == p.playerId)),
           matchStatus: matchStatusLabel,
           matchScore: matchLead,
           isMatch: matchResult != null,
           teeName: p.teeName,
           teeColor: p.teeColor,
+          absoluteScore: p.result.absoluteScore,
+          absoluteScoreLabel: p.result.absoluteScoreLabel,
         ));
       }
     } else {
@@ -464,6 +467,8 @@ class EventScoringProcessor {
               matchStatus: teamMatchStatusLabel,
               matchScore: teamMatchLead,
               isMatch: teamMatchResult != null,
+              absoluteScore: finalResult.absoluteScore,
+              absoluteScoreLabel: finalResult.absoluteScoreLabel,
             ));
          }
       }
@@ -597,6 +602,23 @@ class EventScoringProcessor {
     );
     
 
+    // 6. Calculate Submission Progress
+    int totalParticipants = 0;
+    int submittedCount = 0;
+    int inProgressCount = 0;
+
+    for (final score in refinedIndividualScores) {
+      totalParticipants++;
+      final card = liveScorecards.firstWhereOrNull((s) => s.entryId == score.playerId);
+      if (card != null) {
+        if (card.status == ScorecardStatus.submitted || card.status == ScorecardStatus.finalScore) {
+          submittedCount++;
+        } else if (card.status == ScorecardStatus.draft && score.result.holesPlayed > 0) {
+          inProgressCount++;
+        }
+      }
+    }
+
     return ProcessedEventData(
       eventId: eventId,
       individualScores: refinedIndividualScores,
@@ -605,6 +627,9 @@ class EventScoringProcessor {
       eventStats: eventStats,
       holePars: event.courseConfig.holes.map((h) => h.par).toList(),
       lastComputedAt: DateTime.now(),
+      totalParticipants: totalParticipants,
+      submittedCount: submittedCount,
+      inProgressCount: inProgressCount,
     );
   }
 

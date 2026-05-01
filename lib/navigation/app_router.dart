@@ -43,7 +43,10 @@ import '../features/admin/presentation/events/event_admin_reports_screen.dart';
 import '../features/admin/presentation/reports/admin_reports_screen.dart';
 import '../features/events/presentation/tabs/event_user_details_tab.dart';
 import '../features/events/presentation/event_feed_detail_screen.dart';
-import '../features/events/presentation/tabs/event_user_placeholders.dart';
+import '../features/events/presentation/tabs/event_field_hub_tab.dart';
+import '../features/events/presentation/tabs/event_scores_hub_tab.dart';
+import '../features/events/presentation/tabs/event_results_hub_tab.dart';
+
 import '../features/competitions/presentation/season_standings_screen.dart';
 import '../features/competitions/presentation/season_leaderboard_detail_screen.dart';
 import '../features/admin/presentation/events/event_admin_financials_screen.dart';

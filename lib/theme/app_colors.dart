@@ -145,7 +145,7 @@ class AppColors {
 
     // 2. Fallback to hardcoded brand colors
     final name = teeName.toLowerCase();
-    if (name.contains('white')) return dark400;
+    if (name.contains('white')) return pureWhite;
     if (name.contains('yellow')) return const Color(0xFFFFD700);
     if (name.contains('red')) return const Color(0xFFFF4D4D);
     if (name.contains('blue')) return const Color(0xFF1E90FF);

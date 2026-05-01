@@ -125,7 +125,9 @@ All models are immutable, generated with `freezed` and `JsonSerializable`:
 
 ## Code Quality & Hardening
 
-- **Zero-Warning Static Analysis**: `flutter analyze` must exit with **code 0**. Last verified: **April 2026**.
+- **Zero-Warning Static Analysis**: `flutter analyze` must exit with **code 0**. Last verified: **April 29, 2026**.
+- **Admin Hub Modularization (v10.0)**: (April 2026) Finalized the decomposition of administrative hubs into domain-specific modules. Eliminated legacy placeholder files (`event_user_placeholders.dart`) and standardized direct state imports for increased codebase hygiene.
+- **Vertical Rhythm Standardization**: Achievement of "Zero-Warning" milestone included systematic audit of all `HeadlessScaffold` implementations to ensure perfect alignment with BoxyArt v4.x vertical rhythm standards.
 - **Deprecated API Policy**: No deprecated Flutter APIs permitted. `activeColor` → `activeTrackColor`/`activeThumbColor`; `value` → `initialValue` on form fields.
 - **Async Safety**: All `BuildContext` usages after `await` must be guarded by `if (!mounted) return;`.
 - **Global Error Handler**: `BoxyArtErrorHandler` via `PlatformDispatcher.instance.onError` catches both build-time "red screens" and asynchronous runtime exceptions globally.

@@ -192,7 +192,7 @@ class _DistributionListModalState extends ConsumerState<DistributionListModal> {
               );
             },
             loading: () => const SizedBox(),
-            error: (_, __) => const SizedBox(),
+            error: (e, s) => const SizedBox(),
           )
         else
           Center(
@@ -335,7 +335,7 @@ class _DistributionListModalState extends ConsumerState<DistributionListModal> {
               ),
             ),
           );
-        }).toList(),
+        }),
         BoxyArtButton(
           title: 'Add Rule',
           isSecondary: true,

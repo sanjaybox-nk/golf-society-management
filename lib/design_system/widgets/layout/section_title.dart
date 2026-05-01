@@ -11,7 +11,8 @@ class BoxyArtSectionTitle extends StatelessWidget {
   final int? count;
   final Color? color;
   final double? topPadding;
-  final Widget? trailing; // Added for flexible headers like registration voucher switch
+  final double? horizontalPadding; // [NEW]
+  final Widget? trailing;
 
   const BoxyArtSectionTitle({
     super.key,
@@ -23,6 +24,7 @@ class BoxyArtSectionTitle extends StatelessWidget {
     this.count,
     this.color,
     this.topPadding,
+    this.horizontalPadding,
     this.trailing,
   });
 
@@ -36,14 +38,16 @@ class BoxyArtSectionTitle extends StatelessWidget {
     final double topPaddingValue = topPadding ?? (followsCard 
       ? (spacing?.cardToLabel ?? AppSpacing.cardToLabel)
       : (isPeeking 
-          ? (spacing?.labelToCard ?? AppSpacing.labelToCard) 
-          : (spacing?.tabToContent ?? AppSpacing.tabToContent)));
+          ? 0 
+          : (spacing?.cardToLabel ?? AppSpacing.cardToLabel)));
     final double bottomPadding = spacing?.labelToCard ?? AppSpacing.labelToCard;
 
     return Padding(
       padding: EdgeInsets.only(
         top: topPaddingValue,
         bottom: bottomPadding,
+        left: horizontalPadding ?? 0,
+        right: horizontalPadding ?? 0,
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -71,7 +75,7 @@ class BoxyArtSectionTitle extends StatelessWidget {
               ),
             ],
           ),
-          if (trailing != null) trailing!,
+          trailing ?? const SizedBox.shrink(),
         ],
       ),
     );

@@ -51,13 +51,19 @@ class ModernMetricStat extends ConsumerWidget {
     
     // 1. Universal Badge Token Logic
     final Color badgeFill = color ?? Color(config.iconBadgeFillColor);
-    final Color badgeContent = AppColors.dark800;
+    final Color badgeContent = Color(config.iconBadgeTextColor);
     final double badgeOpacity = config.iconBadgeOpacity;
+
+    final spacing = Theme.of(context).extension<AppSpacingTokens>();
+    final double vertPadding = isCompact 
+        ? (spacing?.cardVerticalPadding ?? AppSpacing.md) * 0.5
+        : (spacing?.cardVerticalPadding ?? AppSpacing.lg);
+    final double horizPadding = (spacing?.cardHorizontalPadding ?? AppSpacing.sm) * 0.5;
 
     return Container(
       padding: EdgeInsets.symmetric(
-        vertical: isCompact ? AppSpacing.md : AppSpacing.lg,
-        horizontal: AppSpacing.sm,
+        vertical: vertPadding,
+        horizontal: horizPadding,
       ),
       decoration: BoxDecoration(
         color: badgeFill.withValues(alpha: badgeOpacity),
@@ -80,26 +86,27 @@ class ModernMetricStat extends ConsumerWidget {
               if (icon != null) ...[
                 Icon(
                   icon, 
-                  size: isCompact ? 18 : 22, 
-                  color: iconColor ?? badgeFill,
+                  size: value.isEmpty ? (isCompact ? 22 : 26) : (isCompact ? 18 : 22), 
+                  color: iconColor ?? badgeContent,
                 ),
-                const SizedBox(width: AppSpacing.xs),
+                if (value.isNotEmpty) const SizedBox(width: AppSpacing.xs),
               ],
-              Flexible(
-                child: Text(
-                  value,
-                  style: (isCompact 
-                        ? AppTypography.label.copyWith(fontSize: 15) 
-                        : AppTypography.metricValue
-                    ).copyWith(
-                      color: badgeContent,
-                      height: 1.0,
-                    ),
-                  textAlign: TextAlign.center,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+              if (value.isNotEmpty)
+                Flexible(
+                  child: Text(
+                    value,
+                    style: (isCompact 
+                          ? AppTypography.label.copyWith(fontSize: 15) 
+                          : AppTypography.metricValue
+                      ).copyWith(
+                        color: badgeContent,
+                        height: 1.0,
+                      ),
+                    textAlign: TextAlign.center,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
-              ),
             ],
           ),
           
@@ -110,7 +117,7 @@ class ModernMetricStat extends ConsumerWidget {
             label.toUpperCase(),
             style: AppTypography.label.copyWith(
               color: badgeContent.withValues(alpha: 0.8),
-              fontSize: 10,
+              fontSize: isCompact ? 9 : 10,
               fontWeight: AppTypography.weightBold,
               letterSpacing: AppTypography.lsMicro,
               height: 1.0,

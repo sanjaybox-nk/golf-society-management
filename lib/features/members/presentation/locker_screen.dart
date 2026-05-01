@@ -1,20 +1,25 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 import 'package:golf_society/design_system/design_system.dart';
+import 'package:golf_society/domain/models/member.dart';
 import 'package:golf_society/domain/models/handicap_system.dart';
 import 'package:golf_society/features/members/presentation/profile_provider.dart';
 import 'package:golf_society/features/members/presentation/members_provider.dart';
 import 'package:golf_society/features/members/presentation/widgets/member_stats_row.dart';
 import 'package:golf_society/features/members/presentation/widgets/member_cuts_card.dart';
+import 'package:golf_society/features/members/presentation/widgets/handicap_trend_chart.dart';
 import '../../home/presentation/home_providers.dart';
 import '../../events/presentation/events_provider.dart';
+import 'widgets/society_honors_modal.dart';
 
 class LockerScreen extends ConsumerWidget {
   const LockerScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final spacing = Theme.of(context).extension<AppSpacingTokens>();
+    final theme = Theme.of(context);
+    final spacing = theme.extension<AppSpacingTokens>();
     final user = ref.watch(effectiveUserProvider);
     final beigeBackground = Theme.of(context).scaffoldBackgroundColor;
     final primary = Theme.of(context).primaryColor;
@@ -99,6 +104,10 @@ class LockerScreen extends ConsumerWidget {
                           color: primary,
                         ),
                       ),
+                      if (user.handicapHistory.isNotEmpty) ...[
+                        const SizedBox(height: AppSpacing.lg),
+                        BoxyArtHandicapTrend(history: user.handicapHistory),
+                      ],
                     ],
                   ),
                 )
@@ -285,6 +294,72 @@ class LockerScreen extends ConsumerWidget {
                 },
               ),
 
+              // Founding Member Recognition
+              if (user.isFoundingMember)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: AppSpacing.x2l),
+                  child: GestureDetector(
+                    onTap: () => _showHonors(context, user),
+                    child: BoxyArtCard(
+                      backgroundColor: AppColors.lime500.withValues(alpha: 0.05),
+                      border: Border.all(color: AppColors.lime500.withValues(alpha: 0.2)),
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(AppSpacing.sm),
+                            decoration: const BoxDecoration(
+                              color: AppColors.lime500,
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.auto_awesome_rounded,
+                              color: AppColors.dark400,
+                              size: 20,
+                            ),
+                          ),
+                          const SizedBox(width: AppSpacing.lg),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: Text(
+                                        'HONORARY STATUS',
+                                        style: AppTypography.micro.copyWith(
+                                          color: AppColors.lime500,
+                                          fontWeight: AppTypography.weightHeavy,
+                                          letterSpacing: 1.2,
+                                        ),
+                                      ),
+                                    ),
+                                    Icon(Icons.arrow_forward_ios_rounded, size: 10, color: AppColors.lime500.withValues(alpha: 0.5)),
+                                  ],
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  'FOUNDING MEMBER',
+                                  style: AppTypography.labelStrong.copyWith(
+                                    color: theme.colorScheme.onSurface,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  'Recognized for establishing the foundations of the society.',
+                                  style: AppTypography.caption.copyWith(
+                                    color: theme.textTheme.bodySmall?.color?.withValues(alpha: AppColors.opacityHigh),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+
               // Stats Section (Only if registered)
               if (user.handicapId != null) ...[
                 const BoxyArtSectionTitle(
@@ -349,11 +424,41 @@ class LockerScreen extends ConsumerWidget {
                     );
                   },
                 ),
-                SizedBox(height: spacing?.cardToCard ?? AppSpacing.standard),
                 BoxyArtButton(
                   title: 'Season Standings',
                   icon: Icons.leaderboard_rounded,
                   onTap: () => GoRouter.of(context).push('/locker/standings'),
+                ),
+                const BoxyArtSectionTitle(title: 'My Season Activity'),
+                Consumer(
+                  builder: (context, ref, _) {
+                    final historyAsync = ref.watch(memberEventHistoryProvider(user.id));
+                    return historyAsync.when(
+                      data: (items) {
+                        if (items.isEmpty) {
+                          return const BoxyArtCard(
+                            child: Padding(
+                              padding: EdgeInsets.all(AppSpacing.lg),
+                              child: Text('No event activity recorded yet for this season.'),
+                            ),
+                          );
+                        }
+                        return BoxyArtCard(
+                          padding: EdgeInsets.zero,
+                          child: Column(
+                            children: [
+                              for (var i = 0; i < items.length; i++) ...[
+                                _buildActivityRow(context, items[i]),
+                                if (i < items.length - 1) const BoxyArtDivider(verticalPadding: 0),
+                              ],
+                            ],
+                          ),
+                        );
+                      },
+                      loading: () => const BoxyArtLoadingCard(isCompact: true),
+                      error: (e, s) => const SizedBox.shrink(),
+                    );
+                  },
                 ),
               ],
               const BoxyArtSectionTitle(
@@ -364,10 +469,17 @@ class LockerScreen extends ConsumerWidget {
                 child: Column(
                   children: [
                     BoxyArtNavTile(
+                      icon: Icons.emoji_events_outlined,
+                      title: 'Society Hall of Fame',
+                      subtitle: 'Our legacy and founding members',
+                      iconColor: AppColors.lime500,
+                      onTap: () => _showHonors(context, user),
+                    ),
+                    BoxyArtNavTile(
                       icon: Icons.person_outline_rounded,
                       title: 'Personal Information',
                       subtitle: 'Edit your profile and data',
-                      iconColor: AppColors.lime500,
+                      iconColor: AppColors.textTertiary,
                       onTap: () {},
                     ),
                     BoxyArtNavTile(
@@ -415,6 +527,98 @@ class LockerScreen extends ConsumerWidget {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildActivityRow(BuildContext context, MemberEventHistoryItem item) {
+    final statusColor = switch (item.status) {
+      ParticipationStatus.confirmed => AppColors.lime500,
+      ParticipationStatus.participated => AppColors.lime600,
+      ParticipationStatus.dns => AppColors.coral500,
+      ParticipationStatus.withdrawn => AppColors.dark300,
+    };
+    
+    final statusLabel = switch (item.status) {
+      ParticipationStatus.confirmed => 'CONFIRMED',
+      ParticipationStatus.participated => 'PARTICIPATED',
+      ParticipationStatus.dns => 'DNS',
+      ParticipationStatus.withdrawn => 'WITHDRAWN',
+    };
+
+    return InkWell(
+      onTap: () => context.go('/events/${item.eventId}'),
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.lg),
+        child: Row(
+          children: [
+            // Date Mini-badge
+            Container(
+              width: 44,
+              padding: const EdgeInsets.symmetric(vertical: 4),
+              decoration: BoxDecoration(
+                color: AppColors.dark800,
+                borderRadius: AppShapes.sm,
+              ),
+              child: Column(
+                children: [
+                  Text(
+                    DateFormat('MMM').format(item.date).toUpperCase(),
+                    style: AppTypography.micro.copyWith(color: AppColors.pureWhite, fontSize: 9, fontWeight: AppTypography.weightHeavy),
+                  ),
+                  Text(
+                    DateFormat('dd').format(item.date),
+                    style: AppTypography.label.copyWith(color: AppColors.pureWhite, fontWeight: AppTypography.weightBold),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: AppSpacing.md),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(item.eventTitle, style: AppTypography.labelStrong),
+                  const SizedBox(height: 2),
+                  Text(
+                    statusLabel,
+                    style: AppTypography.micro.copyWith(
+                      color: statusColor,
+                      fontWeight: AppTypography.weightBold,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            if (item.score != null)
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    '${item.score} pts',
+                    style: AppTypography.labelStrong.copyWith(color: Theme.of(context).primaryColor),
+                  ),
+                  if (item.position != null)
+                    Text(
+                      'Rank #${item.position}',
+                      style: AppTypography.micro.copyWith(color: AppColors.dark400),
+                    ),
+                ],
+              ),
+            const SizedBox(width: 4),
+            Icon(Icons.chevron_right_rounded, color: AppColors.dark300, size: 16),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showHonors(BuildContext context, Member user) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => SocietyHonorsModal(currentUser: user),
     );
   }
 

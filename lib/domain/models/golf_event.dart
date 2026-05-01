@@ -166,6 +166,7 @@ abstract class GolfEvent with _$GolfEvent {
   }) = _GolfEvent;
 
   bool get isClosed => status == EventStatus.completed || status == EventStatus.cancelled;
+  bool get isPast => DateTime.now().isAfter(date.add(const Duration(days: 1)));
 
   bool get occursToday {
     final now = DateTime.now();

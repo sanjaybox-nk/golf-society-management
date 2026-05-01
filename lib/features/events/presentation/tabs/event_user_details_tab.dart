@@ -253,22 +253,24 @@ class _EventDetailsContentState extends ConsumerState<EventDetailsContent> {
     final user = ref.watch(effectiveUserProvider);
     final isStaff = user.role != MemberRole.member;
 
-
     final publishedItems = event.effectiveFeedItems.where((i) => i.isPublished).toList();
     
-    // Sort logic same as EventUserHomeTab
-    publishedItems.sort((a, b) {
-      if (a.isPinned && !b.isPinned) return -1;
-      if (!a.isPinned && b.isPinned) return 1;
-      return a.sortOrder.compareTo(b.sortOrder);
-    });
-
-    // Headline is handled by the scaffold header; others should be allowed to render or self-shrink
-    final displayItems = publishedItems.where((item) => 
-      item.type != FeedItemType.headline 
+    // Explicitly separate items for fixed ordering
+    final regItem = publishedItems.firstWhereOrNull((i) => i.type == FeedItemType.registration);
+    final podiumItem = publishedItems.firstWhereOrNull((i) => i.type == FeedItemType.podium);
+    final galleryItem = publishedItems.firstWhereOrNull((i) => i.type == FeedItemType.gallerySnippet);
+    
+    // Notifications are Flash and Newsletter
+    final newsItems = publishedItems.where((i) => 
+      i.type == FeedItemType.flash || i.type == FeedItemType.newsletter
     ).toList();
 
-    final spacing = Theme.of(context).extension<AppSpacingTokens>();
+    // Sort news chronological (newest first)
+    newsItems.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+
+    final theme = Theme.of(context);
+    final spacing = theme.extension<AppSpacingTokens>();
+    
     bool userIsInGroup = false;
     final groupsData = event.grouping['groups'] as List?;
     if (groupsData != null) {
@@ -282,72 +284,58 @@ class _EventDetailsContentState extends ConsumerState<EventDetailsContent> {
     }
 
     final bool showYourGroup = event.isGroupingPublished && userIsInGroup;
-    
-    int firstSectionedIndex = -1;
-    if (!showYourGroup) {
-      firstSectionedIndex = displayItems.indexWhere((item) => 
-        item.type == FeedItemType.registration || 
-        item.type == FeedItemType.gallerySnippet || 
-        item.type == FeedItemType.podium
-      );
-    }
+    final bool hasAnyContent = regItem != null || showYourGroup || newsItems.isNotEmpty || podiumItem != null || galleryItem != null;
 
-    return Column(
-      children: [
-        if (showYourGroup) YourGroupCard(event: event, isPeeking: true),
-
-        if (displayItems.isEmpty && !showYourGroup) ...[
+    if (!hasAnyContent) {
+      return Column(
+        children: [
           SizedBox(height: spacing?.cardToLabel ?? AppSpacing.x4l),
           const BoxyArtEmptyCard(
             icon: Icons.notifications_off_rounded,
             title: 'No Notifications',
             message: 'Check back later for event updates and society newsletters.',
           ),
-        ] else ...[
-          ListView.separated(
-            shrinkWrap: true,
-            padding: EdgeInsets.zero,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: displayItems.length,
-            separatorBuilder: (context, index) {
-              final nextItem = displayItems[index + 1];
-              // Items with internal section titles handle their own top padding via cardToLabel
-              if (nextItem.type == FeedItemType.gallerySnippet || 
-                  nextItem.type == FeedItemType.podium || 
-                  nextItem.type == FeedItemType.registration) {
-                return const SizedBox.shrink();
-              }
-              // Standard items use cardToCard gap
-              return SizedBox(height: spacing?.cardToCard ?? AppSpacing.standard);
-            },
-            itemBuilder: (context, index) {
-              final item = displayItems[index];
-              final bool shouldPeek = (!showYourGroup && index == firstSectionedIndex);
-
-              switch (item.type) {
-                case FeedItemType.headline:
-                  return const SizedBox.shrink();
-                case FeedItemType.podium:
-                  return EventPodiumCard(event: event, isManagement: isStaff, isPeeking: shouldPeek);
-                case FeedItemType.registration:
-                  return Column(
-                    children: [
-                      EventRegistrationCard(event: event, isManagement: isStaff, isPeeking: shouldPeek),
-                      ..._buildEventSponsors(context, ref, event),
-                    ],
-                  );
-                case FeedItemType.gallerySnippet:
-                  return EventGalleryCard(event: event, isManagement: isStaff, isPeeking: shouldPeek);
-                case FeedItemType.flash:
-                  return _buildFlashItem(context, item);
-                case FeedItemType.newsletter:
-                  return _buildNewsletterItem(context, item);
-                default:
-                  return const SizedBox.shrink();
-              }
-            },
-          ),
         ],
+      );
+    }
+
+    return Column(
+      children: [
+        // 1. REGISTRATION (PEEKING if first)
+        if (regItem != null) ...[
+          EventRegistrationCard(event: event, isManagement: isStaff, isPeeking: true),
+          ..._buildEventSponsors(context, ref, event),
+        ],
+
+        // 2. YOUR GROUP
+        if (showYourGroup) ...[
+          YourGroupCard(event: event, isPeeking: regItem == null),
+        ],
+
+        // 3. NEWS & FLASH (MESSAGES)
+        if (newsItems.isNotEmpty) ...[
+          BoxyArtSectionTitle(
+            title: 'Messages',
+            isPeeking: regItem == null && !showYourGroup,
+          ),
+          ...newsItems.mapIndexed((index, item) => Padding(
+            padding: EdgeInsets.only(
+              bottom: (index == newsItems.length - 1 && podiumItem == null && galleryItem == null) ? 0 : (spacing?.cardToCard ?? AppSpacing.standard),
+            ),
+            child: item.type == FeedItemType.newsletter 
+                ? _buildNewsletterItem(context, item) 
+                : _buildFlashItem(context, item),
+          )),
+        ],
+
+        // 4. RECAP & RESULTS
+        if (podiumItem != null) ...[
+          EventPodiumCard(event: event, isManagement: isStaff, isPeeking: regItem == null && !showYourGroup && newsItems.isEmpty),
+        ],
+
+        // 5. GALLERY (LAST)
+        if (galleryItem != null)
+          EventGalleryCard(event: event, isManagement: isStaff, isPeeking: regItem == null && !showYourGroup && newsItems.isEmpty && podiumItem == null),
       ],
     );
   }
@@ -1155,13 +1143,4 @@ class _EventDetailsContentState extends ConsumerState<EventDetailsContent> {
       )),
     ];
   }
-}
-
-
-String toTitleCase(String text) {
-  if (text.isEmpty) return text;
-  return text.split(' ').map((word) {
-    if (word.isEmpty) return word;
-    return word[0].toUpperCase() + word.substring(1).toLowerCase();
-  }).join(' ');
 }

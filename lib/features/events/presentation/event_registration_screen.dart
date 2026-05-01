@@ -559,7 +559,7 @@ class _EventRegistrationScreenState extends ConsumerState<EventRegistrationScree
                                       );
                                     },
                                     loading: () => const LinearProgressIndicator(),
-                                    error: (_, __) => const Text('Could not load members'),
+                                    error: (e, s) => const Text('Could not load members'),
                                   ),
                                   Padding(
                                     padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),

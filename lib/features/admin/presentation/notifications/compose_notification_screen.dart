@@ -3,7 +3,6 @@ import 'package:go_router/go_router.dart';
 import 'package:collection/collection.dart';
 import 'package:golf_society/design_system/design_system.dart';
 import 'package:golf_society/features/members/presentation/members_provider.dart';
-import 'package:golf_society/domain/models/member.dart';
 import 'package:golf_society/features/events/presentation/events_provider.dart';
 import 'package:golf_society/domain/models/golf_event.dart';
 import 'distribution_list_provider.dart';
@@ -453,7 +452,6 @@ class _ComposeNotificationScreenState extends ConsumerState<ComposeNotificationS
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final membersAsync = ref.watch(allMembersProvider);
     final eventsAsync = ref.watch(adminEventsProvider);
     final events = ref.watch(eventsProvider).value ?? [];

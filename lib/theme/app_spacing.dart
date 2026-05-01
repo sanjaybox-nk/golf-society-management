@@ -23,6 +23,7 @@ class AppSpacing {
   static const double pagePadding = standard;
   static const double cardPadding = standard;
   static const double elementGap = atomic;
+  static const double cardToCard = atomic;    // [Design 4.x] Gap between adjacent cards (8.0)
   static const double sectionGap = section;
   static const double labelToCard = atomic;    // Close proximity to content (8.0)
   static const double cardToLabel = standard;   // Breathing room after a card (16.0)

@@ -9,7 +9,7 @@ import '../../../members/presentation/members_provider.dart';
 import './event_registrations_admin_screen.dart';
 
 // Reuse the same tab provider for parity
-import '../../../events/presentation/tabs/event_user_placeholders.dart';
+import '../../../events/presentation/tabs/event_tabs_state.dart';
 
 import './widgets/admin_grouping_hub_content.dart';
 

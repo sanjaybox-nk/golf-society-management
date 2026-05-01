@@ -21,6 +21,7 @@ class BrandingStyleSettings extends StatelessWidget {
             'Choose a structural tone for your society. This adjusts corner rounding and depth.',
             style: AppTypography.bodySmall.copyWith(
               fontWeight: AppTypography.weightMedium,
+              color: AppColors.dark600,
             ),
           ),
           BoxyArtSwitchField(
@@ -55,36 +56,11 @@ class BrandingStyleSettings extends StatelessWidget {
               onChanged: (v) => controller.setShadowOpacity(v),
             ),
           ],
-          Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Use Borders',
-                      style: AppTypography.bodySmall.copyWith(
-                        fontWeight: AppTypography.weightBold,
-                      ),
-                    ),
-                    Text(
-                      'Hardens card and field edges',
-                      style: AppTypography.helper.copyWith(
-                        fontWeight: AppTypography.weightRegular,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Switch(
-                value: config.useBorders,
-                onChanged: (v) => controller.setUseBorders(v),
-                activeThumbColor: Color(config.secondaryColor),
-                activeTrackColor: Color(
-                  config.secondaryColor,
-                ).withValues(alpha: AppColors.opacityMedium),
-              ),
-            ],
+          BoxyArtSwitchField(
+            label: 'Use Borders',
+            subtitle: 'Hardens card and field edges',
+            value: config.useBorders,
+            onChanged: (v) => controller.setUseBorders(v),
           ),
           if (config.useBorders) ...[
             _buildSliderRow(
@@ -125,6 +101,7 @@ class BrandingStyleSettings extends StatelessWidget {
               (c) => controller.setDividerColor(c),
             ),
           ),
+          const BoxyArtDivider(),
           _buildSliderRow(
             label: 'Buttons',
             value: config.buttonRadius,

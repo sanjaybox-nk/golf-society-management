@@ -17,6 +17,8 @@ import '../widgets/scorecard_modal.dart';
 import '../../../competitions/presentation/widgets/leaderboard_widget.dart';
 import '../../../members/presentation/members_provider.dart';
 import '../../../competitions/presentation/competitions_provider.dart';
+import '../widgets/grouping_widgets.dart';
+import '../../../../domain/grouping/tee_group.dart';
 
 // Providers moved from user_placeholders if they were local or needed here
 // Use richStatsModeProvider from debug_providers.dart
@@ -272,6 +274,7 @@ class _EventStatsContent extends ConsumerWidget {
       children: [
         if (statsMode == 0) ...[
           const BoxyArtSectionTitle(
+            horizontalPadding: 0,
             title: 'Society Hero Recap',
             topPadding: 0,
           ),
@@ -289,7 +292,67 @@ class _EventStatsContent extends ConsumerWidget {
               fieldAvgNet: fieldAvgNetScore,
             ),
           ),
-          const BoxyArtSectionTitle(title: 'Field Competitiveness'),
+
+          // [NEW] Group Results Podium moved from scoring hub
+          if (data.groupRankings.isNotEmpty && (comp?.rules.isMatchPlay != true)) ...[
+          const BoxyArtSectionTitle(
+            followsCard: true,
+            horizontalPadding: 0,
+            title: 'Top Performing Groups',
+          ),
+             Builder(builder: (context) {
+                final List<PodiumEntry> podiumEntries = [];
+                final groupsData = event.grouping['groups'] as List?;
+                final List<TeeGroup> groups = groupsData != null 
+                    ? groupsData.map((g) => TeeGroup.fromJson(g)).toList() 
+                    : [];
+
+                for (int i=0; i<3 && i<data.groupRankings.length; i++) {
+                   final gRes = data.groupRankings[i];
+                   final group = groups.firstWhereOrNull((g) => g.index == gRes.groupIndex);
+                   if (group == null) continue;
+
+                   String? tieLabel;
+                   final bool isTied = (i > 0 && data.groupRankings[i].totalScore == data.groupRankings[i-1].totalScore) || 
+                                       (i < data.groupRankings.length - 1 && data.groupRankings[i].totalScore == data.groupRankings[i+1].totalScore);
+                   if (isTied) {
+                      final metrics = gRes.tieBreakMetrics;
+                      final diffIdx = metrics.indexWhere((m) => m != 0);
+                      if (diffIdx != -1) {
+                         final mNames = ['B9', 'B6', 'B3', 'B1'];
+                         final name = diffIdx < mNames.length ? mNames[diffIdx] : 'Metric';
+                         tieLabel = '$name: ${metrics[diffIdx]}';
+                      }
+                   }
+
+                   final int bestX = comp?.rules.teamBestXCount ?? 2;
+                   final String formatLabel = 'Best $bestX';
+
+                   podiumEntries.add(PodiumEntry(
+                     name: 'Group ${group.index + 1}',
+                     score: gRes.label,
+                     rank: i + 1,
+                     groupIndex: group.index,
+                     tieBreakLabel: tieLabel,
+                     formatLabel: formatLabel,
+                   ));
+                }
+                
+                return GroupingPodiumHeader(
+                  entries: podiumEntries,
+                  onTap: (idx) {
+                    // Navigate back to scores tab and scroll to group? 
+                    // For now, just show the podium.
+                  },
+                );
+             }),
+          ],
+
+          const BoxyArtSectionTitle(
+            followsCard: true,
+            horizontalPadding: 0,
+            title: 'Field Competitiveness',
+          ),
           StaggeredEntrance(
             index: 2,
             child: ScoringTypeDistributionChart(counts: {
@@ -304,8 +367,9 @@ class _EventStatsContent extends ConsumerWidget {
             ),
           ],
           const BoxyArtSectionTitle(
-            title: 'Performance Trends',
             followsCard: true,
+            horizontalPadding: 0,
+            title: 'Performance Trends',
           ),
           StaggeredEntrance(
             index: 4,
@@ -317,8 +381,9 @@ class _EventStatsContent extends ConsumerWidget {
             child: ParTypeBreakdown(parTypeAverages: parTypeAverages),
           ),
           const BoxyArtSectionTitle(
-            title: 'Course Analysis',
             followsCard: true,
+            horizontalPadding: 0,
+            title: 'Course Analysis',
           ),
           StaggeredEntrance(
             index: 6,
@@ -330,8 +395,9 @@ class _EventStatsContent extends ConsumerWidget {
             child: HoleDifficultyChart(holeAverages: holeAverages, holes: holes),
           ),
           const BoxyArtSectionTitle(
-            title: 'Hall of Fame',
             followsCard: true,
+            horizontalPadding: 0,
+            title: 'Hall of Fame',
           ),
           if (maxStreak > 0)
             StaggeredEntrance(
@@ -374,8 +440,9 @@ class _EventStatsContent extends ConsumerWidget {
             ),
           ],
           const BoxyArtSectionTitle(
-            title: 'Banter & Bragging Rights',
             followsCard: true,
+            horizontalPadding: 0,
+            title: 'Banter & Bragging Rights',
           ),
           if (maxBlobs > 0)
             StaggeredEntrance(

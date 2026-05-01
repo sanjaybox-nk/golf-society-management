@@ -1,8 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:golf_society/domain/models/society_config.dart';
+import 'package:golf_society/utils/firebase_providers.dart';
 
-final societyConfigRepositoryProvider = Provider((ref) => SocietyConfigRepository());
+final societyConfigRepositoryProvider = Provider((ref) => SocietyConfigRepository(ref.watch(firestoreProvider)));
 
 final societyConfigStreamProvider = StreamProvider<SocietyConfig>((ref) {
   final repo = ref.watch(societyConfigRepositoryProvider);
@@ -10,7 +11,11 @@ final societyConfigStreamProvider = StreamProvider<SocietyConfig>((ref) {
 });
 
 class SocietyConfigRepository {
-  final _docRef = FirebaseFirestore.instance.collection('config').doc('society');
+  final FirebaseFirestore _firestore;
+
+  SocietyConfigRepository(this._firestore);
+
+  DocumentReference<Map<String, dynamic>> get _docRef => _firestore.collection('config').doc('society');
 
   Stream<SocietyConfig> getConfigStream() {
     return _docRef.snapshots().map((doc) {

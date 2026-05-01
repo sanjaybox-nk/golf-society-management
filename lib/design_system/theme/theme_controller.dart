@@ -19,587 +19,141 @@ class ThemeController extends Notifier<SocietyConfig> {
     );
   }
 
-  Future<void> setSocietyName(String name) async {
-    final newConfig = state.copyWith(societyName: name);
-    state = newConfig;
-    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
-  }
-
-  Future<void> setLogoUrl(String? url) async {
-    final newConfig = state.copyWith(logoUrl: url);
-    state = newConfig;
-    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
-  }
-
-  Future<void> setPrimaryColor(Color color) async {
-    final hex = color.toARGB32(); // Store as ARGB int
-    final newConfig = state.copyWith(primaryColor: hex);
-    state = newConfig; // Optimistic update
-    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
-  }
-
-  Future<void> setSecondaryColor(Color color) async {
-    final hex = color.toARGB32();
-    final newConfig = state.copyWith(secondaryColor: hex);
-    state = newConfig;
-    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
-  }
-
-  Future<void> setDangerousColor(Color color) async {
-    final hex = color.toARGB32();
-    final newConfig = state.copyWith(dangerousColor: hex);
-    state = newConfig;
-    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
-  }
-
-  Future<void> setTertiaryColor(Color color) async {
-    final hex = color.toARGB32();
-    final newConfig = state.copyWith(tertiaryColor: hex);
-    state = newConfig;
-    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
-  }
-
-  Future<void> setCardColor(Color color) async {
-    final hex = color.toARGB32();
-    final newConfig = state.copyWith(cardColor: hex);
-    state = newConfig;
-    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
-  }
-
-  Future<void> setSurfaceElevatedColor(Color color) async {
-    final hex = color.toARGB32();
-    final newConfig = state.copyWith(surfaceElevatedColor: hex);
-    state = newConfig;
-    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
-  }
-
-  Future<void> setTextPrimaryColor(Color color) async {
-    final hex = color.toARGB32();
-    final newConfig = state.copyWith(textPrimaryColor: hex);
-    state = newConfig;
-    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
-  }
-
-  Future<void> setTextSecondaryColor(Color color) async {
-    final hex = color.toARGB32();
-    final newConfig = state.copyWith(textSecondaryColor: hex);
-    state = newConfig;
-    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
-  }
-
-  Future<void> setTextMutedColor(Color color) async {
-    final hex = color.toARGB32();
-    final newConfig = state.copyWith(textMutedColor: hex);
-    state = newConfig;
-    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
-  }
-
-  Future<void> setScoreEagleColor(Color color) async {
-    final hex = color.toARGB32();
-    final newConfig = state.copyWith(scoreEagleColor: hex);
-    state = newConfig;
-    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
-  }
-
-  Future<void> setScoreBirdieColor(Color color) async {
-    final hex = color.toARGB32();
-    final newConfig = state.copyWith(scoreBirdieColor: hex);
-    state = newConfig;
-    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
-  }
-
-  Future<void> setScoreParColor(Color color) async {
-    final hex = color.toARGB32();
-    final newConfig = state.copyWith(scoreParColor: hex);
-    state = newConfig;
-    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
-  }
-
-  Future<void> setScoreBogeyColor(Color color) async {
-    final hex = color.toARGB32();
-    final newConfig = state.copyWith(scoreBogeyColor: hex);
-    state = newConfig;
-    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
-  }
-
-  Future<void> setScoreDoubleColor(Color color) async {
-    final hex = color.toARGB32();
-    final newConfig = state.copyWith(scoreDoubleColor: hex);
-    state = newConfig;
-    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
-  }
-
-  Future<void> setScoreTriplePlusColor(Color color) async {
-    final hex = color.toARGB32();
-    final newConfig = state.copyWith(scoreTriplePlusColor: hex);
-    state = newConfig;
-    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
-  }
-
-  Future<void> setTeamAColor(Color color) async {
-    final hex = color.toARGB32();
-    final newConfig = state.copyWith(teamAColor: hex);
-    state = newConfig;
-    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
-  }
-
-  Future<void> setTeamBColor(Color color) async {
-    final hex = color.toARGB32();
-    final newConfig = state.copyWith(teamBColor: hex);
-    state = newConfig;
-    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
-  }
-
-  Future<void> setPointsColor(Color color) async {
-    final hex = color.toARGB32();
-    final newConfig = state.copyWith(pointsColor: hex);
-    state = newConfig;
-    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
-  }
-
-  Future<void> setHeroGradientColor(Color color) async {
-    final hex = color.toARGB32();
-    final newConfig = state.copyWith(heroGradientColor: hex);
-    state = newConfig;
-    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
-  }
-
-  Future<void> setBackgroundColor(Color color) async {
-    final hex = color.toARGB32();
-    final newConfig = state.copyWith(backgroundColor: hex);
-    state = newConfig;
-    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
-  }
-
-  Future<void> setStatusPublishedColor(Color color) async {
-    final hex = color.toARGB32();
-    final newConfig = state.copyWith(statusPublishedColor: hex);
-    state = newConfig;
-    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
-  }
-
-  Future<void> setStatusConfirmedColor(Color color) async {
-    final hex = color.toARGB32();
-    final newConfig = state.copyWith(statusConfirmedColor: hex);
-    state = newConfig;
-    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
-  }
-
-  Future<void> setStatusReservedColor(Color color) async {
-    final hex = color.toARGB32();
-    final newConfig = state.copyWith(statusReservedColor: hex);
-    state = newConfig;
-    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
-  }
-
-  Future<void> setStatusWaitlistColor(Color color) async {
-    final hex = color.toARGB32();
-    final newConfig = state.copyWith(statusWaitlistColor: hex);
-    state = newConfig;
-    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
-  }
-
-  Future<void> setStatusWithdrawnColor(Color color) async {
-    final hex = color.toARGB32();
-    final newConfig = state.copyWith(statusWithdrawnColor: hex);
-    state = newConfig;
-    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
-  }
-
-  Future<void> setStatusDinnerColor(Color color) async {
-    final hex = color.toARGB32();
-    final newConfig = state.copyWith(statusDinnerColor: hex);
-    state = newConfig;
-    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
-  }
-
-  Future<void> setUseShadows(bool use) async {
-    final newConfig = state.copyWith(useShadows: use);
-    state = newConfig;
-    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
-  }
-
-  Future<void> setShadowIntensity(double intensity) async {
-    final newConfig = state.copyWith(shadowIntensity: intensity);
-    state = newConfig;
-    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
-  }
-
-  Future<void> setUseBorders(bool use) async {
-    final newConfig = state.copyWith(useBorders: use);
-    state = newConfig;
-    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
-  }
-
-  Future<void> setBorderWidth(double width) async {
-    final newConfig = state.copyWith(borderWidth: width);
-    state = newConfig;
-    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
-  }
-
-  Future<void> setBorderColor(Color color) async {
-    final hex = color.toARGB32();
-    final newConfig = state.copyWith(borderColor: hex);
-    state = newConfig;
-    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
-  }
-
-  Future<void> setDividerColor(Color color) async {
-    final hex = color.toARGB32();
-    final newConfig = state.copyWith(dividerColor: hex);
-    state = newConfig;
-    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
-  }
-
-  Future<void> setPillRadius(double radius) async {
-    final newConfig = state.copyWith(pillRadius: radius);
-    state = newConfig;
-    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
-  }
-
-  Future<void> setButtonRadius(double radius) async {
-    final newConfig = state.copyWith(buttonRadius: radius);
-    state = newConfig;
-    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
-  }
-
-  Future<void> setDividerThickness(double thickness) async {
-    final newConfig = state.copyWith(dividerThickness: thickness);
-    state = newConfig;
-    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
-  }
-
-  Future<void> setHeroRadius(double radius) async {
-    final newConfig = state.copyWith(heroRadius: radius);
-    state = newConfig;
-    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
-  }
-
-  Future<void> setCardRadius(double radius) async {
-    final newConfig = state.copyWith(cardRadius: radius);
-    state = newConfig;
-    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
-  }
-
-  Future<void> setInputRadius(double radius) async {
-    final newConfig = state.copyWith(inputRadius: radius);
-    state = newConfig;
-    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
-  }
-
-  Future<void> setAccentRadius(double radius) async {
-    final newConfig = state.copyWith(accentRadius: radius);
-    state = newConfig;
-    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
-  }
-
-  Future<void> setAccentOpacity(double opacity) async {
-    final newConfig = state.copyWith(accentOpacity: opacity);
-    state = newConfig;
-    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
-  }
-
-  Future<void> setShadowSpread(double spread) async {
-    final newConfig = state.copyWith(shadowSpread: spread);
-    state = newConfig;
-    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
-  }
-
-  Future<void> setShadowOpacity(double opacity) async {
-    final newConfig = state.copyWith(shadowOpacity: opacity);
-    state = newConfig;
-    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
-  }
-
-  Future<void> setLabelToCardSpacing(double spacing) async {
-    final newConfig = state.copyWith(labelToCardSpacing: spacing);
-    state = newConfig;
-    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
-  }
-
-  Future<void> setCardToLabelSpacing(double spacing) async {
-    final newConfig = state.copyWith(cardToLabelSpacing: spacing);
-    state = newConfig;
-    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
-  }
-
-  Future<void> setFieldToFieldSpacing(double spacing) async {
-    final newConfig = state.copyWith(fieldToFieldSpacing: spacing);
-    state = newConfig;
-    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
-  }
-
-  Future<void> setCardToCardSpacing(double spacing) async {
-    final newConfig = state.copyWith(cardToCardSpacing: spacing);
-    state = newConfig;
-    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
-  }
-
-  Future<void> setCardVerticalPadding(double padding) async {
-    final newConfig = state.copyWith(cardVerticalPadding: padding);
-    state = newConfig;
-    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
-  }
-
-  Future<void> setCardHorizontalPadding(double padding) async {
-    final newConfig = state.copyWith(cardHorizontalPadding: padding);
-    state = newConfig;
-    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
-  }
-
-  Future<void> setTabToContentSpacing(double spacing) async {
-    final newConfig = state.copyWith(tabToContentSpacing: spacing);
-    state = newConfig;
-    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
-  }
-
-  Future<void> setGroupFooterToLabelSpacing(double spacing) async {
-    final newConfig = state.copyWith(groupFooterToLabelSpacing: spacing);
-    state = newConfig;
-    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
-  }
-
-  Future<void> setIconBadgeFillColor(Color color) async {
-    final newConfig = state.copyWith(iconBadgeFillColor: color.toARGB32());
-    state = newConfig;
-    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
-  }
-
-  Future<void> setIconBadgeIconColor(Color color) async {
-    final newConfig = state.copyWith(iconBadgeIconColor: color.toARGB32());
-    state = newConfig;
-    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
-  }
-
-  Future<void> setIconBadgeOpacity(double opacity) async {
-    final newConfig = state.copyWith(iconBadgeOpacity: opacity);
-    state = newConfig;
-    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
-  }
-
-  Future<void> setIconOpacity(double opacity) async {
-    final newConfig = state.copyWith(iconOpacity: opacity);
-    state = newConfig;
-    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
-  }
-
-  Future<void> setStartingBalance(double balance) async {
-    final newConfig = state.copyWith(startingBalance: balance);
-    state = newConfig;
-    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
-  }
-
-  Future<void> addLedgerEntry(FinancialEntry entry) async {
-    final currentEntries = List<FinancialEntry>.from(state.ledgerEntries);
-    currentEntries.add(entry);
-    final newConfig = state.copyWith(ledgerEntries: currentEntries);
-    state = newConfig;
-    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
-  }
-
-  Future<void> updateLedgerEntry(FinancialEntry entry) async {
-    final currentEntries = List<FinancialEntry>.from(state.ledgerEntries);
-    final index = currentEntries.indexWhere((e) => e.id == entry.id);
-    if (index == -1) return;
-    currentEntries[index] = entry;
-    final newConfig = state.copyWith(ledgerEntries: currentEntries);
-    state = newConfig;
-    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
-  }
-
-  Future<void> removeLedgerEntry(String id) async {
-    final currentEntries = List<FinancialEntry>.from(state.ledgerEntries);
-    currentEntries.removeWhere((e) => e.id == id);
-    final newConfig = state.copyWith(ledgerEntries: currentEntries);
-    state = newConfig;
-    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
-  }
-
-
-  Future<void> setThemeMode(String mode) async {
-    final newConfig = state.copyWith(themeMode: mode);
-    state = newConfig; // Optimistic update
-    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
-  }
-
-  Future<void> setFontFamily(String family) async {
-    final newConfig = state.copyWith(fontFamily: family);
-    state = newConfig;
-    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
-  }
-
-  Future<void> addCustomColor(Color color) async {
-    final hex = color.toARGB32();
-    final currentCustomColors = List<int>.from(state.customColors);
-    
-    // Limit to 5 custom colors
-    if (currentCustomColors.length >= 5) return;
-    
-    currentCustomColors.add(hex);
-    final newConfig = state.copyWith(customColors: currentCustomColors);
-    state = newConfig;
-    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
-  }
-
-  Future<void> updateCustomColor(int index, Color color) async {
-    final hex = color.toARGB32();
-    final currentCustomColors = List<int>.from(state.customColors);
-    
-    if (index < 0 || index >= currentCustomColors.length) return;
-    
-    currentCustomColors[index] = hex;
-    final newConfig = state.copyWith(customColors: currentCustomColors);
-    state = newConfig;
-    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
-  }
-
-  Future<void> removeCustomColor(int index) async {
-    final currentCustomColors = List<int>.from(state.customColors);
-    
-    if (index < 0 || index >= currentCustomColors.length) return;
-    
-    currentCustomColors.removeAt(index);
-    final newConfig = state.copyWith(customColors: currentCustomColors);
-    state = newConfig;
-    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
-  }
-
-
-
-  Future<void> setCurrency(String symbol, String code) async {
-    final newConfig = state.copyWith(currencySymbol: symbol, currencyCode: code);
-    state = newConfig; // Optimistic update
-    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
-  }
-
-  Future<void> setGroupingStrategy(String strategy) async {
-    final newConfig = state.copyWith(groupingStrategy: strategy);
-    state = newConfig;
-    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
-  }
-
-  Future<void> setDistanceUnit(String unit) async {
-    final newConfig = state.copyWith(distanceUnit: unit);
-    state = newConfig;
-    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
-  }
-
-
-
-  Future<void> setHandicapSystem(HandicapSystem system) async {
-    final newConfig = state.copyWith(handicapSystem: system);
-    state = newConfig;
-    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
-  }
-
-  Future<void> setSeparateGuestLeaderboard(bool separate) async {
-    final newConfig = state.copyWith(separateGuestLeaderboard: separate);
-    state = newConfig;
-    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
-  }
-
-
-  Future<void> setSocietyCutMode(SocietyCutMode mode) async {
-    final newConfig = state.copyWith(societyCutMode: mode);
-    state = newConfig;
-    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
-  }
-
-  Future<void> setSocietyCutRules(Map<String, double> rules) async {
-    final newConfig = state.copyWith(societyCutRules: rules);
-    state = newConfig;
-    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
-  }
-
-  Future<void> setSocietyCutEventLimit(int limit) async {
-    final newConfig = state.copyWith(societyCutEventLimit: limit);
-    state = newConfig;
-    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
-  }
-
-  Future<void> setSocietyCutCountPlayedOnly(bool countPlayedOnly) async {
-    final newConfig = state.copyWith(societyCutCountPlayedOnly: countPlayedOnly);
-    state = newConfig;
-    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
-  }
-
-  Future<void> setSocietyCutFilterSeason(bool active) async {
-    final newConfig = state.copyWith(societyCutFilterSeason: active);
-    state = newConfig;
-    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
-  }
-
-  Future<void> setSocietyCutFilterInvitational(bool active) async {
-    final newConfig = state.copyWith(societyCutFilterInvitational: active);
-    state = newConfig;
-    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
-  }
-
-  Future<void> setGlobalMembershipEndDate(DateTime? date) async {
-    final newConfig = state.copyWith(globalMembershipEndDate: date);
-    state = newConfig;
-    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
-  }
-
-  Future<void> setRenewalWindowDays(int days) async {
-    final newConfig = state.copyWith(renewalWindowDays: days);
-    state = newConfig;
-    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
-  }
-
-  Future<void> setIsRenewalActive(bool active) async {
-    final newConfig = state.copyWith(isRenewalActive: active);
-    state = newConfig;
-    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
-  }
-
-  Future<void> setRenewalLaunchDate(DateTime? date) async {
-    final newConfig = state.copyWith(renewalLaunchDate: date);
-    state = newConfig;
-    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
-  }
-
-  Future<void> setRenewalDeadline(DateTime? date) async {
-    final newConfig = state.copyWith(renewalDeadline: date);
-    state = newConfig;
-    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
-  }
-
-  Future<void> setRenewalPaymentDeadline(DateTime? date) async {
-    final newConfig = state.copyWith(renewalPaymentDeadline: date);
-    state = newConfig;
-    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
-  }
-
-  // --- Sponsorship Hub Management ---
-
-  Future<void> addSponsor(Sponsor sponsor) async {
-    final newConfig = state.copyWith(
-      sponsors: [...state.sponsors, sponsor],
-    );
-    state = newConfig;
-    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
-  }
-
-  Future<void> updateSponsor(Sponsor sponsor) async {
-    final newConfig = state.copyWith(
-      sponsors: state.sponsors.map((s) => s.id == sponsor.id ? sponsor : s).toList(),
-    );
-    state = newConfig;
-    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
-  }
-
-  Future<void> removeSponsor(String id) async {
-    final newConfig = state.copyWith(
-      sponsors: state.sponsors.where((s) => s.id != id).toList(),
-    );
-    state = newConfig;
-    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
-  }
-
-  Future<void> setCardTintIntensity(double intensity) async {
-    final newConfig = state.copyWith(cardTintIntensity: intensity);
-    state = newConfig;
-    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
-  }
+  /// Centralized update logic for all configuration changes.
+  /// Handles both optimistic UI updates and Firestore persistence.
+  Future<void> _updateConfig(SocietyConfig newConfig) async {
+    state = newConfig;
+    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
+  }
+
+  // Simplified transformation helper for complex updates
+  Future<void> _transform(SocietyConfig Function(SocietyConfig) fn) => _updateConfig(fn(state));
+
+  Future<void> setSocietyName(String name) => _updateConfig(state.copyWith(societyName: name));
+  Future<void> setLogoUrl(String? url) => _updateConfig(state.copyWith(logoUrl: url));
+
+  Future<void> setPrimaryColor(Color color) => _updateConfig(state.copyWith(primaryColor: color.toARGB32()));
+  Future<void> setSecondaryColor(Color color) => _updateConfig(state.copyWith(secondaryColor: color.toARGB32()));
+  Future<void> setDangerousColor(Color color) => _updateConfig(state.copyWith(dangerousColor: color.toARGB32()));
+  Future<void> setTertiaryColor(Color color) => _updateConfig(state.copyWith(tertiaryColor: color.toARGB32()));
+
+  Future<void> setCardColor(Color color) => _updateConfig(state.copyWith(cardColor: color.toARGB32()));
+  Future<void> setSurfaceElevatedColor(Color color) => _updateConfig(state.copyWith(surfaceElevatedColor: color.toARGB32()));
+
+  Future<void> setTextPrimaryColor(Color color) => _updateConfig(state.copyWith(textPrimaryColor: color.toARGB32()));
+  Future<void> setTextSecondaryColor(Color color) => _updateConfig(state.copyWith(textSecondaryColor: color.toARGB32()));
+  Future<void> setTextMutedColor(Color color) => _updateConfig(state.copyWith(textMutedColor: color.toARGB32()));
+
+  Future<void> setScoreEagleColor(Color color) => _updateConfig(state.copyWith(scoreEagleColor: color.toARGB32()));
+  Future<void> setScoreBirdieColor(Color color) => _updateConfig(state.copyWith(scoreBirdieColor: color.toARGB32()));
+  Future<void> setScoreParColor(Color color) => _updateConfig(state.copyWith(scoreParColor: color.toARGB32()));
+  Future<void> setScoreBogeyColor(Color color) => _updateConfig(state.copyWith(scoreBogeyColor: color.toARGB32()));
+  Future<void> setScoreDoubleColor(Color color) => _updateConfig(state.copyWith(scoreDoubleColor: color.toARGB32()));
+  Future<void> setScoreTriplePlusColor(Color color) => _updateConfig(state.copyWith(scoreTriplePlusColor: color.toARGB32()));
+  Future<void> setTeamAColor(Color color) => _updateConfig(state.copyWith(teamAColor: color.toARGB32()));
+  Future<void> setTeamBColor(Color color) => _updateConfig(state.copyWith(teamBColor: color.toARGB32()));
+
+  Future<void> setPointsColor(Color color) => _updateConfig(state.copyWith(pointsColor: color.toARGB32()));
+  Future<void> setHeroGradientColor(Color color) => _updateConfig(state.copyWith(heroGradientColor: color.toARGB32()));
+  Future<void> setBackgroundColor(Color color) => _updateConfig(state.copyWith(backgroundColor: color.toARGB32()));
+  Future<void> setStatusPublishedColor(Color color) => _updateConfig(state.copyWith(statusPublishedColor: color.toARGB32()));
+  Future<void> setStatusConfirmedColor(Color color) => _updateConfig(state.copyWith(statusConfirmedColor: color.toARGB32()));
+  Future<void> setStatusReservedColor(Color color) => _updateConfig(state.copyWith(statusReservedColor: color.toARGB32()));
+  Future<void> setStatusWaitlistColor(Color color) => _updateConfig(state.copyWith(statusWaitlistColor: color.toARGB32()));
+  Future<void> setStatusWithdrawnColor(Color color) => _updateConfig(state.copyWith(statusWithdrawnColor: color.toARGB32()));
+  Future<void> setStatusDinnerColor(Color color) => _updateConfig(state.copyWith(statusDinnerColor: color.toARGB32()));
+
+  Future<void> setUseShadows(bool use) => _updateConfig(state.copyWith(useShadows: use));
+  Future<void> setShadowIntensity(double intensity) => _updateConfig(state.copyWith(shadowIntensity: intensity));
+  Future<void> setUseBorders(bool use) => _updateConfig(state.copyWith(useBorders: use));
+  Future<void> setBorderWidth(double width) => _updateConfig(state.copyWith(borderWidth: width));
+  Future<void> setBorderColor(Color color) => _updateConfig(state.copyWith(borderColor: color.toARGB32()));
+  Future<void> setDividerColor(Color color) => _updateConfig(state.copyWith(dividerColor: color.toARGB32()));
+  Future<void> setPillRadius(double radius) => _updateConfig(state.copyWith(pillRadius: radius));
+  Future<void> setButtonRadius(double radius) => _updateConfig(state.copyWith(buttonRadius: radius));
+  Future<void> setDividerThickness(double thickness) => _updateConfig(state.copyWith(dividerThickness: thickness));
+  Future<void> setHeroRadius(double radius) => _updateConfig(state.copyWith(heroRadius: radius));
+  Future<void> setCardRadius(double radius) => _updateConfig(state.copyWith(cardRadius: radius));
+  Future<void> setInputRadius(double radius) => _updateConfig(state.copyWith(inputRadius: radius));
+  Future<void> setAccentRadius(double radius) => _updateConfig(state.copyWith(accentRadius: radius));
+  Future<void> setAccentOpacity(double opacity) => _updateConfig(state.copyWith(accentOpacity: opacity));
+  Future<void> setShadowSpread(double spread) => _updateConfig(state.copyWith(shadowSpread: spread));
+  Future<void> setShadowOpacity(double opacity) => _updateConfig(state.copyWith(shadowOpacity: opacity));
+
+  Future<void> setLabelToCardSpacing(double spacing) => _updateConfig(state.copyWith(labelToCardSpacing: spacing));
+  Future<void> setCardToLabelSpacing(double spacing) => _updateConfig(state.copyWith(cardToLabelSpacing: spacing));
+  Future<void> setFieldToFieldSpacing(double spacing) => _updateConfig(state.copyWith(fieldToFieldSpacing: spacing));
+  Future<void> setCardToCardSpacing(double spacing) => _updateConfig(state.copyWith(cardToCardSpacing: spacing));
+  Future<void> setCardVerticalPadding(double padding) => _updateConfig(state.copyWith(cardVerticalPadding: padding));
+  Future<void> setCardHorizontalPadding(double padding) => _updateConfig(state.copyWith(cardHorizontalPadding: padding));
+
+  Future<void> setTabToContentSpacing(double spacing) => _updateConfig(state.copyWith(tabToContentSpacing: spacing));
+  Future<void> setGroupFooterToLabelSpacing(double spacing) => _updateConfig(state.copyWith(groupFooterToLabelSpacing: spacing));
+
+  Future<void> setIconBadgeFillColor(Color color) => _updateConfig(state.copyWith(iconBadgeFillColor: color.toARGB32()));
+  Future<void> setIconBadgeIconColor(Color color) => _updateConfig(state.copyWith(iconBadgeIconColor: color.toARGB32()));
+  Future<void> setIconBadgeOpacity(double opacity) => _updateConfig(state.copyWith(iconBadgeOpacity: opacity));
+  Future<void> setIconOpacity(double opacity) => _updateConfig(state.copyWith(iconOpacity: opacity));
+  Future<void> setStartingBalance(double balance) => _updateConfig(state.copyWith(startingBalance: balance));
+
+  Future<void> addLedgerEntry(FinancialEntry entry) => _updateConfig(state.copyWith(ledgerEntries: [...state.ledgerEntries, entry]));
+  Future<void> updateLedgerEntry(FinancialEntry entry) => _updateConfig(state.copyWith(ledgerEntries: state.ledgerEntries.map((item) => item.id == entry.id ? entry : item).toList()));
+  Future<void> removeLedgerEntry(String id) => _updateConfig(state.copyWith(ledgerEntries: state.ledgerEntries.where((item) => item.id != id).toList()));
+
+  Future<void> setThemeMode(String mode) => _updateConfig(state.copyWith(themeMode: mode));
+  Future<void> setFontFamily(String family) => _updateConfig(state.copyWith(fontFamily: family));
+
+  Future<void> addCustomColor(Color color) => _transform((s) {
+    if (s.customColors.length >= 5) return s;
+    return s.copyWith(customColors: [...s.customColors, color.toARGB32()]);
+  });
+
+  Future<void> updateCustomColor(int index, Color color) => _transform((s) {
+    if (index < 0 || index >= s.customColors.length) return s;
+    final colors = List<int>.from(s.customColors);
+    colors[index] = color.toARGB32();
+    return s.copyWith(customColors: colors);
+  });
+  Future<void> removeCustomColor(int index) => _transform((s) {
+    if (index < 0 || index >= s.customColors.length) return s;
+    final colors = List<int>.from(s.customColors);
+    colors.removeAt(index);
+    return s.copyWith(customColors: colors);
+  });
+
+  Future<void> setCurrency(String symbol, String code) => _updateConfig(state.copyWith(currencySymbol: symbol, currencyCode: code));
+  Future<void> setGroupingStrategy(String strategy) => _updateConfig(state.copyWith(groupingStrategy: strategy));
+  Future<void> setDistanceUnit(String unit) => _updateConfig(state.copyWith(distanceUnit: unit));
+  Future<void> setHandicapSystem(HandicapSystem system) => _updateConfig(state.copyWith(handicapSystem: system));
+  Future<void> setSeparateGuestLeaderboard(bool separate) => _updateConfig(state.copyWith(separateGuestLeaderboard: separate));
+  Future<void> setSocietyCutMode(SocietyCutMode mode) => _updateConfig(state.copyWith(societyCutMode: mode));
+  Future<void> setSocietyCutRules(Map<String, double> rules) => _updateConfig(state.copyWith(societyCutRules: rules));
+  Future<void> setSocietyCutEventLimit(int limit) => _updateConfig(state.copyWith(societyCutEventLimit: limit));
+
+  Future<void> setSocietyCutCountPlayedOnly(bool countPlayedOnly) => _updateConfig(state.copyWith(societyCutCountPlayedOnly: countPlayedOnly));
+  Future<void> setSocietyCutFilterSeason(bool active) => _updateConfig(state.copyWith(societyCutFilterSeason: active));
+  Future<void> setSocietyCutFilterInvitational(bool active) => _updateConfig(state.copyWith(societyCutFilterInvitational: active));
+
+  Future<void> setGlobalMembershipEndDate(DateTime? date) => _updateConfig(state.copyWith(globalMembershipEndDate: date));
+  Future<void> setRenewalWindowDays(int days) => _updateConfig(state.copyWith(renewalWindowDays: days));
+  Future<void> setIsRenewalActive(bool active) => _updateConfig(state.copyWith(isRenewalActive: active));
+  Future<void> setRenewalLaunchDate(DateTime? date) => _updateConfig(state.copyWith(renewalLaunchDate: date));
+  Future<void> setRenewalDeadline(DateTime? date) => _updateConfig(state.copyWith(renewalDeadline: date));
+  Future<void> setRenewalPaymentDeadline(DateTime? date) => _updateConfig(state.copyWith(renewalPaymentDeadline: date));
+
+  Future<void> addSponsor(Sponsor sponsor) => _updateConfig(state.copyWith(sponsors: [...state.sponsors, sponsor]));
+  Future<void> updateSponsor(Sponsor sponsor) => _updateConfig(state.copyWith(sponsors: state.sponsors.map((item) => item.id == sponsor.id ? sponsor : item).toList()));
+  Future<void> removeSponsor(String id) => _updateConfig(state.copyWith(sponsors: state.sponsors.where((item) => item.id != id).toList()));
+
+  Future<void> setCardTintIntensity(double intensity) => _updateConfig(state.copyWith(cardTintIntensity: intensity));
+  Future<void> setHeroGradientColorSecondary(Color color) => _updateConfig(state.copyWith(heroGradientColorSecondary: color.toARGB32()));
+  Future<void> setHeroGradientOpacity(double opacity) => _updateConfig(state.copyWith(heroGradientOpacity: opacity));
+  Future<void> setHeroTextColor(Color color) => _updateConfig(state.copyWith(heroTextColor: color.toARGB32()));
+  Future<void> setCardTintColor(Color color) => _updateConfig(state.copyWith(cardTintColor: color.toARGB32()));
+  Future<void> setButtonHeight(double height) => _updateConfig(state.copyWith(buttonHeight: height));
+  Future<void> setSliderTrackHeight(double height) => _updateConfig(state.copyWith(sliderTrackHeight: height));
+  Future<void> setSurfaceHeightLarge(double height) => _updateConfig(state.copyWith(surfaceHeightLarge: height));
+  Future<void> setIconBadgeSize(double size) => _updateConfig(state.copyWith(iconBadgeSize: size));
+  Future<void> setIconBadgeIconSize(double size) => _updateConfig(state.copyWith(iconBadgeIconSize: size));
+  Future<void> setIconBadgeTextColor(Color color) => _updateConfig(state.copyWith(iconBadgeTextColor: color.toARGB32()));
 }

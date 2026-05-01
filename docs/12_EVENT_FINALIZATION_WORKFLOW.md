@@ -69,6 +69,24 @@ To ensure long-term clarity on the Event Dashboard and Leaderboards:
 3.  **Persistence**: This "Winning Component" is saved as a `tieBreakLabel` within the event's `results` list.
 4.  **Display**: The label is rendered beneath the player's total score in the "Top Results" card, providing persistent context for the podium finish.
 
+## 6. Digital Scorecard Verification (Marker Handshake)
+
+To ensure tournament integrity, a two-way digital sign-off system is enforced before final submission.
+
+### The Verification Grid
+The "Verify" tab provides a side-by-side comparison of:
+- **Player Scores**: The scores the player recorded for themselves.
+- **Marker Scores**: The scores the official marker recorded for the player.
+- **Conflict Highlighting**: Any discrepancies between the two rows are highlighted in red (Boxy Art Coral).
+
+### Signature Handshake
+Both the **Player** and the **Marker** must tap "Sign Off" within the Verify tab to finalize the card.
+- **Locking**: Once both signatures are present, the card is visually "locked" for submission.
+- **Invalidation**: Any subsequent change to a hole score or a "Story" tag (Penalty/Gimme) automatically clears both signatures, requiring a fresh review.
+
+### Hole Story Audit
+All non-numerical scoring attributes (Penalties, Gimmes, Pick Ups) are aggregated into a **Round Story Breakdown** within the Verification view, allowing for a line-by-line audit of the "story of the round" before sign-off.
+
 ---
 
 > [!NOTE]

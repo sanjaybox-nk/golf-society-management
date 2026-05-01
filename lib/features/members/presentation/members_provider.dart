@@ -9,10 +9,11 @@ import '../../home/presentation/home_providers.dart';
 
 import '../data/members_repository.dart';
 import '../data/firestore_members_repository.dart';
+import 'package:golf_society/utils/firebase_providers.dart';
 
 // Repository Provider
 final membersRepositoryProvider = Provider<MembersRepository>((ref) {
-  return FirestoreMembersRepository();
+  return FirestoreMembersRepository(ref.watch(firestoreProvider));
 });
 
 // Search Query State
@@ -240,5 +241,67 @@ final memberStatsProvider = Provider<AsyncValue<Map<String, int>>>((ref) {
       }
     }
     return stats;
+  });
+});
+
+enum ParticipationStatus { confirmed, participated, dns, withdrawn }
+
+class MemberEventHistoryItem {
+  final String eventId;
+  final String eventTitle;
+  final DateTime date;
+  final ParticipationStatus status;
+  final int? score;
+  final int? position;
+
+  const MemberEventHistoryItem({
+    required this.eventId,
+    required this.eventTitle,
+    required this.date,
+    required this.status,
+    this.score,
+    this.position,
+  });
+}
+
+final memberEventHistoryProvider = Provider.family<AsyncValue<List<MemberEventHistoryItem>>, String>((ref, memberId) {
+  final eventsAsync = ref.watch(eventsProvider);
+  
+  return eventsAsync.whenData((events) {
+    final filtered = events.where((e) => e.registrations.any((r) => r.memberId == memberId)).toList();
+    
+    final items = filtered.map((e) {
+      final reg = e.registrations.firstWhere((r) => r.memberId == memberId);
+      final result = e.results.firstWhereOrNull((r) => r['memberId'] == memberId);
+      
+      ParticipationStatus status;
+      if (e.isPast) {
+        if (result != null) {
+          status = ParticipationStatus.participated;
+        } else if (e.eventType == EventType.social) {
+          // Social events don't have scores/results, so if you were registered, you participated.
+          status = ParticipationStatus.participated;
+        } else if (reg.isConfirmed && reg.attendingGolf) {
+          status = ParticipationStatus.dns;
+        } else {
+          status = ParticipationStatus.withdrawn;
+        }
+      } else {
+        status = ParticipationStatus.confirmed;
+      }
+      
+      return MemberEventHistoryItem(
+        eventId: e.id,
+        eventTitle: e.title,
+        date: e.date,
+        status: status,
+        score: result?['points'] as int?,
+        position: result?['position'] as int?,
+      );
+    }).toList();
+
+    // Sort by date descending
+    items.sort((a, b) => b.date.compareTo(a.date));
+    return items;
   });
 });

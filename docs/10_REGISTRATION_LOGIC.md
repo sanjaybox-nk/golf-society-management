@@ -20,7 +20,8 @@ To streamline the grouping and scoring process, the system automatically assigns
 When creating an event, admins define the **Default Tee** (usually for men) and the **Default Female Tee**. 
 - **Auto-Logic**: Upon registration, the system checks the member's gender from their profile.
 - **Assignment**: Males are assigned the `defaultTeeName`; Females are assigned the `selectedFemaleTeeName`.
-- **Guests**: Guests are assigned the default event tee unless overridden.
+- **Dynamic Resolution (Marker Selection)**: The `MarkerSelectionSheet` uses the **"Auto"** setting by default. This dynamically resolves to the player's gender-appropriate tee (e.g., showing a Red dot for female members) by looking up their member profile in real-time.
+- **Guests**: Guests default to the event's primary tee unless a specific gender is known.
 
 ### 2. Manual User Override
 Players can review and override their assigned tee in the **Scorecard Start-up** screen before they begin their round. This ensures that a player who usually plays from a different tee box can correct their assignment without admin intervention.

@@ -249,6 +249,33 @@ class SeedingService {
     await ScenarioSeeder(ref, _random).seedVerificationScenario();
   }
 
+  Future<void> seedMedalVerificationScenario() async {
+    await ScenarioSeeder(ref, _random).seedMedalVerificationScenario();
+  }
+
+  /// Incremental Hardening: Seed/Refresh members only.
+  Future<void> seedMembersOnly() async {
+    try {
+      debugPrint('--- REFRESHING MEMBER ROSTER ONLY ---');
+      final firestore = FirebaseFirestore.instance;
+      
+      // Wipe only members
+      final snapshot = await firestore.collection('members').get();
+      var batch = firestore.batch();
+      for (var doc in snapshot.docs) {
+        batch.delete(doc.reference);
+      }
+      await batch.commit();
+      
+      // Re-seed
+      await MemberSeeder(ref, _random).seed();
+      debugPrint('--- MEMBER ROSTER REFRESHED ---');
+    } catch (e) {
+      debugPrint('MEMBER SEEDER FAILURE: $e');
+      rethrow;
+    }
+  }
+
   Future<void> clearActivityData() async {
     final firestore = FirebaseFirestore.instance;
     
@@ -467,9 +494,14 @@ class SeedingService {
       (title: 'Society Summer BBQ', format: CompetitionFormat.stableford, isInvitational: false, isSeasonEvent: false, subtype: CompetitionSubtype.none, date: DateTime(2025, 7, 19), status: EventStatus.completed, isMultiDay: false, endDate: null, eventType: EventType.social),
       (title: 'Annual Awards Dinner', format: CompetitionFormat.stableford, isInvitational: false, isSeasonEvent: false, subtype: CompetitionSubtype.none, date: DateTime(2026, 3, 11), status: EventStatus.completed, isMultiDay: false, endDate: null, eventType: EventType.social),
 
+      (title: 'May Spring Medal', format: CompetitionFormat.stroke, isInvitational: false, isSeasonEvent: true, subtype: CompetitionSubtype.none, date: DateTime(2025, 5, 25), status: EventStatus.completed, isMultiDay: false, endDate: null, eventType: EventType.golf),
+      (title: 'Summer Stroke Play', format: CompetitionFormat.stroke, isInvitational: true, isSeasonEvent: false, subtype: CompetitionSubtype.none, date: DateTime(2025, 6, 20), status: EventStatus.completed, isMultiDay: false, endDate: null, eventType: EventType.golf),
+      (title: 'Fourball Pairs Challenge', format: CompetitionFormat.stableford, isInvitational: false, isSeasonEvent: true, subtype: CompetitionSubtype.fourball, date: DateTime(2025, 8, 5), status: EventStatus.completed, isMultiDay: false, endDate: null, eventType: EventType.golf),
+      (title: 'Foursomes Championship', format: CompetitionFormat.stableford, isInvitational: true, isSeasonEvent: false, subtype: CompetitionSubtype.foursomes, date: DateTime(2025, 9, 5), status: EventStatus.completed, isMultiDay: false, endDate: null, eventType: EventType.golf),
+      
       (title: 'Invitational Match Play', format: CompetitionFormat.stableford, isInvitational: true, isSeasonEvent: false, subtype: CompetitionSubtype.none, date: now, status: EventStatus.inPlay, isMultiDay: false, endDate: null, eventType: EventType.golf),
       (title: 'Spring Social Night', format: CompetitionFormat.stableford, isInvitational: false, isSeasonEvent: false, subtype: CompetitionSubtype.none, date: now.add(const Duration(days: 7)), status: EventStatus.published, isMultiDay: false, endDate: null, eventType: EventType.social),
-      (title: 'May Spring Medal', format: CompetitionFormat.stableford, isInvitational: false, isSeasonEvent: true, subtype: CompetitionSubtype.none, date: now.add(const Duration(days: 14)), status: EventStatus.published, isMultiDay: false, endDate: null, eventType: EventType.golf),
+      (title: 'June Season Stableford', format: CompetitionFormat.stableford, isInvitational: false, isSeasonEvent: true, subtype: CompetitionSubtype.none, date: now.add(const Duration(days: 14)), status: EventStatus.published, isMultiDay: false, endDate: null, eventType: EventType.golf),
     ];
 
     int prestigeUsed = 0;
@@ -654,6 +686,18 @@ class SeedingService {
           mode: CompetitionMode.teams,
           handicapAllowance: 1.0,
           hasMatchPlayOverlay: true,
+        ),
+        startDate: DateTime.now(),
+        endDate: DateTime.now(),
+      ),
+      Competition(
+        id: 'tmpl_medal_solo',
+        name: 'Medal Play',
+        type: CompetitionType.game,
+        rules: const CompetitionRules(
+          format: CompetitionFormat.stroke,
+          mode: CompetitionMode.singles,
+          handicapAllowance: 0.95,
         ),
         startDate: DateTime.now(),
         endDate: DateTime.now(),

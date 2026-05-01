@@ -16,6 +16,8 @@ class SlidingCourseInfoCard extends StatefulWidget {
   final int? holeLimit;
   final List<String>? matchPlayResults;
   final double? handicapAllowance;
+  final String? tieBreakLabel;
+  final Map<int, List<String>>? holeTags; // [NEW]
 
   const SlidingCourseInfoCard({
     super.key,
@@ -31,6 +33,8 @@ class SlidingCourseInfoCard extends StatefulWidget {
     this.holeLimit,
     this.matchPlayResults,
     this.handicapAllowance,
+    this.tieBreakLabel,
+    this.holeTags,
   });
 
   @override
@@ -238,7 +242,9 @@ class _SlidingCourseInfoCardState extends State<SlidingCourseInfoCard> {
                 _buildStatItem(
                   isGross ? 'TOTAL' : 'GROSS', 
                   totalStrokes.toString(), 
-                  sub: 'THRU $holesPlayed'
+                  sub: holesPlayed >= 18 
+                    ? (widget.tieBreakLabel != null ? 'F / ${widget.tieBreakLabel}' : 'F') 
+                    : 'THRU $holesPlayed'
                 ),
                 if (widget.isStableford)
                   _buildStatItem('POINTS', totalPoints.toString())
@@ -251,8 +257,48 @@ class _SlidingCourseInfoCardState extends State<SlidingCourseInfoCard> {
               ],
             ),
           ),
+          
+          if (widget.holeTags != null && widget.holeTags!.values.any((t) => t.isNotEmpty))
+            _buildStorySummaryRow(context),
         ],
       ),
+    );
+  }
+
+  Widget _buildStorySummaryRow(BuildContext context) {
+    int totalPenalties = 0;
+    int totalGimmes = 0;
+    widget.holeTags?.forEach((hole, tags) {
+      totalPenalties += tags.where((t) => t.startsWith('PENALTY_')).length;
+      if (tags.contains('GIMME')) totalGimmes++;
+    });
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: 6),
+      decoration: BoxDecoration(
+        color: Theme.of(context).primaryColor.withValues(alpha: 0.02),
+        border: Border(top: BorderSide(color: Theme.of(context).dividerColor.withValues(alpha: 0.1))),
+      ),
+      child: Row(
+        children: [
+          _buildSummaryChip(Icons.warning_amber_rounded, 'Penalties: $totalPenalties', AppColors.amber500),
+          const SizedBox(width: AppSpacing.md),
+          _buildSummaryChip(Icons.check_circle_outline_rounded, 'Gimmes: $totalGimmes', AppColors.lime500),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSummaryChip(IconData icon, String label, Color color) {
+    return Row(
+      children: [
+        Icon(icon, size: 10, color: color),
+        const SizedBox(width: 4),
+        Text(
+          label.toUpperCase(),
+          style: AppTypography.nano.copyWith(color: color, fontWeight: AppTypography.weightBlack),
+        ),
+      ],
     );
   }
 

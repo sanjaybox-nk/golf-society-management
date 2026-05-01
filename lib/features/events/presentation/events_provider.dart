@@ -1,9 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/foundation.dart';
 import 'package:collection/collection.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:golf_society/domain/models/golf_event.dart';
 import 'package:golf_society/domain/models/season.dart';
+import 'package:golf_society/utils/date_utils.dart';
+import 'package:golf_society/utils/firebase_providers.dart';
 import '../../events/data/events_repository.dart';
 import '../../events/data/firestore_events_repository.dart';
 import '../../admin/data/seasons_repository.dart';
@@ -30,17 +31,16 @@ class AdminEventFilterNotifier extends Notifier<EventFilter> {
   void update(EventFilter filter) => state = filter;
 }
 
-
 final eventsRepositoryProvider = Provider<EventsRepository>((ref) {
-  return FirestoreEventsRepository(FirebaseFirestore.instance);
+  return FirestoreEventsRepository(ref.watch(firestoreProvider));
 });
 
 final seasonsRepositoryProvider = Provider<SeasonsRepository>((ref) {
-  return FirestoreSeasonsRepository(FirebaseFirestore.instance);
+  return FirestoreSeasonsRepository(ref.watch(firestoreProvider));
 });
 
 final leaderboardTemplatesRepositoryProvider = Provider<LeaderboardTemplatesRepository>((ref) {
-  return FirestoreLeaderboardTemplatesRepository(FirebaseFirestore.instance);
+  return FirestoreLeaderboardTemplatesRepository(ref.watch(firestoreProvider));
 });
 
 // Seasons Stream
@@ -80,40 +80,31 @@ final seasonByIdProvider = Provider.family<AsyncValue<Season?>, String>((ref, id
   return seasonsAsync.whenData((seasons) => seasons.firstWhereOrNull((s) => s.id == id));
 });
 
-// 2. Main Events Stream (Published + Completed for members)
-final eventsProvider = StreamProvider<List<GolfEvent>>((ref) async* {
+// 2. Main Events Stream (Source of Truth)
+final allEventsProvider = StreamProvider<List<GolfEvent>>((ref) {
   final repository = ref.watch(eventsRepositoryProvider);
   final activeSeasonAsync = ref.watch(activeSeasonProvider);
   
-  yield* activeSeasonAsync.when(
-    data: (activeSeason) {
-      if (activeSeason == null) return Stream.value(<GolfEvent>[]);
-      // Show published, live and completed events (exclude drafts and cancelled)
-      return repository.watchEvents(seasonId: activeSeason.id).map((events) {
-        return events.where((e) => 
-          e.status != EventStatus.draft && 
-          e.status != EventStatus.cancelled
-        ).toList();
-      });
-    },
+  return activeSeasonAsync.when(
+    data: (s) => repository.watchEvents(seasonId: s?.id),
     loading: () => const Stream.empty(),
     error: (err, stack) => Stream.value(<GolfEvent>[]),
   );
 });
 
-// Admin Events Stream (All statuses)
-final adminEventsProvider = StreamProvider<List<GolfEvent>>((ref) async* {
-  final repository = ref.watch(eventsRepositoryProvider);
-  final activeSeasonAsync = ref.watch(activeSeasonProvider);
-  
-  yield* activeSeasonAsync.when(
-    data: (activeSeason) {
-      // Admins see events for the active season, or ALL events if no season is active
-      return repository.watchEvents(seasonId: activeSeason?.id);
-    },
-    loading: () => const Stream.empty(),
-    error: (err, stack) => Stream.value(<GolfEvent>[]),
+/// Member Events (Exclude Drafts/Cancelled)
+final eventsProvider = Provider<AsyncValue<List<GolfEvent>>>((ref) {
+  return ref.watch(allEventsProvider).whenData((events) => 
+    events.where((e) => 
+      e.status != EventStatus.draft && 
+      e.status != EventStatus.cancelled
+    ).toList()
   );
+});
+
+/// Admin Events (All statuses)
+final adminEventsProvider = Provider<AsyncValue<List<GolfEvent>>>((ref) {
+  return ref.watch(allEventsProvider);
 });
 
 // Global (Non-event) Expenses Stream
@@ -121,137 +112,74 @@ final globalExpensesProvider = StreamProvider<List<EventExpense>>((ref) {
   return ref.watch(eventsRepositoryProvider).watchGlobalExpenses();
 });
 
-// 3. Derived: Upcoming
+// Helper for Social filtering
+List<GolfEvent> _filterSocial(List<GolfEvent> events) {
+  final social = events.where((e) => e.eventType == EventType.social).toList();
+  social.sort((a, b) => b.date.compareTo(a.date));
+  return social;
+}
+
+// Helper for Season/Invitational filtering
+List<GolfEvent> _filterSeason(List<GolfEvent> events) {
+  return events.where((e) => e.eventType != EventType.social).toList();
+}
+
+// 3. Member Derived Providers
 final upcomingEventsProvider = Provider<AsyncValue<List<GolfEvent>>>((ref) {
-  final eventsAsync = ref.watch(eventsProvider);
-  return eventsAsync.whenData((events) {
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    
-    final upcoming = events.where((e) {
-      final eventDate = DateTime(e.date.year, e.date.month, e.date.day);
-      return eventDate.isAtSameMomentAs(today) || 
-             eventDate.isAfter(today) || 
-             e.status == EventStatus.inPlay;
-    }).toList();
-    
-    upcoming.sort((a, b) => a.date.compareTo(b.date));
-    return upcoming;
-  });
+  return ref.watch(eventsProvider).whenData(DateUtils.filterUpcoming);
 });
 
-// 4. Derived: Past
 final pastEventsProvider = Provider<AsyncValue<List<GolfEvent>>>((ref) {
-  final eventsAsync = ref.watch(eventsProvider);
-  return eventsAsync.whenData((events) {
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    
-    final past = events.where((e) {
-      final eventDate = DateTime(e.date.year, e.date.month, e.date.day);
-      return eventDate.isBefore(today);
-    }).toList();
-    
-    past.sort((a, b) => b.date.compareTo(a.date));
-    return past;
-  });
+  return ref.watch(eventsProvider).whenData(DateUtils.filterPast);
 });
 
-// 5. Derived: Social
 final socialEventsProvider = Provider<AsyncValue<List<GolfEvent>>>((ref) {
-  final eventsAsync = ref.watch(eventsProvider);
-  return eventsAsync.whenData((events) {
-    // Only social events, regardless of season status
-    final social = events.where((e) => e.eventType == EventType.social).toList();
-    social.sort((a, b) => b.date.compareTo(a.date));
-    return social;
-  });
+  return ref.watch(eventsProvider).whenData(_filterSocial);
 });
 
-// 6. Derived: Season Events (Split into Upcoming/Past)
 final seasonEventsProvider = Provider<AsyncValue<List<GolfEvent>>>((ref) {
-  final eventsAsync = ref.watch(eventsProvider);
-  return eventsAsync.whenData((events) {
-    // All non-social events (includes both Season and Invitationals)
-    return events.where((e) => e.eventType != EventType.social).toList();
-  });
+  return ref.watch(eventsProvider).whenData(_filterSeason);
 });
 
 final upcomingSeasonEventsProvider = Provider<AsyncValue<List<GolfEvent>>>((ref) {
-  final seasonEventsAsync = ref.watch(seasonEventsProvider);
-  return seasonEventsAsync.whenData((events) {
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final upcoming = events.where((e) {
-      final eventDate = DateTime(e.date.year, e.date.month, e.date.day);
-      return eventDate.isAtSameMomentAs(today) || 
-             eventDate.isAfter(today) || 
-             e.status == EventStatus.inPlay;
-    }).toList();
-    upcoming.sort((a, b) => a.date.compareTo(b.date));
-    return upcoming;
-  });
+  return ref.watch(seasonEventsProvider).when(
+    data: (events) => AsyncValue.data(DateUtils.filterUpcoming(events)),
+    loading: () => const AsyncValue.loading(),
+    error: (e, s) => AsyncValue.error(e, s),
+  );
 });
 
 final pastSeasonEventsProvider = Provider<AsyncValue<List<GolfEvent>>>((ref) {
-  final seasonEventsAsync = ref.watch(seasonEventsProvider);
-  return seasonEventsAsync.whenData((events) {
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final past = events.where((e) {
-      final eventDate = DateTime(e.date.year, e.date.month, e.date.day);
-      return eventDate.isBefore(today);
-    }).toList();
-    past.sort((a, b) => b.date.compareTo(a.date));
-    return past;
-  });
+  return ref.watch(seasonEventsProvider).when(
+    data: (events) => AsyncValue.data(DateUtils.filterPast(events)),
+    loading: () => const AsyncValue.loading(),
+    error: (e, s) => AsyncValue.error(e, s),
+  );
 });
 
-// Admin Derived Providers (Include all statuses)
+// 4. Admin Derived Providers
 final adminSocialEventsProvider = Provider<AsyncValue<List<GolfEvent>>>((ref) {
-  final eventsAsync = ref.watch(adminEventsProvider);
-  return eventsAsync.whenData((events) {
-    final social = events.where((e) => e.eventType == EventType.social).toList();
-    social.sort((a, b) => b.date.compareTo(a.date));
-    return social;
-  });
+  return ref.watch(adminEventsProvider).whenData(_filterSocial);
 });
 
 final adminSeasonEventsProvider = Provider<AsyncValue<List<GolfEvent>>>((ref) {
-  final eventsAsync = ref.watch(adminEventsProvider);
-  return eventsAsync.whenData((events) {
-    return events.where((e) => e.eventType != EventType.social).toList();
-  });
+  return ref.watch(adminEventsProvider).whenData(_filterSeason);
 });
 
 final adminUpcomingSeasonEventsProvider = Provider<AsyncValue<List<GolfEvent>>>((ref) {
-  final eventsAsync = ref.watch(adminSeasonEventsProvider);
-  return eventsAsync.whenData((events) {
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final upcoming = events.where((e) {
-      final eventDate = DateTime(e.date.year, e.date.month, e.date.day);
-      return eventDate.isAtSameMomentAs(today) || 
-             eventDate.isAfter(today) || 
-             e.status == EventStatus.inPlay;
-    }).toList();
-    upcoming.sort((a, b) => a.date.compareTo(b.date));
-    return upcoming;
-  });
+  return ref.watch(adminSeasonEventsProvider).when(
+    data: (events) => AsyncValue.data(DateUtils.filterUpcoming(events)),
+    loading: () => const AsyncValue.loading(),
+    error: (e, s) => AsyncValue.error(e, s),
+  );
 });
 
 final adminPastSeasonEventsProvider = Provider<AsyncValue<List<GolfEvent>>>((ref) {
-  final eventsAsync = ref.watch(adminSeasonEventsProvider);
-  return eventsAsync.whenData((events) {
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final past = events.where((e) {
-      final eventDate = DateTime(e.date.year, e.date.month, e.date.day);
-      return eventDate.isBefore(today);
-    }).toList();
-    past.sort((a, b) => b.date.compareTo(a.date));
-    return past;
-  });
+  return ref.watch(adminSeasonEventsProvider).when(
+    data: (events) => AsyncValue.data(DateUtils.filterPast(events)),
+    loading: () => const AsyncValue.loading(),
+    error: (e, s) => AsyncValue.error(e, s),
+  );
 });
 
 // 7. Single Event Provider

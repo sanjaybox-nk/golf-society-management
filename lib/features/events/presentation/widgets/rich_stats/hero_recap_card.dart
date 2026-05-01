@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:golf_society/design_system/design_system.dart';
+import 'package:golf_society/domain/models/society_config.dart';
 
 class SocietyHeroRecapCard extends ConsumerWidget {
   final List<int?> eclecticScores;
@@ -35,7 +36,22 @@ class SocietyHeroRecapCard extends ConsumerWidget {
     for (int i = 0; i < eclecticScores.length; i++) {
       final score = eclecticScores[i];
       if (score == null) continue;
-      final par = (holes[i] is Map ? (holes[i]['par'] as int? ?? 4) : holes[i].par) as int;
+      
+      // Safe par lookup with fallback
+      int par = 4;
+      if (i < holes.length) {
+        final h = holes[i];
+        if (h is Map) {
+          par = (h['par'] as num?)?.toInt() ?? 4;
+        } else if (h != null) {
+          // Dynamic access to CourseHole object
+          try {
+            par = h.par as int;
+          } catch (_) {
+            par = 4;
+          }
+        }
+      }
 
       final diff = score - par;
       if (diff <= -2) {
@@ -48,7 +64,15 @@ class SocietyHeroRecapCard extends ConsumerWidget {
     }
 
     final totalStrokes = eclecticScores.whereType<int>().fold(0, (sum, s) => sum + s);
-    final parTotal = holes.fold(0, (sum, h) => sum + ((h is Map ? (h['par'] as int? ?? 4) : h.par) as int));
+    final parTotal = holes.fold(0, (sum, h) {
+      int p = 4;
+      if (h is Map) {
+        p = (h['par'] as num?)?.toInt() ?? 4;
+      } else if (h != null) {
+        try { p = h.par as int; } catch (_) {}
+      }
+      return sum + p;
+    });
     final vsPar = totalStrokes - parTotal;
 
     return BoxyArtCard(
@@ -58,8 +82,8 @@ class SocietyHeroRecapCard extends ConsumerWidget {
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
         colors: [
-          Color(config.heroGradientColor).withValues(alpha: 0.15),
-          Color(config.heroGradientColor).withValues(alpha: 0.02),
+          Color(config.heroGradientColor).withValues(alpha: config.heroGradientOpacity),
+          Color(config.heroGradientColorSecondary).withValues(alpha: config.heroGradientOpacity),
         ],
       ),
       child: Column(
@@ -81,7 +105,7 @@ class SocietyHeroRecapCard extends ConsumerWidget {
                     Text(
                       'SOCIETY\'S BEST ROUND',
                       style: AppTypography.label.copyWith(
-                        color: AppColors.amber500,
+                        color: Color(config.heroTextColor).withValues(alpha: AppColors.opacityStrong),
                         fontWeight: AppTypography.weightHeavy,
                         letterSpacing: 1.5,
                       ),
@@ -90,7 +114,7 @@ class SocietyHeroRecapCard extends ConsumerWidget {
                     Text(
                       'FIELD ECLECTIC',
                       style: AppTypography.displaySubPage.copyWith(
-                        color: AppColors.dark900,
+                        color: Color(config.heroTextColor),
                         fontWeight: AppTypography.weightBlack,
                       ),
                     ),
@@ -99,7 +123,7 @@ class SocietyHeroRecapCard extends ConsumerWidget {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: 8),
                   decoration: BoxDecoration(
-                    color: AppColors.amber500.withValues(alpha: 0.1),
+                    color: Color(config.heroTextColor).withValues(alpha: 0.1),
                     borderRadius: AppShapes.lg,
                   ),
                   child: Column(
@@ -108,7 +132,7 @@ class SocietyHeroRecapCard extends ConsumerWidget {
                         totalStrokes.toString(),
                         style: AppTypography.displayHeading.copyWith(
                           fontSize: 24,
-                          color: AppColors.amber500,
+                          color: Color(config.heroTextColor),
                           fontWeight: AppTypography.weightBlack,
                           height: 1.0,
                         ),
@@ -117,7 +141,7 @@ class SocietyHeroRecapCard extends ConsumerWidget {
                         vsPar == 0 ? 'PAR' : (vsPar > 0 ? '+$vsPar' : '$vsPar'),
                         style: AppTypography.micro.copyWith(
                           fontWeight: AppTypography.weightBold,
-                          color: AppColors.amber500,
+                          color: Color(config.heroTextColor),
                         ),
                       ),
                     ],
@@ -135,11 +159,11 @@ class SocietyHeroRecapCard extends ConsumerWidget {
                 // a. Eclectic Highlights
                 Row(
                   children: [
-                    _buildCompactStat(context, 'EAGLES', eaglesCount.toString(), Icons.stars_rounded, AppColors.amber500),
+                    _buildCompactStat(context, config, 'EAGLES', eaglesCount.toString(), Icons.stars_rounded, Color(config.heroTextColor)),
                     const SizedBox(width: AppSpacing.md),
-                    _buildCompactStat(context, 'BIRDIES', birdiesCount.toString(), Icons.gps_fixed, Colors.blueGrey),
+                    _buildCompactStat(context, config, 'BIRDIES', birdiesCount.toString(), Icons.gps_fixed, Colors.blueGrey),
                     const SizedBox(width: AppSpacing.md),
-                    _buildCompactStat(context, 'PARS', parsCount.toString(), Icons.shield_rounded, AppColors.lime500),
+                    _buildCompactStat(context, config, 'PARS', parsCount.toString(), Icons.shield_rounded, AppColors.lime500),
                   ],
                 ),
 
@@ -154,7 +178,7 @@ class SocietyHeroRecapCard extends ConsumerWidget {
                       child: Text(
                         'EVENT RECAP'.toUpperCase(),
                         style: AppTypography.micro.copyWith(
-                          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: AppColors.opacityStrong),
+                          color: Color(config.heroTextColor).withValues(alpha: AppColors.opacityStrong),
                           fontWeight: AppTypography.weightExtraBold,
                           letterSpacing: 1.0,
                         ),
@@ -169,15 +193,15 @@ class SocietyHeroRecapCard extends ConsumerWidget {
                 // c. Recap Metrics (2x2 Grid)
                 Row(
                   children: [
-                    Expanded(child: _buildRecapStat(context, 'PLAYERS', totalPlayers.toString())),
-                    Expanded(child: _buildRecapStat(context, 'HOLES', totalHolesPlayed.toString())),
+                    Expanded(child: _buildRecapStat(context, config, 'PLAYERS', totalPlayers.toString())),
+                    Expanded(child: _buildRecapStat(context, config, 'HOLES', totalHolesPlayed.toString())),
                   ],
                 ),
                 const SizedBox(height: AppSpacing.x2l),
                 Row(
                   children: [
-                    Expanded(child: _buildRecapStat(context, 'BIRDIES', totalBirdies.toString())),
-                    Expanded(child: _buildRecapStat(context, 'AVG NET', fieldAvgNet.toStringAsFixed(1))),
+                    Expanded(child: _buildRecapStat(context, config, 'BIRDIES', totalBirdies.toString())),
+                    Expanded(child: _buildRecapStat(context, config, 'AVG NET', fieldAvgNet.toStringAsFixed(1))),
                   ],
                 ),
 
@@ -187,9 +211,9 @@ class SocietyHeroRecapCard extends ConsumerWidget {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: 14),
                   decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.03),
+                    color: Color(config.heroTextColor).withValues(alpha: 0.03),
                     borderRadius: AppShapes.pill,
-                    border: Border.all(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.05)),
+                    border: Border.all(color: Color(config.heroTextColor).withValues(alpha: 0.05)),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
@@ -197,14 +221,14 @@ class SocietyHeroRecapCard extends ConsumerWidget {
                       Text(
                         'TOUGHEST TEST: '.toUpperCase(),
                         style: AppTypography.micro.copyWith(
-                          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: AppColors.opacityStrong),
+                          color: Color(config.heroTextColor).withValues(alpha: AppColors.opacityStrong),
                           fontWeight: AppTypography.weightBold,
                         ),
                       ),
                       Text(
                         '$topHoleName (+${topHoleDiff.toStringAsFixed(1)})',
                         style: AppTypography.label.copyWith(
-                          color: Theme.of(context).colorScheme.onSurface,
+                          color: Color(config.heroTextColor),
                           fontWeight: AppTypography.weightHeavy,
                           letterSpacing: -0.2,
                         ),
@@ -220,7 +244,7 @@ class SocietyHeroRecapCard extends ConsumerWidget {
     );
   }
 
-  Widget _buildCompactStat(BuildContext context, String label, String value, IconData icon, Color color) {
+  Widget _buildCompactStat(BuildContext context, SocietyConfig config, String label, String value, IconData icon, Color color) {
     return Expanded(
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
@@ -237,14 +261,15 @@ class SocietyHeroRecapCard extends ConsumerWidget {
               value,
               style: AppTypography.headline.copyWith(
                 fontWeight: AppTypography.weightBlack,
-                color: Theme.of(context).colorScheme.onSurface,
+                color: Color(config.heroTextColor),
+                fontSize: 24,
               ),
             ),
             Text(
               label,
               style: AppTypography.micro.copyWith(
                 fontSize: 8,
-                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: AppColors.opacitySecondary),
+                color: Color(config.heroTextColor).withValues(alpha: AppColors.opacitySecondary),
                 fontWeight: AppTypography.weightBold,
               ),
             ),
@@ -254,7 +279,7 @@ class SocietyHeroRecapCard extends ConsumerWidget {
     );
   }
 
-  Widget _buildRecapStat(BuildContext context, String label, String value) {
+  Widget _buildRecapStat(BuildContext context, SocietyConfig config, String label, String value) {
     return Column(
       children: [
         Text(
@@ -262,7 +287,7 @@ class SocietyHeroRecapCard extends ConsumerWidget {
           style: AppTypography.displaySubPage.copyWith(
             fontSize: 28,
             fontWeight: AppTypography.weightHeavy,
-            color: Theme.of(context).colorScheme.onSurface,
+            color: Color(config.heroTextColor),
             height: 1.0,
             letterSpacing: -0.5,
           ),
@@ -271,7 +296,7 @@ class SocietyHeroRecapCard extends ConsumerWidget {
         Text(
           label,
           style: AppTypography.micro.copyWith(
-            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: AppColors.opacityStrong),
+            color: Color(config.heroTextColor).withValues(alpha: AppColors.opacityStrong),
             fontWeight: AppTypography.weightExtraBold,
             letterSpacing: 1.0,
             fontSize: 9,

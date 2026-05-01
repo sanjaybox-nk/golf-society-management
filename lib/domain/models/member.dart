@@ -97,6 +97,8 @@ abstract class Member with _$Member {
     @Default(false) bool allowSocialEventsOnly, // [NEW] Master switch for suspended members
     @OptionalTimestampConverter() DateTime? lastNudgedAt, // [NEW] Track recent renewal nudges
     @Default(0) int nudgeCount, // [NEW] Track frequency of nudges
+    @Default([]) List<double> handicapHistory, // [NEW] For trend analysis
+    @Default(false) bool isFoundingMember, // [NEW] Honorary founding status
   }) = _Member;
 
   String get displayName => '$firstName $lastName';

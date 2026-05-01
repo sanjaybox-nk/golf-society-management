@@ -96,6 +96,8 @@ class BoxyArtEventCard extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisAlignment: MainAxisAlignment.start, // Aligned to top with badge
             children: [
+              gameTypePill ?? const SizedBox.shrink(),
+              if (gameTypePill != null) const SizedBox(height: 4),
               Text(
                 toTitleCase(event.title),
                 style: AppTypography.cardTitle.copyWith(
@@ -167,29 +169,26 @@ class BoxyArtEventCard extends ConsumerWidget {
         ),
 
         // 3. Action / Status Column (Far Right)
-        const SizedBox(width: AppSpacing.sm),
-        Column(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            // Game Type (Top Right)
-            if (gameTypePill != null)
-              gameTypePill!, // Using ! here because of the if-null check pattern
-            
-            // Status (Bottom Right)
-            if (showStatus && statusPill != null)
-              statusPill!, 
-            
-            // Live Indicator (Fallback / Secondary Status)
-            if (statusPill == null && event.status == EventStatus.inPlay && event.occursToday)
-              BoxyArtPill.status(
-                label: 'Live',
-                color: theme.colorScheme.error,
-                isAction: true,
-                hasHorizontalMargin: false,
-              ),
-          ],
-        ),
+        if ((showStatus && statusPill != null) || (statusPill == null && event.status == EventStatus.inPlay && event.occursToday)) ...[
+          const SizedBox(width: AppSpacing.sm),
+          Column(
+            mainAxisAlignment: MainAxisAlignment.end,
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              // Status (Bottom Right)
+              if (showStatus && statusPill != null) statusPill!,
+              
+              // Live Indicator (Fallback / Secondary Status)
+              if (statusPill == null && event.status == EventStatus.inPlay && event.occursToday)
+                BoxyArtPill.status(
+                  label: 'Live',
+                  color: theme.colorScheme.error,
+                  isAction: true,
+                  hasHorizontalMargin: false,
+                ),
+            ],
+          ),
+        ],
       ],
     );
 
@@ -199,7 +198,16 @@ class BoxyArtEventCard extends ConsumerWidget {
     return BoxyArtCard(
       onTap: onTap,
       padding: EdgeInsets.zero,
-      gradient: isHighlighted ? AppGradients.brandPrimary(context) : gradient,
+      gradient: isHighlighted 
+          ? LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Color(config.heroGradientColor).withValues(alpha: config.heroGradientOpacity),
+                Color(config.heroGradientColorSecondary).withValues(alpha: config.heroGradientOpacity * 0.2),
+              ],
+            )
+          : gradient,
       child: ConstrainedBox(
         constraints: const BoxConstraints(minHeight: 124),
         child: IntrinsicHeight(

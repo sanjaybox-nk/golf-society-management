@@ -62,6 +62,26 @@ This document tracks the remaining work required to take **Golf Society Manageme
         - [x] Distinguished between **Standard Grouping** (Overlay) and **Tournament Style Grouping** (Seeded Draw).
         - [x] Updated `MatchPlayCalculator` to handle relative PHCs and authoritative results for overlays.
         - [x] Modernized administrative tabs and controls to reflect the "Format + Feature" philosophy.
+    - [x] **Digital Scorecard Verification Handshake (v4.7)** (Completed 2026-05-01):
+        - [x] **Verification Grid**: Implemented side-by-side comparison of Player vs. Marker scores with conflict highlighting.
+        - [x] **Signature Handshake**: Two-way "Sign Off" system (Player + Marker) with automated score-locking.
+        - [x] **Story Breakdown**: Integration of all hole attributes (Penalties, Gimmes, Pick Ups) into the verification audit.
+        - [x] **Automatic Invalidation**: Implemented logic to clear signatures on any score or tag update to ensure integrity.
+        - [x] **Summary Grid**: Added live summary stats for total penalties/gimmes to the main scorecard view.
+- [x] **Live Scorecard UI Modernization (Design 4.x)** (Completed 2026-04-30):
+    - [x] **State-aware Indicators**: Implemented "Thru X" vs. authoritative "F" (Finished) logic in `EventScoringProcessor`.
+    - [x] **Performance Column Refactor**: Relocated status indicators to the right-hand stack in `BoxyArtMemberRow` for a cleaner visual hierarchy.
+    - [x] **Conditional Visibility**: Implemented logic to hide Back Nine metrics during live play, surfacing them only once the event is confirmed/closed by an administrator.
+    - [x] **Typographic Standardization**: Applied `dark600` semibold styling to all status indicators for Design 4.x consistency.
+- [x] **Gender-Aware Tee Selection & Accessibility Hardening (v4.6)** (Completed 2026-05-01):
+    - [x] **Dynamic Tee Resolution**: Implemented player-specific gender lookups in `MarkerSelectionSheet` to automatically assign the correct tee (e.g., Red for females) when 'Auto' is selected.
+    - [x] **UI Clarity**: Updated the 'Auto' tee label in dropdowns to show the resolved tee name (e.g., 'Auto (Red)').
+    - [x] **Accessibility Standard**: Added a subtle `0.5px` border to all `BoxyArtIndicator` dots globally to ensure visibility of light-colored tee markers on white backgrounds.
+- [x] **Branding Console Standardization & Design 4.x Migration** (Completed 2026-04-30):
+    - [x] **Design 4.x Vertical Rhythm**: Implemented `followsCard: true` and standardized card spacing across all branding sub-hubs.
+    - [x] **Score Color Branding**: Renamed "Score Highlight" to "SCORE COLOR" for clarity and ensured the control is correctly surfaced in the Color Settings hub.
+    - [x] **Administrative Labeling**: Standardized all descriptive text and internal labels to `dark600` with Design 4.x semibold/strong typography.
+    - [x] **Component Optimization**: Refactored `CompactColorPicker` and `StatusColorRow` with high-fidelity vertical rhythm and responsive wrap-grid logic.
 - [x] **Phase 9 Branding Console & Design Token Studio** (Completed 2026-04-21):
     - [x] **Semantic Token System**: Full control over Foundation, Surface, Typography, and Mechanical (Borders/Dividers) properties.
     - [x] **Scoring Aesthetics**: Integrated palette for golf scoring (Eagle to Triple+) and team identity management.
@@ -192,6 +212,11 @@ This document tracks the remaining work required to take **Golf Society Manageme
     - [x] **Admin Action Consolidation**: Created shared `AdminActionService` for nudges, audits, and exports.
     - [x] **Reports Hub Refactor**: Simplified reports screen and introduced `ReportsController`.
     - [x] **Quality Gate**: Achieving 100% `flutter analyze` pass across all administrative feature modules.
+    - [x] **Final Hardening & Zero-Warning Milestone (v10.0)** (Completed 2026-04-29):
+        - [x] Systematically eliminated 12+ remaining linting issues (dead null-aware expressions, underscores, spreads).
+        - [x] Purged legacy `event_user_placeholders.dart` and standardized direct modular imports.
+        - [x] Verified full architectural stability and vertical rhythm across all 30+ administrative hubs.
+        - [x] Achieved a perfect, zero-warning state for production readiness.
 
 ## 3. Architecture & Patterns
 #### Society Cuts Access Logic

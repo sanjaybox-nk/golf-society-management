@@ -30,7 +30,7 @@ final activeSurveysProvider = StreamProvider<List<Survey>>((ref) async* {
       }).toList());
     },
     loading: () => const Stream.empty(),
-    error: (_, __) => Stream.value(<Survey>[]),
+    error: (e, s) => Stream.value(<Survey>[]),
   );
 });
 

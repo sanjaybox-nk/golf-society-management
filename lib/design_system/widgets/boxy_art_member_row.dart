@@ -33,6 +33,8 @@ class BoxyArtMemberRow extends ConsumerWidget {
   final RegistrationStatus? buggyStatus;
   final bool isWinner;
   final String? matchSide; // 'A' or 'B'
+  final bool hasSocietyCut;
+  final bool isFoundingMember;
   
   // Custom Slots
   final Widget? trailing; 
@@ -52,46 +54,47 @@ class BoxyArtMemberRow extends ConsumerWidget {
   final bool showVerticalDivider; 
   final Color? accentColor; 
   final bool isStableford; 
+  final bool showTee; 
 
   const BoxyArtMemberRow({
     super.key,
     required this.name,
+    this.teamNames,
     this.secondaryName,
     required this.initials,
     this.avatarUrl,
-    this.leading,
     this.handicapIndex,
     this.playingHandicap,
-    this.teeName,
-    this.teeColor,
-    this.onTeeTap,
-    this.tieBreakLabel,
-    this.thruLabel,
     this.score,
     this.scoreColor,
+    this.tieBreakLabel,
+    this.thruLabel,
+    this.ranking,
     this.isGuest = false,
     this.isCaptain = false,
     this.hasMemberGuest = false,
-    this.needsBuggy = false,
-    this.buggyStatus,
     this.isWinner = false,
+    this.isStableford = true,
     this.matchSide,
-    this.trailing,
-    this.footer,
     this.varietyPillarColor,
     this.hasSocietyCut = false,
+    this.isFoundingMember = false,
     this.onTap,
     this.isSelected = false,
-    this.ranking,
     this.useCard = true,
-    this.showChevron = true,
     this.showVerticalDivider = true,
+    this.showChevron = false,
     this.accentColor,
-    this.isStableford = true,
-    this.teamNames,
+    this.leading,
+    this.trailing,
+    this.footer,
+    this.teeName,
+    this.teeColor,
+    this.onTeeTap,
+    this.showTee = true,
+    this.needsBuggy = false,
+    this.buggyStatus,
   });
-
-  final bool hasSocietyCut;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -174,6 +177,20 @@ class BoxyArtMemberRow extends ConsumerWidget {
                     useCircle: true,
                   ),
                 ),
+
+              // Founder Overlay
+              if (isFoundingMember)
+                const Positioned(
+                  top: -4,
+                  right: -4,
+                  child: BoxyArtIconBadge(
+                    icon: Icons.star_rounded,
+                    color: AppColors.lime500,
+                    size: 22,
+                    iconSize: 14,
+                    useCircle: true,
+                  ),
+                ),
             ],
           ),
 
@@ -207,7 +224,7 @@ class BoxyArtMemberRow extends ConsumerWidget {
                   ))
                 else
                   Text(
-                    toTitleCase(name),
+                    toTitleCase(cleanGuestName(name)),
                     style: AppTypography.memberName.copyWith(
                       color: isDark ? AppColors.pureWhite : AppColors.dark900,
                     ),
@@ -222,7 +239,7 @@ class BoxyArtMemberRow extends ConsumerWidget {
                     child: Text(
                       toTitleCase(secondaryName!),
                       style: AppTypography.micro.copyWith(
-                        color: isDark ? AppColors.pureWhite : AppColors.dark900,
+                        color: isDark ? AppColors.dark200 : AppColors.dark300,
                         fontWeight: FontWeight.w500,
                         letterSpacing: 0.1,
                       ),
@@ -300,37 +317,12 @@ class BoxyArtMemberRow extends ConsumerWidget {
   }
 
   Widget _buildAvatar(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final double size = 48.0; 
-
-    return Container(
-      width: size + 8,
-      height: size + 8,
-      alignment: Alignment.center,
-      decoration: const BoxDecoration(
-        shape: BoxShape.circle,
-      ),
-      child: CircleAvatar(
-        radius: size / 2,
-        backgroundColor: isCaptain && !isGuest
-            ? AppColors.amber500
-            : (isDark ? AppColors.dark600 : AppColors.dark60),
-        backgroundImage: (avatarUrl != null && !isGuest)
-            ? NetworkImage(avatarUrl!)
-            : null,
-        child: (avatarUrl == null || isGuest)
-            ? Text(
-                initials.isNotEmpty ? initials[0].toUpperCase() : '?',
-                style: TextStyle(
-                  color: (isCaptain && !isGuest)
-                      ? AppColors.pureWhite 
-                      : (isDark ? AppColors.dark100 : AppColors.dark900),
-                  fontWeight: AppTypography.weightBlack,
-                  fontSize: size * 0.4,
-                ),
-              )
-            : null,
-      ),
+    return BoxyArtAvatar(
+      url: (avatarUrl != null && !isGuest) ? avatarUrl : null,
+      initials: extractInitials(initials),
+      radius: 24,
+      borderColor: isCaptain && !isGuest ? AppColors.amber500 : null,
+      borderWidth: isCaptain && !isGuest ? 2.0 : null,
     );
   }
 
@@ -347,7 +339,7 @@ class BoxyArtMemberRow extends ConsumerWidget {
       children: [
         Wrap(
           spacing: 8,
-          runSpacing: 2,
+          runSpacing: 4,
           crossAxisAlignment: WrapCrossAlignment.center,
           children: [
             if (handicapIndex != null)
@@ -361,32 +353,15 @@ class BoxyArtMemberRow extends ConsumerWidget {
                 label: '$playingHandicap${hasSocietyCut ? '*' : ''}',
                 hasHorizontalMargin: false,
               ),
+            if (teeName != null && showTee)
+              BoxyArtIndicator.tee(
+                label: teeName!,
+                teeColor: teeColor ?? AppColors.textSecondary,
+                onTap: onTeeTap,
+                hasHorizontalMargin: false,
+              ),
           ],
         ),
-        if (teeName != null || thruLabel != null) ...[
-          const SizedBox(height: 2),
-          Wrap(
-            spacing: 8,
-            runSpacing: 2,
-            crossAxisAlignment: WrapCrossAlignment.center,
-            children: [
-              if (teeName != null)
-                BoxyArtIndicator.tee(
-                  label: teeName!,
-                  teeColor: teeColor ?? AppColors.textSecondary,
-                  onTap: onTeeTap,
-                  hasHorizontalMargin: false,
-                ),
-              
-              if (thruLabel != null)
-                _buildLegendItem(
-                  label: thruLabel!,
-                  color: AppColors.lime500,
-                  style: metaStyle,
-                ),
-            ],
-          ),
-        ],
       ],
     );
   }
@@ -406,6 +381,12 @@ class BoxyArtMemberRow extends ConsumerWidget {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     
+    final metaStyle = AppTypography.label.copyWith(
+      fontSize: 10,
+      fontWeight: AppTypography.weightSemibold,
+      color: isDark ? AppColors.dark400 : AppColors.dark600,
+    );
+
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -413,54 +394,70 @@ class BoxyArtMemberRow extends ConsumerWidget {
           const SizedBox(width: 4),
           trailing!,
         ],
-        if (score != null) ...[
+        if (score != null || thruLabel != null) ...[
           const SizedBox(width: AppSpacing.sm),
           Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              Container(
-                constraints: const BoxConstraints(minWidth: 40),
-                alignment: Alignment.centerRight,
-                child: RichText(
-                  text: TextSpan(
-                    style: AppTypography.displaySection.copyWith(
-                      color: scoreColor ?? (isStableford ? pointsColor : (isDark ? AppColors.pureWhite : AppColors.dark900)),
-                      height: 1.0,
-                    ),
-                    children: [
-                      TextSpan(
-                        text: score!,
-                        style: AppTypography.displaySection.copyWith(
-                          color: scoreColor ?? (isStableford ? pointsColor : (isDark ? AppColors.pureWhite : AppColors.dark900)),
-                          fontSize: isStableford ? 22 : ((score!.length > 5) ? 16 : 18),
-                          fontWeight: isStableford ? AppTypography.weightBlack : AppTypography.weightBold,
-                          height: 1.0,
-                        ),
+              if (score != null)
+                Container(
+                  constraints: const BoxConstraints(minWidth: 40),
+                  alignment: Alignment.centerRight,
+                  child: RichText(
+                    text: TextSpan(
+                      style: AppTypography.displaySection.copyWith(
+                        color: scoreColor ?? pointsColor,
+                        height: 1.0,
                       ),
-                      if (isStableford && score!.length <= 3 && !score!.contains('&'))
+                      children: [
                         TextSpan(
-                          text: ' pts',
-                          style: AppTypography.label.copyWith(
-                            fontSize: 13,
-                            fontWeight: AppTypography.weightExtraBold,
-                            color: (scoreColor ?? (isStableford ? pointsColor : (isDark ? AppColors.pureWhite : AppColors.dark900))).withValues(alpha: AppColors.opacityHigh),
+                          text: score!,
+                          style: AppTypography.displaySection.copyWith(
+                            color: scoreColor ?? pointsColor,
+                            fontSize: isStableford ? 24 : ((score!.length > 5) ? 18 : 20),
+                            fontWeight: isStableford ? AppTypography.weightBlack : AppTypography.weightBold,
+                            height: 1.0,
                           ),
                         ),
-                    ],
-                  ),
-                ),
-              ),
-                if (tieBreakLabel != null)
-                  Text(
-                    tieBreakLabel!,
-                    textAlign: TextAlign.end,
-                    style: AppTypography.label.copyWith(
-                      fontSize: 10,
-                      fontWeight: AppTypography.weightBold,
-                      color: isDark ? AppColors.dark400 : AppColors.dark500,
+                        if (isStableford && score!.length <= 3 && !score!.contains('&'))
+                          TextSpan(
+                            text: ' pts',
+                            style: AppTypography.label.copyWith(
+                              fontSize: 13,
+                              fontWeight: AppTypography.weightExtraBold,
+                              color: (scoreColor ?? pointsColor).withValues(alpha: AppColors.opacityHigh),
+                            ),
+                          ),
+                      ],
                     ),
                   ),
+                ),
+                
+              // Tie-break (B9)
+              if (tieBreakLabel != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 2),
+                  child: Text(
+                    tieBreakLabel!,
+                    textAlign: TextAlign.end,
+                    style: metaStyle,
+                  ),
+                ),
+
+              // Thru Status / Finished
+              if (thruLabel != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 2),
+                  child: Text(
+                    thruLabel!,
+                    textAlign: TextAlign.end,
+                    style: metaStyle.copyWith(
+                      color: isDark ? AppColors.pureWhite : AppColors.dark900,
+                      fontWeight: AppTypography.weightExtraBold,
+                    ),
+                  ),
+                ),
             ],
           ),
         ],

@@ -59,6 +59,7 @@ class MemberTile extends ConsumerWidget {
       useCard: true,
       showChevron: true,
       showVerticalDivider: true,
+      isFoundingMember: member.isFoundingMember,
       
       // Leading Slot: Preserving roster-specific metrics (Since / Events)
       leading: SizedBox(

@@ -3,7 +3,9 @@ import 'package:golf_society/domain/models/member.dart';
 import 'members_repository.dart';
 
 class FirestoreMembersRepository implements MembersRepository {
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseFirestore _firestore;
+
+  FirestoreMembersRepository(this._firestore);
 
   CollectionReference<Member> _membersRef() {
     return _firestore.collection('members').withConverter<Member>(

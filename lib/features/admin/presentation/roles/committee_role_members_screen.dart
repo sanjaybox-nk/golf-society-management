@@ -135,7 +135,7 @@ class _CommitteeRoleMembersScreenState extends ConsumerState<CommitteeRoleMember
           loading: () => const SliverFillRemaining(child: Center(child: CircularProgressIndicator())),
           error: (err, stack) => SliverFillRemaining(child: Center(child: Text('Error: $err'))),
         ),
-        const SliverPadding(padding: EdgeInsets.only(bottom: AppSpacing.x4l)),
+        const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.x4l)),
       ],
     );
   }

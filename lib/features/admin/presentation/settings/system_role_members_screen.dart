@@ -143,7 +143,7 @@ class _SystemRoleMembersScreenState extends ConsumerState<SystemRoleMembersScree
             ),
           ),
         ),
-        const SliverPadding(padding: EdgeInsets.only(bottom: AppSpacing.pageBottom)),
+        const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.pageBottom)),
       ],
     );
   }

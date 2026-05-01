@@ -107,7 +107,7 @@ Used for "emotional" moments where the user celebrates their progress.
 Used for all functional interface elements.
 - **Body**: 14pt / 400 weight (line-height 1.6).
 - **Labels/Metadata**: **ALL-CAPS**, 11pt, 800 weight, `1.0` letter spacing.
-- **Administrative Titles**: **ALL-CAPS**, 13pt, 700 weight, `1.0` letter spacing (e.g., Settings cards, Hub tiles).
+- **Administrative Titles**: **ALL-CAPS**, 12pt-13pt, 700-800 weight (`dark600`), `1.0` letter spacing (e.g., Settings cards, Hub tiles, branding controls).
 - **Captions**: **ALL-CAPS**, 10pt, 600 weight.
 
 ---
@@ -175,7 +175,7 @@ The system supports dynamic branding for whitelabel deployment. These tokens ove
 | Token | BoxyArt Default | Usage |
 |-------|----------------|-------|
 | `primaryColor` | `#F7D354` | Main brand identity (Buttons, Active Icons) |
-| `pointsColor` | `#4ADE80` | Stableford points emphasis (Hero Metric) |
+| `pointsColor` | `#4ADE80` | Score display color (Hero Metric) — Configured as **SCORE COLOR** in Console |
 | `teamAColor` | `#1E40AF` | Team A identity (Blue) |
 | `teamBColor` | `#166534` | Team B identity (Dark Green) |
 

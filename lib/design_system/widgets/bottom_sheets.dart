@@ -121,8 +121,8 @@ class BoxyArtBottomSheet extends StatelessWidget {
         builder: (context, scrollController) => BoxyArtBottomSheet(
           title: title,
           scrollController: scrollController,
-          child: child,
           addNavBarPadding: !useRootNavigator,
+          child: child,
         ),
       ),
     );

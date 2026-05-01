@@ -290,7 +290,10 @@ mixin _$Scorecard {
  String get id; String get competitionId; String get roundId; String get entryId;// memberId or teamId
  String get submittedByUserId; ScorecardStatus get status; ScoringStatus get scoringStatus; List<int?> get holeScores; List<int?> get playerVerifierScores; String? get markerId; Map<int, String?> get shotAttributions;// [NEW] Hole index -> Member ID of chosen shot (for Florida)
  int? get grossTotal; int? get netTotal; int? get points; double? get handicapIndex; int? get playingHandicap; String? get assignedTeeName;// [NEW] Snapshotted tee for this specific scorecard
- AdminEditAudit? get adminEditAudit; bool get adminOverridePublish;@TimestampConverter() DateTime? get submittedAt;@TimestampConverter() DateTime get createdAt;@TimestampConverter() DateTime get updatedAt;
+ AdminEditAudit? get adminEditAudit; bool get adminOverridePublish; bool get verifiedByPlayer;// [NEW] Player sign-off
+ bool get verifiedByMarker;// [NEW] Marker sign-off
+@OptionalTimestampConverter() DateTime? get playerVerifiedAt;@OptionalTimestampConverter() DateTime? get markerVerifiedAt; Map<int, List<String>> get holeTags;// [NEW] Hole Index -> List of tags (GIMME, WATER_1, etc)
+@TimestampConverter() DateTime? get submittedAt;@TimestampConverter() DateTime get createdAt;@TimestampConverter() DateTime get updatedAt;
 /// Create a copy of Scorecard
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -303,16 +306,16 @@ $ScorecardCopyWith<Scorecard> get copyWith => _$ScorecardCopyWithImpl<Scorecard>
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Scorecard&&(identical(other.id, id) || other.id == id)&&(identical(other.competitionId, competitionId) || other.competitionId == competitionId)&&(identical(other.roundId, roundId) || other.roundId == roundId)&&(identical(other.entryId, entryId) || other.entryId == entryId)&&(identical(other.submittedByUserId, submittedByUserId) || other.submittedByUserId == submittedByUserId)&&(identical(other.status, status) || other.status == status)&&(identical(other.scoringStatus, scoringStatus) || other.scoringStatus == scoringStatus)&&const DeepCollectionEquality().equals(other.holeScores, holeScores)&&const DeepCollectionEquality().equals(other.playerVerifierScores, playerVerifierScores)&&(identical(other.markerId, markerId) || other.markerId == markerId)&&const DeepCollectionEquality().equals(other.shotAttributions, shotAttributions)&&(identical(other.grossTotal, grossTotal) || other.grossTotal == grossTotal)&&(identical(other.netTotal, netTotal) || other.netTotal == netTotal)&&(identical(other.points, points) || other.points == points)&&(identical(other.handicapIndex, handicapIndex) || other.handicapIndex == handicapIndex)&&(identical(other.playingHandicap, playingHandicap) || other.playingHandicap == playingHandicap)&&(identical(other.assignedTeeName, assignedTeeName) || other.assignedTeeName == assignedTeeName)&&(identical(other.adminEditAudit, adminEditAudit) || other.adminEditAudit == adminEditAudit)&&(identical(other.adminOverridePublish, adminOverridePublish) || other.adminOverridePublish == adminOverridePublish)&&(identical(other.submittedAt, submittedAt) || other.submittedAt == submittedAt)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Scorecard&&(identical(other.id, id) || other.id == id)&&(identical(other.competitionId, competitionId) || other.competitionId == competitionId)&&(identical(other.roundId, roundId) || other.roundId == roundId)&&(identical(other.entryId, entryId) || other.entryId == entryId)&&(identical(other.submittedByUserId, submittedByUserId) || other.submittedByUserId == submittedByUserId)&&(identical(other.status, status) || other.status == status)&&(identical(other.scoringStatus, scoringStatus) || other.scoringStatus == scoringStatus)&&const DeepCollectionEquality().equals(other.holeScores, holeScores)&&const DeepCollectionEquality().equals(other.playerVerifierScores, playerVerifierScores)&&(identical(other.markerId, markerId) || other.markerId == markerId)&&const DeepCollectionEquality().equals(other.shotAttributions, shotAttributions)&&(identical(other.grossTotal, grossTotal) || other.grossTotal == grossTotal)&&(identical(other.netTotal, netTotal) || other.netTotal == netTotal)&&(identical(other.points, points) || other.points == points)&&(identical(other.handicapIndex, handicapIndex) || other.handicapIndex == handicapIndex)&&(identical(other.playingHandicap, playingHandicap) || other.playingHandicap == playingHandicap)&&(identical(other.assignedTeeName, assignedTeeName) || other.assignedTeeName == assignedTeeName)&&(identical(other.adminEditAudit, adminEditAudit) || other.adminEditAudit == adminEditAudit)&&(identical(other.adminOverridePublish, adminOverridePublish) || other.adminOverridePublish == adminOverridePublish)&&(identical(other.verifiedByPlayer, verifiedByPlayer) || other.verifiedByPlayer == verifiedByPlayer)&&(identical(other.verifiedByMarker, verifiedByMarker) || other.verifiedByMarker == verifiedByMarker)&&(identical(other.playerVerifiedAt, playerVerifiedAt) || other.playerVerifiedAt == playerVerifiedAt)&&(identical(other.markerVerifiedAt, markerVerifiedAt) || other.markerVerifiedAt == markerVerifiedAt)&&const DeepCollectionEquality().equals(other.holeTags, holeTags)&&(identical(other.submittedAt, submittedAt) || other.submittedAt == submittedAt)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hashAll([runtimeType,id,competitionId,roundId,entryId,submittedByUserId,status,scoringStatus,const DeepCollectionEquality().hash(holeScores),const DeepCollectionEquality().hash(playerVerifierScores),markerId,const DeepCollectionEquality().hash(shotAttributions),grossTotal,netTotal,points,handicapIndex,playingHandicap,assignedTeeName,adminEditAudit,adminOverridePublish,submittedAt,createdAt,updatedAt]);
+int get hashCode => Object.hashAll([runtimeType,id,competitionId,roundId,entryId,submittedByUserId,status,scoringStatus,const DeepCollectionEquality().hash(holeScores),const DeepCollectionEquality().hash(playerVerifierScores),markerId,const DeepCollectionEquality().hash(shotAttributions),grossTotal,netTotal,points,handicapIndex,playingHandicap,assignedTeeName,adminEditAudit,adminOverridePublish,verifiedByPlayer,verifiedByMarker,playerVerifiedAt,markerVerifiedAt,const DeepCollectionEquality().hash(holeTags),submittedAt,createdAt,updatedAt]);
 
 @override
 String toString() {
-  return 'Scorecard(id: $id, competitionId: $competitionId, roundId: $roundId, entryId: $entryId, submittedByUserId: $submittedByUserId, status: $status, scoringStatus: $scoringStatus, holeScores: $holeScores, playerVerifierScores: $playerVerifierScores, markerId: $markerId, shotAttributions: $shotAttributions, grossTotal: $grossTotal, netTotal: $netTotal, points: $points, handicapIndex: $handicapIndex, playingHandicap: $playingHandicap, assignedTeeName: $assignedTeeName, adminEditAudit: $adminEditAudit, adminOverridePublish: $adminOverridePublish, submittedAt: $submittedAt, createdAt: $createdAt, updatedAt: $updatedAt)';
+  return 'Scorecard(id: $id, competitionId: $competitionId, roundId: $roundId, entryId: $entryId, submittedByUserId: $submittedByUserId, status: $status, scoringStatus: $scoringStatus, holeScores: $holeScores, playerVerifierScores: $playerVerifierScores, markerId: $markerId, shotAttributions: $shotAttributions, grossTotal: $grossTotal, netTotal: $netTotal, points: $points, handicapIndex: $handicapIndex, playingHandicap: $playingHandicap, assignedTeeName: $assignedTeeName, adminEditAudit: $adminEditAudit, adminOverridePublish: $adminOverridePublish, verifiedByPlayer: $verifiedByPlayer, verifiedByMarker: $verifiedByMarker, playerVerifiedAt: $playerVerifiedAt, markerVerifiedAt: $markerVerifiedAt, holeTags: $holeTags, submittedAt: $submittedAt, createdAt: $createdAt, updatedAt: $updatedAt)';
 }
 
 
@@ -323,7 +326,7 @@ abstract mixin class $ScorecardCopyWith<$Res>  {
   factory $ScorecardCopyWith(Scorecard value, $Res Function(Scorecard) _then) = _$ScorecardCopyWithImpl;
 @useResult
 $Res call({
- String id, String competitionId, String roundId, String entryId, String submittedByUserId, ScorecardStatus status, ScoringStatus scoringStatus, List<int?> holeScores, List<int?> playerVerifierScores, String? markerId, Map<int, String?> shotAttributions, int? grossTotal, int? netTotal, int? points, double? handicapIndex, int? playingHandicap, String? assignedTeeName, AdminEditAudit? adminEditAudit, bool adminOverridePublish,@TimestampConverter() DateTime? submittedAt,@TimestampConverter() DateTime createdAt,@TimestampConverter() DateTime updatedAt
+ String id, String competitionId, String roundId, String entryId, String submittedByUserId, ScorecardStatus status, ScoringStatus scoringStatus, List<int?> holeScores, List<int?> playerVerifierScores, String? markerId, Map<int, String?> shotAttributions, int? grossTotal, int? netTotal, int? points, double? handicapIndex, int? playingHandicap, String? assignedTeeName, AdminEditAudit? adminEditAudit, bool adminOverridePublish, bool verifiedByPlayer, bool verifiedByMarker,@OptionalTimestampConverter() DateTime? playerVerifiedAt,@OptionalTimestampConverter() DateTime? markerVerifiedAt, Map<int, List<String>> holeTags,@TimestampConverter() DateTime? submittedAt,@TimestampConverter() DateTime createdAt,@TimestampConverter() DateTime updatedAt
 });
 
 
@@ -340,7 +343,7 @@ class _$ScorecardCopyWithImpl<$Res>
 
 /// Create a copy of Scorecard
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? competitionId = null,Object? roundId = null,Object? entryId = null,Object? submittedByUserId = null,Object? status = null,Object? scoringStatus = null,Object? holeScores = null,Object? playerVerifierScores = null,Object? markerId = freezed,Object? shotAttributions = null,Object? grossTotal = freezed,Object? netTotal = freezed,Object? points = freezed,Object? handicapIndex = freezed,Object? playingHandicap = freezed,Object? assignedTeeName = freezed,Object? adminEditAudit = freezed,Object? adminOverridePublish = null,Object? submittedAt = freezed,Object? createdAt = null,Object? updatedAt = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? competitionId = null,Object? roundId = null,Object? entryId = null,Object? submittedByUserId = null,Object? status = null,Object? scoringStatus = null,Object? holeScores = null,Object? playerVerifierScores = null,Object? markerId = freezed,Object? shotAttributions = null,Object? grossTotal = freezed,Object? netTotal = freezed,Object? points = freezed,Object? handicapIndex = freezed,Object? playingHandicap = freezed,Object? assignedTeeName = freezed,Object? adminEditAudit = freezed,Object? adminOverridePublish = null,Object? verifiedByPlayer = null,Object? verifiedByMarker = null,Object? playerVerifiedAt = freezed,Object? markerVerifiedAt = freezed,Object? holeTags = null,Object? submittedAt = freezed,Object? createdAt = null,Object? updatedAt = null,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,competitionId: null == competitionId ? _self.competitionId : competitionId // ignore: cast_nullable_to_non_nullable
@@ -361,7 +364,12 @@ as double?,playingHandicap: freezed == playingHandicap ? _self.playingHandicap :
 as int?,assignedTeeName: freezed == assignedTeeName ? _self.assignedTeeName : assignedTeeName // ignore: cast_nullable_to_non_nullable
 as String?,adminEditAudit: freezed == adminEditAudit ? _self.adminEditAudit : adminEditAudit // ignore: cast_nullable_to_non_nullable
 as AdminEditAudit?,adminOverridePublish: null == adminOverridePublish ? _self.adminOverridePublish : adminOverridePublish // ignore: cast_nullable_to_non_nullable
-as bool,submittedAt: freezed == submittedAt ? _self.submittedAt : submittedAt // ignore: cast_nullable_to_non_nullable
+as bool,verifiedByPlayer: null == verifiedByPlayer ? _self.verifiedByPlayer : verifiedByPlayer // ignore: cast_nullable_to_non_nullable
+as bool,verifiedByMarker: null == verifiedByMarker ? _self.verifiedByMarker : verifiedByMarker // ignore: cast_nullable_to_non_nullable
+as bool,playerVerifiedAt: freezed == playerVerifiedAt ? _self.playerVerifiedAt : playerVerifiedAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,markerVerifiedAt: freezed == markerVerifiedAt ? _self.markerVerifiedAt : markerVerifiedAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,holeTags: null == holeTags ? _self.holeTags : holeTags // ignore: cast_nullable_to_non_nullable
+as Map<int, List<String>>,submittedAt: freezed == submittedAt ? _self.submittedAt : submittedAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as DateTime,
@@ -461,10 +469,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String competitionId,  String roundId,  String entryId,  String submittedByUserId,  ScorecardStatus status,  ScoringStatus scoringStatus,  List<int?> holeScores,  List<int?> playerVerifierScores,  String? markerId,  Map<int, String?> shotAttributions,  int? grossTotal,  int? netTotal,  int? points,  double? handicapIndex,  int? playingHandicap,  String? assignedTeeName,  AdminEditAudit? adminEditAudit,  bool adminOverridePublish, @TimestampConverter()  DateTime? submittedAt, @TimestampConverter()  DateTime createdAt, @TimestampConverter()  DateTime updatedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String competitionId,  String roundId,  String entryId,  String submittedByUserId,  ScorecardStatus status,  ScoringStatus scoringStatus,  List<int?> holeScores,  List<int?> playerVerifierScores,  String? markerId,  Map<int, String?> shotAttributions,  int? grossTotal,  int? netTotal,  int? points,  double? handicapIndex,  int? playingHandicap,  String? assignedTeeName,  AdminEditAudit? adminEditAudit,  bool adminOverridePublish,  bool verifiedByPlayer,  bool verifiedByMarker, @OptionalTimestampConverter()  DateTime? playerVerifiedAt, @OptionalTimestampConverter()  DateTime? markerVerifiedAt,  Map<int, List<String>> holeTags, @TimestampConverter()  DateTime? submittedAt, @TimestampConverter()  DateTime createdAt, @TimestampConverter()  DateTime updatedAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Scorecard() when $default != null:
-return $default(_that.id,_that.competitionId,_that.roundId,_that.entryId,_that.submittedByUserId,_that.status,_that.scoringStatus,_that.holeScores,_that.playerVerifierScores,_that.markerId,_that.shotAttributions,_that.grossTotal,_that.netTotal,_that.points,_that.handicapIndex,_that.playingHandicap,_that.assignedTeeName,_that.adminEditAudit,_that.adminOverridePublish,_that.submittedAt,_that.createdAt,_that.updatedAt);case _:
+return $default(_that.id,_that.competitionId,_that.roundId,_that.entryId,_that.submittedByUserId,_that.status,_that.scoringStatus,_that.holeScores,_that.playerVerifierScores,_that.markerId,_that.shotAttributions,_that.grossTotal,_that.netTotal,_that.points,_that.handicapIndex,_that.playingHandicap,_that.assignedTeeName,_that.adminEditAudit,_that.adminOverridePublish,_that.verifiedByPlayer,_that.verifiedByMarker,_that.playerVerifiedAt,_that.markerVerifiedAt,_that.holeTags,_that.submittedAt,_that.createdAt,_that.updatedAt);case _:
   return orElse();
 
 }
@@ -482,10 +490,10 @@ return $default(_that.id,_that.competitionId,_that.roundId,_that.entryId,_that.s
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String competitionId,  String roundId,  String entryId,  String submittedByUserId,  ScorecardStatus status,  ScoringStatus scoringStatus,  List<int?> holeScores,  List<int?> playerVerifierScores,  String? markerId,  Map<int, String?> shotAttributions,  int? grossTotal,  int? netTotal,  int? points,  double? handicapIndex,  int? playingHandicap,  String? assignedTeeName,  AdminEditAudit? adminEditAudit,  bool adminOverridePublish, @TimestampConverter()  DateTime? submittedAt, @TimestampConverter()  DateTime createdAt, @TimestampConverter()  DateTime updatedAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String competitionId,  String roundId,  String entryId,  String submittedByUserId,  ScorecardStatus status,  ScoringStatus scoringStatus,  List<int?> holeScores,  List<int?> playerVerifierScores,  String? markerId,  Map<int, String?> shotAttributions,  int? grossTotal,  int? netTotal,  int? points,  double? handicapIndex,  int? playingHandicap,  String? assignedTeeName,  AdminEditAudit? adminEditAudit,  bool adminOverridePublish,  bool verifiedByPlayer,  bool verifiedByMarker, @OptionalTimestampConverter()  DateTime? playerVerifiedAt, @OptionalTimestampConverter()  DateTime? markerVerifiedAt,  Map<int, List<String>> holeTags, @TimestampConverter()  DateTime? submittedAt, @TimestampConverter()  DateTime createdAt, @TimestampConverter()  DateTime updatedAt)  $default,) {final _that = this;
 switch (_that) {
 case _Scorecard():
-return $default(_that.id,_that.competitionId,_that.roundId,_that.entryId,_that.submittedByUserId,_that.status,_that.scoringStatus,_that.holeScores,_that.playerVerifierScores,_that.markerId,_that.shotAttributions,_that.grossTotal,_that.netTotal,_that.points,_that.handicapIndex,_that.playingHandicap,_that.assignedTeeName,_that.adminEditAudit,_that.adminOverridePublish,_that.submittedAt,_that.createdAt,_that.updatedAt);case _:
+return $default(_that.id,_that.competitionId,_that.roundId,_that.entryId,_that.submittedByUserId,_that.status,_that.scoringStatus,_that.holeScores,_that.playerVerifierScores,_that.markerId,_that.shotAttributions,_that.grossTotal,_that.netTotal,_that.points,_that.handicapIndex,_that.playingHandicap,_that.assignedTeeName,_that.adminEditAudit,_that.adminOverridePublish,_that.verifiedByPlayer,_that.verifiedByMarker,_that.playerVerifiedAt,_that.markerVerifiedAt,_that.holeTags,_that.submittedAt,_that.createdAt,_that.updatedAt);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -502,10 +510,10 @@ return $default(_that.id,_that.competitionId,_that.roundId,_that.entryId,_that.s
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String competitionId,  String roundId,  String entryId,  String submittedByUserId,  ScorecardStatus status,  ScoringStatus scoringStatus,  List<int?> holeScores,  List<int?> playerVerifierScores,  String? markerId,  Map<int, String?> shotAttributions,  int? grossTotal,  int? netTotal,  int? points,  double? handicapIndex,  int? playingHandicap,  String? assignedTeeName,  AdminEditAudit? adminEditAudit,  bool adminOverridePublish, @TimestampConverter()  DateTime? submittedAt, @TimestampConverter()  DateTime createdAt, @TimestampConverter()  DateTime updatedAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String competitionId,  String roundId,  String entryId,  String submittedByUserId,  ScorecardStatus status,  ScoringStatus scoringStatus,  List<int?> holeScores,  List<int?> playerVerifierScores,  String? markerId,  Map<int, String?> shotAttributions,  int? grossTotal,  int? netTotal,  int? points,  double? handicapIndex,  int? playingHandicap,  String? assignedTeeName,  AdminEditAudit? adminEditAudit,  bool adminOverridePublish,  bool verifiedByPlayer,  bool verifiedByMarker, @OptionalTimestampConverter()  DateTime? playerVerifiedAt, @OptionalTimestampConverter()  DateTime? markerVerifiedAt,  Map<int, List<String>> holeTags, @TimestampConverter()  DateTime? submittedAt, @TimestampConverter()  DateTime createdAt, @TimestampConverter()  DateTime updatedAt)?  $default,) {final _that = this;
 switch (_that) {
 case _Scorecard() when $default != null:
-return $default(_that.id,_that.competitionId,_that.roundId,_that.entryId,_that.submittedByUserId,_that.status,_that.scoringStatus,_that.holeScores,_that.playerVerifierScores,_that.markerId,_that.shotAttributions,_that.grossTotal,_that.netTotal,_that.points,_that.handicapIndex,_that.playingHandicap,_that.assignedTeeName,_that.adminEditAudit,_that.adminOverridePublish,_that.submittedAt,_that.createdAt,_that.updatedAt);case _:
+return $default(_that.id,_that.competitionId,_that.roundId,_that.entryId,_that.submittedByUserId,_that.status,_that.scoringStatus,_that.holeScores,_that.playerVerifierScores,_that.markerId,_that.shotAttributions,_that.grossTotal,_that.netTotal,_that.points,_that.handicapIndex,_that.playingHandicap,_that.assignedTeeName,_that.adminEditAudit,_that.adminOverridePublish,_that.verifiedByPlayer,_that.verifiedByMarker,_that.playerVerifiedAt,_that.markerVerifiedAt,_that.holeTags,_that.submittedAt,_that.createdAt,_that.updatedAt);case _:
   return null;
 
 }
@@ -517,7 +525,7 @@ return $default(_that.id,_that.competitionId,_that.roundId,_that.entryId,_that.s
 @JsonSerializable()
 
 class _Scorecard extends Scorecard {
-  const _Scorecard({required this.id, required this.competitionId, required this.roundId, required this.entryId, required this.submittedByUserId, this.status = ScorecardStatus.draft, this.scoringStatus = ScoringStatus.ok, final  List<int?> holeScores = const [], final  List<int?> playerVerifierScores = const [], this.markerId, final  Map<int, String?> shotAttributions = const {}, this.grossTotal, this.netTotal, this.points, this.handicapIndex, this.playingHandicap, this.assignedTeeName, this.adminEditAudit, this.adminOverridePublish = false, @TimestampConverter() this.submittedAt, @TimestampConverter() required this.createdAt, @TimestampConverter() required this.updatedAt}): _holeScores = holeScores,_playerVerifierScores = playerVerifierScores,_shotAttributions = shotAttributions,super._();
+  const _Scorecard({required this.id, required this.competitionId, required this.roundId, required this.entryId, required this.submittedByUserId, this.status = ScorecardStatus.draft, this.scoringStatus = ScoringStatus.ok, final  List<int?> holeScores = const [], final  List<int?> playerVerifierScores = const [], this.markerId, final  Map<int, String?> shotAttributions = const {}, this.grossTotal, this.netTotal, this.points, this.handicapIndex, this.playingHandicap, this.assignedTeeName, this.adminEditAudit, this.adminOverridePublish = false, this.verifiedByPlayer = false, this.verifiedByMarker = false, @OptionalTimestampConverter() this.playerVerifiedAt, @OptionalTimestampConverter() this.markerVerifiedAt, final  Map<int, List<String>> holeTags = const {}, @TimestampConverter() this.submittedAt, @TimestampConverter() required this.createdAt, @TimestampConverter() required this.updatedAt}): _holeScores = holeScores,_playerVerifierScores = playerVerifierScores,_shotAttributions = shotAttributions,_holeTags = holeTags,super._();
   factory _Scorecard.fromJson(Map<String, dynamic> json) => _$ScorecardFromJson(json);
 
 @override final  String id;
@@ -560,6 +568,20 @@ class _Scorecard extends Scorecard {
 // [NEW] Snapshotted tee for this specific scorecard
 @override final  AdminEditAudit? adminEditAudit;
 @override@JsonKey() final  bool adminOverridePublish;
+@override@JsonKey() final  bool verifiedByPlayer;
+// [NEW] Player sign-off
+@override@JsonKey() final  bool verifiedByMarker;
+// [NEW] Marker sign-off
+@override@OptionalTimestampConverter() final  DateTime? playerVerifiedAt;
+@override@OptionalTimestampConverter() final  DateTime? markerVerifiedAt;
+ final  Map<int, List<String>> _holeTags;
+@override@JsonKey() Map<int, List<String>> get holeTags {
+  if (_holeTags is EqualUnmodifiableMapView) return _holeTags;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableMapView(_holeTags);
+}
+
+// [NEW] Hole Index -> List of tags (GIMME, WATER_1, etc)
 @override@TimestampConverter() final  DateTime? submittedAt;
 @override@TimestampConverter() final  DateTime createdAt;
 @override@TimestampConverter() final  DateTime updatedAt;
@@ -577,16 +599,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Scorecard&&(identical(other.id, id) || other.id == id)&&(identical(other.competitionId, competitionId) || other.competitionId == competitionId)&&(identical(other.roundId, roundId) || other.roundId == roundId)&&(identical(other.entryId, entryId) || other.entryId == entryId)&&(identical(other.submittedByUserId, submittedByUserId) || other.submittedByUserId == submittedByUserId)&&(identical(other.status, status) || other.status == status)&&(identical(other.scoringStatus, scoringStatus) || other.scoringStatus == scoringStatus)&&const DeepCollectionEquality().equals(other._holeScores, _holeScores)&&const DeepCollectionEquality().equals(other._playerVerifierScores, _playerVerifierScores)&&(identical(other.markerId, markerId) || other.markerId == markerId)&&const DeepCollectionEquality().equals(other._shotAttributions, _shotAttributions)&&(identical(other.grossTotal, grossTotal) || other.grossTotal == grossTotal)&&(identical(other.netTotal, netTotal) || other.netTotal == netTotal)&&(identical(other.points, points) || other.points == points)&&(identical(other.handicapIndex, handicapIndex) || other.handicapIndex == handicapIndex)&&(identical(other.playingHandicap, playingHandicap) || other.playingHandicap == playingHandicap)&&(identical(other.assignedTeeName, assignedTeeName) || other.assignedTeeName == assignedTeeName)&&(identical(other.adminEditAudit, adminEditAudit) || other.adminEditAudit == adminEditAudit)&&(identical(other.adminOverridePublish, adminOverridePublish) || other.adminOverridePublish == adminOverridePublish)&&(identical(other.submittedAt, submittedAt) || other.submittedAt == submittedAt)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Scorecard&&(identical(other.id, id) || other.id == id)&&(identical(other.competitionId, competitionId) || other.competitionId == competitionId)&&(identical(other.roundId, roundId) || other.roundId == roundId)&&(identical(other.entryId, entryId) || other.entryId == entryId)&&(identical(other.submittedByUserId, submittedByUserId) || other.submittedByUserId == submittedByUserId)&&(identical(other.status, status) || other.status == status)&&(identical(other.scoringStatus, scoringStatus) || other.scoringStatus == scoringStatus)&&const DeepCollectionEquality().equals(other._holeScores, _holeScores)&&const DeepCollectionEquality().equals(other._playerVerifierScores, _playerVerifierScores)&&(identical(other.markerId, markerId) || other.markerId == markerId)&&const DeepCollectionEquality().equals(other._shotAttributions, _shotAttributions)&&(identical(other.grossTotal, grossTotal) || other.grossTotal == grossTotal)&&(identical(other.netTotal, netTotal) || other.netTotal == netTotal)&&(identical(other.points, points) || other.points == points)&&(identical(other.handicapIndex, handicapIndex) || other.handicapIndex == handicapIndex)&&(identical(other.playingHandicap, playingHandicap) || other.playingHandicap == playingHandicap)&&(identical(other.assignedTeeName, assignedTeeName) || other.assignedTeeName == assignedTeeName)&&(identical(other.adminEditAudit, adminEditAudit) || other.adminEditAudit == adminEditAudit)&&(identical(other.adminOverridePublish, adminOverridePublish) || other.adminOverridePublish == adminOverridePublish)&&(identical(other.verifiedByPlayer, verifiedByPlayer) || other.verifiedByPlayer == verifiedByPlayer)&&(identical(other.verifiedByMarker, verifiedByMarker) || other.verifiedByMarker == verifiedByMarker)&&(identical(other.playerVerifiedAt, playerVerifiedAt) || other.playerVerifiedAt == playerVerifiedAt)&&(identical(other.markerVerifiedAt, markerVerifiedAt) || other.markerVerifiedAt == markerVerifiedAt)&&const DeepCollectionEquality().equals(other._holeTags, _holeTags)&&(identical(other.submittedAt, submittedAt) || other.submittedAt == submittedAt)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hashAll([runtimeType,id,competitionId,roundId,entryId,submittedByUserId,status,scoringStatus,const DeepCollectionEquality().hash(_holeScores),const DeepCollectionEquality().hash(_playerVerifierScores),markerId,const DeepCollectionEquality().hash(_shotAttributions),grossTotal,netTotal,points,handicapIndex,playingHandicap,assignedTeeName,adminEditAudit,adminOverridePublish,submittedAt,createdAt,updatedAt]);
+int get hashCode => Object.hashAll([runtimeType,id,competitionId,roundId,entryId,submittedByUserId,status,scoringStatus,const DeepCollectionEquality().hash(_holeScores),const DeepCollectionEquality().hash(_playerVerifierScores),markerId,const DeepCollectionEquality().hash(_shotAttributions),grossTotal,netTotal,points,handicapIndex,playingHandicap,assignedTeeName,adminEditAudit,adminOverridePublish,verifiedByPlayer,verifiedByMarker,playerVerifiedAt,markerVerifiedAt,const DeepCollectionEquality().hash(_holeTags),submittedAt,createdAt,updatedAt]);
 
 @override
 String toString() {
-  return 'Scorecard(id: $id, competitionId: $competitionId, roundId: $roundId, entryId: $entryId, submittedByUserId: $submittedByUserId, status: $status, scoringStatus: $scoringStatus, holeScores: $holeScores, playerVerifierScores: $playerVerifierScores, markerId: $markerId, shotAttributions: $shotAttributions, grossTotal: $grossTotal, netTotal: $netTotal, points: $points, handicapIndex: $handicapIndex, playingHandicap: $playingHandicap, assignedTeeName: $assignedTeeName, adminEditAudit: $adminEditAudit, adminOverridePublish: $adminOverridePublish, submittedAt: $submittedAt, createdAt: $createdAt, updatedAt: $updatedAt)';
+  return 'Scorecard(id: $id, competitionId: $competitionId, roundId: $roundId, entryId: $entryId, submittedByUserId: $submittedByUserId, status: $status, scoringStatus: $scoringStatus, holeScores: $holeScores, playerVerifierScores: $playerVerifierScores, markerId: $markerId, shotAttributions: $shotAttributions, grossTotal: $grossTotal, netTotal: $netTotal, points: $points, handicapIndex: $handicapIndex, playingHandicap: $playingHandicap, assignedTeeName: $assignedTeeName, adminEditAudit: $adminEditAudit, adminOverridePublish: $adminOverridePublish, verifiedByPlayer: $verifiedByPlayer, verifiedByMarker: $verifiedByMarker, playerVerifiedAt: $playerVerifiedAt, markerVerifiedAt: $markerVerifiedAt, holeTags: $holeTags, submittedAt: $submittedAt, createdAt: $createdAt, updatedAt: $updatedAt)';
 }
 
 
@@ -597,7 +619,7 @@ abstract mixin class _$ScorecardCopyWith<$Res> implements $ScorecardCopyWith<$Re
   factory _$ScorecardCopyWith(_Scorecard value, $Res Function(_Scorecard) _then) = __$ScorecardCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String competitionId, String roundId, String entryId, String submittedByUserId, ScorecardStatus status, ScoringStatus scoringStatus, List<int?> holeScores, List<int?> playerVerifierScores, String? markerId, Map<int, String?> shotAttributions, int? grossTotal, int? netTotal, int? points, double? handicapIndex, int? playingHandicap, String? assignedTeeName, AdminEditAudit? adminEditAudit, bool adminOverridePublish,@TimestampConverter() DateTime? submittedAt,@TimestampConverter() DateTime createdAt,@TimestampConverter() DateTime updatedAt
+ String id, String competitionId, String roundId, String entryId, String submittedByUserId, ScorecardStatus status, ScoringStatus scoringStatus, List<int?> holeScores, List<int?> playerVerifierScores, String? markerId, Map<int, String?> shotAttributions, int? grossTotal, int? netTotal, int? points, double? handicapIndex, int? playingHandicap, String? assignedTeeName, AdminEditAudit? adminEditAudit, bool adminOverridePublish, bool verifiedByPlayer, bool verifiedByMarker,@OptionalTimestampConverter() DateTime? playerVerifiedAt,@OptionalTimestampConverter() DateTime? markerVerifiedAt, Map<int, List<String>> holeTags,@TimestampConverter() DateTime? submittedAt,@TimestampConverter() DateTime createdAt,@TimestampConverter() DateTime updatedAt
 });
 
 
@@ -614,7 +636,7 @@ class __$ScorecardCopyWithImpl<$Res>
 
 /// Create a copy of Scorecard
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? competitionId = null,Object? roundId = null,Object? entryId = null,Object? submittedByUserId = null,Object? status = null,Object? scoringStatus = null,Object? holeScores = null,Object? playerVerifierScores = null,Object? markerId = freezed,Object? shotAttributions = null,Object? grossTotal = freezed,Object? netTotal = freezed,Object? points = freezed,Object? handicapIndex = freezed,Object? playingHandicap = freezed,Object? assignedTeeName = freezed,Object? adminEditAudit = freezed,Object? adminOverridePublish = null,Object? submittedAt = freezed,Object? createdAt = null,Object? updatedAt = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? competitionId = null,Object? roundId = null,Object? entryId = null,Object? submittedByUserId = null,Object? status = null,Object? scoringStatus = null,Object? holeScores = null,Object? playerVerifierScores = null,Object? markerId = freezed,Object? shotAttributions = null,Object? grossTotal = freezed,Object? netTotal = freezed,Object? points = freezed,Object? handicapIndex = freezed,Object? playingHandicap = freezed,Object? assignedTeeName = freezed,Object? adminEditAudit = freezed,Object? adminOverridePublish = null,Object? verifiedByPlayer = null,Object? verifiedByMarker = null,Object? playerVerifiedAt = freezed,Object? markerVerifiedAt = freezed,Object? holeTags = null,Object? submittedAt = freezed,Object? createdAt = null,Object? updatedAt = null,}) {
   return _then(_Scorecard(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,competitionId: null == competitionId ? _self.competitionId : competitionId // ignore: cast_nullable_to_non_nullable
@@ -635,7 +657,12 @@ as double?,playingHandicap: freezed == playingHandicap ? _self.playingHandicap :
 as int?,assignedTeeName: freezed == assignedTeeName ? _self.assignedTeeName : assignedTeeName // ignore: cast_nullable_to_non_nullable
 as String?,adminEditAudit: freezed == adminEditAudit ? _self.adminEditAudit : adminEditAudit // ignore: cast_nullable_to_non_nullable
 as AdminEditAudit?,adminOverridePublish: null == adminOverridePublish ? _self.adminOverridePublish : adminOverridePublish // ignore: cast_nullable_to_non_nullable
-as bool,submittedAt: freezed == submittedAt ? _self.submittedAt : submittedAt // ignore: cast_nullable_to_non_nullable
+as bool,verifiedByPlayer: null == verifiedByPlayer ? _self.verifiedByPlayer : verifiedByPlayer // ignore: cast_nullable_to_non_nullable
+as bool,verifiedByMarker: null == verifiedByMarker ? _self.verifiedByMarker : verifiedByMarker // ignore: cast_nullable_to_non_nullable
+as bool,playerVerifiedAt: freezed == playerVerifiedAt ? _self.playerVerifiedAt : playerVerifiedAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,markerVerifiedAt: freezed == markerVerifiedAt ? _self.markerVerifiedAt : markerVerifiedAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,holeTags: null == holeTags ? _self._holeTags : holeTags // ignore: cast_nullable_to_non_nullable
+as Map<int, List<String>>,submittedAt: freezed == submittedAt ? _self.submittedAt : submittedAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as DateTime,

@@ -11,6 +11,8 @@ class ScoringResult {
   final int adjustedGrossScore;
   final List<int?> holeNetScores;
   final List<int?> holePoints;
+  final int? absoluteScore;
+  final String? absoluteScoreLabel;
   final List<int?> holeScores; // [NEW] authoritative raw scores
 
   ScoringResult({
@@ -20,6 +22,8 @@ class ScoringResult {
     required this.adjustedGrossScore,
     required this.holeNetScores,
     required this.holePoints,
+    this.absoluteScore,
+    this.absoluteScoreLabel,
     required this.holeScores,
   });
 
@@ -30,6 +34,8 @@ class ScoringResult {
         adjustedGrossScore: json['adjustedGrossScore'] as int,
         holeNetScores: (json['holeNetScores'] as List).cast<int?>(),
         holePoints: (json['holePoints'] as List).cast<int?>(),
+        absoluteScore: json['absoluteScore'] as int?,
+        absoluteScoreLabel: json['absoluteScoreLabel'] as String?,
         holeScores: (json['holeScores'] as List?)?.cast<int?>() ?? [],
       );
 
@@ -40,6 +46,8 @@ class ScoringResult {
         'adjustedGrossScore': adjustedGrossScore,
         'holeNetScores': holeNetScores,
         'holePoints': holePoints,
+        'absoluteScore': absoluteScore,
+        'absoluteScoreLabel': absoluteScoreLabel,
         'holeScores': holeScores,
       };
 }
@@ -223,6 +231,8 @@ class ScoringCalculator {
         adjustedGrossScore: 0,
         holeNetScores: [],
         holePoints: [],
+        absoluteScore: 0,
+        absoluteScoreLabel: '-',
         holeScores: holeScores,
       );
     }
@@ -290,6 +300,8 @@ class ScoringCalculator {
         adjustedGrossScore: adjustedGrossTotal,
         holeNetScores: holeNetScores,
         holePoints: holePoints,
+        absoluteScore: totalPoints,
+        absoluteScoreLabel: totalPoints.toString(),
         holeScores: finalHoleScores,
       );
     } else {
@@ -302,6 +314,8 @@ class ScoringCalculator {
       return ScoringResult(
         score: roundedScore,
         label: roundedScore == 0 ? 'E' : (roundedScore > 0 ? '+$roundedScore' : '$roundedScore'),
+        absoluteScore: (totalGross - scaledPhc).round(),
+        absoluteScoreLabel: (totalGross - scaledPhc).round().toString(),
         holesPlayed: holesPlayed,
         adjustedGrossScore: adjustedGrossTotal,
         holeNetScores: holeNetScores,
@@ -364,7 +378,7 @@ class ScoringCalculator {
     required CompetitionFormat format,
   }) {
     if (individualResults.isEmpty) {
-      return ScoringResult(score: 0, label: '-', holesPlayed: 0, adjustedGrossScore: 0, holeNetScores: [], holePoints: [], holeScores: []);
+      return ScoringResult(score: 0, label: '-', holesPlayed: 0, adjustedGrossScore: 0, holeNetScores: [], holePoints: [], absoluteScore: 0, absoluteScoreLabel: '-', holeScores: []);
     }
 
     final int numHoles = holes.length;
@@ -410,6 +424,12 @@ class ScoringCalculator {
       label: format == CompetitionFormat.stableford 
           ? totalScore.toString() 
           : (totalScore == 0 ? 'E' : (totalScore > 0 ? '+$totalScore' : '$totalScore')),
+      absoluteScore: format == CompetitionFormat.stableford
+          ? totalScore
+          : holeNetScores.whereType<int>().fold<int>(0, (a, b) => a + b),
+      absoluteScoreLabel: (format == CompetitionFormat.stableford
+          ? totalScore
+          : holeNetScores.whereType<int>().fold<int>(0, (a, b) => a + b)).toString(),
       holesPlayed: maxHolesPlayed,
       adjustedGrossScore: 0, // Not typically used for team aggregate
       holeNetScores: holeNetScores,

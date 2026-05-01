@@ -50,13 +50,14 @@ class BoxyArtCard extends ConsumerWidget {
     
     // Calculate themed background
     final primary = Theme.of(context).primaryColor;
+    final tintSource = Color(config.cardTintColor);
     final baseColor = backgroundColor ?? Theme.of(context).cardColor;
     
     // Enhanced Highlight Logic
     Color tintedColor = backgroundColor != null 
         ? backgroundColor! 
         : Color.alphaBlend(
-            primary.withValues(alpha: config.cardTintIntensity * (isDark ? 0.15 : 0.05)),
+            tintSource.withValues(alpha: config.cardTintIntensity * (isDark ? 0.35 : 0.15)),
             baseColor,
           );
 
@@ -74,7 +75,7 @@ class BoxyArtCard extends ConsumerWidget {
       height: height,
       margin: margin,
       decoration: BoxDecoration(
-        color: tintedColor,
+        color: gradient == null ? tintedColor : null,
         gradient: gradient,
         borderRadius: BorderRadius.circular(radius),
         boxShadow: effectivelyShowShadow 

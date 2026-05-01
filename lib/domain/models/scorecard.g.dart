@@ -60,6 +60,22 @@ _Scorecard _$ScorecardFromJson(Map<String, dynamic> json) => _Scorecard(
       ? null
       : AdminEditAudit.fromJson(json['adminEditAudit'] as Map<String, dynamic>),
   adminOverridePublish: json['adminOverridePublish'] as bool? ?? false,
+  verifiedByPlayer: json['verifiedByPlayer'] as bool? ?? false,
+  verifiedByMarker: json['verifiedByMarker'] as bool? ?? false,
+  playerVerifiedAt: const OptionalTimestampConverter().fromJson(
+    json['playerVerifiedAt'],
+  ),
+  markerVerifiedAt: const OptionalTimestampConverter().fromJson(
+    json['markerVerifiedAt'],
+  ),
+  holeTags:
+      (json['holeTags'] as Map<String, dynamic>?)?.map(
+        (k, e) => MapEntry(
+          int.parse(k),
+          (e as List<dynamic>).map((e) => e as String).toList(),
+        ),
+      ) ??
+      const {},
   submittedAt: const TimestampConverter().fromJson(json['submittedAt']),
   createdAt: const TimestampConverter().fromJson(json['createdAt']),
   updatedAt: const TimestampConverter().fromJson(json['updatedAt']),
@@ -88,6 +104,15 @@ Map<String, dynamic> _$ScorecardToJson(_Scorecard instance) =>
       'assignedTeeName': instance.assignedTeeName,
       'adminEditAudit': instance.adminEditAudit?.toJson(),
       'adminOverridePublish': instance.adminOverridePublish,
+      'verifiedByPlayer': instance.verifiedByPlayer,
+      'verifiedByMarker': instance.verifiedByMarker,
+      'playerVerifiedAt': const OptionalTimestampConverter().toJson(
+        instance.playerVerifiedAt,
+      ),
+      'markerVerifiedAt': const OptionalTimestampConverter().toJson(
+        instance.markerVerifiedAt,
+      ),
+      'holeTags': instance.holeTags.map((k, e) => MapEntry(k.toString(), e)),
       'submittedAt': _$JsonConverterToJson<Object?, DateTime>(
         instance.submittedAt,
         const TimestampConverter().toJson,

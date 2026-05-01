@@ -130,7 +130,7 @@ class HeadlessScaffold extends StatelessWidget {
               ...slivers,
               
               // Bottom Padding: adds bottomInset to clear the global bottom nav bar
-              SliverPadding(padding: EdgeInsets.only(bottom: (pinnedBottom != null ? 280 : 100) + bottomInset)),
+              SliverToBoxAdapter(child: SizedBox(height: (pinnedBottom != null ? 280 : 100) + bottomInset)),
             ],
           ),
         ),

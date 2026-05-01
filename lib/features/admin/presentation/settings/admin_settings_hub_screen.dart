@@ -5,6 +5,7 @@ import 'package:golf_society/design_system/design_system.dart';
 import 'package:golf_society/services/seeding_service.dart';
 import 'package:golf_society/features/settings/data/society_config_repository.dart';
 
+
 class AdminSettingsHubScreen extends ConsumerWidget {
   const AdminSettingsHubScreen({super.key});
 
@@ -139,10 +140,46 @@ class AdminSettingsHubScreen extends ConsumerWidget {
                     ),
                     const BoxyArtDivider(),
                     BoxyArtNavTile(
+                      icon: Icons.verified_user_rounded,
+                      title: 'Verify Medal Play',
+                      subtitle: 'Seed Medal Scenario (Absolute Score Test)',
+                      onTap: () => _showMedalSeedConfirmation(context, ref),
+                    ),
+                    const BoxyArtDivider(),
+                    BoxyArtNavTile(
                       icon: Icons.delete_forever_rounded,
                       title: 'System Factory Reset',
                       subtitle: 'Deep wipe (Everything including branding)',
                       onTap: () => _showSystemResetDialog(context, ref),
+                    ),
+                  ],
+                ),
+              ),
+
+              SizedBox(height: spacing?.cardToLabel ?? AppSpacing.section),
+
+              // 4. Testing & Hardening Lab
+              const BoxyArtSectionTitle(
+                title: 'Testing & Hardening Lab',
+                isPeeking: true,
+              ),
+              BoxyArtCard(
+                padding: EdgeInsets.zero,
+                child: Column(
+                  children: [
+                    BoxyArtNavTile(
+                      icon: Icons.person_add_alt_1_rounded,
+                      title: 'Harden Members Only',
+                      subtitle: 'Re-seed roster with full profiles',
+                      onTap: () => _showMemberSeedConfirmation(context, ref),
+                    ),
+                    const BoxyArtDivider(),
+                    BoxyArtNavTile(
+                      icon: Icons.history_rounded,
+                      title: 'Harden History',
+                      subtitle: 'Seed complex lifecycle events (Draft)',
+                      iconColor: AppColors.dark300,
+                      onTap: () {},
                     ),
                   ],
                 ),
@@ -274,7 +311,6 @@ class AdminSettingsHubScreen extends ConsumerWidget {
     }
   }
 
-
   void _showSystemResetDialog(BuildContext context, WidgetRef ref) async {
     final confirm = await showBoxyArtDialog<bool>(
       context: context,
@@ -298,6 +334,51 @@ class AdminSettingsHubScreen extends ConsumerWidget {
     }
   }
 
+  void _showMemberSeedConfirmation(BuildContext context, WidgetRef ref) async {
+    final confirm = await showBoxyArtDialog<bool>(
+      context: context,
+      title: 'Harden Members?',
+      message: 'This will REFRESH the entire member roster with high-quality hardened data. Current member records will be replaced. Continue?',
+      confirmText: 'HARDEN',
+      onConfirm: () => Navigator.of(context, rootNavigator: true).pop(true),
+      onCancel: () => Navigator.of(context, rootNavigator: true).pop(false),
+    );
+
+    if (confirm == true && context.mounted) {
+      final messenger = ScaffoldMessenger.of(context);
+      messenger.showSnackBar(const SnackBar(content: Text('Hardening Member Roster...')));
+      
+      try {
+        await ref.read(seedingServiceProvider).seedMembersOnly();
+        messenger.showSnackBar(const SnackBar(content: Text('✅ Member Roster Hardened Successfully')));
+      } catch (e) {
+        messenger.showSnackBar(SnackBar(content: Text('Error: $e')));
+      }
+    }
+  }
+
+  void _showMedalSeedConfirmation(BuildContext context, WidgetRef ref) async {
+    final confirm = await showBoxyArtDialog<bool>(
+      context: context,
+      title: 'Verify Medal Play?',
+      message: 'This will seed a special Medal Play event with mixed scoring states to verify the Phase 3 visual standardization. Continue?',
+      confirmText: 'VERIFY',
+      onConfirm: () => Navigator.of(context, rootNavigator: true).pop(true),
+      onCancel: () => Navigator.of(context, rootNavigator: true).pop(false),
+    );
+
+    if (confirm == true && context.mounted) {
+      final messenger = ScaffoldMessenger.of(context);
+      messenger.showSnackBar(const SnackBar(content: Text('Seeding Medal Play Verification...')));
+      
+      try {
+        await ref.read(seedingServiceProvider).seedMedalVerificationScenario();
+        messenger.showSnackBar(const SnackBar(content: Text('✅ Medal Verification Scenario Initialized')));
+      } catch (e) {
+        messenger.showSnackBar(SnackBar(content: Text('Error: $e')));
+      }
+    }
+  }
 
   Widget _buildConfigToggle(
     BuildContext context, 

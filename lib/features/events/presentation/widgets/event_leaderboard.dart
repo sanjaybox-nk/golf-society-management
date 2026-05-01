@@ -18,7 +18,8 @@ class EventLeaderboard extends ConsumerStatefulWidget {
   final Function(LeaderboardEntry)? onPlayerTap;
   final bool showTitles;
   final Map<String, String>? teeOverrides;
-
+  final bool followsCard;
+ 
   const EventLeaderboard({
     super.key,
     required this.event,
@@ -29,6 +30,7 @@ class EventLeaderboard extends ConsumerStatefulWidget {
     this.onPlayerTap,
     this.showTitles = true,
     this.teeOverrides,
+    this.followsCard = true,
   });
 
   @override
@@ -48,6 +50,7 @@ class _EventLeaderboardState extends ConsumerState<EventLeaderboard> {
     final memberMap = {for (final m in widget.membersList) m.id: m};
 
     final isMatchPlay = (widget.comp?.rules.isMatchPlay ?? false) || widget.event.matches.isNotEmpty;
+    final bool isCompleted = widget.event.status == EventStatus.completed;
 
     // 2. Map Processed Data to UI-friendly LeaderboardEntry
     final List<LeaderboardEntry> finalEntries = data.leaderboard.map<LeaderboardEntry>((e) {
@@ -94,13 +97,17 @@ class _EventLeaderboardState extends ConsumerState<EventLeaderboard> {
         teamMemberIds: e.teamMemberIds,
         teamMemberNames: e.teamMemberNames,
         position: e.position,
-        tieBreakDetails: e.tieBreakLabel,
+        thruLabel: e.thruLabel,
+        tieBreakLabel: isCompleted ? e.tieBreakLabel : null,
+        tieBreakDetails: isCompleted ? e.tieBreakLabel : null,
         tieBreakMetrics: e.tieBreakMetrics,
         scoringStatus: e.scoringStatus,
         mode: widget.comp?.rules.mode ?? CompetitionMode.singles,
         isCaptain: isUnified,
         teeName: e.teeName,
         teeColor: AppColors.getTeeColor(e.teeName, widget.event.courseConfig.tees),
+        absoluteScore: e.absoluteScore,
+        absoluteScoreLabel: e.absoluteScoreLabel,
       );
     }).toList();
 
@@ -110,7 +117,6 @@ class _EventLeaderboardState extends ConsumerState<EventLeaderboard> {
     }
 
     final bool hasAnyScores = finalEntries.any((e) => e.holesPlayed != null && e.holesPlayed! > 0);
-    final bool isCompleted = widget.event.status == EventStatus.completed;
 
     if (finalEntries.isEmpty || (!hasAnyScores && !isCompleted)) {
       return const Center(
@@ -133,9 +139,10 @@ class _EventLeaderboardState extends ConsumerState<EventLeaderboard> {
          crossAxisAlignment: CrossAxisAlignment.start,
          children: [
             if (widget.showTitles)
-               const BoxyArtSectionTitle(
+               BoxyArtSectionTitle(
                  title: 'Live Standings',
-                 topPadding: 0,
+                 followsCard: widget.followsCard,
+                 horizontalPadding: 0,
                ),
             LeaderboardWidget(
                entries: finalEntries,
@@ -159,7 +166,8 @@ class _EventLeaderboardState extends ConsumerState<EventLeaderboard> {
             BoxyArtSectionTitle(
               title: hasGuests ? 'Members' : 'Live Standings',
               count: hasGuests ? memberEntries.length : null,
-              topPadding: 0,
+              followsCard: widget.followsCard,
+              horizontalPadding: 0,
             ),
           ],
           LeaderboardWidget(
@@ -175,6 +183,8 @@ class _EventLeaderboardState extends ConsumerState<EventLeaderboard> {
               title: 'Guests',
               count: guestEntries.length,
               isPeeking: false,
+              followsCard: true,
+              horizontalPadding: 0,
             ),
           ],
           LeaderboardWidget(

@@ -24,6 +24,7 @@ class BoxyArtMemberHeaderCard extends ConsumerWidget {
   final VoidCallback? onActionTap;
   final bool showFeeIndicator;
   final bool isAdminContext;
+  final bool isFoundingMember;
 
   const BoxyArtMemberHeaderCard({
     super.key,
@@ -46,6 +47,7 @@ class BoxyArtMemberHeaderCard extends ConsumerWidget {
     this.onActionTap,
     this.showFeeIndicator = true,
     this.isAdminContext = true,
+    this.isFoundingMember = false,
   });
 
   @override
@@ -70,12 +72,29 @@ class BoxyArtMemberHeaderCard extends ConsumerWidget {
                 Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    BoxyArtAvatar(
-                      url: avatarUrl,
-                      initials: (firstName.isNotEmpty ? firstName[0] : '') +
-                                (lastName.isNotEmpty ? lastName[0] : ''),
-                      radius: 40,
-                      isCircle: true,
+                    Stack(
+                      clipBehavior: Clip.none,
+                      children: [
+                        BoxyArtAvatar(
+                          url: avatarUrl,
+                          initials: (firstName.isNotEmpty ? firstName[0] : '') +
+                                    (lastName.isNotEmpty ? lastName[0] : ''),
+                          radius: 40,
+                          isCircle: true,
+                        ),
+                        if (isFoundingMember)
+                          const Positioned(
+                            top: -4,
+                            right: -4,
+                            child: BoxyArtIconBadge(
+                              icon: Icons.star_rounded,
+                              color: AppColors.lime500,
+                              size: 26,
+                              iconSize: 16,
+                              useCircle: true,
+                            ),
+                          ),
+                      ],
                     ),
                     if (onCameraTap != null) ...[
                       const SizedBox(height: AppSpacing.sm),
@@ -184,6 +203,17 @@ class BoxyArtMemberHeaderCard extends ConsumerWidget {
                                 label: societyRole!,
                                 dotColor: AppColors.amber500,
                                 onTap: onSocietyRoleTap,
+                                hasHorizontalMargin: false,
+                              ),
+                              const SizedBox(height: AppSpacing.xs),
+                            ],
+
+                            // 2.5 Founding Member Badge
+                            if (isFoundingMember) ...[
+                              BoxyArtIndicator(
+                                label: 'FOUNDING MEMBER',
+                                dotColor: AppColors.lime500,
+                                icon: Icons.star_rounded,
                                 hasHorizontalMargin: false,
                               ),
                               const SizedBox(height: AppSpacing.xs),

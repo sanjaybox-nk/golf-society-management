@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:golf_society/utils/string_utils.dart';
 import 'package:collection/collection.dart';
 import 'package:go_router/go_router.dart';
 import 'package:golf_society/domain/models/scorecard.dart';
@@ -958,19 +959,4 @@ class ScorecardModal {
       ),
     );
   }
-}
-
-// Helper functions moved from string_utils for stability
-String toTitleCase(String text) {
-  if (text.isEmpty) return text;
-  return text.split(' ').map((word) {
-    if (word.isEmpty) return word;
-    return word[0].toUpperCase() + word.substring(1).toLowerCase();
-  }).join(' ');
-}
-
-String toSentenceCase(String text) {
-  if (text.isEmpty) return text;
-  final lower = text.toLowerCase();
-  return lower[0].toUpperCase() + lower.substring(1);
 }

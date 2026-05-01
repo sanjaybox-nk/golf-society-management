@@ -211,7 +211,7 @@ class EventSeeder {
         if (hasGuest) {
           final guestFirstName = SeedingData.maleFirstNames[random.nextInt(SeedingData.maleFirstNames.length)];
           final guestLastName = SeedingData.lastNames[random.nextInt(SeedingData.lastNames.length)];
-          guestName = '$guestFirstName $guestLastName (G)';
+          guestName = '$guestFirstName $guestLastName';
         }
 
         double totalCost = 0;
@@ -239,6 +239,8 @@ class EventSeeder {
           attendingDinner: attendsDinner,
           needsBuggy: needsBuggy,
           guestName: guestName,
+          teeName: (m.gender == 'Female') ? 'Red' : 'Yellow',
+          guestTeeName: 'Yellow',
           guestHandicap: hasGuest ? (15 + random.nextInt(15)).toString() : null,
           guestAttendingBreakfast: hasGuest && attendsBreakfast,
           guestAttendingLunch: hasGuest && attendsLunch,

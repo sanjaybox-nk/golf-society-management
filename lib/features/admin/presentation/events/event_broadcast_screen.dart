@@ -92,7 +92,7 @@ class EventBroadcastScreen extends ConsumerStatefulWidget {
                   item.imageUrl!,
                   width: double.infinity,
                   fit: BoxFit.fitWidth,
-                  errorBuilder: (_, __, ___) => Container(
+                  errorBuilder: (context, error, stackTrace) => Container(
                     height: 150,
                     width: double.infinity,
                     color: Theme.of(context).cardColor,

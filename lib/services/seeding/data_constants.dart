@@ -65,4 +65,17 @@ class SeedingData {
     'Dom Pedro Old Course': 'Volta do Parque 8125-507, Vilamoura, Portugal',
     'Victoria Golf Course': 'Av. dos Descobrimentos, 8125-507 Vilamoura, Portugal',
   };
+
+  static const memberAddresses = [
+    '12 High Street, Marlow, SL7 1AB',
+    '45 The Avenue, Reading, RG1 5TY',
+    '78 Riverside Drive, Windsor, SL4 5NP',
+    '23 Park Lane, London, W1K 1BE',
+    '56 Church Road, Henley, RG9 1RS',
+    '89 Station Road, Beaconsfield, HP9 1QL',
+    '15 Meadow View, Maidenhead, SL6 7HJ',
+    '34 Cedar Close, Bracknell, RG12 9JU',
+    '67 Oak Ridge, Wokingham, RG40 2TR',
+    '92 Hillside Avenue, Slough, SL1 2PQ',
+  ];
 }

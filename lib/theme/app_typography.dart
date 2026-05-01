@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class AppTypography {
   // Radical Theme Simplification (BoxyArt v4.0)
@@ -37,6 +38,10 @@ class AppTypography {
   static const FontWeight weightStrong = FontWeight.w600;  // Semibold (Labels/Emphasis)
   static const FontWeight weightRegular = FontWeight.w400; // Regular (Reading)
   static const FontWeight weightLight = FontWeight.w300;   // Light (Elegant Labels)
+  static const FontWeight weightBlack = weightHeavy;
+  static const FontWeight weightExtraBold = weightHeavy;
+  static const FontWeight weightSemibold = weightStrong;
+  static const FontWeight weightMedium = FontWeight.w500;
 
   // 0.75 Letterspacing Tokens
   static const double lsHero = -0.2;
@@ -45,97 +50,113 @@ class AppTypography {
   static const double lsLabel = 1.0;
   static const double lsMicro = 1.0;
 
+  static String uiFont = 'Plus Jakarta Sans';
+
+  static TextStyle _getStyle({
+    required double fontSize,
+    required FontWeight fontWeight,
+    required double letterSpacing,
+    required double height,
+  }) {
+    try {
+      return GoogleFonts.getFont(
+        uiFont,
+        fontSize: fontSize,
+        fontWeight: fontWeight,
+        letterSpacing: letterSpacing,
+        height: height,
+      );
+    } catch (e) {
+      // Fallback if font fails to load or name is invalid
+      return TextStyle(
+        fontFamily: uiFont,
+        fontSize: fontSize,
+        fontWeight: fontWeight,
+        letterSpacing: letterSpacing,
+        height: height,
+      );
+    }
+  }
+
   // 1. Core Styles
-  static TextStyle get display => TextStyle(
-    fontFamily: uiFont,
+  static TextStyle get display => _getStyle(
     fontSize: sizeDisplay,
     fontWeight: weightHeavy,
     letterSpacing: lsHero,
     height: 1.0,
   );
 
-  static TextStyle get headline => TextStyle(
-    fontFamily: uiFont,
+  static TextStyle get headline => _getStyle(
     fontSize: sizeHeadline,
     fontWeight: weightHeavy,
     letterSpacing: lsTight,
     height: 1.1,
   );
 
-  static TextStyle get memberName => TextStyle(
-    fontFamily: uiFont,
+  static TextStyle get memberName => _getStyle(
     fontSize: sizeBody,
-    fontWeight: weightBold, // w700
+    fontWeight: weightBold,
     letterSpacing: lsTight,
     height: 1.4,
   );
 
-  static TextStyle get body => TextStyle(
-    fontFamily: uiFont,
+  static TextStyle get body => _getStyle(
     fontSize: sizeBody,
-    fontWeight: weightMedium,
+    fontWeight: weightStrong,
     letterSpacing: lsStandard,
     height: 1.5,
   );
 
-  static TextStyle get label => TextStyle(
-    fontFamily: uiFont,
+  static TextStyle get label => _getStyle(
     fontSize: sizeLabel,
     fontWeight: weightBold,
     letterSpacing: lsLabel,
     height: 1.2,
   );
 
-  static TextStyle get micro => TextStyle(
-    fontFamily: uiFont,
+  static TextStyle get micro => _getStyle(
     fontSize: sizeMicro,
     fontWeight: weightBold,
     letterSpacing: lsMicro,
     height: 1.0,
   );
 
-  static TextStyle get bodySmall => TextStyle(
-    fontFamily: uiFont,
+  static TextStyle get bodySmall => _getStyle(
     fontSize: sizeLabel,
     fontWeight: weightMedium,
     letterSpacing: lsStandard,
     height: 1.4,
   );
 
-  static TextStyle get caption => TextStyle(
-    fontFamily: uiFont,
+  static TextStyle get caption => _getStyle(
     fontSize: sizeMicro,
     fontWeight: weightMedium,
     letterSpacing: lsStandard,
     height: 1.0,
   );
 
-  static TextStyle get metricValue => TextStyle(
-    fontFamily: uiFont,
+  static TextStyle get metricValue => _getStyle(
     fontSize: sizeMetric,
     fontWeight: weightHeavy,
     letterSpacing: lsTight,
     height: 1.1,
   );
 
-  static TextStyle get metricLabel => TextStyle(
-    fontFamily: uiFont,
+  static TextStyle get metricLabel => _getStyle(
     fontSize: sizeMicro,
     fontWeight: weightBold,
     letterSpacing: lsMicro,
     height: 1.0,
   );
 
-  // Specialized styles (Button)
-  static TextStyle get button => TextStyle(
-    fontFamily: uiFont,
+  static TextStyle get button => _getStyle(
     fontSize: sizeLabel,
     fontWeight: weightHeavy,
     letterSpacing: lsLabel,
     height: 1.0,
   );
 
-  // Migration Styles (Getters to handle non-const base styles)
+  // Migration Styles
   static TextStyle get displayHero => display;
   static TextStyle get displayTitle => display;
   static TextStyle get displayPage => display;
@@ -154,23 +175,15 @@ class AppTypography {
   static TextStyle get displayUI => headline;
   static TextStyle get ribbonHeader => label;
   static TextStyle get subtext => label;
-
-  // Migration Weights (Internal helpers)
-  static const FontWeight weightBlack = weightHeavy;
-  static const FontWeight weightExtraBold = weightHeavy;
-  static const FontWeight weightSemibold = weightStrong;
-  static const FontWeight weightMedium = FontWeight.w500;
-
-  static String uiFont = 'Plus Jakarta Sans';
   static TextStyle get displayMedium => display;
-  
-  static TextTheme createTextTheme() => textTheme;
 
   static TextStyle get cardTitle => body.copyWith(
     fontWeight: weightBold,
     letterSpacing: 0.2,
     height: 1.1,
   );
+
+  static TextTheme createTextTheme() => textTheme;
 
   static TextTheme get textTheme {
     return TextTheme(

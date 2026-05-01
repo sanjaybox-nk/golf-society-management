@@ -56,7 +56,7 @@ class BoxyArtAvatar extends StatelessWidget {
   Widget _buildInitials(Color color) {
     return Center(
       child: Text(
-        toTitleCase(initials),
+        initials,
         style: TextStyle(
           color: color,
           fontWeight: AppTypography.weightBlack,

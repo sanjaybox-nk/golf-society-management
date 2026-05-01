@@ -13,7 +13,8 @@
 7. **Season Standings**: Advanced leaderboards (OoM, Birdie Tree, Eclectic) with industry-standard point systems and Best-N selection.
 8. **Society Surveys**: Multi-question WYSIWYG survey engine with drag-and-drop reordering, single/multi/text question types, and real-time voting.
 9. **Design Token Studio (Branding Console)**: Granular, whitelabel configuration for 30+ semantic design tokens, including mechanical overrides (borders/dividers) and domain-specific scoring aesthetics.
-10. **Demo Seeding (Admin)**: Sophisticated multi-phase engine for generating historical member, event, and competition data for development and testing.
+10. **Digital Verification Handshake**: A professional marker-player sign-off system with side-by-side comparison grids and automated data integrity locking.
+11. **Demo Seeding (Admin)**: Sophisticated multi-phase engine for generating historical member, event, and competition data for development and testing.
 
 ## Typography
 - **Body / Labels**: Inter

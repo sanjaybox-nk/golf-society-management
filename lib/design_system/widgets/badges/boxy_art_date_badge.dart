@@ -23,7 +23,7 @@ class BoxyArtDateBadge extends ConsumerWidget {
 
     // Design 4.x: Use branding tokens for the date badge background
     final Color effectiveBg = Color(config.iconBadgeFillColor).withValues(alpha: config.iconBadgeOpacity);
-    final Color effectiveLabelColor = Color(config.iconBadgeIconColor);
+    final Color effectiveTextColor = Color(config.iconBadgeTextColor);
 
     return Container(
       width: 60,
@@ -41,7 +41,7 @@ class BoxyArtDateBadge extends ConsumerWidget {
             DateFormat('MMM').format(date).toUpperCase(),
             style: AppTypography.caption.copyWith(
               fontSize: AppTypography.sizeMicroSmall,
-              color: effectiveLabelColor,
+              color: effectiveTextColor,
               fontWeight: AppTypography.weightBold,
               height: 1.0,
             ),
@@ -55,14 +55,14 @@ class BoxyArtDateBadge extends ConsumerWidget {
               style: AppTypography.displayHero.copyWith(
                 fontSize: 24, 
                 height: 1.0,
-                color: AppColors.dark500,
+                color: effectiveTextColor,
               ),
             ),
           ),
           Text(
             DateFormat('yyyy').format(date),
             style: AppTypography.micro.copyWith(
-              color: AppColors.dark500,
+              color: effectiveTextColor,
               fontWeight: AppTypography.weightSemibold,
             ),
           ),

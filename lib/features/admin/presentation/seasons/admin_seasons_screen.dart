@@ -4,7 +4,6 @@ import 'package:intl/intl.dart';
 import 'package:golf_society/design_system/design_system.dart';
 import 'package:golf_society/domain/models/season.dart';
 import '../../../events/presentation/events_provider.dart';
-import '../../../competitions/services/leaderboard_invoker_service.dart';
 
 
 

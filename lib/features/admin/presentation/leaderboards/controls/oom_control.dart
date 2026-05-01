@@ -64,7 +64,6 @@ class _OrderOfMeritControlState extends State<OrderOfMeritControl>
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
 
     return Form(
       key: _formKey,

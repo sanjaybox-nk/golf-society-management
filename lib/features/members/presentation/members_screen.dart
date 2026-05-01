@@ -3,7 +3,6 @@ import 'package:golf_society/design_system/design_system.dart';
 import 'package:golf_society/domain/models/member.dart';
 import 'package:golf_society/features/members/presentation/widgets/member_tile.dart';
 import 'package:golf_society/features/members/presentation/profile_provider.dart';
-import 'package:go_router/go_router.dart';
 import 'members_provider.dart';
 
 class MembersScreen extends ConsumerStatefulWidget {
@@ -87,20 +86,18 @@ class _MembersScreenState extends ConsumerState<MembersScreen> {
             return [
               // Search & Count Header
               SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(AppSpacing.xl, AppSpacing.xl, AppSpacing.xl, 0),
-                  child: BoxyArtSectionTitle(
-                    title: 'Search Members',
-                    count: filtered.length,
-                    isPeeking: true,
-                  ),
+                child: BoxyArtSectionTitle(
+                  title: 'Search Members',
+                  count: filtered.length,
+                  isPeeking: false,
+                  horizontalPadding: AppSpacing.xl,
                 ),
               ),
 
               // Search Input
               SliverToBoxAdapter(
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.md),
+                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
                   child: BoxyArtSearchInput(
                     hintText: 'Search by name...',
                     initialValue: searchQuery,
@@ -117,7 +114,11 @@ class _MembersScreenState extends ConsumerState<MembersScreen> {
 
               // Members List
               SliverPadding(
-                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+                padding: EdgeInsets.only(
+                  left: AppSpacing.xl,
+                  right: AppSpacing.xl,
+                  top: (currentFilter.type == AdminMemberFilter.other) ? 0 : (spacing?.cardToCard ?? AppSpacing.cardToCard),
+                ),
                 sliver: filtered.isEmpty 
                   ? const SliverToBoxAdapter(child: _EmptyMembers())
                   : (currentFilter.type == AdminMemberFilter.other)
@@ -186,7 +187,9 @@ class _MembersScreenState extends ConsumerState<MembersScreen> {
               BoxyArtSectionTitle(
                 title: status.displayName,
                 count: groupMembers.length,
-                isPeeking: i == 0, 
+                isPeeking: false, // Ensures we use tabToContent (16px) or cardToLabel (16px)
+                followsCard: i > 0,
+                horizontalPadding: 0, // Since parent SliverPadding already handles horizontal
               ),
               ...groupMembers.asMap().entries.map((entry) {
                 final m = entry.value;
@@ -197,7 +200,6 @@ class _MembersScreenState extends ConsumerState<MembersScreen> {
                   child: _buildMemberItem(context, ref, m, widget.isAdminContext, isUserAdmin, currentFilter, eventCount),
                 );
               }),
-              const SizedBox(height: AppSpacing.xl),
             ],
           );
         },

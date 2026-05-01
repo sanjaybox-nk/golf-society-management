@@ -33,30 +33,12 @@ class GroupingPlayerAvatar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    final bool hasProfilePic = member?.avatarUrl != null && !player.isGuest;
-
-    return CircleAvatar(
+    return BoxyArtAvatar(
+      url: (member?.avatarUrl != null && !player.isGuest) ? member!.avatarUrl : null,
+      initials: extractInitials(player.name),
       radius: size / 2,
-      backgroundColor: player.isCaptain
-          ? AppColors.amber500
-          : (isDark ? AppColors.dark600 : AppColors.dark60),
-      backgroundImage: hasProfilePic
-          ? NetworkImage(member!.avatarUrl!)
-          : null,
-      child: !hasProfilePic
-          ? Text(
-              player.name.isNotEmpty ? player.name[0].toUpperCase() : '?',
-              style: TextStyle(
-                color: player.isCaptain 
-                    ? AppColors.pureWhite 
-                    : (isDark ? AppColors.dark100 : AppColors.dark900),
-                fontWeight: AppTypography.weightBlack,
-                fontSize: size * 0.4,
-              ),
-            )
-          : null,
+      borderColor: player.isCaptain ? AppColors.amber500 : null,
+      borderWidth: player.isCaptain ? 2.0 : null,
     );
   }
 }
@@ -88,6 +70,7 @@ class GroupingPlayerTile extends ConsumerWidget {
   final String? matchSide; // [NEW] Side A or B for Match Play
   final int? phcOverride;
   final bool hasGuestInGroup; // [NEW] Member who brought a guest
+  final bool isEventClosed; // [NEW] surfaced only once admin has confirmed cards and closed the game
 
   const GroupingPlayerTile({
     super.key,
@@ -115,8 +98,9 @@ class GroupingPlayerTile extends ConsumerWidget {
     this.handicapIndex,
     this.scoringStatus = ScoringStatus.ok,
     this.hasSocietyCut = false,
-    this.isStableford = true,
+    this.isStableford = false,
     this.hasGuestInGroup = false,
+    this.isEventClosed = false,
   });
 
   @override
@@ -168,17 +152,18 @@ class GroupingPlayerTile extends ConsumerWidget {
       matchSide: config.showMatchPlayOverlay ? matchSide : null,
       varietyPillarColor: varietyColor,
       hasSocietyCut: hasSocietyCut,
-      tieBreakLabel: tieBreakLabel,
       thruLabel: thruLabel,
       score: hasScore ? scoreDisplay : null,
       isStableford: isStableford,
       scoreColor: null,
+      tieBreakLabel: isEventClosed ? tieBreakLabel : null,
       teeName: player.teeName,
       teeColor: teeColor,
       onTeeTap: isAdmin ? () => onAction?.call('tee', player, group) : null,
       onTap: onTap,
       isSelected: isSelected,
       useCard: useCard,
+      showTee: !isScoreMode,
       showVerticalDivider: true,
       showChevron: false,
       accentColor: null,
@@ -256,7 +241,7 @@ class GroupingPlayerTile extends ConsumerWidget {
       children: [
         BoxyArtAvatar(
           url: member?.avatarUrl,
-          initials: player.name,
+          initials: extractInitials(player.name),
           radius: 38, // Standardized 76px diameter for premium cards
           isCircle: true,
           borderColor: Colors.transparent, // Removed thin distinguisher borders
@@ -352,7 +337,7 @@ class GroupingCard extends ConsumerWidget {
   final Map<String, int>? phcMap; // [NEW] Explicit PHC overrides (Team PHCs)
   final bool matchPlayMode;
   final List<MatchDefinition> matches;
-  final Map<String, String>? betterBallMap;
+  final Map<String, List<int?>>? betterBallMap;
   final Map<String, String>? tieBreakMap;
   final Map<String, String>? thruMap;
   final Map<String, double>? hcMap;
@@ -361,6 +346,7 @@ class GroupingCard extends ConsumerWidget {
   final bool showScoring; // [NEW] Master toggle for hiding all scores/winners in organization views
   final Map<String, ProcessedLeaderboardEntry>? computedEntries; // [NEW] Centralized results lookup
   final Map<int, ProcessedGroupResult>? computedGroupResults; // [NEW] Centralized group results lookup
+  final bool isEventClosed; // [NEW]
 
   const GroupingCard({
     super.key,
@@ -395,6 +381,7 @@ class GroupingCard extends ConsumerWidget {
     this.showScoring = true,
     this.computedEntries,
     this.computedGroupResults,
+    this.isEventClosed = false,
   });
 
   @override
@@ -402,7 +389,6 @@ class GroupingCard extends ConsumerWidget {
     final config = ref.watch(themeControllerProvider);
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final spacing = Theme.of(context).extension<AppSpacingTokens>();
-    final hPadding = (spacing?.cardHorizontalPadding ?? AppSpacing.lg) * 0.8;
 
     
     // 1. Calculate Total PHC dynamically
@@ -595,9 +581,11 @@ class GroupingCard extends ConsumerWidget {
                 hasGuestInGroup: hasGuestInGroupP,
                 matchSide: side,
                 useCard: useCard,
+                isStableford: rules?.format == CompetitionFormat.stableford,
                 phcOverride: (isScramble || rules?.subtype == CompetitionSubtype.foursomes) 
                     ? displayTotalHandicap.toInt() 
                     : (isScoreMode ? relativePhcMap[id] : null),
+                isEventClosed: isEventClosed,
               );
             }
 
@@ -748,6 +736,8 @@ class GroupingCard extends ConsumerWidget {
                   phcOverride: (isScramble || rules?.subtype == CompetitionSubtype.foursomes)
                       ? displayTotalHandicap.toInt()
                       : (isScoreMode ? relativePhcMap[id] : null),
+                  isStableford: isStableford,
+                  isEventClosed: isEventClosed,
                 );
 
                 Widget playerWidget = isAdmin ? _wrapWithDraggable(context, p, baseTile) : baseTile;
@@ -933,6 +923,7 @@ class PodiumEntry {
   final int rank;
   final int groupIndex; // [NEW] Link to actual group
   final String? tieBreakLabel;
+  final String? formatLabel; // [NEW] e.g. "Best 3"
 
   PodiumEntry({
     required this.name,
@@ -940,6 +931,7 @@ class PodiumEntry {
     required this.rank,
     required this.groupIndex,
     this.tieBreakLabel,
+    this.formatLabel,
   });
 }
 
@@ -958,14 +950,10 @@ class GroupingPodiumHeader extends ConsumerWidget {
     if (entries.isEmpty) return const SizedBox.shrink();
 
     return Container(
-      padding: EdgeInsets.only(bottom: Theme.of(context).extension<AppSpacingTokens>()?.groupFooterToLabel ?? AppSpacing.x2l),
+      padding: EdgeInsets.zero,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const BoxyArtSectionTitle(
-            title: 'Group Results',
-            topPadding: 0,
-          ),
           Row(
             children: entries.asMap().entries.map((item) {
               final idx = item.key;
@@ -973,8 +961,8 @@ class GroupingPodiumHeader extends ConsumerWidget {
               return Expanded(
                 child: Padding(
                   padding: EdgeInsets.only(
-                    left: idx == 0 ? 0 : 4,
-                    right: idx == entries.length - 1 ? 0 : 4,
+                    left: idx == 0 ? 0 : AppSpacing.sm,
+                    right: idx == entries.length - 1 ? 0 : AppSpacing.sm,
                   ),
                   child: _buildPodiumCard(context, ref, entry),
                 ),
@@ -988,6 +976,7 @@ class GroupingPodiumHeader extends ConsumerWidget {
 
   Widget _buildPodiumCard(BuildContext context, WidgetRef ref, PodiumEntry entry) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final config = ref.watch(themeControllerProvider);
 
     Color rankColor = isDark ? AppColors.dark400 : AppColors.dark300;
     if (entry.rank == 1) rankColor = AppColors.amber500;
@@ -997,80 +986,76 @@ class GroupingPodiumHeader extends ConsumerWidget {
     return GestureDetector(
       onTap: () => onTap?.call(entry.groupIndex),
       child: BoxyArtCard(
-        padding: EdgeInsets.zero,
-        showShadow: false,
-        border: Border.all(
-          color: isDark ? AppColors.dark500 : AppColors.lightBorder, 
-          width: AppShapes.borderThin,
-        ),
-        backgroundColor: isDark ? AppColors.dark150 : AppColors.pureWhite,
-        child: Padding(
-          padding: const EdgeInsets.all(AppSpacing.lg), // Increased from md
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            '#${entry.rank}',
-                            style: AppTypography.label.copyWith(
-                              color: rankColor,
-                              fontFamily: 'Plus Jakarta Sans',
-                              fontSize: 14,
-                              fontWeight: AppTypography.weightBlack,
-                              letterSpacing: 0.5,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: AppSpacing.xs), // Standardize gap
-                      Text(
-                        toTitleCase(entry.name),
-                        textAlign: TextAlign.center,
-                        style: AppTypography.caption.copyWith(
-                          fontWeight: AppTypography.weightExtraBold,
-                          fontSize: 16, // Increased from 13
-                          color: isDark ? AppColors.dark150 : AppColors.dark400,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: AppSpacing.md), // Added space between name and score
-                      FittedBox(
-                        fit: BoxFit.scaleDown,
-                        alignment: Alignment.center,
-                        child: Column(
-                          children: [
-                            Text(
-                              entry.score,
-                              style: AppTypography.displaySection.copyWith(
-                                fontFamily: 'Plus Jakarta Sans',
-                                fontSize: 22,
-                                height: 1.1,
-                                fontWeight: AppTypography.weightBlack,
-                                letterSpacing: -0.5,
-                                color: Color(ref.watch(themeControllerProvider).effectivePointsColor),
-                              ),
-                            ),
-                            if (entry.tieBreakLabel != null)
-                              Padding(
-                                padding: const EdgeInsets.only(top: 2),
-                                child: Text(
-                                  entry.tieBreakLabel!,
-                                  style: AppTypography.micro.copyWith(
-                                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                                    fontWeight: AppTypography.weightBold,
-                                    letterSpacing: 1.0,
-                                  ),
-                                ),
-                              ),
-                          ],
-                        ),
-                      ),
-                    ],
+        padding: const EdgeInsets.symmetric(vertical: AppSpacing.x2l, horizontal: AppSpacing.md),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Text(
+              '#${entry.rank}',
+              style: AppTypography.label.copyWith(
+                color: rankColor,
+                fontFamily: 'Plus Jakarta Sans',
+                fontSize: 18,
+                fontWeight: AppTypography.weightBlack,
+                letterSpacing: 0.5,
+              ),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            Text(
+              toTitleCase(entry.name),
+              textAlign: TextAlign.center,
+              style: AppTypography.displaySection.copyWith(
+                color: isDark ? AppColors.pureWhite : AppColors.dark900,
+                fontSize: 20,
+                fontWeight: AppTypography.weightExtraBold,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+            const SizedBox(height: AppSpacing.lg),
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.center,
+              child: Column(
+                children: [
+                  Text(
+                    entry.score,
+                    style: AppTypography.displayHeading.copyWith(
+                      fontSize: 32,
+                      fontWeight: AppTypography.weightBlack,
+                      color: Color(config.effectivePointsColor),
+                    ),
                   ),
-          ),
+                  if (entry.tieBreakLabel != null)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 2),
+                      child: Text(
+                        entry.tieBreakLabel!.toUpperCase(),
+                        style: AppTypography.micro.copyWith(
+                          color: (isDark ? AppColors.pureWhite : AppColors.dark900).withValues(alpha: 0.4),
+                          fontWeight: AppTypography.weightBold,
+                          letterSpacing: 1.0,
+                        ),
+                      ),
+                    ),
+                  if (entry.formatLabel != null)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 6),
+                      child: Text(
+                        entry.formatLabel!.toUpperCase(),
+                        style: AppTypography.micro.copyWith(
+                          fontSize: 8,
+                          color: AppColors.dark300,
+                          fontWeight: AppTypography.weightExtraBold,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

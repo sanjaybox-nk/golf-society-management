@@ -120,7 +120,16 @@ abstract class SocietyConfig with _$SocietyConfig {
     @Default(<FinancialEntry>[]) List<FinancialEntry> ledgerEntries, // [NEW] Society-level sponsorships & donations
     @Default(<Sponsor>[]) List<Sponsor> sponsors, // [NEW] Central sponsorship hub
     int? pointsColor, // [NEW] Stableford points emphasis color
-    @Default(0xFFF7D354) int heroGradientColor, // [NEW] Hero card graduated background color
+    @Default(0xFFF7D354) int heroGradientColor, // [NEW] Hero card primary color
+    @Default(0xFFF7D354) int heroGradientColorSecondary, // [NEW] Hero card secondary color
+    @Default(0.15) double heroGradientOpacity, // [NEW] Hero card base opacity (0.0 to 1.0)
+    @Default(0xFF1A1A1A) int heroTextColor, // [NEW] Explicit text color for hero cards
+    @Default(0xFFF7D354) int cardTintColor, // [NEW] Explicit color for background tinting
+    @Default(0xFF1A1A1A) int iconBadgeTextColor, // [NEW] Color for text inside badges/icons
+    @Default(false) bool enablePenaltyFines, // [NEW] Toggle for Charity Pot / Fines
+    @Default(1.0) double penaltyFineAmount, // [NEW] Cost per penalty stroke
+    @Default(5.0) double nrFineAmount, // [NEW] Cost for a Pick Up / NR
+    @Default(true) bool enableGimmes, // [NEW] Toggle for Gimme tracking
   }) = _SocietyConfig;
 
   const SocietyConfig._();

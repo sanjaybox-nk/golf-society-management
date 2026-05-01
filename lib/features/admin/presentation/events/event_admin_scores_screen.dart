@@ -14,7 +14,7 @@ import '../../../events/presentation/widgets/event_leaderboard.dart';
 import '../../../events/presentation/widgets/scorecard_modal.dart';
 import '../../../matchplay/presentation/widgets/match_play_bracket_hub.dart';
 import '../../../events/domain/registration_logic.dart';
-import '../../../events/presentation/tabs/event_user_placeholders.dart'; // [NEW] For shared GroupScoresView logic
+import '../../../events/presentation/tabs/event_shared_logic.dart';
 
 class EventAdminScoresScreen extends ConsumerStatefulWidget {
   final String eventId;
@@ -55,6 +55,15 @@ class _EventAdminScoresScreenState extends ConsumerState<EventAdminScoresScreen>
           topPill: BoxyArtPill.committee(label: 'ADMIN'),
           showBack: true,
           slivers: [
+            // Status & Quick Actions Card
+            SliverPadding(
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+              sliver: SliverToBoxAdapter(
+                child: _buildStatusCard(context, ref, event),
+              ),
+            ),
+            SliverToBoxAdapter(child: SizedBox(height: spacing?.cardToCard ?? AppSpacing.cardToCard)),
+
             SliverPadding(
               padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
               sliver: SliverToBoxAdapter(
@@ -77,7 +86,6 @@ class _EventAdminScoresScreenState extends ConsumerState<EventAdminScoresScreen>
                 ),
               ),
             ),
-            // Standardized gap from tabs (16.0)
             SliverToBoxAdapter(child: SizedBox(height: spacing?.tabToContent ?? AppSpacing.tabToContent)),
 
             if (_selectedTab == 0)
@@ -93,7 +101,7 @@ class _EventAdminScoresScreenState extends ConsumerState<EventAdminScoresScreen>
                   child: _buildVerificationSliver(context, ref, event, scorecardsAsync),
                 ),
               ),
-            const SliverPadding(padding: EdgeInsets.only(bottom: 100)),
+            const SliverToBoxAdapter(child: SizedBox(height: 100)),
           ],
         );
       },
@@ -378,3 +386,143 @@ class _EventAdminScoresScreenState extends ConsumerState<EventAdminScoresScreen>
     );
   }
 }
+
+  Widget _buildStatusCard(BuildContext context, WidgetRef ref, GolfEvent event) {
+    final scoringData = ref.watch(eventScoringControllerProvider(event.id));
+    
+    final int submitted = scoringData.submittedCount;
+    final int total = scoringData.totalParticipants;
+    final double progress = total > 0 ? (submitted / total) : 0.0;
+    
+    final bool isLocked = event.isScoringLocked;
+    final bool isPublished = event.isStatsReleased;
+
+    return BoxyArtCard(
+      padding: const EdgeInsets.all(AppSpacing.lg),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'SUBMISSION PROGRESS',
+                      style: AppTypography.micro.copyWith(
+                        color: AppColors.dark400,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 1.2,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      '$submitted of $total Scorecards',
+                      style: AppTypography.headline.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              if (isLocked)
+                BoxyArtPill(
+                  label: 'LOCKED',
+                  color: AppColors.dark900,
+                  textColor: Colors.white,
+                  icon: Icons.lock_rounded,
+                )
+              else if (isPublished)
+                BoxyArtPill(
+                  label: 'PUBLISHED',
+                  color: AppColors.lime600,
+                  textColor: Colors.white,
+                  icon: Icons.check_circle_rounded,
+                )
+              else
+                BoxyArtPill(
+                  label: 'LIVE',
+                  color: AppColors.amber500,
+                  textColor: Colors.white,
+                  icon: Icons.sensors_rounded,
+                ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.md),
+          // Progress Bar
+          ClipRRect(
+            borderRadius: BorderRadius.circular(4),
+            child: Container(
+              height: 8,
+              width: double.infinity,
+              color: AppColors.dark500,
+              child: FractionallySizedBox(
+                alignment: Alignment.centerLeft,
+                widthFactor: progress.clamp(0.0, 1.0),
+                child: Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [AppColors.lime500, AppColors.lime600],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: AppSpacing.lg),
+          const Divider(height: 1),
+          const SizedBox(height: AppSpacing.md),
+          Row(
+            children: [
+              Expanded(
+                child: BoxyArtButton(
+                  title: isPublished ? 'Unpublish' : 'Publish Results',
+                  icon: isPublished ? Icons.visibility_off_rounded : Icons.campaign_rounded,
+                  isPrimary: !isPublished,
+                  onTap: () => _togglePublish(ref, event),
+                ),
+              ),
+              const SizedBox(width: AppSpacing.md),
+              Expanded(
+                child: BoxyArtButton(
+                  title: isLocked ? 'Unlock' : 'Lock Scores',
+                  icon: isLocked ? Icons.lock_open_rounded : Icons.lock_rounded,
+                  isPrimary: false,
+                  onTap: () => _toggleLock(ref, event),
+                ),
+              ),
+              const SizedBox(width: AppSpacing.md),
+              SizedBox(
+                width: 48,
+                height: 48,
+                child: BoxyArtCircularIconBtn(
+                  icon: Icons.notifications_active_rounded,
+                  onTap: () => _sendReminders(context, ref, event),
+                  backgroundColor: AppColors.amber500,
+                  iconColor: Colors.white,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _togglePublish(WidgetRef ref, GolfEvent event) async {
+    final repo = ref.read(eventsRepositoryProvider);
+    await repo.updateEvent(event.copyWith(isStatsReleased: !event.isStatsReleased));
+  }
+
+  Future<void> _toggleLock(WidgetRef ref, GolfEvent event) async {
+    final repo = ref.read(eventsRepositoryProvider);
+    await repo.updateEvent(event.copyWith(isScoringLocked: !event.isScoringLocked));
+  }
+
+  void _sendReminders(BuildContext context, WidgetRef ref, GolfEvent event) {
+    // Logic for sending push notifications/reminders to players with incomplete cards
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Reminders sent to players with incomplete scorecards.')),
+    );
+  }

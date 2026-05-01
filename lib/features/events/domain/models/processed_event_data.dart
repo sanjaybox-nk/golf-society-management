@@ -69,11 +69,14 @@ abstract class ProcessedLeaderboardEntry with _$ProcessedLeaderboardEntry {
     @Default(ScoringStatus.ok) ScoringStatus scoringStatus,
     double? handicapIndex,
     String? tieBreakLabel,
+    String? thruLabel, // [NEW]
     String? matchStatus, // [NEW] e.g. "WIN 7 & 6", "2 UP", "AS"
     int? matchScore, // [NEW] lead tracking
     @Default(false) bool isMatch, // [NEW] flag for match play entries
     String? teeName, // [NEW]
     String? teeColor, // [NEW]
+    int? absoluteScore, // [NEW]
+    String? absoluteScoreLabel, // [NEW]
   }) = _ProcessedLeaderboardEntry;
 
   factory ProcessedLeaderboardEntry.fromJson(Map<String, dynamic> json) =>
@@ -91,6 +94,9 @@ abstract class ProcessedEventData with _$ProcessedEventData {
     required List<int> holePars,
     @Default(0) int computeVersion,
     required DateTime lastComputedAt,
+    @Default(0) int totalParticipants,
+    @Default(0) int submittedCount,
+    @Default(0) int inProgressCount,
   }) = _ProcessedEventData;
 
   factory ProcessedEventData.fromJson(Map<String, dynamic> json) =>

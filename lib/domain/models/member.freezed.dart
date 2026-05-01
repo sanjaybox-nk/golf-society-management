@@ -22,7 +22,9 @@ mixin _$Member {
  MemberRenewalStatus get renewalStatus;// [NEW] Member renewal choice
  bool get allowSocialEventsOnly;// [NEW] Master switch for suspended members
 @OptionalTimestampConverter() DateTime? get lastNudgedAt;// [NEW] Track recent renewal nudges
- int get nudgeCount;
+ int get nudgeCount;// [NEW] Track frequency of nudges
+ List<double> get handicapHistory;// [NEW] For trend analysis
+ bool get isFoundingMember;
 /// Create a copy of Member
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -35,16 +37,16 @@ $MemberCopyWith<Member> get copyWith => _$MemberCopyWithImpl<Member>(this as Mem
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Member&&(identical(other.id, id) || other.id == id)&&(identical(other.firstName, firstName) || other.firstName == firstName)&&(identical(other.lastName, lastName) || other.lastName == lastName)&&(identical(other.email, email) || other.email == email)&&(identical(other.nickname, nickname) || other.nickname == nickname)&&(identical(other.phone, phone) || other.phone == phone)&&(identical(other.address, address) || other.address == address)&&(identical(other.bio, bio) || other.bio == bio)&&(identical(other.avatarUrl, avatarUrl) || other.avatarUrl == avatarUrl)&&(identical(other.handicap, handicap) || other.handicap == handicap)&&(identical(other.handicapId, handicapId) || other.handicapId == handicapId)&&(identical(other.isHandicapLocked, isHandicapLocked) || other.isHandicapLocked == isHandicapLocked)&&(identical(other.role, role) || other.role == role)&&(identical(other.societyRole, societyRole) || other.societyRole == societyRole)&&(identical(other.status, status) || other.status == status)&&(identical(other.hasPaid, hasPaid) || other.hasPaid == hasPaid)&&(identical(other.isArchived, isArchived) || other.isArchived == isArchived)&&(identical(other.accountCredit, accountCredit) || other.accountCredit == accountCredit)&&(identical(other.gender, gender) || other.gender == gender)&&(identical(other.joinedDate, joinedDate) || other.joinedDate == joinedDate)&&(identical(other.membershipEndDate, membershipEndDate) || other.membershipEndDate == membershipEndDate)&&(identical(other.renewalStatus, renewalStatus) || other.renewalStatus == renewalStatus)&&(identical(other.allowSocialEventsOnly, allowSocialEventsOnly) || other.allowSocialEventsOnly == allowSocialEventsOnly)&&(identical(other.lastNudgedAt, lastNudgedAt) || other.lastNudgedAt == lastNudgedAt)&&(identical(other.nudgeCount, nudgeCount) || other.nudgeCount == nudgeCount));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Member&&(identical(other.id, id) || other.id == id)&&(identical(other.firstName, firstName) || other.firstName == firstName)&&(identical(other.lastName, lastName) || other.lastName == lastName)&&(identical(other.email, email) || other.email == email)&&(identical(other.nickname, nickname) || other.nickname == nickname)&&(identical(other.phone, phone) || other.phone == phone)&&(identical(other.address, address) || other.address == address)&&(identical(other.bio, bio) || other.bio == bio)&&(identical(other.avatarUrl, avatarUrl) || other.avatarUrl == avatarUrl)&&(identical(other.handicap, handicap) || other.handicap == handicap)&&(identical(other.handicapId, handicapId) || other.handicapId == handicapId)&&(identical(other.isHandicapLocked, isHandicapLocked) || other.isHandicapLocked == isHandicapLocked)&&(identical(other.role, role) || other.role == role)&&(identical(other.societyRole, societyRole) || other.societyRole == societyRole)&&(identical(other.status, status) || other.status == status)&&(identical(other.hasPaid, hasPaid) || other.hasPaid == hasPaid)&&(identical(other.isArchived, isArchived) || other.isArchived == isArchived)&&(identical(other.accountCredit, accountCredit) || other.accountCredit == accountCredit)&&(identical(other.gender, gender) || other.gender == gender)&&(identical(other.joinedDate, joinedDate) || other.joinedDate == joinedDate)&&(identical(other.membershipEndDate, membershipEndDate) || other.membershipEndDate == membershipEndDate)&&(identical(other.renewalStatus, renewalStatus) || other.renewalStatus == renewalStatus)&&(identical(other.allowSocialEventsOnly, allowSocialEventsOnly) || other.allowSocialEventsOnly == allowSocialEventsOnly)&&(identical(other.lastNudgedAt, lastNudgedAt) || other.lastNudgedAt == lastNudgedAt)&&(identical(other.nudgeCount, nudgeCount) || other.nudgeCount == nudgeCount)&&const DeepCollectionEquality().equals(other.handicapHistory, handicapHistory)&&(identical(other.isFoundingMember, isFoundingMember) || other.isFoundingMember == isFoundingMember));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hashAll([runtimeType,id,firstName,lastName,email,nickname,phone,address,bio,avatarUrl,handicap,handicapId,isHandicapLocked,role,societyRole,status,hasPaid,isArchived,accountCredit,gender,joinedDate,membershipEndDate,renewalStatus,allowSocialEventsOnly,lastNudgedAt,nudgeCount]);
+int get hashCode => Object.hashAll([runtimeType,id,firstName,lastName,email,nickname,phone,address,bio,avatarUrl,handicap,handicapId,isHandicapLocked,role,societyRole,status,hasPaid,isArchived,accountCredit,gender,joinedDate,membershipEndDate,renewalStatus,allowSocialEventsOnly,lastNudgedAt,nudgeCount,const DeepCollectionEquality().hash(handicapHistory),isFoundingMember]);
 
 @override
 String toString() {
-  return 'Member(id: $id, firstName: $firstName, lastName: $lastName, email: $email, nickname: $nickname, phone: $phone, address: $address, bio: $bio, avatarUrl: $avatarUrl, handicap: $handicap, handicapId: $handicapId, isHandicapLocked: $isHandicapLocked, role: $role, societyRole: $societyRole, status: $status, hasPaid: $hasPaid, isArchived: $isArchived, accountCredit: $accountCredit, gender: $gender, joinedDate: $joinedDate, membershipEndDate: $membershipEndDate, renewalStatus: $renewalStatus, allowSocialEventsOnly: $allowSocialEventsOnly, lastNudgedAt: $lastNudgedAt, nudgeCount: $nudgeCount)';
+  return 'Member(id: $id, firstName: $firstName, lastName: $lastName, email: $email, nickname: $nickname, phone: $phone, address: $address, bio: $bio, avatarUrl: $avatarUrl, handicap: $handicap, handicapId: $handicapId, isHandicapLocked: $isHandicapLocked, role: $role, societyRole: $societyRole, status: $status, hasPaid: $hasPaid, isArchived: $isArchived, accountCredit: $accountCredit, gender: $gender, joinedDate: $joinedDate, membershipEndDate: $membershipEndDate, renewalStatus: $renewalStatus, allowSocialEventsOnly: $allowSocialEventsOnly, lastNudgedAt: $lastNudgedAt, nudgeCount: $nudgeCount, handicapHistory: $handicapHistory, isFoundingMember: $isFoundingMember)';
 }
 
 
@@ -55,7 +57,7 @@ abstract mixin class $MemberCopyWith<$Res>  {
   factory $MemberCopyWith(Member value, $Res Function(Member) _then) = _$MemberCopyWithImpl;
 @useResult
 $Res call({
- String id, String firstName, String lastName, String email, String? nickname, String? phone, String? address, String? bio, String? avatarUrl, double handicap, String? handicapId, bool isHandicapLocked, MemberRole role, String? societyRole, MemberStatus status, bool hasPaid, bool isArchived, double accountCredit, String? gender,@OptionalTimestampConverter() DateTime? joinedDate,@OptionalTimestampConverter() DateTime? membershipEndDate, MemberRenewalStatus renewalStatus, bool allowSocialEventsOnly,@OptionalTimestampConverter() DateTime? lastNudgedAt, int nudgeCount
+ String id, String firstName, String lastName, String email, String? nickname, String? phone, String? address, String? bio, String? avatarUrl, double handicap, String? handicapId, bool isHandicapLocked, MemberRole role, String? societyRole, MemberStatus status, bool hasPaid, bool isArchived, double accountCredit, String? gender,@OptionalTimestampConverter() DateTime? joinedDate,@OptionalTimestampConverter() DateTime? membershipEndDate, MemberRenewalStatus renewalStatus, bool allowSocialEventsOnly,@OptionalTimestampConverter() DateTime? lastNudgedAt, int nudgeCount, List<double> handicapHistory, bool isFoundingMember
 });
 
 
@@ -72,7 +74,7 @@ class _$MemberCopyWithImpl<$Res>
 
 /// Create a copy of Member
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? firstName = null,Object? lastName = null,Object? email = null,Object? nickname = freezed,Object? phone = freezed,Object? address = freezed,Object? bio = freezed,Object? avatarUrl = freezed,Object? handicap = null,Object? handicapId = freezed,Object? isHandicapLocked = null,Object? role = null,Object? societyRole = freezed,Object? status = null,Object? hasPaid = null,Object? isArchived = null,Object? accountCredit = null,Object? gender = freezed,Object? joinedDate = freezed,Object? membershipEndDate = freezed,Object? renewalStatus = null,Object? allowSocialEventsOnly = null,Object? lastNudgedAt = freezed,Object? nudgeCount = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? firstName = null,Object? lastName = null,Object? email = null,Object? nickname = freezed,Object? phone = freezed,Object? address = freezed,Object? bio = freezed,Object? avatarUrl = freezed,Object? handicap = null,Object? handicapId = freezed,Object? isHandicapLocked = null,Object? role = null,Object? societyRole = freezed,Object? status = null,Object? hasPaid = null,Object? isArchived = null,Object? accountCredit = null,Object? gender = freezed,Object? joinedDate = freezed,Object? membershipEndDate = freezed,Object? renewalStatus = null,Object? allowSocialEventsOnly = null,Object? lastNudgedAt = freezed,Object? nudgeCount = null,Object? handicapHistory = null,Object? isFoundingMember = null,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,firstName: null == firstName ? _self.firstName : firstName // ignore: cast_nullable_to_non_nullable
@@ -99,7 +101,9 @@ as DateTime?,renewalStatus: null == renewalStatus ? _self.renewalStatus : renewa
 as MemberRenewalStatus,allowSocialEventsOnly: null == allowSocialEventsOnly ? _self.allowSocialEventsOnly : allowSocialEventsOnly // ignore: cast_nullable_to_non_nullable
 as bool,lastNudgedAt: freezed == lastNudgedAt ? _self.lastNudgedAt : lastNudgedAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,nudgeCount: null == nudgeCount ? _self.nudgeCount : nudgeCount // ignore: cast_nullable_to_non_nullable
-as int,
+as int,handicapHistory: null == handicapHistory ? _self.handicapHistory : handicapHistory // ignore: cast_nullable_to_non_nullable
+as List<double>,isFoundingMember: null == isFoundingMember ? _self.isFoundingMember : isFoundingMember // ignore: cast_nullable_to_non_nullable
+as bool,
   ));
 }
 
@@ -184,10 +188,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String firstName,  String lastName,  String email,  String? nickname,  String? phone,  String? address,  String? bio,  String? avatarUrl,  double handicap,  String? handicapId,  bool isHandicapLocked,  MemberRole role,  String? societyRole,  MemberStatus status,  bool hasPaid,  bool isArchived,  double accountCredit,  String? gender, @OptionalTimestampConverter()  DateTime? joinedDate, @OptionalTimestampConverter()  DateTime? membershipEndDate,  MemberRenewalStatus renewalStatus,  bool allowSocialEventsOnly, @OptionalTimestampConverter()  DateTime? lastNudgedAt,  int nudgeCount)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String firstName,  String lastName,  String email,  String? nickname,  String? phone,  String? address,  String? bio,  String? avatarUrl,  double handicap,  String? handicapId,  bool isHandicapLocked,  MemberRole role,  String? societyRole,  MemberStatus status,  bool hasPaid,  bool isArchived,  double accountCredit,  String? gender, @OptionalTimestampConverter()  DateTime? joinedDate, @OptionalTimestampConverter()  DateTime? membershipEndDate,  MemberRenewalStatus renewalStatus,  bool allowSocialEventsOnly, @OptionalTimestampConverter()  DateTime? lastNudgedAt,  int nudgeCount,  List<double> handicapHistory,  bool isFoundingMember)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Member() when $default != null:
-return $default(_that.id,_that.firstName,_that.lastName,_that.email,_that.nickname,_that.phone,_that.address,_that.bio,_that.avatarUrl,_that.handicap,_that.handicapId,_that.isHandicapLocked,_that.role,_that.societyRole,_that.status,_that.hasPaid,_that.isArchived,_that.accountCredit,_that.gender,_that.joinedDate,_that.membershipEndDate,_that.renewalStatus,_that.allowSocialEventsOnly,_that.lastNudgedAt,_that.nudgeCount);case _:
+return $default(_that.id,_that.firstName,_that.lastName,_that.email,_that.nickname,_that.phone,_that.address,_that.bio,_that.avatarUrl,_that.handicap,_that.handicapId,_that.isHandicapLocked,_that.role,_that.societyRole,_that.status,_that.hasPaid,_that.isArchived,_that.accountCredit,_that.gender,_that.joinedDate,_that.membershipEndDate,_that.renewalStatus,_that.allowSocialEventsOnly,_that.lastNudgedAt,_that.nudgeCount,_that.handicapHistory,_that.isFoundingMember);case _:
   return orElse();
 
 }
@@ -205,10 +209,10 @@ return $default(_that.id,_that.firstName,_that.lastName,_that.email,_that.nickna
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String firstName,  String lastName,  String email,  String? nickname,  String? phone,  String? address,  String? bio,  String? avatarUrl,  double handicap,  String? handicapId,  bool isHandicapLocked,  MemberRole role,  String? societyRole,  MemberStatus status,  bool hasPaid,  bool isArchived,  double accountCredit,  String? gender, @OptionalTimestampConverter()  DateTime? joinedDate, @OptionalTimestampConverter()  DateTime? membershipEndDate,  MemberRenewalStatus renewalStatus,  bool allowSocialEventsOnly, @OptionalTimestampConverter()  DateTime? lastNudgedAt,  int nudgeCount)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String firstName,  String lastName,  String email,  String? nickname,  String? phone,  String? address,  String? bio,  String? avatarUrl,  double handicap,  String? handicapId,  bool isHandicapLocked,  MemberRole role,  String? societyRole,  MemberStatus status,  bool hasPaid,  bool isArchived,  double accountCredit,  String? gender, @OptionalTimestampConverter()  DateTime? joinedDate, @OptionalTimestampConverter()  DateTime? membershipEndDate,  MemberRenewalStatus renewalStatus,  bool allowSocialEventsOnly, @OptionalTimestampConverter()  DateTime? lastNudgedAt,  int nudgeCount,  List<double> handicapHistory,  bool isFoundingMember)  $default,) {final _that = this;
 switch (_that) {
 case _Member():
-return $default(_that.id,_that.firstName,_that.lastName,_that.email,_that.nickname,_that.phone,_that.address,_that.bio,_that.avatarUrl,_that.handicap,_that.handicapId,_that.isHandicapLocked,_that.role,_that.societyRole,_that.status,_that.hasPaid,_that.isArchived,_that.accountCredit,_that.gender,_that.joinedDate,_that.membershipEndDate,_that.renewalStatus,_that.allowSocialEventsOnly,_that.lastNudgedAt,_that.nudgeCount);case _:
+return $default(_that.id,_that.firstName,_that.lastName,_that.email,_that.nickname,_that.phone,_that.address,_that.bio,_that.avatarUrl,_that.handicap,_that.handicapId,_that.isHandicapLocked,_that.role,_that.societyRole,_that.status,_that.hasPaid,_that.isArchived,_that.accountCredit,_that.gender,_that.joinedDate,_that.membershipEndDate,_that.renewalStatus,_that.allowSocialEventsOnly,_that.lastNudgedAt,_that.nudgeCount,_that.handicapHistory,_that.isFoundingMember);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -225,10 +229,10 @@ return $default(_that.id,_that.firstName,_that.lastName,_that.email,_that.nickna
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String firstName,  String lastName,  String email,  String? nickname,  String? phone,  String? address,  String? bio,  String? avatarUrl,  double handicap,  String? handicapId,  bool isHandicapLocked,  MemberRole role,  String? societyRole,  MemberStatus status,  bool hasPaid,  bool isArchived,  double accountCredit,  String? gender, @OptionalTimestampConverter()  DateTime? joinedDate, @OptionalTimestampConverter()  DateTime? membershipEndDate,  MemberRenewalStatus renewalStatus,  bool allowSocialEventsOnly, @OptionalTimestampConverter()  DateTime? lastNudgedAt,  int nudgeCount)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String firstName,  String lastName,  String email,  String? nickname,  String? phone,  String? address,  String? bio,  String? avatarUrl,  double handicap,  String? handicapId,  bool isHandicapLocked,  MemberRole role,  String? societyRole,  MemberStatus status,  bool hasPaid,  bool isArchived,  double accountCredit,  String? gender, @OptionalTimestampConverter()  DateTime? joinedDate, @OptionalTimestampConverter()  DateTime? membershipEndDate,  MemberRenewalStatus renewalStatus,  bool allowSocialEventsOnly, @OptionalTimestampConverter()  DateTime? lastNudgedAt,  int nudgeCount,  List<double> handicapHistory,  bool isFoundingMember)?  $default,) {final _that = this;
 switch (_that) {
 case _Member() when $default != null:
-return $default(_that.id,_that.firstName,_that.lastName,_that.email,_that.nickname,_that.phone,_that.address,_that.bio,_that.avatarUrl,_that.handicap,_that.handicapId,_that.isHandicapLocked,_that.role,_that.societyRole,_that.status,_that.hasPaid,_that.isArchived,_that.accountCredit,_that.gender,_that.joinedDate,_that.membershipEndDate,_that.renewalStatus,_that.allowSocialEventsOnly,_that.lastNudgedAt,_that.nudgeCount);case _:
+return $default(_that.id,_that.firstName,_that.lastName,_that.email,_that.nickname,_that.phone,_that.address,_that.bio,_that.avatarUrl,_that.handicap,_that.handicapId,_that.isHandicapLocked,_that.role,_that.societyRole,_that.status,_that.hasPaid,_that.isArchived,_that.accountCredit,_that.gender,_that.joinedDate,_that.membershipEndDate,_that.renewalStatus,_that.allowSocialEventsOnly,_that.lastNudgedAt,_that.nudgeCount,_that.handicapHistory,_that.isFoundingMember);case _:
   return null;
 
 }
@@ -240,7 +244,7 @@ return $default(_that.id,_that.firstName,_that.lastName,_that.email,_that.nickna
 @JsonSerializable()
 
 class _Member extends Member {
-  const _Member({required this.id, required this.firstName, required this.lastName, required this.email, this.nickname, this.phone, this.address, this.bio, this.avatarUrl, this.handicap = 0.0, this.handicapId, this.isHandicapLocked = false, this.role = MemberRole.member, this.societyRole, this.status = MemberStatus.member, this.hasPaid = false, this.isArchived = false, this.accountCredit = 0.0, this.gender, @OptionalTimestampConverter() this.joinedDate, @OptionalTimestampConverter() this.membershipEndDate, this.renewalStatus = MemberRenewalStatus.none, this.allowSocialEventsOnly = false, @OptionalTimestampConverter() this.lastNudgedAt, this.nudgeCount = 0}): super._();
+  const _Member({required this.id, required this.firstName, required this.lastName, required this.email, this.nickname, this.phone, this.address, this.bio, this.avatarUrl, this.handicap = 0.0, this.handicapId, this.isHandicapLocked = false, this.role = MemberRole.member, this.societyRole, this.status = MemberStatus.member, this.hasPaid = false, this.isArchived = false, this.accountCredit = 0.0, this.gender, @OptionalTimestampConverter() this.joinedDate, @OptionalTimestampConverter() this.membershipEndDate, this.renewalStatus = MemberRenewalStatus.none, this.allowSocialEventsOnly = false, @OptionalTimestampConverter() this.lastNudgedAt, this.nudgeCount = 0, final  List<double> handicapHistory = const [], this.isFoundingMember = false}): _handicapHistory = handicapHistory,super._();
   factory _Member.fromJson(Map<String, dynamic> json) => _$MemberFromJson(json);
 
 @override final  String id;
@@ -275,6 +279,17 @@ class _Member extends Member {
 @override@OptionalTimestampConverter() final  DateTime? lastNudgedAt;
 // [NEW] Track recent renewal nudges
 @override@JsonKey() final  int nudgeCount;
+// [NEW] Track frequency of nudges
+ final  List<double> _handicapHistory;
+// [NEW] Track frequency of nudges
+@override@JsonKey() List<double> get handicapHistory {
+  if (_handicapHistory is EqualUnmodifiableListView) return _handicapHistory;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_handicapHistory);
+}
+
+// [NEW] For trend analysis
+@override@JsonKey() final  bool isFoundingMember;
 
 /// Create a copy of Member
 /// with the given fields replaced by the non-null parameter values.
@@ -289,16 +304,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Member&&(identical(other.id, id) || other.id == id)&&(identical(other.firstName, firstName) || other.firstName == firstName)&&(identical(other.lastName, lastName) || other.lastName == lastName)&&(identical(other.email, email) || other.email == email)&&(identical(other.nickname, nickname) || other.nickname == nickname)&&(identical(other.phone, phone) || other.phone == phone)&&(identical(other.address, address) || other.address == address)&&(identical(other.bio, bio) || other.bio == bio)&&(identical(other.avatarUrl, avatarUrl) || other.avatarUrl == avatarUrl)&&(identical(other.handicap, handicap) || other.handicap == handicap)&&(identical(other.handicapId, handicapId) || other.handicapId == handicapId)&&(identical(other.isHandicapLocked, isHandicapLocked) || other.isHandicapLocked == isHandicapLocked)&&(identical(other.role, role) || other.role == role)&&(identical(other.societyRole, societyRole) || other.societyRole == societyRole)&&(identical(other.status, status) || other.status == status)&&(identical(other.hasPaid, hasPaid) || other.hasPaid == hasPaid)&&(identical(other.isArchived, isArchived) || other.isArchived == isArchived)&&(identical(other.accountCredit, accountCredit) || other.accountCredit == accountCredit)&&(identical(other.gender, gender) || other.gender == gender)&&(identical(other.joinedDate, joinedDate) || other.joinedDate == joinedDate)&&(identical(other.membershipEndDate, membershipEndDate) || other.membershipEndDate == membershipEndDate)&&(identical(other.renewalStatus, renewalStatus) || other.renewalStatus == renewalStatus)&&(identical(other.allowSocialEventsOnly, allowSocialEventsOnly) || other.allowSocialEventsOnly == allowSocialEventsOnly)&&(identical(other.lastNudgedAt, lastNudgedAt) || other.lastNudgedAt == lastNudgedAt)&&(identical(other.nudgeCount, nudgeCount) || other.nudgeCount == nudgeCount));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Member&&(identical(other.id, id) || other.id == id)&&(identical(other.firstName, firstName) || other.firstName == firstName)&&(identical(other.lastName, lastName) || other.lastName == lastName)&&(identical(other.email, email) || other.email == email)&&(identical(other.nickname, nickname) || other.nickname == nickname)&&(identical(other.phone, phone) || other.phone == phone)&&(identical(other.address, address) || other.address == address)&&(identical(other.bio, bio) || other.bio == bio)&&(identical(other.avatarUrl, avatarUrl) || other.avatarUrl == avatarUrl)&&(identical(other.handicap, handicap) || other.handicap == handicap)&&(identical(other.handicapId, handicapId) || other.handicapId == handicapId)&&(identical(other.isHandicapLocked, isHandicapLocked) || other.isHandicapLocked == isHandicapLocked)&&(identical(other.role, role) || other.role == role)&&(identical(other.societyRole, societyRole) || other.societyRole == societyRole)&&(identical(other.status, status) || other.status == status)&&(identical(other.hasPaid, hasPaid) || other.hasPaid == hasPaid)&&(identical(other.isArchived, isArchived) || other.isArchived == isArchived)&&(identical(other.accountCredit, accountCredit) || other.accountCredit == accountCredit)&&(identical(other.gender, gender) || other.gender == gender)&&(identical(other.joinedDate, joinedDate) || other.joinedDate == joinedDate)&&(identical(other.membershipEndDate, membershipEndDate) || other.membershipEndDate == membershipEndDate)&&(identical(other.renewalStatus, renewalStatus) || other.renewalStatus == renewalStatus)&&(identical(other.allowSocialEventsOnly, allowSocialEventsOnly) || other.allowSocialEventsOnly == allowSocialEventsOnly)&&(identical(other.lastNudgedAt, lastNudgedAt) || other.lastNudgedAt == lastNudgedAt)&&(identical(other.nudgeCount, nudgeCount) || other.nudgeCount == nudgeCount)&&const DeepCollectionEquality().equals(other._handicapHistory, _handicapHistory)&&(identical(other.isFoundingMember, isFoundingMember) || other.isFoundingMember == isFoundingMember));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hashAll([runtimeType,id,firstName,lastName,email,nickname,phone,address,bio,avatarUrl,handicap,handicapId,isHandicapLocked,role,societyRole,status,hasPaid,isArchived,accountCredit,gender,joinedDate,membershipEndDate,renewalStatus,allowSocialEventsOnly,lastNudgedAt,nudgeCount]);
+int get hashCode => Object.hashAll([runtimeType,id,firstName,lastName,email,nickname,phone,address,bio,avatarUrl,handicap,handicapId,isHandicapLocked,role,societyRole,status,hasPaid,isArchived,accountCredit,gender,joinedDate,membershipEndDate,renewalStatus,allowSocialEventsOnly,lastNudgedAt,nudgeCount,const DeepCollectionEquality().hash(_handicapHistory),isFoundingMember]);
 
 @override
 String toString() {
-  return 'Member(id: $id, firstName: $firstName, lastName: $lastName, email: $email, nickname: $nickname, phone: $phone, address: $address, bio: $bio, avatarUrl: $avatarUrl, handicap: $handicap, handicapId: $handicapId, isHandicapLocked: $isHandicapLocked, role: $role, societyRole: $societyRole, status: $status, hasPaid: $hasPaid, isArchived: $isArchived, accountCredit: $accountCredit, gender: $gender, joinedDate: $joinedDate, membershipEndDate: $membershipEndDate, renewalStatus: $renewalStatus, allowSocialEventsOnly: $allowSocialEventsOnly, lastNudgedAt: $lastNudgedAt, nudgeCount: $nudgeCount)';
+  return 'Member(id: $id, firstName: $firstName, lastName: $lastName, email: $email, nickname: $nickname, phone: $phone, address: $address, bio: $bio, avatarUrl: $avatarUrl, handicap: $handicap, handicapId: $handicapId, isHandicapLocked: $isHandicapLocked, role: $role, societyRole: $societyRole, status: $status, hasPaid: $hasPaid, isArchived: $isArchived, accountCredit: $accountCredit, gender: $gender, joinedDate: $joinedDate, membershipEndDate: $membershipEndDate, renewalStatus: $renewalStatus, allowSocialEventsOnly: $allowSocialEventsOnly, lastNudgedAt: $lastNudgedAt, nudgeCount: $nudgeCount, handicapHistory: $handicapHistory, isFoundingMember: $isFoundingMember)';
 }
 
 
@@ -309,7 +324,7 @@ abstract mixin class _$MemberCopyWith<$Res> implements $MemberCopyWith<$Res> {
   factory _$MemberCopyWith(_Member value, $Res Function(_Member) _then) = __$MemberCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String firstName, String lastName, String email, String? nickname, String? phone, String? address, String? bio, String? avatarUrl, double handicap, String? handicapId, bool isHandicapLocked, MemberRole role, String? societyRole, MemberStatus status, bool hasPaid, bool isArchived, double accountCredit, String? gender,@OptionalTimestampConverter() DateTime? joinedDate,@OptionalTimestampConverter() DateTime? membershipEndDate, MemberRenewalStatus renewalStatus, bool allowSocialEventsOnly,@OptionalTimestampConverter() DateTime? lastNudgedAt, int nudgeCount
+ String id, String firstName, String lastName, String email, String? nickname, String? phone, String? address, String? bio, String? avatarUrl, double handicap, String? handicapId, bool isHandicapLocked, MemberRole role, String? societyRole, MemberStatus status, bool hasPaid, bool isArchived, double accountCredit, String? gender,@OptionalTimestampConverter() DateTime? joinedDate,@OptionalTimestampConverter() DateTime? membershipEndDate, MemberRenewalStatus renewalStatus, bool allowSocialEventsOnly,@OptionalTimestampConverter() DateTime? lastNudgedAt, int nudgeCount, List<double> handicapHistory, bool isFoundingMember
 });
 
 
@@ -326,7 +341,7 @@ class __$MemberCopyWithImpl<$Res>
 
 /// Create a copy of Member
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? firstName = null,Object? lastName = null,Object? email = null,Object? nickname = freezed,Object? phone = freezed,Object? address = freezed,Object? bio = freezed,Object? avatarUrl = freezed,Object? handicap = null,Object? handicapId = freezed,Object? isHandicapLocked = null,Object? role = null,Object? societyRole = freezed,Object? status = null,Object? hasPaid = null,Object? isArchived = null,Object? accountCredit = null,Object? gender = freezed,Object? joinedDate = freezed,Object? membershipEndDate = freezed,Object? renewalStatus = null,Object? allowSocialEventsOnly = null,Object? lastNudgedAt = freezed,Object? nudgeCount = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? firstName = null,Object? lastName = null,Object? email = null,Object? nickname = freezed,Object? phone = freezed,Object? address = freezed,Object? bio = freezed,Object? avatarUrl = freezed,Object? handicap = null,Object? handicapId = freezed,Object? isHandicapLocked = null,Object? role = null,Object? societyRole = freezed,Object? status = null,Object? hasPaid = null,Object? isArchived = null,Object? accountCredit = null,Object? gender = freezed,Object? joinedDate = freezed,Object? membershipEndDate = freezed,Object? renewalStatus = null,Object? allowSocialEventsOnly = null,Object? lastNudgedAt = freezed,Object? nudgeCount = null,Object? handicapHistory = null,Object? isFoundingMember = null,}) {
   return _then(_Member(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,firstName: null == firstName ? _self.firstName : firstName // ignore: cast_nullable_to_non_nullable
@@ -353,7 +368,9 @@ as DateTime?,renewalStatus: null == renewalStatus ? _self.renewalStatus : renewa
 as MemberRenewalStatus,allowSocialEventsOnly: null == allowSocialEventsOnly ? _self.allowSocialEventsOnly : allowSocialEventsOnly // ignore: cast_nullable_to_non_nullable
 as bool,lastNudgedAt: freezed == lastNudgedAt ? _self.lastNudgedAt : lastNudgedAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,nudgeCount: null == nudgeCount ? _self.nudgeCount : nudgeCount // ignore: cast_nullable_to_non_nullable
-as int,
+as int,handicapHistory: null == handicapHistory ? _self._handicapHistory : handicapHistory // ignore: cast_nullable_to_non_nullable
+as List<double>,isFoundingMember: null == isFoundingMember ? _self.isFoundingMember : isFoundingMember // ignore: cast_nullable_to_non_nullable
+as bool,
   ));
 }
 

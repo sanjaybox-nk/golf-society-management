@@ -61,7 +61,7 @@ class LeaderboardTemplateSelector extends ConsumerWidget {
                   shrinkWrap: true,
                   padding: const EdgeInsets.all(AppSpacing.xl),
                   itemCount: templates.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: AppSpacing.md),
+                  separatorBuilder: (context, index) => const SizedBox(height: AppSpacing.md),
                   itemBuilder: (context, index) {
                     final template = templates[index];
                     return _TemplateTile(

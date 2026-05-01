@@ -634,12 +634,20 @@ class _NextMatchCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final societyConfig = ref.watch(themeControllerProvider);
     final effectiveUser = ref.watch(effectiveUserProvider);
     final isLive = event.status == EventStatus.inPlay;
     final isPlaying = event.registrations.any((r) => r.memberId == effectiveUser.id);
     
-    // Apply Brand Gradient to the card background
-    final backgroundGradient = AppGradients.brandPrimary(context);
+    // Apply Tokenized Graduation to the card background
+    final backgroundGradient = LinearGradient(
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+      colors: [
+        Color(societyConfig.heroGradientColor).withValues(alpha: societyConfig.heroGradientOpacity),
+        Color(societyConfig.heroGradientColorSecondary).withValues(alpha: societyConfig.heroGradientOpacity * 0.2),
+      ],
+    );
 
     return BoxyArtCard(
       padding: EdgeInsets.zero,

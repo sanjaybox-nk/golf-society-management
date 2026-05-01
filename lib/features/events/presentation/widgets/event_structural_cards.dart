@@ -274,26 +274,27 @@ class EventRegistrationCard extends ConsumerWidget {
   }) {
     final boxes = [
       if (statusOverride == 'playing' || (statusOverride == null && isConfirmed))
-        const ModernMetricStat(icon: Icons.check_circle_rounded, value: 'Playing', label: 'Status')
+        const ModernMetricStat(icon: Icons.check_circle_rounded, value: 'Playing', label: 'Status', isCompact: true)
       else if (statusOverride == 'reserve')
-        const ModernMetricStat(icon: Icons.hourglass_empty_rounded, value: 'Reserve', label: 'Status')
+        const ModernMetricStat(icon: Icons.hourglass_empty_rounded, value: 'Reserve', label: 'Status', isCompact: true)
       else if (statusOverride == 'waitlist')
-        const ModernMetricStat(icon: Icons.list_alt_rounded, value: 'Waitlist', label: 'Status')
+        const ModernMetricStat(icon: Icons.list_alt_rounded, value: 'Waitlist', label: 'Status', isCompact: true)
       else if (statusOverride == null && !isConfirmed)
-        const ModernMetricStat(icon: Icons.history_edu_rounded, value: 'Pending', label: 'Status', color: AppColors.amber500),
+        const ModernMetricStat(icon: Icons.history_edu_rounded, value: 'Pending', label: 'Status', color: AppColors.amber500, isCompact: true),
       if (attendingBreakfast)
-        const ModernMetricStat(icon: Icons.breakfast_dining_rounded, value: '', label: 'Breakfast'),
+        const ModernMetricStat(icon: Icons.local_cafe_rounded, value: '', label: 'Breakfast', isCompact: true),
       if (attendingLunch)
-        const ModernMetricStat(icon: Icons.lunch_dining_rounded, value: '', label: 'Lunch'),
+        const ModernMetricStat(icon: Icons.restaurant_menu_rounded, value: '', label: 'Lunch', isCompact: true),
       if (attendingDinner)
-        const ModernMetricStat(icon: Icons.restaurant_rounded, value: '', label: 'Dinner'),
+        const ModernMetricStat(icon: Icons.restaurant_rounded, value: '', label: 'Dinner', isCompact: true),
       if (needsBuggy)
-        const ModernMetricStat(icon: Icons.electric_rickshaw_rounded, value: '', label: 'Buggy'),
+        const ModernMetricStat(icon: Icons.electric_rickshaw_rounded, value: '', label: 'Buggy', isCompact: true),
       ModernMetricStat(
         icon: hasPaid ? Icons.payments_rounded : Icons.info_outline_rounded, 
         value: '', 
         label: hasPaid ? 'Paid' : 'Payment Due', 
         color: hasPaid ? null : AppColors.amber500,
+        isCompact: true,
       ),
     ];
 
@@ -483,7 +484,7 @@ class EventPodiumCard extends ConsumerWidget {
                            children: [
                              BoxyArtAvatar(
                                url: photoUrl,
-                               initials: memberName.isNotEmpty ? memberName[0] : 'P',
+                               initials: extractInitials(memberName),
                                radius: 21,
                              ),
                              Positioned(
@@ -495,7 +496,7 @@ class EventPodiumCard extends ConsumerWidget {
                          ),
                        ),
                        title: Text(
-                         memberName, 
+                         cleanGuestName(memberName), 
                          style: AppTypography.body.copyWith(
                            fontWeight: AppTypography.weightStrong,
                          ),

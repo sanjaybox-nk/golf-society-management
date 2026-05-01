@@ -20,7 +20,10 @@ class BoxyArtIndicator extends StatelessWidget {
     this.fontSize,
     this.textColor,
     this.customActionIcon,
+    this.icon,
   });
+
+  final IconData? icon;
 
   /// Factory for World Handicap System Index (HC)
   factory BoxyArtIndicator.hc({
@@ -86,15 +89,28 @@ class BoxyArtIndicator extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // The Perfect Circle Indicator
-          Container(
-            width: 7,
-            height: 7,
-            decoration: BoxDecoration(
+          // The Indicator (Badge Icon or Circle)
+          if (icon != null)
+            BoxyArtIconBadge(
+              icon: icon!,
               color: dotColor,
-              shape: BoxShape.circle,
+              size: 18,
+              iconSize: 10,
+              useCircle: true,
+            )
+          else
+            Container(
+              width: 7,
+              height: 7,
+              decoration: BoxDecoration(
+                color: dotColor,
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: Colors.black.withValues(alpha: 0.1), 
+                  width: 0.5,
+                ),
+              ),
             ),
-          ),
           const SizedBox(width: AppSpacing.xs),
           
           // The Label

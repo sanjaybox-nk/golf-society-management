@@ -12,9 +12,11 @@ import '../../../members/presentation/members_provider.dart';
 import '../../../../domain/scoring/scoring_calculator.dart';
 import '../../../matchplay/presentation/widgets/match_status_header.dart';
 import '../../../matchplay/presentation/state/match_play_providers.dart';
+import 'package:golf_society/features/events/logic/event_scoring_controller.dart';
+import 'package:golf_society/features/events/presentation/widgets/submission_progress_bar.dart';
+import 'package:golf_society/features/events/domain/models/processed_event_data.dart';
 import '../state/marker_selection_provider.dart';
-// events_provider.dart removed as it was unused
-enum MarkerTab { player, verifier }
+import '../tabs/event_tabs_state.dart';
 
 class HoleByHoleScoringWidget extends ConsumerStatefulWidget {
   final GolfEvent event;
@@ -378,19 +380,6 @@ class _HoleByHoleScoringWidgetState extends ConsumerState<HoleByHoleScoringWidge
                                   ),
                                 ),
 
-                              // Hole Info in middle
-                              Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
-                                child: Text(
-                                  'Par $par${si != null ? ' • SI $si' : ''}',
-                                  style: AppTypography.label.copyWith(
-                                    color: theme.colorScheme.onSurface.withValues(alpha: AppColors.opacitySecondary),
-                                    fontWeight: AppTypography.weightStrong,
-                                    letterSpacing: AppTypography.lsLabel,
-                                  ),
-                                ),
-                              ),
-
                               if (!_isMatchView)
                                 _buildTab(
                                   context, 
@@ -400,6 +389,16 @@ class _HoleByHoleScoringWidgetState extends ConsumerState<HoleByHoleScoringWidge
                                   () => widget.onTabChanged(MarkerTab.verifier),
                                   activeColor: theme.colorScheme.primary,
                                 ),
+
+                              if (!_isMatchView)
+                                _buildTab(
+                                  context, 
+                                  'Verify', 
+                                  null, 
+                                  widget.selectedTab == MarkerTab.verify, 
+                                  () => widget.onTabChanged(MarkerTab.verify),
+                                  activeColor: AppColors.lime500,
+                                ),
                             ],
                           ),
                         ),
@@ -408,7 +407,9 @@ class _HoleByHoleScoringWidgetState extends ConsumerState<HoleByHoleScoringWidge
                     const SizedBox(height: AppSpacing.xl),
                         
                     // Row 3: Mini Keypad + Navigation
-                    if (_isMatchView && matchResult != null)
+                    if (widget.selectedTab == MarkerTab.verify)
+                      _buildVerifyView(context, currentHoleNum, par)
+                    else if (_isMatchView && matchResult != null)
                       _buildMatchDualRow(context, currentHoleNum, par, isReadOnly)
                     else
                       _buildStandardScoringRow(context, currentHoleNum, currentScore, par, isReadOnly),
@@ -422,6 +423,176 @@ class _HoleByHoleScoringWidgetState extends ConsumerState<HoleByHoleScoringWidge
         ),
       ],
     );
+  }
+
+  Widget _buildVerifyView(BuildContext context, int currentHoleNum, int par) {
+    final theme = Theme.of(context);
+    final scoringData = ref.watch(eventScoringControllerProvider(widget.event.id));
+    
+    return Column(
+      children: [
+        if (scoringData.totalParticipants > 0)
+          Padding(
+            padding: const EdgeInsets.only(bottom: AppSpacing.lg),
+            child: SubmissionProgressBar(
+              total: scoringData.totalParticipants,
+              submitted: scoringData.submittedCount,
+              inProgress: scoringData.inProgressCount,
+            ),
+          ),
+        
+        // Verification Handshake
+        _buildVerificationGrid(context, scoringData),
+        const SizedBox(height: AppSpacing.xl),
+        
+        Row(
+          children: [
+            Expanded(
+              child: _buildVerificationHandshake(
+                context, 
+                'Player', 
+                _activeScorecard?.verifiedByPlayer ?? false, 
+                _activeScorecard?.verifiedByMarker ?? false,
+                isPlayer: true,
+              ),
+            ),
+            const SizedBox(width: AppSpacing.md),
+            Expanded(
+              child: _buildVerificationHandshake(
+                context, 
+                'Marker', 
+                _activeScorecard?.verifiedByMarker ?? false,
+                _activeScorecard?.verifiedByPlayer ?? false,
+                isPlayer: false,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: AppSpacing.xl),
+        
+        // Hole Stories List
+        if (_activeScorecard != null && _activeScorecard!.holeTags.values.any((t) => t.isNotEmpty)) ...[
+          const BoxyArtSectionTitle(title: 'Round Story Breakdown'),
+          const SizedBox(height: AppSpacing.md),
+          ..._activeScorecard!.holeTags.entries
+              .where((e) => e.value.isNotEmpty)
+              .map((e) => _buildHoleStoryTile(context, e.key, e.value)),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildHoleStoryTile(BuildContext context, int holeNum, List<String> tags) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    
+    return Container(
+      margin: const EdgeInsets.only(bottom: AppSpacing.sm),
+      padding: const EdgeInsets.all(AppSpacing.md),
+      decoration: BoxDecoration(
+        color: isDark ? AppColors.dark800 : AppColors.dark50,
+        borderRadius: AppShapes.md,
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 24,
+            height: 24,
+            decoration: BoxDecoration(
+              color: theme.primaryColor.withValues(alpha: 0.1),
+              shape: BoxShape.circle,
+            ),
+            alignment: Alignment.center,
+            child: Text(
+              '$holeNum',
+              style: AppTypography.micro.copyWith(color: theme.primaryColor, fontWeight: AppTypography.weightBlack),
+            ),
+          ),
+          const SizedBox(width: AppSpacing.md),
+          Expanded(
+            child: Wrap(
+              spacing: AppSpacing.xs,
+              children: tags.map((t) => _buildMiniTag(t)).toList(),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMiniTag(String tag) {
+    String label = tag;
+    Color color = AppColors.dark400;
+    
+    if (tag == 'PICK_UP') { label = 'PICKED UP'; color = AppColors.coral500; }
+    else if (tag == 'NOT_PLAYED') { label = 'NR'; color = AppColors.dark600; }
+    else if (tag == 'GIMME') { label = 'GIMME'; color = AppColors.lime500; }
+    else if (tag.startsWith('PENALTY_')) { label = 'PENALTY'; color = AppColors.amber500; }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(4),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
+      ),
+      child: Text(
+        label,
+        style: AppTypography.nano.copyWith(color: color, fontWeight: AppTypography.weightBold),
+      ),
+    );
+  }
+
+  Widget _buildVerificationHandshake(BuildContext context, String label, bool isSigned, bool otherSigned, {required bool isPlayer}) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final currentUser = ref.watch(effectiveUserProvider);
+    final bool canSign = isPlayer ? (widget.targetEntryId == currentUser.id) : (widget.verifierScorecard?.markerId == currentUser.id || widget.isAdmin);
+
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.md),
+      decoration: BoxDecoration(
+        color: isSigned ? AppColors.lime500.withValues(alpha: 0.05) : (isDark ? AppColors.dark800 : AppColors.dark50),
+        borderRadius: AppShapes.lg,
+        border: Border.all(
+          color: isSigned ? AppColors.lime500 : (isDark ? AppColors.dark700 : AppColors.dark150),
+          width: isSigned ? 1.5 : 1,
+        ),
+      ),
+      child: Column(
+        children: [
+          Text(
+            label.toUpperCase(),
+            style: AppTypography.micro.copyWith(
+              color: isSigned ? AppColors.lime500 : AppColors.textSecondary,
+              fontWeight: AppTypography.weightBlack,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          if (isSigned)
+             const Icon(Icons.check_circle_rounded, color: AppColors.lime500, size: 24)
+          else
+             BoxyArtButton(
+               title: 'Sign Off',
+               isSmall: true,
+               isPrimary: true,
+               onTap: canSign ? () => _handleSignOff(isPlayer) : null,
+             ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _handleSignOff(bool isPlayer) async {
+    final card = _activeScorecard;
+    if (card == null) return;
+    
+    final updatedCard = isPlayer 
+        ? card.copyWith(verifiedByPlayer: true, playerVerifiedAt: DateTime.now())
+        : card.copyWith(verifiedByMarker: true, markerVerifiedAt: DateTime.now());
+    
+    await ref.read(scorecardRepositoryProvider).updateScorecard(updatedCard);
+    setState(() => _activeScorecard = updatedCard);
   }
 
 
@@ -531,6 +702,23 @@ class _HoleByHoleScoringWidgetState extends ConsumerState<HoleByHoleScoringWidge
       }
 
       map[holeNum] = score.clamp(1, cap ?? 15);
+      
+      // Invalidate signatures on change
+      if (isVerifier) {
+        if (_localVerifierCard != null) {
+          _localVerifierCard = _localVerifierCard!.copyWith(
+            verifiedByPlayer: false,
+            verifiedByMarker: false,
+          );
+        }
+      } else {
+        if (_activeScorecard != null) {
+          _activeScorecard = _activeScorecard!.copyWith(
+            verifiedByPlayer: false,
+            verifiedByMarker: false,
+          );
+        }
+      }
     });
     _persistScores(isVerifier: isVerifier);
   }
@@ -616,61 +804,321 @@ class _HoleByHoleScoringWidgetState extends ConsumerState<HoleByHoleScoringWidge
   }
 
   Widget _buildStandardScoringRow(BuildContext context, int currentHoleNum, int currentScore, int par, bool isReadOnly) {
-    return Row(
+    final theme = Theme.of(context);
+    final isVerifier = widget.selectedTab == MarkerTab.verifier;
+    final card = isVerifier ? _localVerifierCard : _activeScorecard;
+    final tags = card?.holeTags[currentHoleNum] ?? [];
+    
+    final bool isPickedUp = tags.contains('PICK_UP');
+    final bool isNotPlayed = tags.contains('NOT_PLAYED');
+    final bool isGimme = tags.contains('GIMME');
+    final int penaltyCount = tags.where((t) => t.startsWith('PENALTY_')).length;
+
+    return Column(
       children: [
-        Flexible(
-          child: Align(
-            alignment: Alignment.centerLeft,
-            child: BoxyArtButton(
-              title: 'Prev',
-              isGhost: true,
-              isSmall: true,
-              onTap: _currentHoleIndex <= 0 ? null : () => setState(() => _currentHoleIndex--),
-            ),
-          ),
-        ),
-        const SizedBox(width: AppSpacing.sm),
         Row(
-          mainAxisSize: MainAxisSize.min,
           children: [
-            _buildMiniCircleButton(
-              context, 
-              Icons.remove, 
-              () => _setScore(currentHoleNum, currentScore - 1, isVerifier: widget.selectedTab == MarkerTab.verifier, isReadOnly: isReadOnly),
-              isDisabled: isReadOnly || currentScore <= 1,
-            ),
-            Container(
-              width: 40,
-              alignment: Alignment.center,
-              child: Text(
-                '$currentScore',
-                style: AppTypography.displayPage.copyWith(
-                  color: Theme.of(context).colorScheme.onSurface,
+            Flexible(
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: BoxyArtButton(
+                  title: 'Prev',
+                  isGhost: true,
+                  isSmall: true,
+                  onTap: _currentHoleIndex <= 0 ? null : () => setState(() => _currentHoleIndex--),
                 ),
               ),
             ),
-            _buildMiniCircleButton(
-              context, 
-              Icons.add, 
-              () => _setScore(currentHoleNum, currentScore + 1, isVerifier: widget.selectedTab == MarkerTab.verifier, isReadOnly: isReadOnly),
-              isDisabled: isReadOnly,
+            const SizedBox(width: AppSpacing.sm),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _buildMiniCircleButton(
+                  context, 
+                  Icons.remove, 
+                  () => _setScore(currentHoleNum, currentScore - 1, isVerifier: isVerifier, isReadOnly: isReadOnly),
+                  isDisabled: isReadOnly || currentScore <= 1 || isPickedUp || isNotPlayed,
+                ),
+                Container(
+                  width: 60, // [FIX] Increased for labels
+                  alignment: Alignment.center,
+                  child: Text(
+                    isNotPlayed ? '—' : (isPickedUp ? 'X' : '$currentScore'),
+                    style: AppTypography.displayPage.copyWith(
+                      color: isNotPlayed || isPickedUp ? AppColors.coral500 : theme.colorScheme.onSurface,
+                    ),
+                  ),
+                ),
+                _buildMiniCircleButton(
+                  context, 
+                  Icons.add, 
+                  () => _setScore(currentHoleNum, currentScore + 1, isVerifier: isVerifier, isReadOnly: isReadOnly),
+                  isDisabled: isReadOnly || isPickedUp || isNotPlayed,
+                ),
+              ],
+            ),
+            const SizedBox(width: AppSpacing.sm),
+            Flexible(
+              child: Align(
+                alignment: Alignment.centerRight,
+                child: BoxyArtButton(
+                  title: 'Next',
+                  isPrimary: true,
+                  isSmall: true,
+                  onTap: currentHoleNum >= 18 ? null : () => setState(() => _currentHoleIndex++),
+                ),
+              ),
             ),
           ],
         ),
-        const SizedBox(width: AppSpacing.sm),
-        Flexible(
-          child: Align(
-            alignment: Alignment.centerRight,
-            child: BoxyArtButton(
-              title: 'Next',
-              isPrimary: true,
-              isSmall: true,
-              onTap: currentHoleNum >= 18 ? null : () => setState(() => _currentHoleIndex++),
+        const SizedBox(height: AppSpacing.xl),
+        // Simplified Actions Row
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            _buildScoreModifierButton(
+              label: 'PICK UP',
+              isActive: isPickedUp,
+              onTap: () => _toggleTag(currentHoleNum, 'PICK_UP', isVerifier),
+              isDisabled: isReadOnly,
             ),
-          ),
+            const SizedBox(width: AppSpacing.sm),
+            _buildScoreModifierButton(
+              label: 'NR',
+              isActive: isNotPlayed,
+              onTap: () => _toggleTag(currentHoleNum, 'NOT_PLAYED', isVerifier),
+              isDisabled: isReadOnly,
+            ),
+            const SizedBox(width: AppSpacing.xl),
+            _buildTagDetailsToggle(currentHoleNum, tags, isReadOnly, isVerifier),
+          ],
         ),
       ],
     );
+  }
+
+  Widget _buildScoreModifierButton({required String label, required bool isActive, required VoidCallback onTap, bool isDisabled = false}) {
+    return BoxyArtButton(
+      title: label,
+      isSmall: true,
+      isGhost: !isActive,
+      backgroundColor: isActive ? AppColors.coral500 : null,
+      onTap: isDisabled ? null : onTap,
+    );
+  }
+
+  Widget _buildTagDetailsToggle(int holeNum, List<String> tags, bool isReadOnly, bool isVerifier) {
+    final hasTags = tags.any((t) => t == 'GIMME' || t.startsWith('PENALTY_'));
+    return GestureDetector(
+      onTap: isReadOnly ? null : () => _showHoleDetailsPicker(holeNum, isVerifier),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: hasTags ? AppColors.amber500.withValues(alpha: 0.1) : Colors.transparent,
+          borderRadius: AppShapes.md,
+          border: Border.all(
+            color: hasTags ? AppColors.amber500 : AppColors.dark700.withValues(alpha: 0.3),
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.auto_awesome_motion_rounded, size: 16, color: hasTags ? AppColors.amber500 : AppColors.textSecondary),
+            const SizedBox(width: 6),
+            Text(
+              'STORY',
+              style: AppTypography.micro.copyWith(
+                color: hasTags ? AppColors.amber500 : AppColors.textSecondary,
+                fontWeight: AppTypography.weightBlack,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showHoleDetailsPicker(int holeNum, bool isVerifier) {
+    final card = isVerifier ? _localVerifierCard : _activeScorecard;
+    if (card == null) return;
+    
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setModalState) {
+          final tags = card.holeTags[holeNum] ?? [];
+          final bool isGimme = tags.contains('GIMME');
+          final int penaltyCount = tags.where((t) => t.startsWith('PENALTY_')).length;
+
+          return BoxyArtCard(
+            margin: const EdgeInsets.all(AppSpacing.lg),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const BoxyArtSectionTitle(title: 'Hole Story'),
+                const SizedBox(height: AppSpacing.md),
+                _buildTagPill(
+                  label: 'GIMME',
+                  icon: Icons.check_circle_outline_rounded,
+                  isActive: isGimme,
+                  activeColor: AppColors.lime500,
+                  onTap: () {
+                    _toggleTag(holeNum, 'GIMME', isVerifier);
+                    setModalState(() {});
+                  },
+                ),
+                const SizedBox(height: AppSpacing.md),
+                _buildTagPill(
+                  label: 'PENALTY${penaltyCount > 0 ? ' ($penaltyCount)' : ''}',
+                  icon: Icons.warning_amber_rounded,
+                  isActive: penaltyCount > 0,
+                  activeColor: AppColors.amber500,
+                  onTap: () {
+                    _addPenaltyTag(holeNum, isVerifier);
+                    setModalState(() {});
+                  },
+                  onLongPress: () {
+                    _clearPenaltyTags(holeNum, isVerifier);
+                    setModalState(() {});
+                  },
+                ),
+                const SizedBox(height: AppSpacing.xl),
+                BoxyArtButton(
+                  title: 'Done',
+                  onTap: () => Navigator.pop(context),
+                ),
+              ],
+            ),
+          );
+        }
+      ),
+    );
+  }
+
+  Widget _buildTagPill({
+    required String label,
+    required IconData icon,
+    required bool isActive,
+    required Color activeColor,
+    required VoidCallback onTap,
+    VoidCallback? onLongPress,
+    bool isDisabled = false,
+  }) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    
+    return GestureDetector(
+      onTap: isDisabled ? null : onTap,
+      onLongPress: isDisabled ? null : onLongPress,
+      child: AnimatedContainer(
+        duration: AppAnimations.fast,
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        decoration: BoxDecoration(
+          color: isActive ? activeColor.withValues(alpha: AppColors.opacityLow) : Colors.transparent,
+          borderRadius: AppShapes.md,
+          border: Border.all(
+            color: isActive ? activeColor : (isDark ? AppColors.dark700 : AppColors.dark200),
+            width: isActive ? 1.5 : 1,
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 14, color: isActive ? activeColor : AppColors.textSecondary),
+            const SizedBox(width: 4),
+            Text(
+              label,
+              style: AppTypography.micro.copyWith(
+                color: isActive ? activeColor : AppColors.textSecondary,
+                fontWeight: isActive ? AppTypography.weightBlack : AppTypography.weightBold,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _toggleTag(int holeNum, String tag, bool isVerifier) async {
+    final card = isVerifier ? _localVerifierCard : _activeScorecard;
+    if (card == null) return;
+    
+    final currentTags = List<String>.from(card.holeTags[holeNum] ?? []);
+    if (currentTags.contains(tag)) {
+      currentTags.remove(tag);
+    } else {
+      // Mutual Exclusivity: NR and PickUp
+      if (tag == 'PICK_UP') currentTags.remove('NOT_PLAYED');
+      if (tag == 'NOT_PLAYED') currentTags.remove('PICK_UP');
+      currentTags.add(tag);
+    }
+    
+    final newTags = Map<int, List<String>>.from(card.holeTags);
+    newTags[holeNum] = currentTags;
+    
+    final updatedCard = card.copyWith(
+      holeTags: newTags,
+      // If we pick up, we also invalidate the signature as discussed
+      verifiedByPlayer: false,
+      verifiedByMarker: false,
+      updatedAt: DateTime.now(),
+    );
+    
+    await ref.read(scorecardRepositoryProvider).updateScorecard(updatedCard);
+    setState(() {
+       if (isVerifier) _localVerifierCard = updatedCard;
+       else _activeScorecard = updatedCard;
+    });
+  }
+
+  Future<void> _addPenaltyTag(int holeNum, bool isVerifier) async {
+    final card = isVerifier ? _localVerifierCard : _activeScorecard;
+    if (card == null) return;
+    
+    final currentTags = List<String>.from(card.holeTags[holeNum] ?? []);
+    // Just add another penalty tag with a unique timestamp or index
+    currentTags.add('PENALTY_${DateTime.now().millisecondsSinceEpoch}');
+    
+    final newTags = Map<int, List<String>>.from(card.holeTags);
+    newTags[holeNum] = currentTags;
+    
+    final updatedCard = card.copyWith(
+      holeTags: newTags,
+      verifiedByPlayer: false,
+      verifiedByMarker: false,
+      updatedAt: DateTime.now(),
+    );
+    
+    await ref.read(scorecardRepositoryProvider).updateScorecard(updatedCard);
+    setState(() {
+       if (isVerifier) _localVerifierCard = updatedCard;
+       else _activeScorecard = updatedCard;
+    });
+  }
+
+  Future<void> _clearPenaltyTags(int holeNum, bool isVerifier) async {
+    final card = isVerifier ? _localVerifierCard : _activeScorecard;
+    if (card == null) return;
+    
+    final currentTags = List<String>.from(card.holeTags[holeNum] ?? []);
+    currentTags.removeWhere((t) => t.startsWith('PENALTY_'));
+    
+    final newTags = Map<int, List<String>>.from(card.holeTags);
+    newTags[holeNum] = currentTags;
+    
+    final updatedCard = card.copyWith(
+      holeTags: newTags,
+      verifiedByPlayer: false,
+      verifiedByMarker: false,
+      updatedAt: DateTime.now(),
+    );
+    
+    await ref.read(scorecardRepositoryProvider).updateScorecard(updatedCard);
+    setState(() {
+       if (isVerifier) _localVerifierCard = updatedCard;
+       else _activeScorecard = updatedCard;
+    });
   }
 
   Widget _buildMatchDualRow(BuildContext context, int currentHoleNum, int par, bool isReadOnly) {
@@ -769,26 +1217,98 @@ class _HoleByHoleScoringWidgetState extends ConsumerState<HoleByHoleScoringWidge
       ),
     );
   }
-}
 
-// Helper extension
-extension ElementAtOrNull<E> on Iterable<E> {
-  E? elementAtOrNull(int index) {
-    if (index < 0 || index >= length) return null;
-    return elementAt(index);
+  Widget _buildVerificationGrid(BuildContext context, ProcessedEventData scoringData) {
+    final theme = Theme.of(context);
+    
+    // Find Player's own card
+    final allCards = ref.watch(scorecardsListProvider(widget.event.id)).value ?? [];
+    final playerOwnCard = allCards.firstWhereOrNull((s) => s.entryId == widget.targetEntryId && s.markerId == widget.targetEntryId);
+    
+    // Marker's card for player (the one we are currently marking)
+    final markerCard = _activeScorecard;
+
+    return BoxyArtCard(
+      padding: EdgeInsets.zero,
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: 8),
+            decoration: BoxDecoration(
+              color: theme.primaryColor.withValues(alpha: 0.05),
+              border: Border(bottom: BorderSide(color: theme.dividerColor.withValues(alpha: 0.1))),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text('COMPARISON GUIDE', style: AppTypography.nano.copyWith(fontWeight: AppTypography.weightBlack, letterSpacing: 1.0)),
+                Text('PLAYER VS MARKER', style: AppTypography.nano.copyWith(color: AppColors.textSecondary)),
+              ],
+            ),
+          ),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildVerifyRow(context, 'HOLE', List.generate(18, (i) => '${i + 1}'), isHeader: true),
+                _buildVerifyRow(context, 'PAR', widget.event.courseConfig.holes.map((h) => h.par.toString()).toList(), isDimmed: true),
+                const Divider(height: 1),
+                _buildVerifyRow(context, 'PLAYER', List.generate(18, (i) => playerOwnCard?.holeScores[i]?.toString() ?? '-')),
+                _buildVerifyRow(
+                  context, 
+                  'MARKER', 
+                  List.generate(18, (i) => markerCard?.holeScores[i]?.toString() ?? '-'),
+                  comparisonList: List.generate(18, (i) => playerOwnCard?.holeScores[i]?.toString() ?? '-'),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
   }
-}
-// Helper functions moved from string_utils for stability
-String toTitleCase(String text) {
-  if (text.isEmpty) return text;
-  return text.split(' ').map((word) {
-    if (word.isEmpty) return word;
-    return word[0].toUpperCase() + word.substring(1).toLowerCase();
-  }).join(' ');
-}
 
-String toSentenceCase(String text) {
-  if (text.isEmpty) return text;
-  final lower = text.toLowerCase();
-  return lower[0].toUpperCase() + lower.substring(1);
+  Widget _buildVerifyRow(BuildContext context, String label, List<String> values, {bool isHeader = false, bool isDimmed = false, List<String>? comparisonList}) {
+    return Row(
+      children: [
+        Container(
+          width: 60,
+          padding: const EdgeInsets.only(left: AppSpacing.md),
+          child: Text(
+            label,
+            style: AppTypography.nano.copyWith(
+              color: isHeader ? AppColors.dark400 : (isDimmed ? AppColors.dark300 : null),
+              fontWeight: AppTypography.weightBlack,
+            ),
+          ),
+        ),
+        for (int i = 0; i < values.length; i++)
+          (() {
+            final val = values[i];
+            final compare = comparisonList != null ? comparisonList[i] : null;
+            final bool isMismatch = compare != null && val != '-' && compare != '-' && val != compare;
+            
+            return Container(
+              width: 32,
+              height: 28,
+              alignment: Alignment.center,
+              decoration: isMismatch ? BoxDecoration(
+                color: AppColors.coral500.withValues(alpha: 0.1),
+                border: Border.all(color: AppColors.coral500, width: 0.5),
+              ) : null,
+              child: Text(
+                val,
+                style: AppTypography.label.copyWith(
+                  fontSize: 13,
+                  fontWeight: isMismatch ? AppTypography.weightBlack : (isHeader ? AppTypography.weightBold : AppTypography.weightRegular),
+                  color: isMismatch ? AppColors.coral500 : (isDimmed ? AppColors.dark300 : null),
+                ),
+              ),
+            );
+          })(),
+      ],
+    );
+  }
 }

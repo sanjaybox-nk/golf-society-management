@@ -170,6 +170,6 @@ final leaderboardStandingsProvider = StreamProvider.family<List<LeaderboardStand
       return ref.watch(seasonsRepositoryProvider).watchLeaderboardStandings(activeSeason.id, leaderboardId);
     },
     loading: () => const Stream.empty(),
-    error: (_, __) => Stream.value(<LeaderboardStanding>[]),
+    error: (e, s) => Stream.value(<LeaderboardStanding>[]),
   );
 });

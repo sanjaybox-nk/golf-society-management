@@ -19,15 +19,17 @@ class BrandingPaletteManager extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const BoxyArtSectionTitle(title: 'Brand Palettes'),
+        const BoxyArtSectionTitle(title: 'Brand Palettes', followsCard: true),
         BoxyArtCard(
           child: BoxyArtFormColumn(
             children: [
               Text(
                 'Choose from our curated system palettes or create your own signature look below.',
-                style: AppTypography.bodySmall,
+                style: AppTypography.bodySmall.copyWith(
+                  color: AppColors.dark600,
+                  fontWeight: AppTypography.weightMedium,
+                ),
               ),
-              const SizedBox(height: AppSpacing.md),
               ColorPalette(
                 selectedColor: Color(config.primaryColor),
                 customColors: config.customColors,

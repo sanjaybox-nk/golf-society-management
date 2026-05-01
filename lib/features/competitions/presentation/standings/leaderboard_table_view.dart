@@ -30,7 +30,7 @@ class LeaderboardTableView extends StatelessWidget {
     return ListView.separated(
       padding: const EdgeInsets.all(AppSpacing.xl),
       itemCount: standings.length,
-      separatorBuilder: (_, __) => const SizedBox(height: AppSpacing.md),
+      separatorBuilder: (context, index) => const SizedBox(height: AppSpacing.md),
       itemBuilder: (context, index) {
         final standing = standings[index];
         final isMe = standing.memberId == currentUserId;

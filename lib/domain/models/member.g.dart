@@ -45,6 +45,12 @@ _Member _$MemberFromJson(Map<String, dynamic> json) => _Member(
     json['lastNudgedAt'],
   ),
   nudgeCount: (json['nudgeCount'] as num?)?.toInt() ?? 0,
+  handicapHistory:
+      (json['handicapHistory'] as List<dynamic>?)
+          ?.map((e) => (e as num).toDouble())
+          .toList() ??
+      const [],
+  isFoundingMember: json['isFoundingMember'] as bool? ?? false,
 );
 
 Map<String, dynamic> _$MemberToJson(_Member instance) => <String, dynamic>{
@@ -77,6 +83,8 @@ Map<String, dynamic> _$MemberToJson(_Member instance) => <String, dynamic>{
     instance.lastNudgedAt,
   ),
   'nudgeCount': instance.nudgeCount,
+  'handicapHistory': instance.handicapHistory,
+  'isFoundingMember': instance.isFoundingMember,
 };
 
 const _$MemberRoleEnumMap = {

@@ -65,10 +65,9 @@ class RegistrationCard extends ConsumerWidget {
     final theme = Theme.of(context);
     final bool isWithdrawn = status == RegistrationStatus.withdrawn;
     // Avatar Logic
-    final String initials = name.split(' ').where((s) => s.isNotEmpty).map((s) => s[0]).take(2).join().toUpperCase();
     final Widget avatarChild = BoxyArtAvatar(
       url: (memberProfile?.avatarUrl != null && !isGuest) ? memberProfile!.avatarUrl : null,
-      initials: initials,
+      initials: extractInitials(name),
       radius: 36, // 72 diameter
       isCircle: true,
       color: isGuest ? AppColors.amber500 : theme.primaryColor,
@@ -150,7 +149,7 @@ class RegistrationCard extends ConsumerWidget {
                         children: [
                           Expanded(
                             child: Text(
-                              toTitleCase(name),
+                              toTitleCase(cleanGuestName(name)),
                               style: AppTypography.memberName.copyWith(
                                 color: theme.colorScheme.onSurface,
                               ),

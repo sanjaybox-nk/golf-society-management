@@ -174,6 +174,9 @@ The standard for status, format, and type classification.
 ### `BoxyArtPill` Dot Legend mode
 For all `status`, `format`, and `type` pills: renders an 8px coloured dot + text (no background fill, no icon).
 
+> [!NOTE]
+> **Accessibility Standard (v4.6)**: All `BoxyArtIndicator` and `BoxyArtPill` dots now include a subtle `0.5px` border (10% black opacity) to ensure visibility of light colors (e.g. White or Yellow tees) on white UI backgrounds.
+
 ### `BoxyArtStatusPill`
 Toggleable "Paid / Unpaid" or "Visible / Hidden" double-state pill with tap-to-toggle support.
 

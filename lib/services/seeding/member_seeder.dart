@@ -31,8 +31,11 @@ class MemberSeeder {
       gender: 'Male',
       bio: 'The Society Founder. Passionate about technology and bringing the digital edge to the game of golf.',
       phone: '+44 7700 900000',
+      address: 'The Clubhouse, St Andrews, KY16 9XL',
       avatarUrl: SeedingData.maleAvatarUrls[0], // Sanjay (First Male Avatar)
       allowSocialEventsOnly: false,
+      handicapHistory: [16.2, 15.8, 15.5, 15.0, 14.8, 14.5],
+      isFoundingMember: true,
     ));
 
     final committeeRoles = {
@@ -130,6 +133,15 @@ class MemberSeeder {
           maleCounter++;
         }
 
+        final address = SeedingData.memberAddresses[i % SeedingData.memberAddresses.length];
+        
+        // Generate a simple handicap history trend
+        List<double> history = [];
+        double startHC = hc + (random.nextDouble() * 2.0);
+        for (int h = 0; h < 5; h++) {
+          history.add(double.parse((startHC - (h * 0.4)).toStringAsFixed(1)));
+        }
+
         await repo.addMember(Member(
           id: 'demo_m_$i',
           firstName: fName,
@@ -146,10 +158,13 @@ class MemberSeeder {
           hasPaid: hasPaid,
           gender: isFemale ? 'Female' : 'Male',
           phone: '+44 7${100000000 + i}',
+          address: address,
           bio: i >= 74 ? 'Demo member for ${currentStatus.name} status testing.' : bio,
           avatarUrl: avatarUrl,
           allowSocialEventsOnly: false,
           accountCredit: initialCredit,
+          handicapHistory: history,
+          isFoundingMember: (i < 5) || (i == 83), // First 5 + one who left
         ));
     }
   }

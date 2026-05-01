@@ -8,6 +8,8 @@ import 'package:golf_society/domain/models/golf_event.dart';
 import 'package:golf_society/domain/models/competition.dart';
 import 'package:golf_society/features/competitions/presentation/competitions_provider.dart';
 import 'package:golf_society/features/members/presentation/profile_provider.dart';
+import 'package:golf_society/utils/string_utils.dart';
+import 'package:golf_society/utils/date_utils.dart' as utils;
 
 /// Unified events list screen for both member and admin contexts.
 ///
@@ -47,7 +49,7 @@ class EventsScreen extends ConsumerWidget {
       final seasonName = activeSeasonAsync.when(
         data: (s) => s?.name ?? '',
         loading: () => '',
-        error: (_, __) => '',
+        error: (e, s) => '',
       );
       subtitle = seasonName.isNotEmpty ? seasonName : 'All Seasons';
     }
@@ -258,7 +260,7 @@ class _EventRow extends ConsumerWidget {
         hasHorizontalMargin: false,
       );
     } else {
-      final isPast = DateTime.now().isAfter(event.date);
+      final isPast = utils.DateUtils.isPastEvent(event);
       if (!isPast) {
         statusPill = BoxyArtPill.status(
           label: 'Registration Closed',
@@ -284,22 +286,19 @@ class _EventRow extends ConsumerWidget {
       data: (comp) {
         if (comp == null) return const SizedBox.shrink();
         final gameName = comp.rules.gameName;
-        final isDark = Theme.of(context).brightness == Brightness.dark;
-        final color = isHighlighted
-            ? AppColors.pureWhite
-            : (isDark ? AppColors.pureWhite : AppColors.dark400);
+        const color = AppColors.dark500;
         return Text(
           toTitleCase(gameName),
           style: AppTypography.label.copyWith(
             fontSize: 11.0,
             color: color,
-            fontWeight: AppTypography.weightStrong,
+            fontWeight: AppTypography.weightRegular,
             letterSpacing: -0.2,
           ),
         );
       },
       loading: () => const SizedBox.shrink(),
-      error: (_, __) => const SizedBox.shrink(),
+      error: (e, s) => const SizedBox.shrink(),
     );
   }
 }
@@ -365,7 +364,7 @@ class _AdminEventRow extends ConsumerWidget {
         return BoxyArtPill.format(label: comp.rules.gameName);
       },
       loading: () => const SizedBox.shrink(),
-      error: (_, __) => const SizedBox.shrink(),
+      error: (e, s) => const SizedBox.shrink(),
     );
   }
 
@@ -472,16 +471,4 @@ class _AdminEventRow extends ConsumerWidget {
       case EventStatus.cancelled:  return Icons.cancel_outlined;
     }
   }
-}
-
-// ---------------------------------------------------------------------------
-// Utility
-// ---------------------------------------------------------------------------
-
-String toTitleCase(String text) {
-  if (text.isEmpty) return text;
-  return text.split(' ').map((word) {
-    if (word.isEmpty) return word;
-    return word[0].toUpperCase() + word.substring(1).toLowerCase();
-  }).join(' ');
 }

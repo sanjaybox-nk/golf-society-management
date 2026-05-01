@@ -13,6 +13,7 @@ import 'widgets/member_role_picker.dart';
 import 'widgets/member_status_picker.dart';
 import 'widgets/society_role_picker.dart';
 import 'widgets/personal_details_form.dart';
+import 'widgets/handicap_trend_chart.dart';
 import 'package:golf_society/domain/models/handicap_system.dart';
 
 class MemberDetailsModal extends ConsumerStatefulWidget {
@@ -84,6 +85,7 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
   DateTime? _membershipEndDate; // [NEW]
   bool _isSaving = false;
   late bool _allowSocialEventsOnly; // [NEW]
+  late bool _isFoundingMember; // [NEW]
 
   // Removed ref.watch wrapper methods to prevent StateError during async build phases.
   String? _gender; // [NEW]
@@ -124,6 +126,7 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
     _joinedDate = m?.joinedDate;
     _membershipEndDate = m?.membershipEndDate; // [NEW]
     _allowSocialEventsOnly = m?.allowSocialEventsOnly ?? false; // [NEW]
+    _isFoundingMember = m?.isFoundingMember ?? false; // [NEW]
     _gender = m?.gender; // [NEW]
 
     String phone = m?.phone ?? '';
@@ -214,6 +217,7 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
         membershipEndDate: _membershipEndDate, // [NEW]
         gender: _gender, // [NEW]
         allowSocialEventsOnly: _allowSocialEventsOnly, // [NEW]
+        isFoundingMember: _isFoundingMember, // [NEW]
       );
 
       if (widget.isNewMember) {
@@ -369,14 +373,16 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
                       joinedDate: _joinedDate,
                       showFeeIndicator: false, // Moved to Renewal Hub list
                       isAdminContext: widget.isAdminContext,
+                      isFoundingMember: _isFoundingMember,
                     ),
                   ),
 
                   if (!widget.isNewMember) ...[
-                    // Performance Stats Section
+                    // 2. Performance Section
                     const BoxyArtSectionTitle(
                       title: 'Member Performance', 
-                      followsCard: true,
+                      isPeeking: true,
+                      horizontalPadding: 0,
                     ),
                     Consumer(
                       builder: (context, ref, _) {
@@ -407,7 +413,7 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
                       },
                     ),
 
-                    // Membership Details Section
+                    // 3. Details Section
                     Consumer(
                       builder: (context, ref, _) {
                         final society = ref.watch(themeControllerProvider);
@@ -418,6 +424,7 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
                             const BoxyArtSectionTitle(
                               title: 'Membership Details',
                               followsCard: true,
+                              horizontalPadding: 0,
                             ),
                             BoxyArtCard(
                               child: BoxyArtFormColumn(
@@ -451,6 +458,10 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
                                       ),
                                     ],
                                   ),
+                                  if (widget.member?.handicapHistory.isNotEmpty ?? false) ...[
+                                    const BoxyArtDivider(verticalPadding: AppSpacing.lg),
+                                    BoxyArtHandicapTrend(history: widget.member!.handicapHistory),
+                                  ],
                                   if (_isEditing && isAdmin)
                                     BoxyArtDatePickerField(
                                       label: 'Membership Valid Till',
@@ -513,6 +524,39 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
                                       activeTrackColor: Theme.of(context).primaryColor,
                                       activeThumbColor: AppColors.pureWhite,
                                       onChanged: _isEditing ? (val) => setState(() => _allowSocialEventsOnly = val) : null,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(height: AppSpacing.sm),
+                              BoxyArtCard(
+                                child: Row(
+                                  children: [
+                                    Expanded(
+                                      child: BoxyArtFormColumn(
+                                        spacing: spacing?.labelToCard ?? AppSpacing.xs,
+                                        children: [
+                                          Text(
+                                            'Founding Member Status'.toUpperCase(),
+                                            style: AppTypography.micro.copyWith(
+                                              color: Theme.of(context).colorScheme.onSurface,
+                                              letterSpacing: AppTypography.lsLabel,
+                                            ),
+                                          ),
+                                          Text(
+                                            'Grants honorary "Founding Member" recognition badge.',
+                                            style: AppTypography.caption.copyWith(
+                                              color: Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha: AppColors.opacityHigh),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    Switch(
+                                      value: _isFoundingMember,
+                                      activeTrackColor: AppColors.lime500,
+                                      activeThumbColor: AppColors.pureWhite,
+                                      onChanged: _isEditing ? (val) => setState(() => _isFoundingMember = val) : null,
                                     ),
                                   ],
                                 ),
@@ -623,8 +667,10 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
         ),
         Text(
           value.isEmpty ? '-' : value,
-          style: AppTypography.body.copyWith(
-            color: Theme.of(context).colorScheme.onSurface,
+          style: AppTypography.micro.copyWith(
+            fontSize: 15,
+            color: theme.brightness == Brightness.dark ? AppColors.dark150 : AppColors.dark600,
+            fontWeight: AppTypography.weightSemibold,
           ),
         ),
       ],

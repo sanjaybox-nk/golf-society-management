@@ -71,7 +71,7 @@ class _StablefordControlState extends BaseCompetitionControlState<StablefordCont
               const BoxyArtDivider(),
               BoxyArtSwitchField(
                 label: 'Mixed Tee Adjustments',
-                subtitle: 'Adds (Rating − Par) correction.',
+                subtitle: 'Adds (CR − Par) correction to equalize scores when players use different tees (e.g. Mixed/Seniors).',
                 value: _useMixedTeeAdjustment,
                 onChanged: (val) => setState(() => _useMixedTeeAdjustment = val),
               ),

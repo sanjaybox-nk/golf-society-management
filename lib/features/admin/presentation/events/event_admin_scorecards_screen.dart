@@ -48,7 +48,7 @@ class EventAdminScorecardsScreen extends ConsumerWidget {
               ),
             ),
           ),
-          const SliverPadding(padding: EdgeInsets.only(bottom: 100)),
+          const SliverToBoxAdapter(child: SizedBox(height: 100)),
         ],
       ),
       loading: () => const HeadlessScaffold(

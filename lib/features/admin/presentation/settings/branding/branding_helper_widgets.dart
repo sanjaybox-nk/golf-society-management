@@ -1,4 +1,4 @@
-
+import 'package:flutter/services.dart';
 import 'package:flex_color_picker/flex_color_picker.dart';
 import 'package:golf_society/design_system/design_system.dart';
 
@@ -9,34 +9,192 @@ class BrandingHelper {
     Color current,
     Function(Color) onPicked,
   ) async {
-    final result = await showColorPickerDialog(
-      context,
-      current,
-      title: Text(
-        '$title Color',
-        style: Theme.of(context).textTheme.titleLarge,
-      ),
-      width: AppSpacing.x4l,
-      height: AppSpacing.x4l,
-      spacing: 8,
-      runSpacing: 8,
-      borderRadius: 12,
-      wheelDiameter: 180,
-      enableOpacity: false,
-      showColorCode: true,
-      colorCodeReadOnly: false,
-      colorCodeHasColor: true,
-      colorCodeTextStyle: AppTypography.cardTitle.copyWith(
-        color: AppColors.pureWhite,
-      ),
-      pickersEnabled: const {
-        ColorPickerType.both: false,
-        ColorPickerType.primary: true,
-        ColorPickerType.accent: false,
-        ColorPickerType.wheel: true,
+    final cleanTitle = title.endsWith('Color') ? title : '$title Color';
+    Color pickedColor = current;
+
+    final result = await showDialog<Color>(
+      context: context,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return _BrandingColorPickerDialog(
+              title: cleanTitle,
+              initialColor: pickedColor,
+              onColorChanged: (newColor) {
+                setDialogState(() {
+                  pickedColor = newColor;
+                });
+              },
+            );
+          },
+        );
       },
     );
-    onPicked(result);
+
+    if (result != null) {
+      onPicked(result);
+    }
+  }
+}
+
+class _BrandingColorPickerDialog extends StatefulWidget {
+  final String title;
+  final Color initialColor;
+  final Function(Color) onColorChanged;
+
+  const _BrandingColorPickerDialog({
+    required this.title,
+    required this.initialColor,
+    required this.onColorChanged,
+  });
+
+  @override
+  State<_BrandingColorPickerDialog> createState() => _BrandingColorPickerDialogState();
+}
+
+class _BrandingColorPickerDialogState extends State<_BrandingColorPickerDialog> {
+  late Color pickedColor;
+  late TextEditingController _hexController;
+
+  @override
+  void initState() {
+    super.initState();
+    pickedColor = widget.initialColor;
+    _hexController = TextEditingController(text: _getHexCode(pickedColor));
+  }
+
+  String _getHexCode(Color color) {
+    return color.toARGB32().toRadixString(16).toUpperCase().padLeft(8, '0').substring(2);
+  }
+
+  @override
+  void dispose() {
+    _hexController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      backgroundColor: Theme.of(context).cardColor,
+      surfaceTintColor: Colors.transparent,
+      title: Text(
+        widget.title,
+        style: AppTypography.displaySubPage,
+      ),
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ColorPicker(
+              color: pickedColor,
+              onColorChanged: (Color color) {
+                setState(() {
+                  pickedColor = color;
+                  final newHex = _getHexCode(color);
+                  if (_hexController.text != newHex) {
+                    _hexController.text = newHex;
+                  }
+                });
+                widget.onColorChanged(color);
+              },
+              width: 40,
+              height: 40,
+              borderRadius: 8,
+              spacing: 8,
+              runSpacing: 8,
+              wheelDiameter: 220,
+              showColorCode: false,
+              enableOpacity: false,
+              pickersEnabled: const {
+                ColorPickerType.both: false,
+                ColorPickerType.primary: true,
+                ColorPickerType.accent: false,
+                ColorPickerType.wheel: true,
+              },
+            ),
+            const SizedBox(height: AppSpacing.lg),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              decoration: BoxDecoration(
+                color: Theme.of(context).scaffoldBackgroundColor,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: Theme.of(context).dividerColor.withValues(alpha: 0.1),
+                ),
+              ),
+              child: Row(
+                children: [
+                  Text(
+                    '#',
+                    style: AppTypography.headline.copyWith(
+                      color: AppColors.dark600,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: TextField(
+                      controller: _hexController,
+                      style: AppTypography.label.copyWith(
+                        letterSpacing: 1,
+                        fontWeight: AppTypography.weightBold,
+                        fontSize: 14,
+                      ),
+                      decoration: const InputDecoration(
+                        border: InputBorder.none,
+                        isDense: true,
+                        contentPadding: EdgeInsets.zero,
+                      ),
+                      onChanged: (v) {
+                        if (v.length == 6) {
+                          try {
+                            final newColor = Color(int.parse('FF$v', radix: 16));
+                            setState(() {
+                              pickedColor = newColor;
+                            });
+                            widget.onColorChanged(newColor);
+                          } catch (e) {
+                            // Invalid hex
+                          }
+                        }
+                      },
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.copy_rounded, size: 20),
+                    onPressed: () {
+                      final hex = _hexController.text;
+                      Clipboard.setData(ClipboardData(text: '#$hex'));
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Color #$hex copied to clipboard'),
+                          duration: const Duration(seconds: 2),
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Select a color above or enter hex code',
+              style: AppTypography.helper,
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: Text('CANCEL', style: AppTypography.label.copyWith(color: AppColors.dark600)),
+        ),
+        BoxyArtButton(
+          title: 'SELECT',
+          onTap: () => Navigator.of(context).pop(pickedColor),
+        ),
+      ],
+    );
   }
 }
 
@@ -54,59 +212,68 @@ class StatusColorRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final textSecondary = AppColors.textSecondary;
+    
     return GestureDetector(
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
       child: Container(
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.md,
-          vertical: AppSpacing.sm,
-        ),
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: 12),
         decoration: BoxDecoration(
           color: Theme.of(context).dividerColor.withValues(alpha: 0.03),
           borderRadius: AppShapes.md,
           border: Border.all(
-            color: Theme.of(
-              context,
-            ).dividerColor.withValues(alpha: AppColors.opacitySubtle),
+            color: Theme.of(context).dividerColor.withValues(alpha: AppColors.opacitySubtle),
           ),
         ),
         child: Row(
           children: [
-            BoxyArtPill.status(label: label, color: color),
-            const Spacer(),
-            Container(
-              width: 32,
-              height: 32,
-              decoration: BoxDecoration(
-                color: color,
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: Colors.black.withValues(alpha: 0.1),
-                  width: 1,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: color.withValues(alpha: 0.3),
-                    blurRadius: 4,
-                    offset: const Offset(0, 2),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    label.toUpperCase(),
+                    style: AppTypography.label.copyWith(
+                      fontSize: 12,
+                      fontWeight: AppTypography.weightStrong,
+                      letterSpacing: 0.8,
+                      color: AppColors.dark600,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Row(
+                    children: [
+                      Container(
+                        width: 16,
+                        height: 16,
+                        decoration: BoxDecoration(
+                          color: color,
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: Colors.black.withValues(alpha: 0.1),
+                            width: 1,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: AppSpacing.sm),
+                      Text(
+                        '#${color.toARGB32().toRadixString(16).toUpperCase().substring(2)}',
+                        style: AppTypography.micro.copyWith(
+                          color: textSecondary,
+                          fontWeight: AppTypography.weightBold,
+                          fontSize: 11,
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
             ),
-            const SizedBox(width: AppSpacing.sm),
-            Text(
-              '#${color.toARGB32().toRadixString(16).toUpperCase().substring(2)}',
-              style: AppTypography.micro.copyWith(
-                color: AppColors.textSecondary,
-                fontWeight: AppTypography.weightBold,
-              ),
-            ),
-            const SizedBox(width: AppSpacing.xs),
             Icon(
               Icons.chevron_right_rounded,
               size: 20,
-              color: AppColors.textSecondary.withValues(alpha: 0.5),
+              color: textSecondary.withValues(alpha: 0.4),
             ),
           ],
         ),
@@ -132,7 +299,7 @@ class CompactColorPicker extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.all(AppSpacing.md),
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: 12),
         decoration: BoxDecoration(
           color: Theme.of(context).dividerColor.withValues(alpha: 0.03),
           borderRadius: AppShapes.md,
@@ -146,33 +313,34 @@ class CompactColorPicker extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              label,
-              style: const TextStyle(
-                fontSize: AppTypography.sizeLabel,
-                fontWeight: AppTypography.weightBlack,
-                letterSpacing: -0.2,
+              label.toUpperCase(),
+              style: AppTypography.label.copyWith(
+                fontSize: 12,
+                fontWeight: AppTypography.weightStrong,
+                letterSpacing: 0.8,
+                color: AppColors.dark600,
               ),
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 8),
             Row(
               children: [
                 Container(
-                  width: AppSpacing.x3l,
-                  height: AppSpacing.x3l,
+                  width: 24,
+                  height: 24,
                   decoration: BoxDecoration(
                     color: color,
                     shape: BoxShape.circle,
                     border: Border.all(
-                      color: Colors.black.withValues(alpha: 0.12),
+                      color: Colors.black.withValues(alpha: 0.1),
                     ),
                   ),
                 ),
                 const SizedBox(width: AppSpacing.sm),
                 Text(
                   '#${color.toARGB32().toRadixString(16).toUpperCase().substring(2)}',
-                  style: const TextStyle(
-                    fontSize: AppTypography.sizeLabelStrong,
-                    fontWeight: AppTypography.weightSemibold,
+                  style: AppTypography.micro.copyWith(
+                    fontWeight: AppTypography.weightBold,
+                    fontSize: 11,
                     fontFamily: 'monospace',
                   ),
                 ),
@@ -210,7 +378,7 @@ class DarkSwatch extends StatelessWidget {
           label,
           style: AppTypography.micro.copyWith(
             fontSize: 8,
-            color: AppColors.textSecondary,
+            color: AppColors.dark600,
           ),
         ),
       ],
@@ -277,7 +445,11 @@ class ResponsiveColorRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final width = constraints.maxWidth;
+        // Use a safe width if constraints are infinite (e.g. inside a horizontal scroll or unconstrained column)
+        final width = constraints.maxWidth.isFinite 
+            ? constraints.maxWidth 
+            : MediaQuery.of(context).size.width - (AppSpacing.x2l * 2);
+
         int itemsPerRow = children.length;
         if (width < 440 && itemsPerRow > 2) itemsPerRow = 2;
         if (width < 280) itemsPerRow = 1;
@@ -289,7 +461,7 @@ class ResponsiveColorRow extends StatelessWidget {
           spacing: spacing,
           runSpacing: spacing,
           children: children.map((c) => SizedBox(
-            width: itemWidth, 
+            width: itemWidth.isFinite ? itemWidth : 160, 
             child: c
           )).toList(),
         );
@@ -462,78 +634,20 @@ class _ColorPaletteState extends State<ColorPalette> {
   }
 
   Future<void> _showAddCustomColorDialog() async {
-    final result = await showColorPickerDialog(
+    await BrandingHelper.pickColor(
       context,
+      'Add Color',
       widget.selectedColor,
-      title: Text('Add Color', style: Theme.of(context).textTheme.titleLarge),
-      width: AppSpacing.x4l,
-      height: AppSpacing.x4l,
-      spacing: 8,
-      runSpacing: 8,
-      borderRadius: 8,
-      elevation: 4,
-      showColorCode: true,
-      colorCodeReadOnly: false,
-      colorCodeHasColor: true,
-      colorCodeTextStyle: AppTypography.cardTitle.copyWith(
-        color: AppColors.pureWhite,
-      ),
-      pickersEnabled: const {
-        ColorPickerType.both: false,
-        ColorPickerType.primary: true,
-        ColorPickerType.accent: false,
-        ColorPickerType.wheel: true,
-      },
-      actionButtons: const ColorPickerActionButtons(
-        okButton: true,
-        closeButton: true,
-        dialogActionButtons: false,
-      ),
-      constraints: const BoxConstraints(
-        minHeight: 520,
-        minWidth: 340,
-        maxWidth: 340,
-      ),
+      (result) => widget.onAddCustomColor(result),
     );
-
-    widget.onAddCustomColor(result);
   }
 
   Future<void> _showEditCustomColorDialog(int index, Color currentColor) async {
-    final result = await showColorPickerDialog(
+    await BrandingHelper.pickColor(
       context,
+      'Edit Color',
       currentColor,
-      title: Text('Edit Color', style: Theme.of(context).textTheme.titleLarge),
-      width: AppSpacing.x4l,
-      height: AppSpacing.x4l,
-      spacing: 8,
-      runSpacing: 8,
-      borderRadius: 8,
-      elevation: 4,
-      showColorCode: true,
-      colorCodeReadOnly: false,
-      colorCodeHasColor: true,
-      colorCodeTextStyle: AppTypography.cardTitle.copyWith(
-        color: AppColors.pureWhite,
-      ),
-      pickersEnabled: const {
-        ColorPickerType.both: false,
-        ColorPickerType.primary: true,
-        ColorPickerType.accent: false,
-        ColorPickerType.wheel: true,
-      },
-      actionButtons: const ColorPickerActionButtons(
-        okButton: true,
-        closeButton: true,
-        dialogActionButtons: false,
-      ),
-      constraints: const BoxConstraints(
-        minHeight: 520,
-        minWidth: 340,
-        maxWidth: 340,
-      ),
+      (result) => widget.onUpdateCustomColor(index, result),
     );
-
-    widget.onUpdateCustomColor(index, result);
   }
 }

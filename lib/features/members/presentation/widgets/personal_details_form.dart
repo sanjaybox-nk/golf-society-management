@@ -199,8 +199,10 @@ class _PersonalDetailsFormState extends State<PersonalDetailsForm> {
         ),
         Text(
           value.isEmpty ? '-' : value,
-          style: AppTypography.body.copyWith(
-            color: Theme.of(context).colorScheme.onSurface,
+          style: AppTypography.micro.copyWith(
+            fontSize: 15,
+            color: isDark ? AppColors.dark150 : AppColors.dark600,
+            fontWeight: AppTypography.weightSemibold,
           ),
         ),
       ],
@@ -310,7 +312,7 @@ class _PersonalDetailsFormState extends State<PersonalDetailsForm> {
                 Expanded(
                   child: ListView.separated(
                     itemCount: filteredOptions.length,
-                    separatorBuilder: (_, __) => Divider(
+                    separatorBuilder: (context, index) => Divider(
                       height: 1, 
                       color: isDark ? AppColors.dark600 : AppColors.lightBorder.withValues(alpha: AppColors.opacityHalf)
                     ),

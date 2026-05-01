@@ -5,6 +5,7 @@ import 'package:golf_society/domain/models/golf_event.dart';
 import 'package:golf_society/features/competitions/presentation/widgets/competition_shared_widgets.dart';
 import 'package:golf_society/domain/models/member.dart';
 import 'package:golf_society/features/members/presentation/profile_provider.dart';
+import 'package:golf_society/utils/date_utils.dart' as utils;
 import 'events_provider.dart';
 
 import 'package:go_router/go_router.dart';
@@ -255,14 +256,6 @@ class _EventDetailsContent extends ConsumerWidget {
     );
   }
 
-  String toTitleCase(String text) {
-    if (text.isEmpty) return text;
-    return text.split(' ').map((word) {
-      if (word.isEmpty) return word;
-      return word[0].toUpperCase() + word.substring(1).toLowerCase();
-    }).join(' ');
-  }
-
   Widget _buildRegistrationCard(BuildContext context, WidgetRef ref) {
     final user = ref.watch(effectiveUserProvider);
     final myRegistration = event.registrations.where((r) => r.memberId == user.id).firstOrNull;
@@ -270,7 +263,7 @@ class _EventDetailsContent extends ConsumerWidget {
     final primary = Theme.of(context).primaryColor;
     
     final isPastDeadline = event.registrationDeadline != null && 
-                          DateTime.now().isAfter(event.registrationDeadline!);
+                          utils.DateUtils.isPastDateTime(event.registrationDeadline!);
     
     bool isRegistrationDisabled = isPastDeadline || !event.showRegistrationButton;
     String buttonTitle = isPastDeadline 

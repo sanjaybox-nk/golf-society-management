@@ -32,7 +32,10 @@ class BrandingSettingsScreen extends ConsumerWidget {
                 ),
                 BrandingPreviewCard(config: config),
 
-                const BoxyArtSectionTitle(title: 'Style Preference'),
+                const BoxyArtSectionTitle(
+                  title: 'Style Preference',
+                  followsCard: true,
+                ),
                 BrandingStyleSettings(config: config, controller: controller),
 
                 BrandingColorSettings(config: config, controller: controller),
@@ -40,7 +43,11 @@ class BrandingSettingsScreen extends ConsumerWidget {
                 BrandingLayoutSettings(config: config, controller: controller),
 
                 BrandingAestheticsSettings(config: config, controller: controller),
-
+                
+                BrandingIconSettings(config: config, controller: controller),
+                
+                BrandingTypographySettings(config: config, controller: controller),
+                
                 BrandingPaletteManager(config: config, controller: controller),
 
                 const BoxyArtSectionTitle(title: 'System References'),

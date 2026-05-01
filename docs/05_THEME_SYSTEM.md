@@ -84,6 +84,7 @@ Societies can customize their visual identity via the Branding Console. These to
 | `pointsColor` | `0xFF4ADE80` | Accent for Stableford points emphasis (Use `effectivePointsColor` fallback) |
 | `teamAColor` | `0xFF1E40AF` | Team A Identity (Blue) |
 | `teamBColor` | `0xFF166534` | Team B Identity (Dark Green) |
+| `iconBadgeTextColor` | `0xFF1A1A1A` | [NEW] Independent color for labels inside badges/icons |
 | `effectivePointsColor` | `pointsColor ?? primaryColor` | Guaranteed color for Branded Scoring metrics |
 
 ---

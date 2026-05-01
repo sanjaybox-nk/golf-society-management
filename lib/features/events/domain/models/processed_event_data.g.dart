@@ -141,11 +141,14 @@ _ProcessedLeaderboardEntry _$ProcessedLeaderboardEntryFromJson(
       ScoringStatus.ok,
   handicapIndex: (json['handicapIndex'] as num?)?.toDouble(),
   tieBreakLabel: json['tieBreakLabel'] as String?,
+  thruLabel: json['thruLabel'] as String?,
   matchStatus: json['matchStatus'] as String?,
   matchScore: (json['matchScore'] as num?)?.toInt(),
   isMatch: json['isMatch'] as bool? ?? false,
   teeName: json['teeName'] as String?,
   teeColor: json['teeColor'] as String?,
+  absoluteScore: (json['absoluteScore'] as num?)?.toInt(),
+  absoluteScoreLabel: json['absoluteScoreLabel'] as String?,
 );
 
 Map<String, dynamic> _$ProcessedLeaderboardEntryToJson(
@@ -172,11 +175,14 @@ Map<String, dynamic> _$ProcessedLeaderboardEntryToJson(
   'scoringStatus': _$ScoringStatusEnumMap[instance.scoringStatus]!,
   'handicapIndex': instance.handicapIndex,
   'tieBreakLabel': instance.tieBreakLabel,
+  'thruLabel': instance.thruLabel,
   'matchStatus': instance.matchStatus,
   'matchScore': instance.matchScore,
   'isMatch': instance.isMatch,
   'teeName': instance.teeName,
   'teeColor': instance.teeColor,
+  'absoluteScore': instance.absoluteScore,
+  'absoluteScoreLabel': instance.absoluteScoreLabel,
 };
 
 _ProcessedEventData _$ProcessedEventDataFromJson(Map<String, dynamic> json) =>
@@ -200,6 +206,9 @@ _ProcessedEventData _$ProcessedEventDataFromJson(Map<String, dynamic> json) =>
           .toList(),
       computeVersion: (json['computeVersion'] as num?)?.toInt() ?? 0,
       lastComputedAt: DateTime.parse(json['lastComputedAt'] as String),
+      totalParticipants: (json['totalParticipants'] as num?)?.toInt() ?? 0,
+      submittedCount: (json['submittedCount'] as num?)?.toInt() ?? 0,
+      inProgressCount: (json['inProgressCount'] as num?)?.toInt() ?? 0,
     );
 
 Map<String, dynamic> _$ProcessedEventDataToJson(
@@ -213,4 +222,7 @@ Map<String, dynamic> _$ProcessedEventDataToJson(
   'holePars': instance.holePars,
   'computeVersion': instance.computeVersion,
   'lastComputedAt': instance.lastComputedAt.toIso8601String(),
+  'totalParticipants': instance.totalParticipants,
+  'submittedCount': instance.submittedCount,
+  'inProgressCount': instance.inProgressCount,
 };

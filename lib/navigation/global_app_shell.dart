@@ -231,7 +231,6 @@ class _ShellLayoutDelegate extends StatelessWidget {
 
 
 
-    final bool isSurveyView = location.contains('/surveys/') && !location.contains('/admin/node');
 
     if (isUserEventHub) {
       items = [
@@ -282,11 +281,6 @@ class _ShellLayoutDelegate extends StatelessWidget {
       }
     }
 
-    final bool isWhiteListed = location.contains('renewal') || location.contains('ledger') || 
-                               location.contains('/admin/surveys') || location.contains('/admin/audience') || 
-                               location.contains('compose') || location.contains('broadcast') || 
-                               location.contains('game-setup') || location.contains('game-gallery') || 
-                               location.contains('game-builder') || isSurveyView;
 
     return builder(context, _ShellProperties(
       items: items,

@@ -152,6 +152,18 @@ _SocietyConfig _$SocietyConfigFromJson(
       const <Sponsor>[],
   pointsColor: (json['pointsColor'] as num?)?.toInt(),
   heroGradientColor: (json['heroGradientColor'] as num?)?.toInt() ?? 0xFFF7D354,
+  heroGradientColorSecondary:
+      (json['heroGradientColorSecondary'] as num?)?.toInt() ?? 0xFFF7D354,
+  heroGradientOpacity:
+      (json['heroGradientOpacity'] as num?)?.toDouble() ?? 0.15,
+  heroTextColor: (json['heroTextColor'] as num?)?.toInt() ?? 0xFF1A1A1A,
+  cardTintColor: (json['cardTintColor'] as num?)?.toInt() ?? 0xFFF7D354,
+  iconBadgeTextColor:
+      (json['iconBadgeTextColor'] as num?)?.toInt() ?? 0xFF1A1A1A,
+  enablePenaltyFines: json['enablePenaltyFines'] as bool? ?? false,
+  penaltyFineAmount: (json['penaltyFineAmount'] as num?)?.toDouble() ?? 1.0,
+  nrFineAmount: (json['nrFineAmount'] as num?)?.toDouble() ?? 5.0,
+  enableGimmes: json['enableGimmes'] as bool? ?? true,
 );
 
 Map<String, dynamic> _$SocietyConfigToJson(_SocietyConfig instance) =>
@@ -260,6 +272,15 @@ Map<String, dynamic> _$SocietyConfigToJson(_SocietyConfig instance) =>
       'sponsors': instance.sponsors.map((e) => e.toJson()).toList(),
       'pointsColor': instance.pointsColor,
       'heroGradientColor': instance.heroGradientColor,
+      'heroGradientColorSecondary': instance.heroGradientColorSecondary,
+      'heroGradientOpacity': instance.heroGradientOpacity,
+      'heroTextColor': instance.heroTextColor,
+      'cardTintColor': instance.cardTintColor,
+      'iconBadgeTextColor': instance.iconBadgeTextColor,
+      'enablePenaltyFines': instance.enablePenaltyFines,
+      'penaltyFineAmount': instance.penaltyFineAmount,
+      'nrFineAmount': instance.nrFineAmount,
+      'enableGimmes': instance.enableGimmes,
     };
 
 const _$HandicapSystemEnumMap = {

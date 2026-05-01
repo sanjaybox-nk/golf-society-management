@@ -36,53 +36,47 @@ class LeaderboardWidget extends StatelessWidget {
       children: entries.asMap().entries.map((mapEntry) {
         final idx = mapEntry.key;
         final entry = mapEntry.value;
+        final bool hasScore = entry.scoringStatus == ScoringStatus.ok;
+        final String rawScore = hasScore 
+            ? (entry.scoreLabel ?? '${entry.score}')
+            : entry.scoringStatus.name.toUpperCase();
+            
         String? differentiatorChain;
-        final tiedWith = tiedGroups[entry.score] ?? [];
-        
-        if (tiedWith.length > 1) {
-          // CHAIN OF DECIDERS LOGIC
-          // 1. Get segments for neighbors with same score
-          List<String> getSegments(LeaderboardEntry e) => 
-              (e.tieBreakDetails ?? e.tieBreakLabel ?? '').split(RegExp(r'[,•]')).map((s) => s.trim()).toList();
-          
-          final mySegments = getSegments(entry);
-          
-          int findFirstDiff(List<String> a, List<String> b) {
-            int k = 0;
-            while (k < a.length && k < b.length && a[k] == b[k]) {
-              k++;
+        if (hasScore && !isStableford && !isMatchPlay) {
+          final tiedWith = tiedGroups[entry.score] ?? [];
+          if (tiedWith.length > 1) {
+            List<String> getSegments(LeaderboardEntry e) => 
+                (e.tieBreakDetails ?? e.tieBreakLabel ?? '').split(RegExp(r'[,•]')).map((s) => s.trim()).toList();
+            
+            final mySegments = getSegments(entry);
+            
+            int findFirstDiff(List<String> a, List<String> b) {
+              int k = 0;
+              while (k < a.length && k < b.length && a[k] == b[k]) {
+                k++;
+              }
+              return k;
             }
-            return k; // index of first difference (or end of list)
-          }
 
-          int maxDiffNeeded = 0;
-          
-          // Check neighbor above
-          if (idx > 0 && entries[idx-1].score == entry.score) {
-             maxDiffNeeded = findFirstDiff(mySegments, getSegments(entries[idx-1]));
-          }
-          
-          // Check neighbor below
-          if (idx < entries.length - 1 && entries[idx+1].score == entry.score) {
-             final belowDiff = findFirstDiff(mySegments, getSegments(entries[idx+1]));
-             if (belowDiff > maxDiffNeeded) maxDiffNeeded = belowDiff;
-          }
+            int maxDiffNeeded = 0;
+            if (idx > 0 && entries[idx-1].score == entry.score) {
+               maxDiffNeeded = findFirstDiff(mySegments, getSegments(entries[idx-1]));
+            }
+            if (idx < entries.length - 1 && entries[idx+1].score == entry.score) {
+               final belowDiff = findFirstDiff(mySegments, getSegments(entries[idx+1]));
+               if (belowDiff > maxDiffNeeded) maxDiffNeeded = belowDiff;
+            }
 
-          // Show chain up to maxDiffNeeded
-          if (maxDiffNeeded < mySegments.length) {
-            differentiatorChain = mySegments.take(maxDiffNeeded + 1).join(' • ');
-          } else {
-            differentiatorChain = mySegments.join(' • ');
+            if (maxDiffNeeded < mySegments.length) {
+              differentiatorChain = mySegments.take(maxDiffNeeded + 1).join(' • ');
+            } else {
+              differentiatorChain = mySegments.join(' • ');
+            }
           }
+        } else {
+          differentiatorChain = entry.tieBreakLabel;
         }
 
-        final bool hasScore = entry.scoringStatus == ScoringStatus.ok;
-        final String baseScore = hasScore ? (entry.scoreLabel ?? '${entry.score}') : entry.scoringStatus.name.toUpperCase();
-        final String rawScore = baseScore
-            .replaceAll('WIN', 'Won')
-            .replaceAll('LOSS', 'Lost')
-            .replaceAll('HALVED', 'Halved');
-            
         final theme = Theme.of(context);
         final spacing = theme.extension<AppSpacingTokens>();
 
@@ -111,13 +105,14 @@ class LeaderboardWidget extends StatelessWidget {
             isStableford: isStableford,
             teeName: entry.teeName,
             teeColor: entry.teeColor,
+            showTee: false,
             useCard: true,
             showChevron: false,
             isSelected: highlightEntryId != null && entry.entryId == highlightEntryId,
             onTap: () => onPlayerTap?.call(entry),
           ),
         );
-      }).toList(),
+      }).toList().cast<Widget>(),
     );
   }
 }
@@ -160,6 +155,8 @@ class LeaderboardEntry {
   final bool isCaptain; // [NEW] For captain indicator
   final String? teeName; // [NEW]
   final Color? teeColor; // [NEW]
+  final int? absoluteScore; // [NEW]
+  final String? absoluteScoreLabel; // [NEW]
   final int position;
 
   LeaderboardEntry({
@@ -199,6 +196,8 @@ class LeaderboardEntry {
     this.isCaptain = false,
     this.teeName,
     this.teeColor,
+    this.absoluteScore,
+    this.absoluteScoreLabel,
     this.position = 0,
     this.scoringStatus = ScoringStatus.ok,
   });
@@ -242,6 +241,8 @@ class LeaderboardEntry {
     bool? isCaptain,
     String? teeName,
     Color? teeColor,
+    int? absoluteScore,
+    String? absoluteScoreLabel,
   }) {
     return LeaderboardEntry(
       entryId: entryId ?? this.entryId,
@@ -272,6 +273,11 @@ class LeaderboardEntry {
       handicapIndex: handicapIndex ?? this.handicapIndex,
       individualPlayingHandicaps: individualPlayingHandicaps ?? this.individualPlayingHandicaps,
       hasSocietyCut: hasSocietyCut ?? this.hasSocietyCut,
+      isCaptain: isCaptain ?? this.isCaptain,
+      teeName: teeName ?? this.teeName,
+      teeColor: teeColor ?? this.teeColor,
+      absoluteScore: absoluteScore ?? this.absoluteScore,
+      absoluteScoreLabel: absoluteScoreLabel ?? this.absoluteScoreLabel,
       position: position ?? this.position,
       scoringStatus: scoringStatus ?? this.scoringStatus,
       holeNetScores: holeNetScores ?? this.holeNetScores,
@@ -279,9 +285,6 @@ class LeaderboardEntry {
       individualHoleScores: individualHoleScores ?? this.individualHoleScores,
       individualHoleNetScores: individualHoleNetScores ?? this.individualHoleNetScores,
       individualHolePoints: individualHolePoints ?? this.individualHolePoints,
-      isCaptain: isCaptain ?? this.isCaptain,
-      teeName: teeName ?? this.teeName,
-      teeColor: teeColor ?? this.teeColor,
     );
   }
 }
