@@ -297,11 +297,9 @@ class _HoleByHoleScoringWidgetState extends ConsumerState<HoleByHoleScoringWidge
     // Tactical Info Resolve
     final currentHoleNum = _currentHoleIndex + 1;
     int par = 4;
-    int? si;
     if (holes.length >= currentHoleNum) {
       final hData = holes[_currentHoleIndex];
       par = hData.par;
-      si = hData.si;
     }
 
     final int currentScore = (widget.selectedTab == MarkerTab.player ? _localScores : _verifierScores)[currentHoleNum] ?? par;
@@ -356,14 +354,13 @@ class _HoleByHoleScoringWidgetState extends ConsumerState<HoleByHoleScoringWidge
                         Expanded(
                           child: Row(
                             children: [
-                              if (!_isMatchView)
+                              if (!_isMatchView && !widget.isSelfMarking)
                                 _buildTab(
                                   context, 
-                                  'Player', 
+                                  'PLAYER', 
                                   null, 
                                   widget.selectedTab == MarkerTab.player, 
                                   () => widget.onTabChanged(MarkerTab.player),
-                                  isDisabled: widget.isSelfMarking, 
                                   activeColor: theme.colorScheme.primary,
                                 ),
                               
@@ -383,7 +380,7 @@ class _HoleByHoleScoringWidgetState extends ConsumerState<HoleByHoleScoringWidge
                               if (!_isMatchView)
                                 _buildTab(
                                   context, 
-                                  'Me', 
+                                  widget.isSelfMarking ? 'SCORE' : 'ME', 
                                   null, 
                                   widget.selectedTab == MarkerTab.verifier, 
                                   () => widget.onTabChanged(MarkerTab.verifier),
@@ -393,7 +390,7 @@ class _HoleByHoleScoringWidgetState extends ConsumerState<HoleByHoleScoringWidge
                               if (!_isMatchView)
                                 _buildTab(
                                   context, 
-                                  'Verify', 
+                                  'VERIFY', 
                                   null, 
                                   widget.selectedTab == MarkerTab.verify, 
                                   () => widget.onTabChanged(MarkerTab.verify),
@@ -426,7 +423,6 @@ class _HoleByHoleScoringWidgetState extends ConsumerState<HoleByHoleScoringWidge
   }
 
   Widget _buildVerifyView(BuildContext context, int currentHoleNum, int par) {
-    final theme = Theme.of(context);
     final scoringData = ref.watch(eventScoringControllerProvider(widget.event.id));
     
     return Column(
@@ -811,8 +807,6 @@ class _HoleByHoleScoringWidgetState extends ConsumerState<HoleByHoleScoringWidge
     
     final bool isPickedUp = tags.contains('PICK_UP');
     final bool isNotPlayed = tags.contains('NOT_PLAYED');
-    final bool isGimme = tags.contains('GIMME');
-    final int penaltyCount = tags.where((t) => t.startsWith('PENALTY_')).length;
 
     return Column(
       children: [
@@ -1049,8 +1043,12 @@ class _HoleByHoleScoringWidgetState extends ConsumerState<HoleByHoleScoringWidge
       currentTags.remove(tag);
     } else {
       // Mutual Exclusivity: NR and PickUp
-      if (tag == 'PICK_UP') currentTags.remove('NOT_PLAYED');
-      if (tag == 'NOT_PLAYED') currentTags.remove('PICK_UP');
+      if (tag == 'PICK_UP') {
+        currentTags.remove('NOT_PLAYED');
+      }
+      if (tag == 'NOT_PLAYED') {
+        currentTags.remove('PICK_UP');
+      }
       currentTags.add(tag);
     }
     
@@ -1067,8 +1065,11 @@ class _HoleByHoleScoringWidgetState extends ConsumerState<HoleByHoleScoringWidge
     
     await ref.read(scorecardRepositoryProvider).updateScorecard(updatedCard);
     setState(() {
-       if (isVerifier) _localVerifierCard = updatedCard;
-       else _activeScorecard = updatedCard;
+      if (isVerifier) {
+        _localVerifierCard = updatedCard;
+      } else {
+        _activeScorecard = updatedCard;
+      }
     });
   }
 
@@ -1092,8 +1093,11 @@ class _HoleByHoleScoringWidgetState extends ConsumerState<HoleByHoleScoringWidge
     
     await ref.read(scorecardRepositoryProvider).updateScorecard(updatedCard);
     setState(() {
-       if (isVerifier) _localVerifierCard = updatedCard;
-       else _activeScorecard = updatedCard;
+      if (isVerifier) {
+        _localVerifierCard = updatedCard;
+      } else {
+        _activeScorecard = updatedCard;
+      }
     });
   }
 
@@ -1116,8 +1120,11 @@ class _HoleByHoleScoringWidgetState extends ConsumerState<HoleByHoleScoringWidge
     
     await ref.read(scorecardRepositoryProvider).updateScorecard(updatedCard);
     setState(() {
-       if (isVerifier) _localVerifierCard = updatedCard;
-       else _activeScorecard = updatedCard;
+      if (isVerifier) {
+        _localVerifierCard = updatedCard;
+      } else {
+        _activeScorecard = updatedCard;
+      }
     });
   }
 
@@ -1221,12 +1228,12 @@ class _HoleByHoleScoringWidgetState extends ConsumerState<HoleByHoleScoringWidge
   Widget _buildVerificationGrid(BuildContext context, ProcessedEventData scoringData) {
     final theme = Theme.of(context);
     
-    // Find Player's own card
+    // Find Player's own self-recorded card
     final allCards = ref.watch(scorecardsListProvider(widget.event.id)).value ?? [];
-    final playerOwnCard = allCards.firstWhereOrNull((s) => s.entryId == widget.targetEntryId && s.markerId == widget.targetEntryId);
+    final playerSelfCard = allCards.firstWhereOrNull((s) => s.entryId == widget.targetEntryId && s.markerId == widget.targetEntryId);
     
-    // Marker's card for player (the one we are currently marking)
-    final markerCard = _activeScorecard;
+    // Find the Marker's record for this player
+    final officialMarkerCard = allCards.firstWhereOrNull((s) => s.entryId == widget.targetEntryId && s.markerId != widget.targetEntryId);
 
     return BoxyArtCard(
       padding: EdgeInsets.zero,
@@ -1255,12 +1262,12 @@ class _HoleByHoleScoringWidgetState extends ConsumerState<HoleByHoleScoringWidge
                 _buildVerifyRow(context, 'HOLE', List.generate(18, (i) => '${i + 1}'), isHeader: true),
                 _buildVerifyRow(context, 'PAR', widget.event.courseConfig.holes.map((h) => h.par.toString()).toList(), isDimmed: true),
                 const Divider(height: 1),
-                _buildVerifyRow(context, 'PLAYER', List.generate(18, (i) => playerOwnCard?.holeScores[i]?.toString() ?? '-')),
+                _buildVerifyRow(context, 'PLAYER', List.generate(18, (i) => playerSelfCard?.holeScores[i]?.toString() ?? '-')),
                 _buildVerifyRow(
                   context, 
                   'MARKER', 
-                  List.generate(18, (i) => markerCard?.holeScores[i]?.toString() ?? '-'),
-                  comparisonList: List.generate(18, (i) => playerOwnCard?.holeScores[i]?.toString() ?? '-'),
+                  List.generate(18, (i) => officialMarkerCard?.holeScores[i]?.toString() ?? '-'),
+                  comparisonList: List.generate(18, (i) => playerSelfCard?.holeScores[i]?.toString() ?? '-'),
                 ),
               ],
             ),

@@ -59,6 +59,11 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
             final markerSelection = ref.watch(markerSelectionProvider);
             final bool isSelfMarking = markerSelection.isSelfMarking;
             final String? targetEntryId = markerSelection.targetEntryId;
+
+            // [NEW] Default to SCORE (verifier) tab when self-marking
+            if (isSelfMarking && _selectedMarkerTab == MarkerTab.player) {
+              _selectedMarkerTab = MarkerTab.verifier;
+            }
             String effectiveEntryId = isSelfMarking ? currentUser.id : (targetEntryId ?? currentUser.id);
 
             if (effectiveRules.isUnifiedTeamFormat) {

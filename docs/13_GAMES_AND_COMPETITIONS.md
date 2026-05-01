@@ -277,9 +277,12 @@ Members can record ad-hoc penalties (Stroke and Distance, Water Hazard, etc.) fo
 - **Pick Up (X)**: Standardized logic for "Pick Up" holes (X). The score is automatically set to the Max Hole Score (if configured) or marked as NR for the hole.
 - **Not Played (-)**: Used for shortened rounds or injury withdrawals mid-round.
 
-### Visual Summaries
-- **Live Summary**: The `SlidingCourseInfoCard` displays an aggregated total of Penalties and Gimmes at the bottom of the grid.
-- **Hole Stories**: A detailed line-by-line breakdown of these attributes is surfaced in the **Verification Tab** for final audit before submission.
+### Verification Handshake (SCORE | VERIFY)
+To ensure data integrity, the system implements a formalized two-way sign-off:
+- **SCORE Tab**: The primary entry interface for strokes and "Hole Stories."
+- **VERIFY Tab**: A dedicated audit suite featuring a horizontal comparison grid (Player vs. Marker) and conflict highlighting.
+- **Signature Lock**: Both Player and Marker must sign off to authorize the card.
+- **Auto-Invalidation**: Any change to scores or tags post-sign-off automatically resets the verification status.
 
 ## 11. Scoring Accuracy & Verification
 

@@ -73,10 +73,15 @@ To ensure long-term clarity on the Event Dashboard and Leaderboards:
 
 To ensure tournament integrity, a two-way digital sign-off system is enforced before final submission.
 
+### The Dual-Tab Layout (SCORE | VERIFY)
+"My Scorecard" is organized into a primary two-tab navigation system:
+- **SCORE**: The active entry view where strokes and "Hole Stories" are recorded.
+- **VERIFY**: The comprehensive audit view where scores are cross-referenced and signed off.
+
 ### The Verification Grid
 The "Verify" tab provides a side-by-side comparison of:
-- **Player Scores**: The scores the player recorded for themselves.
-- **Marker Scores**: The scores the official marker recorded for the player.
+- **Player Scores**: The self-recorded strokes from the player's own card.
+- **Marker Scores**: The strokes recorded by the official marker for that player.
 - **Conflict Highlighting**: Any discrepancies between the two rows are highlighted in red (Boxy Art Coral).
 
 ### Signature Handshake
