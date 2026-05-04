@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'package:flutter/foundation.dart';
 import 'dart:convert';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:collection/collection.dart';
@@ -74,7 +75,7 @@ class EventSeeder {
     final DateTime golfTeeOff = golfRegTime.add(const Duration(minutes: 90));
 
     if (course != null) {
-      print('SEEDER_DIAG: Course ${course.name} has ${course.tees.length} tees');
+      if (kDebugMode) print('SEEDER_DIAG: Course ${course.name} has ${course.tees.length} tees');
     }
 
     var event = GolfEvent(

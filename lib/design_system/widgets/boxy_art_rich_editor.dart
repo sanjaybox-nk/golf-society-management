@@ -174,14 +174,15 @@ class BoxyArtRichEditor extends ConsumerWidget {
   Future<void> _showLinkDialog(BuildContext context, QuillController controller) async {
     final textController = TextEditingController();
     final linkController = TextEditingController();
-    
-    // Get current selection
     final selection = controller.selection;
+
     if (!selection.isCollapsed) {
       textController.text = controller.document.getPlainText(selection.start, selection.end - selection.start);
     }
 
-    final result = await showDialog<Map<String, String>>(
+    final Map<String, String>? result;
+    try {
+      result = await showDialog<Map<String, String>>(
       context: context,
       builder: (context) => BoxyArtDialog(
         title: 'Insert Link',
@@ -218,7 +219,11 @@ class BoxyArtRichEditor extends ConsumerWidget {
         onCancel: () => Navigator.pop(context),
         confirmText: 'Ok',
       ),
-    );
+      );
+    } finally {
+      textController.dispose();
+      linkController.dispose();
+    }
 
     if (result != null) {
       final text = result['text']!;

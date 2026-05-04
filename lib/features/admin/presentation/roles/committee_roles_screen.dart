@@ -173,26 +173,30 @@ class _CommitteeRolesScreenState extends ConsumerState<CommitteeRolesScreen> {
 
   // --- Dialogs ---
 
-  void _showCreateRoleDialog() {
+  Future<void> _showCreateRoleDialog() async {
     final controller = TextEditingController();
-    showBoxyArtDialog(
-      context: context,
-      title: 'New Role Title',
-      content: BoxyArtFormField(
-        label: 'Role Title',
-        hintText: 'e.g. Tour Manager',
-        controller: controller,
-      ),
-      onCancel: () => Navigator.of(context, rootNavigator: true).pop(),
-      onConfirm: () {
-        if (controller.text.trim().isNotEmpty) {
-          final newRole = controller.text.trim();
-          Navigator.of(context, rootNavigator: true).pop();
-          context.push('/admin/settings/committee-roles/members/${Uri.encodeComponent(newRole)}');
-        }
-      },
-      confirmText: 'Create Role',
-    );
+    try {
+      await showBoxyArtDialog(
+        context: context,
+        title: 'New Role Title',
+        content: BoxyArtFormField(
+          label: 'Role Title',
+          hintText: 'e.g. Tour Manager',
+          controller: controller,
+        ),
+        onCancel: () => Navigator.of(context, rootNavigator: true).pop(),
+        onConfirm: () {
+          if (controller.text.trim().isNotEmpty) {
+            final newRole = controller.text.trim();
+            Navigator.of(context, rootNavigator: true).pop();
+            context.push('/admin/settings/committee-roles/members/${Uri.encodeComponent(newRole)}');
+          }
+        },
+        confirmText: 'Create Role',
+      );
+    } finally {
+      controller.dispose();
+    }
   }
 
   // --- Helpers ---

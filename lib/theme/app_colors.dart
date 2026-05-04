@@ -136,7 +136,7 @@ class AppColors {
                final hex = tColor.replaceAll('#', '').padLeft(8, 'F');
                return Color(int.parse(hex, radix: 16));
              } catch (e) {
-               debugPrint('Error parsing tee color: $tColor');
+               if (kDebugMode) debugPrint('Error parsing tee color: $tColor');
              }
            }
          }

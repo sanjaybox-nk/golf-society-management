@@ -114,7 +114,7 @@ class SurveySeeder {
       }
       
       await surveyRepo.addSurvey(survey.copyWith(responses: responses));
-      debugPrint('Seeded survey: ${survey.title} with ${responses.length} responses.');
+      if (kDebugMode) debugPrint('Seeded survey: ${survey.title} with ${responses.length} responses.');
     }
   }
 }

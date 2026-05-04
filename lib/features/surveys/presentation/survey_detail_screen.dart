@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart';
 import 'package:golf_society/design_system/design_system.dart';
 import 'package:golf_society/domain/models/survey.dart';
@@ -29,7 +30,7 @@ class _SurveyDetailScreenState extends ConsumerState<SurveyDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    debugPrint('DEBUG: Building SurveyDetailScreen for id: ${widget.surveyId}');
+    if (kDebugMode) debugPrint('DEBUG: Building SurveyDetailScreen for id: ${widget.surveyId}');
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final config = ref.watch(themeControllerProvider);

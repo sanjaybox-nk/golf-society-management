@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:golf_society/services/persistence_service.dart';
 import 'package:golf_society/features/members/presentation/profile_provider.dart';
 
-// [LAB MODE] Persistence for Marker Selection - Now supports multi-marking
 class MarkerSelection {
   final bool isSelfMarking;
   final List<String> targetEntryIds;
@@ -95,7 +94,7 @@ class MarkerSelectionNotifier extends Notifier<MarkerSelection> {
       lastHole = prefs.getInt('${_baseKeyLastHole}_$userId') ?? 0;
       myMarker = prefs.getString('${_baseKeyMyMarker}_$userId');
     } catch (e) {
-      debugPrint('Error loading MarkerSelection state for $userId: $e');
+      if (kDebugMode) debugPrint('Error loading MarkerSelection state for $userId: $e');
     }
 
     return MarkerSelection(

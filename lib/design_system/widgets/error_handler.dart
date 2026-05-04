@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'package:flutter/foundation.dart';
 import 'package:golf_society/design_system/design_system.dart';
 
 class BoxyArtErrorHandler extends StatefulWidget {
@@ -24,7 +25,7 @@ class _BoxyArtErrorHandlerState extends State<BoxyArtErrorHandler> {
 
     // Catch async errors
     PlatformDispatcher.instance.onError = (error, stack) {
-      debugPrint('Caught Global Async Error: $error');
+      if (kDebugMode) debugPrint('Caught Global Async Error: $error');
       setState(() {
         _hasError = true;
         _errorDetails = error.toString();

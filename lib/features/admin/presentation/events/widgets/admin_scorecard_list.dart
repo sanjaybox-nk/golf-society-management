@@ -1,4 +1,5 @@
 import 'package:golf_society/domain/scoring/scoring_calculator.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:collection/collection.dart';
 import 'package:golf_society/design_system/design_system.dart';
@@ -336,7 +337,7 @@ class AdminScorecardList extends ConsumerWidget {
 
       await ref.read(scorecardRepositoryProvider).updateScorecardStatus(card.id, nextStatus);
     } catch (e) {
-      debugPrint('❌ Scorecard Status Error: $e');
+      if (kDebugMode) debugPrint('❌ Scorecard Status Error: $e');
     }
   }
 

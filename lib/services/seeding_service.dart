@@ -44,24 +44,24 @@ class SeedingService {
   /// The main entry point for seeding high-quality demo data.
   Future<void> seedFullDemoData() async {
     try {
-      debugPrint('--- STARTING UNIFIED WIPE AND SEED ---');
+      if (kDebugMode) debugPrint('--- STARTING UNIFIED WIPE AND SEED ---');
       
       // Ensure we have the LATEST config from the stream, not a potentially stale/default controller state
       final currentConfig = await ref.read(societyConfigStreamProvider.future);
-      debugPrint('Backing up society branding: ${currentConfig.societyName}');
+      if (kDebugMode) debugPrint('Backing up society branding: ${currentConfig.societyName}');
 
       await ref.read(persistenceServiceProvider).clear();
       
-      debugPrint('Wiping existing demo data (safe)...');
+      if (kDebugMode) debugPrint('Wiping existing demo data (safe)...');
       await clearDemoData();
-      debugPrint('Wipe completed.');
+      if (kDebugMode) debugPrint('Wipe completed.');
 
-      debugPrint('Seeding new demo season foundation...');
+      if (kDebugMode) debugPrint('Seeding new demo season foundation...');
       await _seedGlobalLeaderboardTemplates();
       await _seedCompetitionTemplates();
       await _seedDemoSeason();
 
-      debugPrint('Restoring society branding and setting renewal defaults + sponsors...');
+      if (kDebugMode) debugPrint('Restoring society branding and setting renewal defaults + sponsors...');
       final eventsRepo = ref.read(eventsRepositoryProvider);
       final events = await eventsRepo.getEvents(seasonId: 'demo_season_2025_2026');
       
@@ -203,17 +203,17 @@ class SeedingService {
       );
       await ref.read(societyConfigRepositoryProvider).forceReplaceConfig(updatedConfig);
       
-      debugPrint('Seeding modernized member surveys...');
+      if (kDebugMode) debugPrint('Seeding modernized member surveys...');
       final membersList = await ref.read(membersRepositoryProvider).getMembers();
       await SurveySeeder(ref, _random).seed(membersList);
       
-      debugPrint('Injecting Match Play Progression Scenario...');
+      if (kDebugMode) debugPrint('Injecting Match Play Progression Scenario...');
       await seedMatchPlayProgression();
       
-      debugPrint('--- UNIFIED WIPE AND SEED COMPLETED ---');
+      if (kDebugMode) debugPrint('--- UNIFIED WIPE AND SEED COMPLETED ---');
     } catch (e, stack) {
-      debugPrint('CRITICAL SEEDER FAILURE: $e');
-      debugPrint(stack.toString());
+      if (kDebugMode) debugPrint('CRITICAL SEEDER FAILURE: $e');
+      if (kDebugMode) debugPrint(stack.toString());
     }
   }
 
@@ -223,8 +223,8 @@ class SeedingService {
     try {
       await MatchPlaySeeder(ref, _random).seed(stage);
     } catch (e, stack) {
-      debugPrint('MATCH PLAY LAB SEEDER FAILURE: $e');
-      debugPrint(stack.toString());
+      if (kDebugMode) debugPrint('MATCH PLAY LAB SEEDER FAILURE: $e');
+      if (kDebugMode) debugPrint(stack.toString());
       rethrow;
     }
   }
@@ -233,8 +233,8 @@ class SeedingService {
     try {
       await ScenarioSeeder(ref, _random).seedMatchPlayProgression();
     } catch (e, stack) {
-      debugPrint('MATCH PLAY PROGRESSION SEEDER FAILURE: $e');
-      debugPrint(stack.toString());
+      if (kDebugMode) debugPrint('MATCH PLAY PROGRESSION SEEDER FAILURE: $e');
+      if (kDebugMode) debugPrint(stack.toString());
       rethrow;
     }
   }
@@ -248,7 +248,7 @@ class SeedingService {
 
   Future<void> seedHandshakeAndRhythmUAT() async {
     try {
-      debugPrint('--- STARTING CONSOLIDATED HANDSHAKE & RHYTHM UAT SEED ---');
+      if (kDebugMode) debugPrint('--- STARTING CONSOLIDATED HANDSHAKE & RHYTHM UAT SEED ---');
       
       // 1. Clear Activity (Preserve branding)
       await clearActivityData();
@@ -262,10 +262,10 @@ class SeedingService {
       // 4. Seed Handshake Scenario (Stableford + Conflicts)
       await ScenarioSeeder(ref, _random).seedHandshakeVerificationScenario();
       
-      debugPrint('--- CONSOLIDATED UAT SEED COMPLETED ---');
+      if (kDebugMode) debugPrint('--- CONSOLIDATED UAT SEED COMPLETED ---');
     } catch (e, stack) {
-      debugPrint('UAT SEEDER FAILURE: $e');
-      debugPrint(stack.toString());
+      if (kDebugMode) debugPrint('UAT SEEDER FAILURE: $e');
+      if (kDebugMode) debugPrint(stack.toString());
       rethrow;
     }
   }
@@ -273,7 +273,7 @@ class SeedingService {
   /// Incremental Hardening: Seed/Refresh members only.
   Future<void> seedMembersOnly() async {
     try {
-      debugPrint('--- REFRESHING MEMBER ROSTER ONLY ---');
+      if (kDebugMode) debugPrint('--- REFRESHING MEMBER ROSTER ONLY ---');
       final firestore = FirebaseFirestore.instance;
       
       // Wipe only members
@@ -286,9 +286,9 @@ class SeedingService {
       
       // Re-seed
       await MemberSeeder(ref, _random).seed();
-      debugPrint('--- MEMBER ROSTER REFRESHED ---');
+      if (kDebugMode) debugPrint('--- MEMBER ROSTER REFRESHED ---');
     } catch (e) {
-      debugPrint('MEMBER SEEDER FAILURE: $e');
+      if (kDebugMode) debugPrint('MEMBER SEEDER FAILURE: $e');
       rethrow;
     }
   }
@@ -368,7 +368,7 @@ class SeedingService {
     // Hard Refresh: Invalidate the theme controller to force a fresh pull from Firestore
     ref.invalidate(themeControllerProvider);
     
-    debugPrint('Clear Activity Data (Preserving Branding/Templates) completed.');
+    if (kDebugMode) debugPrint('Clear Activity Data (Preserving Branding/Templates) completed.');
   }
 
   Future<void> clearDemoData() async {
@@ -433,7 +433,7 @@ class SeedingService {
     // Hard Refresh: Invalidate the theme controller 
     ref.invalidate(themeControllerProvider);
     
-    debugPrint('Clear Demo Data completed.');
+    if (kDebugMode) debugPrint('Clear Demo Data completed.');
   }
 
   Future<void> totalSystemWipe() async {
@@ -477,7 +477,7 @@ class SeedingService {
 
     await ref.read(societyConfigRepositoryProvider).deleteConfig();
     await ref.read(persistenceServiceProvider).clear();
-    debugPrint('Total System Wipe completed (Factory Reset).');
+    if (kDebugMode) debugPrint('Total System Wipe completed (Factory Reset).');
   }
 
   Future<void> _seedDemoSeason() async {
@@ -572,8 +572,8 @@ class SeedingService {
            }
         }
       } catch (e, stack) {
-        debugPrint('❌ FAILED TO SEED EVENT ${config.title}: $e');
-        debugPrint(stack.toString());
+        if (kDebugMode) debugPrint('❌ FAILED TO SEED EVENT ${config.title}: $e');
+        if (kDebugMode) debugPrint(stack.toString());
       }
     }
 
@@ -582,10 +582,10 @@ class SeedingService {
 
     final eventsRepo = ref.read(eventsRepositoryProvider);
     final finalEvents = await eventsRepo.getEvents(seasonId: seasonId);
-    debugPrint('\n🚀 SEEDING DIAGNOSTICS FOR: $seasonId');
+    if (kDebugMode) debugPrint('\n🚀 SEEDING DIAGNOSTICS FOR: $seasonId');
     for (var e in finalEvents) {
       final typeLabel = e.eventType == EventType.social ? 'SOCIAL' : (e.isInvitational ? 'INVITE' : 'SEASON');
-      debugPrint(' - [$typeLabel] ${e.title} (Status: ${e.status.name})');
+      if (kDebugMode) debugPrint(' - [$typeLabel] ${e.title} (Status: ${e.status.name})');
     }
   }
 

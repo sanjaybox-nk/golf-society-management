@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter/foundation.dart';
 import 'package:golf_society/utils/string_utils.dart';
 import 'package:collection/collection.dart';
 import 'package:go_router/go_router.dart';
@@ -33,19 +34,19 @@ class ScorecardModal {
     bool isAdmin = false,
     Map<String, String>? teeOverrides, // [NEW] Manual tee overrides
   }) {
-    debugPrint("--- SCORECARD MODAL SHOW: ${entry.playerName} ---");
-    debugPrint("Entry ID: ${entry.entryId}");
-    debugPrint("Mode: ${entry.mode}");
-    debugPrint("TeamMemberIds: ${entry.teamMemberIds?.length} -> ${entry.teamMemberIds}");
-    debugPrint("TeamMemberNames: ${entry.teamMemberNames?.length} -> ${entry.teamMemberNames}");
-    debugPrint("HoleScores provided: ${entry.holeScores != null && entry.holeScores!.any((s) => s != null)}");
+    if (kDebugMode) debugPrint("--- SCORECARD MODAL SHOW: ${entry.playerName} ---");
+    if (kDebugMode) debugPrint("Entry ID: ${entry.entryId}");
+    if (kDebugMode) debugPrint("Mode: ${entry.mode}");
+    if (kDebugMode) debugPrint("TeamMemberIds: ${entry.teamMemberIds?.length} -> ${entry.teamMemberIds}");
+    if (kDebugMode) debugPrint("TeamMemberNames: ${entry.teamMemberNames?.length} -> ${entry.teamMemberNames}");
+    if (kDebugMode) debugPrint("HoleScores provided: ${entry.holeScores != null && entry.holeScores!.any((s) => s != null)}");
     
     // 0. Prioritize scores passed directly from Leaderboard (Fix for Scramble populating)
     Scorecard? scorecard;
     bool isScorecardEmpty = true;
 
     if (entry.holeScores != null && entry.holeScores!.any((s) => s != null)) {
-      debugPrint("Found scores via Direct Bridge");
+      if (kDebugMode) debugPrint("Found scores via Direct Bridge");
       scorecard = Scorecard(
         id: 'direct_${entry.entryId}',
         competitionId: event.id,
@@ -64,7 +65,7 @@ class ScorecardModal {
     if (isScorecardEmpty) {
       scorecard = scorecards.firstWhereOrNull((s) => s.entryId == entry.entryId);
       isScorecardEmpty = scorecard == null || scorecard.holeScores.every((s) => s == null);
-      if (!isScorecardEmpty) debugPrint("Found scores via Step 1 (Live Scorecard)");
+      if (kDebugMode) if (!isScorecardEmpty) debugPrint("Found scores via Step 1 (Live Scorecard)");
     }
     
     // 1b. Fallback for Team: Try each member ID if the combined team ID lookup fails or is empty
@@ -74,7 +75,7 @@ class ScorecardModal {
         if (memberCard != null && memberCard.holeScores.any((s) => s != null)) {
           scorecard = memberCard;
           isScorecardEmpty = false;
-          debugPrint("Found scores via Step 1b (Team Member Scorecard)");
+          if (kDebugMode) debugPrint("Found scores via Step 1b (Team Member Scorecard)");
           break;
         }
       }
@@ -87,7 +88,7 @@ class ScorecardModal {
       if (teamCard != null && teamCard.holeScores.any((s) => s != null)) {
          scorecard = teamCard;
          isScorecardEmpty = false;
-         debugPrint("Found scores via Step 1c (Seeded team_N Scorecard)");
+         if (kDebugMode) debugPrint("Found scores via Step 1c (Seeded team_N Scorecard)");
       }
     }
 
@@ -120,7 +121,7 @@ class ScorecardModal {
       }
 
       if (seededResult != null && seededResult['holeScores'] != null) {
-        debugPrint("Found scores via Step 2 (Seeded Results map)");
+        if (kDebugMode) debugPrint("Found scores via Step 2 (Seeded Results map)");
         // Reconstruct temporary scorecard object
         scorecard = Scorecard(
           id: 'temp_${entry.entryId}',
@@ -318,7 +319,7 @@ class ScorecardModal {
                                             
                                             // [NEW] Claim logic: If I tap my own name and I'm not the marker, claim it!
                                             if (isMe && !isMarker) {
-                                              debugPrint(" [Claim] User $id claiming marker role for scorecard ${actualScorecard.id}");
+                                              if (kDebugMode) debugPrint(" [Claim] User $id claiming marker role for scorecard ${actualScorecard.id}");
                                               final updatedCard = actualScorecard.copyWith(
                                                 markerId: id,
                                                 submittedByUserId: id, // Fallback for legacy
