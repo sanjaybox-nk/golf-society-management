@@ -22,6 +22,46 @@ import 'event_tabs_state.dart';
 import '../../../members/presentation/profile_provider.dart';
 import '../widgets/vertical_hole_scoring_list.dart';
 
+/// Resolved state needed to decide whether to show the pinned scoring keypad,
+/// and which scorecard to target. Extracted from _buildPinnedScoring to keep
+/// the build method free of provider fan-out and status resolution logic.
+class PinnedScoringState {
+  const PinnedScoringState({
+    required this.effectiveEntryId,
+    required this.userScorecard,
+    required this.myCard,
+    required this.shouldShow,
+  });
+  final String effectiveEntryId;
+  final Scorecard? userScorecard;
+  final Scorecard? myCard;
+  final bool shouldShow;
+}
+
+final pinnedScoringStateProvider = Provider.autoDispose.family<PinnedScoringState, ({String eventId, GolfEvent event})>((ref, args) {
+  final currentUser = ref.watch(effectiveUserProvider);
+  final markerSelection = ref.watch(markerSelectionProvider);
+  final isSelfMarking = markerSelection.isSelfMarking;
+  final targetEntryId = markerSelection.targetEntryIds.firstOrNull;
+  final effectiveEntryId = isSelfMarking ? currentUser.id : (targetEntryId ?? currentUser.id);
+
+  final allScorecards = ref.watch(scorecardsListProvider(args.eventId)).asData?.value ?? [];
+  final userScorecard = allScorecards.firstWhereOrNull((s) => s.entryId == effectiveEntryId);
+  final myCard = allScorecards.firstWhereOrNull((s) => s.entryId == currentUser.id);
+
+  final isSameDayOrPast = utils.DateUtils.isSameDayOrPastEvent(args.event);
+  final isLocked = args.event.isScoringLocked == true;
+  final isCompleted = args.event.status == EventStatus.completed;
+  final shouldShow = isSameDayOrPast || isCompleted || isLocked;
+
+  return PinnedScoringState(
+    effectiveEntryId: effectiveEntryId,
+    userScorecard: userScorecard,
+    myCard: myCard,
+    shouldShow: shouldShow,
+  );
+});
+
 class EventScoresUserTab extends ConsumerStatefulWidget {
   final String eventId;
   final bool isAdminMode;
@@ -282,33 +322,15 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
   }
   
   Widget? _buildPinnedScoring(GolfEvent event, Competition? comp, ProcessedEventData? scoringData, CompetitionRules effectiveRules) {
-    // [UNIFIED] Pin keypad for the main scoring view
-    
-    final currentUser = ref.watch(effectiveUserProvider);
-    final markerSelection = ref.watch(markerSelectionProvider);
-    final bool isSelfMarking = markerSelection.isSelfMarking;
-    final String? targetEntryId = markerSelection.targetEntryIds.firstOrNull;
-    final String effectiveEntryId = isSelfMarking ? currentUser.id : (targetEntryId ?? currentUser.id);
-    
-    final allScorecards = ref.watch(scorecardsListProvider(event.id)).asData?.value ?? [];
-    final userScorecard = allScorecards.firstWhereOrNull((s) => s.entryId == effectiveEntryId);
-    final myCard = allScorecards.firstWhereOrNull((s) => s.entryId == currentUser.id);
-
-    final isSameDayOrPast = utils.DateUtils.isSameDayOrPastEvent(event);
-    
-    final effectiveStatus = event.status;
-    final bool isLocked = event.isScoringLocked == true;
-    final bool isCompleted = effectiveStatus == EventStatus.completed;
-    final bool shouldShowCard = isSameDayOrPast || isCompleted || isLocked;
-    
-    if (!shouldShowCard) return null;
+    final pinState = ref.watch(pinnedScoringStateProvider((eventId: event.id, event: event)));
+    if (!pinState.shouldShow) return null;
 
     return HoleByHoleScoringWidget(
       event: event,
-      targetScorecard: userScorecard,
-      verifierScorecard: myCard,
-      targetEntryId: effectiveEntryId,
-      isSelfMarking: isSelfMarking,
+      targetScorecard: pinState.userScorecard,
+      verifierScorecard: pinState.myCard,
+      targetEntryId: pinState.effectiveEntryId,
+      isSelfMarking: ref.watch(markerSelectionProvider).isSelfMarking,
       selectedTab: _selectedMarkerTab,
       onTabChanged: (tab) {
         setState(() {

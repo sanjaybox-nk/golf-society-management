@@ -69,6 +69,95 @@ class ScorecardModal {
 
     final currentUserId = ref.read(effectiveUserProvider).id;
 
+    // --- Pre-compute match play result before opening the sheet ---
+    // This block previously ran inside the StatefulBuilder, re-executing on every
+    // setModalState() call (e.g. player name tap). Moving it here means it runs once.
+    List<String>? matchPlayResults;
+    String? matchPlaySummary;
+    int? conclusionHole;
+    if (comp != null && comp.rules.isMatchPlay == true) {
+      final myIds = entry.teamMemberIds ?? [entry.entryId];
+      List<String>? myGroupIds;
+      final groupsData = event.grouping["groups"] as List? ?? [];
+      for (var g in groupsData) {
+        final players = g['players'] as List? ?? [];
+        final playerIds = players.map((p) => p['registrationMemberId']?.toString()).whereType<String>().toList();
+        if (playerIds.any((id) => myIds.contains(id))) {
+          myGroupIds = playerIds;
+          break;
+        }
+      }
+      if (myGroupIds != null) {
+        final oppIds = myGroupIds.where((id) => !myIds.contains(id)).toList();
+        if (oppIds.isNotEmpty) {
+          final Map<String, double> playerIndices = {};
+          final Map<String, CourseConfig> courseConfigs = {};
+          for (final pid in myGroupIds) {
+            final manualTee = teeOverrides?[pid];
+            courseConfigs[pid] = ScoringCalculator.resolvePlayerCourseConfig(
+              memberId: pid,
+              event: event,
+              membersList: membersList,
+              manualTeeName: manualTee,
+            );
+            if (pid.contains('_guest')) {
+              final baseId = pid.replaceAll('_guest', '');
+              final reg = event.registrations.firstWhereOrNull((r) => r.memberId == baseId);
+              playerIndices[pid] = double.tryParse(reg?.guestHandicap ?? '18') ?? 18.0;
+            } else {
+              final member = membersList.firstWhereOrNull((m) => m.id == pid);
+              playerIndices[pid] = member?.handicap ?? 18.0;
+            }
+          }
+          final strokesReceived = MatchPlayCalculator.calculateRelativeStrokes(
+            playerIds: myGroupIds,
+            playerIndices: playerIndices,
+            courseConfigs: courseConfigs,
+            rules: comp.rules,
+            baseRating: event.courseConfig.rating ?? 72.0,
+          );
+          final virtualMatch = MatchDefinition(
+            id: 'virtual_modal_${entry.entryId}',
+            type: comp.rules.subtype == CompetitionSubtype.fourball ? MatchType.fourball : MatchType.foursomes,
+            team1Ids: myIds,
+            team2Ids: oppIds,
+            strokesReceived: strokesReceived,
+          );
+          final List<Scorecard> sourceCards = [];
+          for (var pid in myGroupIds) {
+            Scorecard? card = scorecards.firstWhereOrNull((s) => s.entryId == pid);
+            if (card == null) {
+              final seeded = event.results.firstWhereOrNull((r) => FirestoreNormalizer.resolveMemberId(r) == pid);
+              if (seeded != null && seeded['holeScores'] != null) {
+                card = ScorecardFactory.fromSeededResult(entryId: pid, competitionId: event.id, result: seeded);
+              }
+            }
+            if (card != null) sourceCards.add(card);
+          }
+          final result = MatchPlayCalculator.calculate(
+            match: virtualMatch,
+            scorecards: sourceCards,
+            courseConfig: event.courseConfig,
+            holesToPlay: event.courseConfig.holes.length,
+          );
+          conclusionHole = result.isFinal ? result.holesPlayed : null;
+          matchPlayResults = result.holeResults.map((r) {
+            if (r == 1) return 'W';
+            if (r == -1) return 'L';
+            if (r == 0) return 'H';
+            return '';
+          }).toList();
+          if (result.score == 0) {
+            matchPlaySummary = result.holesPlayed == 0 ? 'AS' : (result.isFinal ? 'HALVED' : 'AS');
+          } else if (result.score > 0) {
+            matchPlaySummary = result.isFinal ? 'WIN ${result.status}' : '${result.status} (UP)';
+          } else {
+            matchPlaySummary = result.isFinal ? 'LOSS ${result.status}' : '${result.status} (DN)';
+          }
+        }
+      }
+    }
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -338,106 +427,9 @@ class ScorecardModal {
 
                       final totalPoints = entry.holePoints?.whereType<int>().fold<int>(0, (a, b) => a + b);
 
-                      // --- [NEW] AUTHORITATIVE MATCH PLAY CALCULATION ---
-                      List<String>? matchPlayResults;
-                      String? matchPlaySummary;
-                      int? conclusionHole;
-                      if (comp.rules.isMatchPlay == true) {
-                        final myIds = entry.teamMemberIds ?? [entry.entryId];
-                        List<String>? myGroupIds;
-                        final groupsData = event.grouping["groups"] as List? ?? [];
-                        for (var g in groupsData) {
-                          final players = g['players'] as List? ?? [];
-                          final playerIds = players.map((p) => p['registrationMemberId']?.toString()).whereType<String>().toList();
-                          if (playerIds.any((id) => myIds.contains(id))) {
-                            myGroupIds = playerIds;
-                            break;
-                          }
-                        }
-                        if (myGroupIds != null) {
-                          final oppIds = myGroupIds.where((id) => !myIds.contains(id)).toList();
-                          if (oppIds.isNotEmpty) {
-                            final Map<String, double> playerIndices = {};
-                            final Map<String, CourseConfig> courseConfigs = {};
-                            for (final pid in myGroupIds) {
-                              final manualTee = teeOverrides?[pid];
-                              courseConfigs[pid] = ScoringCalculator.resolvePlayerCourseConfig(
-                                memberId: pid, 
-                                event: event, 
-                                membersList: membersList, 
-                                manualTeeName: manualTee,
-                              );
-                              if (pid.contains('_guest')) {
-                                final baseId = pid.replaceAll('_guest', '');
-                                final reg = event.registrations.firstWhereOrNull((r) => r.memberId == baseId);
-                                playerIndices[pid] = double.tryParse(reg?.guestHandicap ?? '18') ?? 18.0;
-                              } else {
-                                final member = membersList.firstWhereOrNull((m) => m.id == pid);
-                                playerIndices[pid] = member?.handicap ?? 18.0;
-                              }
-                            }
-
-                            final baseRating = event.courseConfig.rating ?? 72.0;
-                            final strokesReceived = MatchPlayCalculator.calculateRelativeStrokes(
-                              playerIds: myGroupIds,
-                              playerIndices: playerIndices,
-                              courseConfigs: courseConfigs,
-                              rules: comp.rules,
-                              baseRating: baseRating,
-                            );
-
-                            final virtualMatch = MatchDefinition(
-                              id: 'virtual_modal_${entry.entryId}',
-                              type: comp.rules.subtype == CompetitionSubtype.fourball ? MatchType.fourball : MatchType.foursomes,
-                              team1Ids: myIds,
-                              team2Ids: oppIds,
-                              strokesReceived: strokesReceived,
-                            );
-
-                            final List<Scorecard> sourceCards = [];
-                            for (var pid in myGroupIds) {
-                              Scorecard? card = scorecards.firstWhereOrNull((s) => s.entryId == pid);
-                              if (card == null) {
-                                final seeded = event.results.firstWhereOrNull((r) =>
-                                  FirestoreNormalizer.resolveMemberId(r) == pid
-                                );
-                                if (seeded != null && seeded['holeScores'] != null) {
-                                  card = ScorecardFactory.fromSeededResult(
-                                    entryId: pid,
-                                    competitionId: event.id,
-                                    result: seeded,
-                                  );
-                                }
-                              }
-                              if (card != null) sourceCards.add(card);
-                            }
-
-                            final result = MatchPlayCalculator.calculate(
-                              match: virtualMatch,
-                              scorecards: sourceCards,
-                              courseConfig: event.courseConfig,
-                              holesToPlay: event.courseConfig.holes.length,
-                            );
-
-                            conclusionHole = result.isFinal ? result.holesPlayed : null;
-
-                            matchPlayResults = result.holeResults.map((r) {
-                              if (r == 1) return 'W';
-                              if (r == -1) return 'L';
-                              if (r == 0) return 'H';
-                              return ''; 
-                            }).toList();
-                            
-                            if (result.score == 0) {
-                              matchPlaySummary = result.holesPlayed == 0 ? 'AS' : (result.isFinal ? 'HALVED' : 'AS');
-                            } else if (result.score > 0) {
-                              matchPlaySummary = result.isFinal ? 'WIN ${result.status}' : '${result.status} (UP)';
-                            } else {
-                              matchPlaySummary = result.isFinal ? 'LOSS ${result.status}' : '${result.status} (DN)';
-                            }
-                          }
-                        }
-                      }
+                      // matchPlayResults / matchPlaySummary / conclusionHole are now
+                      // pre-computed before showModalBottomSheet to avoid re-running on
+                      // every setModalState() call.
 
                       final config = ref.watch(themeControllerProvider);
                       final pointsColor = Color(config.effectivePointsColor);
