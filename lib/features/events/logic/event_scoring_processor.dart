@@ -8,6 +8,7 @@ import 'package:golf_society/domain/models/member.dart';
 import 'package:golf_society/domain/grouping/tee_group.dart';
 import 'package:golf_society/domain/scoring/handicap_calculator.dart';
 import 'package:golf_society/domain/scoring/scoring_calculator.dart';
+import 'package:golf_society/domain/scoring/scoring_strategy.dart';
 import 'package:golf_society/features/events/logic/event_analysis_engine.dart';
 import 'package:golf_society/features/events/presentation/state/marker_selection_provider.dart'; // MarkerSelection
 import '../domain/models/processed_event_data.dart';
@@ -28,6 +29,7 @@ class EventScoringProcessor {
     String? currentUserId,
   }) {
     final rules = comp.rules;
+    final strategy = ScoringStrategyRegistry.forRules(rules);
     final teeOverrides = markerSelection.teeOverrides;
     final manualCuts = event.manualCuts;
 
@@ -141,8 +143,7 @@ class EventScoringProcessor {
       }
 
       // 122. [NEW] Scramble Logic: If it's a team scramble, use the team PHC and scorecard
-      final isScramble = rules.format == CompetitionFormat.scramble;
-      final bool isTeamGame = isScramble || rules.subtype == CompetitionSubtype.texas || rules.subtype == CompetitionSubtype.florida;
+      final bool isTeamGame = strategy.isTeamBased || rules.subtype == CompetitionSubtype.texas || rules.subtype == CompetitionSubtype.florida;
       
       double effectivePhc = phc.toDouble();
       if (isTeamGame) {
@@ -324,8 +325,7 @@ class EventScoringProcessor {
 
     if (!isTeamComp) {
       final sortedIndividual = List<ProcessedPlayerScore>.from(refinedIndividualScores);
-      final isStableford = currentFormat == CompetitionFormat.stableford;
-      
+
       sortedIndividual.sort((a, b) {
         // 1. Status Check (WD/DQ/NR at bottom)
         if (a.scoringStatus != b.scoringStatus) {
@@ -334,9 +334,7 @@ class EventScoringProcessor {
         }
 
         // 2. Score check
-        final scoreCompare = isStableford 
-            ? b.result.score.compareTo(a.result.score)
-            : a.result.score.compareTo(b.result.score);
+        final scoreCompare = strategy.compareScores(a.result.score, b.result.score);
         
         if (scoreCompare != 0) return scoreCompare;
 
@@ -345,12 +343,10 @@ class EventScoringProcessor {
         final bMetrics = ScoringUtils.calculateTieBreakMetrics(b.result);
         
         for (int i = 0; i < aMetrics.length; i++) {
-          final mCompare = isStableford
-              ? bMetrics[i].compareTo(aMetrics[i])
-              : aMetrics[i].compareTo(bMetrics[i]);
+          final mCompare = strategy.compareScores(aMetrics[i], bMetrics[i]);
           if (mCompare != 0) return mCompare;
         }
-        
+
         return 0;
       });
 
@@ -535,8 +531,6 @@ class EventScoringProcessor {
          }
       }
 
-      final isStableford = currentFormat == CompetitionFormat.stableford;
-      
       teamEntries.sort((a, b) {
         // 1. Status Check (WD/DQ/NR at bottom)
         final aOk = a.scoringStatus == ScoringStatus.ok;
@@ -544,17 +538,12 @@ class EventScoringProcessor {
         if (aOk != bOk) return aOk ? -1 : 1;
 
         // 2. Score check
-        final scoreCompare = isStableford 
-            ? b.score.compareTo(a.score)
-            : a.score.compareTo(b.score);
-            
+        final scoreCompare = strategy.compareScores(a.score, b.score);
         if (scoreCompare != 0) return scoreCompare;
 
         // Tie-break
         for (int i = 0; i < a.tieBreakMetrics.length; i++) {
-          final mCompare = isStableford
-              ? b.tieBreakMetrics[i].compareTo(a.tieBreakMetrics[i])
-              : a.tieBreakMetrics[i].compareTo(b.tieBreakMetrics[i]);
+          final mCompare = strategy.compareScores(a.tieBreakMetrics[i], b.tieBreakMetrics[i]);
           if (mCompare != 0) return mCompare;
         }
         return 0;
@@ -580,7 +569,7 @@ class EventScoringProcessor {
     final List<ProcessedGroupResult> groupRankings = [];
     final bool isFourballRule = rules.subtype == CompetitionSubtype.fourball;
     final isPairs = rules.mode == CompetitionMode.pairs;
-    final isScramblePairs = rules.format == CompetitionFormat.scramble && rules.teamSize == 2;
+    final isScramblePairs = strategy.isTeamBased && rules.teamSize == 2;
     final isSplitTeam = isFourballRule || isPairs || isScramblePairs;
 
     for (var group in groups) {
@@ -637,18 +626,12 @@ class EventScoringProcessor {
     }
 
     // 4. [NEW] Sort Group Rankings (Podium)
-    final isStableford = rules.format == CompetitionFormat.stableford;
     groupRankings.sort((a, b) {
-      final scoreCompare = isStableford 
-          ? b.totalScore.compareTo(a.totalScore)
-          : a.totalScore.compareTo(b.totalScore);
+      final scoreCompare = strategy.compareScores(a.totalScore, b.totalScore);
       if (scoreCompare != 0) return scoreCompare;
-      
-      // Tie-break
+
       for (int i = 0; i < a.tieBreakMetrics.length; i++) {
-        final mCompare = isStableford
-            ? b.tieBreakMetrics[i].compareTo(a.tieBreakMetrics[i])
-            : a.tieBreakMetrics[i].compareTo(b.tieBreakMetrics[i]);
+        final mCompare = strategy.compareScores(a.tieBreakMetrics[i], b.tieBreakMetrics[i]);
         if (mCompare != 0) return mCompare;
       }
       return 0;
@@ -659,7 +642,7 @@ class EventScoringProcessor {
       scorecards: liveScorecards, 
       event: event, 
       competition: comp,
-      isStableford: rules.format == CompetitionFormat.stableford,
+      isStableford: strategy.higherIsBetter,
     );
     
 
