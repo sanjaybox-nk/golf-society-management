@@ -4,6 +4,8 @@ import 'dart:convert';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:collection/collection.dart';
 import 'package:golf_society/domain/models/golf_event.dart';
+import 'package:golf_society/domain/scoring/scorecard_constants.dart';
+import 'package:golf_society/utils/guest_id_helper.dart';
 import 'package:golf_society/domain/models/competition.dart';
 import 'package:golf_society/domain/models/member.dart';
 import 'package:golf_society/domain/models/course.dart';
@@ -369,7 +371,7 @@ class EventSeeder {
           final newScorecard = Scorecard(
             id: 'seed_${updatedEvent.id}_$entryId', 
             competitionId: updatedEvent.id,
-            roundId: '1', 
+            roundId: ScorecardConstants.defaultRoundId,
             entryId: entryId, 
             submittedByUserId: 'system_seed',
             status: status == EventStatus.inPlay ? ScorecardStatus.draft : cardStatus, 
@@ -616,8 +618,8 @@ class EventSeeder {
         final List<dynamic> t1 = isPairsMode ? [players[i], players[i+1]] : [players[i]];
         final List<dynamic> t2 = isPairsMode ? [players[i+2], players[i+3]] : [players[i+1]];
         
-        final List<String> t1Ids = t1.map((p) => (p['isGuest'] == true) ? '${p['registrationMemberId']}_guest' : p['registrationMemberId'] as String).toList();
-        final List<String> t2Ids = t2.map((p) => (p['isGuest'] == true) ? '${p['registrationMemberId']}_guest' : p['registrationMemberId'] as String).toList();
+        final List<String> t1Ids = t1.map((p) => GuestIdHelper.resolveEffectiveId(p)).toList();
+        final List<String> t2Ids = t2.map((p) => GuestIdHelper.resolveEffectiveId(p)).toList();
 
         matches.add({
           'id': 'match_${eventId}_${g['index']}_$i',

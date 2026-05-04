@@ -1,4 +1,6 @@
 import 'package:golf_society/domain/models/golf_event.dart';
+import 'package:golf_society/utils/firestore_normalizer.dart';
+import 'package:golf_society/utils/guest_id_helper.dart';
 import 'package:golf_society/domain/models/competition.dart';
 import 'package:golf_society/domain/models/scorecard.dart';
 import 'package:golf_society/domain/models/member.dart';
@@ -49,7 +51,7 @@ class EventScoringProcessor {
     final allPlayerIds = {
       ...event.registrations.map((r) => r.memberId),
       ...event.registrations.where((r) => r.guestName != null).map((r) => '${r.memberId}_guest'),
-      ...event.results.map((r) => (r['memberId'] ?? r['userId'] ?? r['playerId'] ?? '').toString()),
+      ...event.results.map((r) => FirestoreNormalizer.resolveMemberId(r)),
       ...liveScorecards.map((s) => s.entryId),
       if (currentUserId case String id) id,
     }..remove('');
@@ -77,8 +79,8 @@ class EventScoringProcessor {
                        liveScorecards.firstWhereOrNull((s) => s.entryId == basePid);
       
       // Seeded lookup priority: ID match -> Name match against Registration -> Name match against Member profile
-      final seededResult = event.results.firstWhereOrNull((r) => (r['memberId'] ?? r['userId'] ?? r['playerId']) == effectivePid) ?? 
-                           event.results.firstWhereOrNull((r) => (r['memberId'] ?? r['userId'] ?? r['playerId']) == basePid) ??
+      final seededResult = event.results.firstWhereOrNull((r) => FirestoreNormalizer.resolveMemberId(r) == effectivePid) ??
+                           event.results.firstWhereOrNull((r) => FirestoreNormalizer.resolveMemberId(r) == basePid) ??
                            event.results.firstWhereOrNull((r) => r['playerName'] == (isGuest ? reg?.guestName : reg?.memberName)) ??
                            event.results.firstWhereOrNull((r) => r['playerName'] == memberMap[basePid]?.displayName);
       
@@ -201,9 +203,7 @@ class EventScoringProcessor {
       final gPlayers = (rawGroups[gIdx]['players'] as List);
       int maxThru = 0;
       for (var p in gPlayers) {
-        final pid = p['registrationMemberId'] as String;
-        final isG = p['isGuest'] as bool? ?? false;
-        final effectiveId = isG ? '${pid}_guest' : pid;
+        final effectiveId = GuestIdHelper.resolveEffectiveId(p);
         final score = individualScores.firstWhereOrNull((s) => s.playerId == effectiveId);
         if (score != null && score.maxHolePlayed > maxThru) {
           maxThru = score.maxHolePlayed;

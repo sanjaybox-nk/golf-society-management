@@ -6,14 +6,14 @@ class GuestIdHelper {
   /// Returns the effective player ID, appending '_guest' for guest players if not already present.
   /// Handles both the isGuest flag and the legacy _guest suffix pattern.
   static String resolveEffectiveId(Map<String, dynamic> player) {
-    final rawId = (player['id'] ?? player['memberId'] ?? player['userId'] ?? '').toString();
+    final rawId = (player['id'] ?? player['registrationMemberId'] ?? player['memberId'] ?? player['userId'] ?? '').toString();
     final isGuest = player['isGuest'] == true || rawId.endsWith(_guestSuffix);
     if (!isGuest) return rawId;
     return rawId.endsWith(_guestSuffix) ? rawId : '$rawId$_guestSuffix';
   }
 
   static bool isGuest(Map<String, dynamic> player) {
-    final rawId = (player['id'] ?? '').toString();
+    final rawId = (player['id'] ?? player['registrationMemberId'] ?? '').toString();
     return player['isGuest'] == true || rawId.endsWith(_guestSuffix);
   }
 

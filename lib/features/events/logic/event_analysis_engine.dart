@@ -1,6 +1,8 @@
 import 'dart:math' as math;
 import 'package:golf_society/domain/models/golf_event.dart';
 import 'package:golf_society/domain/models/scorecard.dart';
+import 'package:golf_society/domain/scoring/scorecard_factory.dart';
+import 'package:golf_society/utils/firestore_normalizer.dart';
 import 'package:golf_society/domain/models/competition.dart';
 import 'package:golf_society/domain/models/event_registration.dart';
 import 'package:collection/collection.dart';
@@ -19,20 +21,12 @@ class EventAnalysisEngine {
     final existingIds = scorecards.map((s) => s.entryId).toSet();
 
     for (var r in event.results) {
-      final id = (r['memberId'] ?? r['userId'] ?? r['playerId'] ?? 'unknown').toString();
+      final id = FirestoreNormalizer.resolveMemberId(r);
       if (!existingIds.contains(id) && r['holeScores'] != null) {
-        mergedScorecards.add(Scorecard(
-          id: 'temp_$id',
-          competitionId: event.id,
-          roundId: '1',
+        mergedScorecards.add(ScorecardFactory.fromSeededResult(
           entryId: id,
-          submittedByUserId: 'system',
-          status: ScorecardStatus.finalScore,
-          holeScores: List<int?>.from(r['holeScores']),
-          createdAt: DateTime.now(),
-          updatedAt: DateTime.now(),
-          points: r['points'] is num ? (r['points'] as num).toInt() : null,
-          netTotal: r['netTotal'] is num ? (r['netTotal'] as num).toInt() : null,
+          competitionId: event.id,
+          result: r,
         ));
       }
     }
