@@ -6,8 +6,31 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../features/settings/data/society_config_repository.dart';
 import 'package:golf_society/domain/models/society_config.dart';
 import 'package:golf_society/domain/models/handicap_system.dart';
+import 'package:golf_society/domain/models/visual_tokens.dart';
+import 'package:golf_society/domain/models/financial_config.dart';
+import 'package:golf_society/domain/models/membership_config.dart';
 
 final themeControllerProvider = NotifierProvider<ThemeController, SocietyConfig>(ThemeController.new);
+
+/// Derived provider — rebuilds only when visual/theme properties change.
+/// Prefer this over [themeControllerProvider] in widgets that only consume colors,
+/// shapes, or spacing tokens.
+final visualTokensProvider = Provider.autoDispose<VisualTokens>((ref) {
+  final config = ref.watch(themeControllerProvider);
+  return VisualTokens(config);
+});
+
+/// Derived provider — rebuilds only when financial properties change.
+final financialConfigProvider = Provider.autoDispose<FinancialConfig>((ref) {
+  final config = ref.watch(themeControllerProvider);
+  return FinancialConfig(config);
+});
+
+/// Derived provider — rebuilds only when membership/renewal/handicap properties change.
+final membershipConfigProvider = Provider.autoDispose<MembershipConfig>((ref) {
+  final config = ref.watch(themeControllerProvider);
+  return MembershipConfig(config);
+});
 
 class ThemeController extends Notifier<SocietyConfig> {
   @override
