@@ -9,11 +9,11 @@ final surveysRepositoryProvider = Provider<SurveysRepository>((ref) {
   return FirestoreSurveysRepository(FirebaseFirestore.instance);
 });
 
-final surveysProvider = StreamProvider<List<Survey>>((ref) {
+final surveysProvider = StreamProvider.autoDispose<List<Survey>>((ref) {
   return ref.watch(surveysRepositoryProvider).watchSurveys();
 });
 
-final activeSurveysProvider = StreamProvider<List<Survey>>((ref) async* {
+final activeSurveysProvider = StreamProvider.autoDispose<List<Survey>>((ref) async* {
   final currentUser = ref.watch(effectiveUserProvider);
   final surveysAsync = ref.watch(surveysProvider);
 
@@ -34,6 +34,6 @@ final activeSurveysProvider = StreamProvider<List<Survey>>((ref) async* {
   );
 });
 
-final surveyProvider = StreamProvider.family<Survey?, String>((ref, id) {
+final surveyProvider = StreamProvider.autoDispose.family<Survey?, String>((ref, id) {
   return ref.watch(surveysRepositoryProvider).watchSurvey(id);
 });

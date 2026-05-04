@@ -2,7 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:golf_society/domain/models/distribution_list.dart';
 import 'firestore_distribution_lists_repository.dart';
 
-final distributionListProvider = StreamProvider<List<DistributionList>>((ref) {
+final distributionListProvider = StreamProvider.autoDispose<List<DistributionList>>((ref) {
   final repository = ref.watch(distributionListsRepositoryProvider);
   return repository.watchLists();
 });

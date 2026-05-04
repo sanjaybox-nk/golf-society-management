@@ -18,14 +18,14 @@ class MatchPlayActiveRoundNotifier extends Notifier<MatchRoundType> {
   @override MatchRoundType build() => MatchRoundType.roundOf16;
   void set(MatchRoundType round) => state = round;
 }
-final matchPlayActiveRoundProvider = NotifierProvider<MatchPlayActiveRoundNotifier, MatchRoundType>(MatchPlayActiveRoundNotifier.new);
+final matchPlayActiveRoundProvider = NotifierProvider.autoDispose<MatchPlayActiveRoundNotifier, MatchRoundType>(MatchPlayActiveRoundNotifier.new);
 
 class MatchPlayViewModeNotifier extends Notifier<MatchPlayViewMode> {
   @override MatchPlayViewMode build() => MatchPlayViewMode.list;
   void toggle() => state = state == MatchPlayViewMode.list ? MatchPlayViewMode.tree : MatchPlayViewMode.list;
   void set(MatchPlayViewMode mode) => state = mode;
 }
-final matchPlayViewModeProvider = NotifierProvider<MatchPlayViewModeNotifier, MatchPlayViewMode>(MatchPlayViewModeNotifier.new);
+final matchPlayViewModeProvider = NotifierProvider.autoDispose<MatchPlayViewModeNotifier, MatchPlayViewMode>(MatchPlayViewModeNotifier.new);
 
 enum MatchPlayViewMode { list, tree }
 

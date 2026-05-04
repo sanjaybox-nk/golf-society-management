@@ -16,7 +16,7 @@ class AdminReportsTabNotifier extends Notifier<int> {
   void set(int value) => state = value;
 }
 
-final adminReportsTabProvider = NotifierProvider<AdminReportsTabNotifier, int>(AdminReportsTabNotifier.new);
+final adminReportsTabProvider = NotifierProvider.autoDispose<AdminReportsTabNotifier, int>(AdminReportsTabNotifier.new);
 
 class EventAdminReportsScreen extends ConsumerWidget {
   final String eventId;

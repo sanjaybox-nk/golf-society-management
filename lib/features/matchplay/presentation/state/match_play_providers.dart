@@ -202,6 +202,6 @@ class CurrentMatchController extends _$CurrentMatchController {
   }
 }
 
-final matchPlayTournamentProvider = FutureProvider.family<MatchPlayTournament?, String>((ref, eventId) {
+final matchPlayTournamentProvider = FutureProvider.autoDispose.family<MatchPlayTournament?, String>((ref, eventId) {
   return ref.watch(matchPlayRepositoryProvider).getTournament(eventId);
 });

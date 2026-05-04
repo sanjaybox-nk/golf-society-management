@@ -19,7 +19,7 @@ class BracketStageNotifier extends Notifier<String> {
   String build() => 'knockout';
   set stage(String val) => state = val;
 }
-final _bracketStageProvider = NotifierProvider<BracketStageNotifier, String>(BracketStageNotifier.new);
+final _bracketStageProvider = NotifierProvider.autoDispose<BracketStageNotifier, String>(BracketStageNotifier.new);
 
 class MatchesBracketWidget extends ConsumerWidget {
   final String eventId;

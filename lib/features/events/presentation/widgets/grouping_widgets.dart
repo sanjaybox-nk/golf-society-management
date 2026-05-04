@@ -552,9 +552,8 @@ class GroupingCard extends ConsumerWidget {
                   child: Column(
                     children: [
                 ...() {
-                  Widget buildParticipantTile(TeeGroupParticipant p, String id, String? side, {bool useCard = true}) {
+            Widget buildParticipantTile(TeeGroupParticipant p, String id, String? side, {bool useCard = true}) {
               final bool hasGuestInGroupP = !p.isGuest && group.players.any((other) => other.isGuest && other.registrationMemberId == p.registrationMemberId);
-              
               return GroupingPlayerTile(
                 player: p,
                 group: group,
@@ -568,22 +567,22 @@ class GroupingCard extends ConsumerWidget {
                 isSelected: isSelected?.call(p) ?? false,
                 onAction: onAction,
                 isScoreMode: isScoreMode,
-                scoreDisplay: isScoreMode 
-                    ? (playerMatchResults[id]?.status ?? (scoreMap != null ? scoreMap![id] : null)) 
+                scoreDisplay: isScoreMode
+                    ? (playerMatchResults[id]?.status ?? scoreMap?[id])
                     : null,
                 isWinner: isScoreMode ? (internalWinnerMap[id] ?? false) : false,
-                thruLabel: isScoreMode ? (thruMap != null ? thruMap![id] : null) : null,
-                tieBreakLabel: isScoreMode ? (tieBreakMap != null ? tieBreakMap![id] : null) : null,
-                handicapIndex: hcMap != null ? hcMap![id] : null,
-                scoringStatus: (statusMap != null ? statusMap![id] : null) ?? ScoringStatus.ok,
+                thruLabel: isScoreMode ? (thruMap?[id]) : null,
+                tieBreakLabel: isScoreMode ? (tieBreakMap?[id]) : null,
+                handicapIndex: hcMap?[id],
+                scoringStatus: statusMap?[id] ?? ScoringStatus.ok,
                 onTap: () => onTapParticipant?.call(p, group),
                 hasSocietyCut: p.hasSocietyCut,
                 hasGuestInGroup: hasGuestInGroupP,
                 matchSide: side,
                 useCard: useCard,
                 isStableford: rules?.format == CompetitionFormat.stableford,
-                phcOverride: (isScramble || rules?.subtype == CompetitionSubtype.foursomes) 
-                    ? displayTotalHandicap.toInt() 
+                phcOverride: (isScramble || rules?.subtype == CompetitionSubtype.foursomes)
+                    ? displayTotalHandicap.toInt()
                     : (isScoreMode ? relativePhcMap[id] : null),
                 isEventClosed: isEventClosed,
               );
@@ -708,39 +707,8 @@ class GroupingCard extends ConsumerWidget {
                 final p = group.players[index];
                 final id = p.isGuest ? '${p.registrationMemberId}_guest' : p.registrationMemberId;
                 
-                final baseTile = GroupingPlayerTile(
-                  player: p,
-                  group: group,
-                  member: memberMap[p.registrationMemberId],
-                  history: history,
-                  totalGroups: totalGroups,
-                  rules: rules,
-                  courseConfig: courseConfig,
-                  useWhs: useWhs,
-                  isAdmin: isAdmin,
-                  isSelected: isSelected?.call(p) ?? false,
-                  onAction: onAction,
-                  isScoreMode: isScoreMode,
-                  scoreDisplay: isScoreMode 
-                      ? (playerMatchResults[id]?.status ?? (scoreMap != null ? scoreMap![id] : null)) 
-                      : null,
-                  isWinner: isScoreMode ? (internalWinnerMap[id] ?? false) : false,
-                  thruLabel: isScoreMode ? (thruMap != null ? thruMap![id] : null) : null,
-                  tieBreakLabel: isScoreMode ? (tieBreakMap != null ? tieBreakMap![id] : null) : null,
-                  handicapIndex: hcMap?[id],
-                  scoringStatus: statusMap?[id] ?? ScoringStatus.ok,
-                  onTap: () => onTapParticipant?.call(p, group),
-                  hasSocietyCut: p.hasSocietyCut,
-                  hasGuestInGroup: !p.isGuest && group.players.any((other) => other.isGuest && other.registrationMemberId == p.registrationMemberId),
-                  useCard: true,
-                  phcOverride: (isScramble || rules?.subtype == CompetitionSubtype.foursomes)
-                      ? displayTotalHandicap.toInt()
-                      : (isScoreMode ? relativePhcMap[id] : null),
-                  isStableford: isStableford,
-                  isEventClosed: isEventClosed,
-                );
-
-                Widget playerWidget = isAdmin ? _wrapWithDraggable(context, p, baseTile) : baseTile;
+                final tile = buildParticipantTile(p, id, null, useCard: true);
+                Widget playerWidget = isAdmin ? _wrapWithDraggable(context, p, tile) : tile;
 
                 if (isSplitTeam && index == 1) {
                   children.add(Column(mainAxisSize: MainAxisSize.min, children: [

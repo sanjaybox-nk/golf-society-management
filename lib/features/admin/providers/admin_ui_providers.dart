@@ -11,7 +11,7 @@ class GroupingDirtyNotifier extends Notifier<bool> {
   }
 }
 
-final groupingDirtyProvider = NotifierProvider<GroupingDirtyNotifier, bool>(GroupingDirtyNotifier.new);
+final groupingDirtyProvider = NotifierProvider.autoDispose<GroupingDirtyNotifier, bool>(GroupingDirtyNotifier.new);
 
 /// Tracks the temporary grouping state for the current event.
 class GroupingLocalGroupsNotifier extends Notifier<List<TeeGroup>?> {
@@ -23,7 +23,7 @@ class GroupingLocalGroupsNotifier extends Notifier<List<TeeGroup>?> {
   }
 }
 
-final groupingLocalGroupsProvider = NotifierProvider<GroupingLocalGroupsNotifier, List<TeeGroup>?>(GroupingLocalGroupsNotifier.new);
+final groupingLocalGroupsProvider = NotifierProvider.autoDispose<GroupingLocalGroupsNotifier, List<TeeGroup>?>(GroupingLocalGroupsNotifier.new);
 
 /// Tracks the temporary lock status.
 class GroupingIsLockedNotifier extends Notifier<bool?> {
@@ -35,8 +35,7 @@ class GroupingIsLockedNotifier extends Notifier<bool?> {
   }
 }
 
-
-final groupingIsLockedProvider = NotifierProvider<GroupingIsLockedNotifier, bool?>(GroupingIsLockedNotifier.new);
+final groupingIsLockedProvider = NotifierProvider.autoDispose<GroupingIsLockedNotifier, bool?>(GroupingIsLockedNotifier.new);
 
 /// Tracks if the generation options overlay is shown.
 class GroupingShowGenerationOptionsNotifier extends Notifier<bool> {
@@ -44,7 +43,7 @@ class GroupingShowGenerationOptionsNotifier extends Notifier<bool> {
   bool build() => false;
   void set(bool value) => state = value;
 }
-final groupingShowGenerationOptionsProvider = NotifierProvider<GroupingShowGenerationOptionsNotifier, bool>(GroupingShowGenerationOptionsNotifier.new);
+final groupingShowGenerationOptionsProvider = NotifierProvider.autoDispose<GroupingShowGenerationOptionsNotifier, bool>(GroupingShowGenerationOptionsNotifier.new);
 
 /// Tracks the selected player for swap.
 class GroupingSelectedForSwapNotifier extends Notifier<TeeGroupParticipant?> {
@@ -52,7 +51,7 @@ class GroupingSelectedForSwapNotifier extends Notifier<TeeGroupParticipant?> {
   TeeGroupParticipant? build() => null;
   void set(TeeGroupParticipant? value) => state = value;
 }
-final groupingSelectedForSwapProvider = NotifierProvider<GroupingSelectedForSwapNotifier, TeeGroupParticipant?>(GroupingSelectedForSwapNotifier.new);
+final groupingSelectedForSwapProvider = NotifierProvider.autoDispose<GroupingSelectedForSwapNotifier, TeeGroupParticipant?>(GroupingSelectedForSwapNotifier.new);
 
 /// Tracks the selected strategy for generation.
 class GroupingStrategyNotifier extends Notifier<String> {
@@ -60,5 +59,4 @@ class GroupingStrategyNotifier extends Notifier<String> {
   String build() => 'random';
   void set(String value) => state = value;
 }
-final groupingStrategyProvider = NotifierProvider<GroupingStrategyNotifier, String>(GroupingStrategyNotifier.new);
-
+final groupingStrategyProvider = NotifierProvider.autoDispose<GroupingStrategyNotifier, String>(GroupingStrategyNotifier.new);
