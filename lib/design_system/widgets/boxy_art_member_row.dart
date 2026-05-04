@@ -114,6 +114,7 @@ class BoxyArtMemberRow extends ConsumerWidget {
     }
 
     final content = Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // 1. Leading
           Stack(
@@ -307,7 +308,7 @@ class BoxyArtMemberRow extends ConsumerWidget {
     return BoxyArtCard(
       onTap: onTap,
       padding: EdgeInsets.zero, // Padding handled by internal container
-      showShadow: false,
+      showShadow: true,
       backgroundColor: isSelected 
           ? primary.withValues(alpha: AppColors.opacityLow) 
           : (isDark ? AppColors.dark700 : AppColors.pureWhite),
@@ -327,13 +328,6 @@ class BoxyArtMemberRow extends ConsumerWidget {
   }
 
   Widget _buildMetadata(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final metaStyle = AppTypography.subtext.copyWith(
-      color: isDark ? AppColors.dark150 : AppColors.dark700,
-      fontSize: 13,
-      fontWeight: AppTypography.weightSemibold,
-    );
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -366,16 +360,6 @@ class BoxyArtMemberRow extends ConsumerWidget {
     );
   }
 
-  Widget _buildLegendItem({required String label, required Color color, TextStyle? style}) {
-    if (label.isEmpty) return const SizedBox.shrink();
-    
-    return Text(
-      label,
-      style: (style ?? AppTypography.caption).copyWith(
-        color: color,
-      ),
-    );
-  }
 
   Widget _buildTrailing(BuildContext context, Color pointsColor) {
     final theme = Theme.of(context);

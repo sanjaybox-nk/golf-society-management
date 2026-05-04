@@ -13,8 +13,10 @@ class SelectedTabNotifier extends Notifier<int> {
   }
 }
 
-final eventMyCardTabProvider = NotifierProvider<SelectedTabNotifier, int>(() => SelectedTabNotifier('event_my_card_tab'));
 final eventScoresHubTabProvider = NotifierProvider<SelectedTabNotifier, int>(() => SelectedTabNotifier('event_scores_hub_tab'));
+
+// New provider for SCORING vs SCORECARD views
+final eventScoringTabProvider = NotifierProvider<SimpleTabNotifier, int>(() => SimpleTabNotifier());
 
 class SimpleTabNotifier extends Notifier<int> {
   @override

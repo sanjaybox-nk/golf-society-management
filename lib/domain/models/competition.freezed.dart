@@ -663,7 +663,7 @@ $MaxScoreConfigCopyWith<$Res>? get maxScoreConfig {
 /// @nodoc
 mixin _$Competition {
 
- String get id; String? get name; String? get templateId; CompetitionType get type; CompetitionStatus get status; CompetitionRules get rules;@TimestampConverter() DateTime get startDate;@TimestampConverter() DateTime get endDate; Map<String, dynamic> get publishSettings; bool get isDirty; int? get computeVersion;@OptionalTimestampConverter() DateTime? get lastComputedAt; String? get lastComputedBy;
+ String get id; String? get name; String? get templateId; CompetitionType get type; CompetitionStatus get status; CompetitionRules get rules;@TimestampConverter() DateTime get startDate;@TimestampConverter() DateTime get endDate; Map<String, dynamic> get publishSettings; bool get isDirty; int? get computeVersion;@OptionalTimestampConverter() DateTime? get lastComputedAt; String? get selectedTeeName; String? get selectedFemaleTeeName; CourseConfig get courseConfig;
 /// Create a copy of Competition
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -676,16 +676,16 @@ $CompetitionCopyWith<Competition> get copyWith => _$CompetitionCopyWithImpl<Comp
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Competition&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.templateId, templateId) || other.templateId == templateId)&&(identical(other.type, type) || other.type == type)&&(identical(other.status, status) || other.status == status)&&(identical(other.rules, rules) || other.rules == rules)&&(identical(other.startDate, startDate) || other.startDate == startDate)&&(identical(other.endDate, endDate) || other.endDate == endDate)&&const DeepCollectionEquality().equals(other.publishSettings, publishSettings)&&(identical(other.isDirty, isDirty) || other.isDirty == isDirty)&&(identical(other.computeVersion, computeVersion) || other.computeVersion == computeVersion)&&(identical(other.lastComputedAt, lastComputedAt) || other.lastComputedAt == lastComputedAt)&&(identical(other.lastComputedBy, lastComputedBy) || other.lastComputedBy == lastComputedBy));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Competition&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.templateId, templateId) || other.templateId == templateId)&&(identical(other.type, type) || other.type == type)&&(identical(other.status, status) || other.status == status)&&(identical(other.rules, rules) || other.rules == rules)&&(identical(other.startDate, startDate) || other.startDate == startDate)&&(identical(other.endDate, endDate) || other.endDate == endDate)&&const DeepCollectionEquality().equals(other.publishSettings, publishSettings)&&(identical(other.isDirty, isDirty) || other.isDirty == isDirty)&&(identical(other.computeVersion, computeVersion) || other.computeVersion == computeVersion)&&(identical(other.lastComputedAt, lastComputedAt) || other.lastComputedAt == lastComputedAt)&&(identical(other.selectedTeeName, selectedTeeName) || other.selectedTeeName == selectedTeeName)&&(identical(other.selectedFemaleTeeName, selectedFemaleTeeName) || other.selectedFemaleTeeName == selectedFemaleTeeName)&&(identical(other.courseConfig, courseConfig) || other.courseConfig == courseConfig));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,templateId,type,status,rules,startDate,endDate,const DeepCollectionEquality().hash(publishSettings),isDirty,computeVersion,lastComputedAt,lastComputedBy);
+int get hashCode => Object.hash(runtimeType,id,name,templateId,type,status,rules,startDate,endDate,const DeepCollectionEquality().hash(publishSettings),isDirty,computeVersion,lastComputedAt,selectedTeeName,selectedFemaleTeeName,courseConfig);
 
 @override
 String toString() {
-  return 'Competition(id: $id, name: $name, templateId: $templateId, type: $type, status: $status, rules: $rules, startDate: $startDate, endDate: $endDate, publishSettings: $publishSettings, isDirty: $isDirty, computeVersion: $computeVersion, lastComputedAt: $lastComputedAt, lastComputedBy: $lastComputedBy)';
+  return 'Competition(id: $id, name: $name, templateId: $templateId, type: $type, status: $status, rules: $rules, startDate: $startDate, endDate: $endDate, publishSettings: $publishSettings, isDirty: $isDirty, computeVersion: $computeVersion, lastComputedAt: $lastComputedAt, selectedTeeName: $selectedTeeName, selectedFemaleTeeName: $selectedFemaleTeeName, courseConfig: $courseConfig)';
 }
 
 
@@ -696,11 +696,11 @@ abstract mixin class $CompetitionCopyWith<$Res>  {
   factory $CompetitionCopyWith(Competition value, $Res Function(Competition) _then) = _$CompetitionCopyWithImpl;
 @useResult
 $Res call({
- String id, String? name, String? templateId, CompetitionType type, CompetitionStatus status, CompetitionRules rules,@TimestampConverter() DateTime startDate,@TimestampConverter() DateTime endDate, Map<String, dynamic> publishSettings, bool isDirty, int? computeVersion,@OptionalTimestampConverter() DateTime? lastComputedAt, String? lastComputedBy
+ String id, String? name, String? templateId, CompetitionType type, CompetitionStatus status, CompetitionRules rules,@TimestampConverter() DateTime startDate,@TimestampConverter() DateTime endDate, Map<String, dynamic> publishSettings, bool isDirty, int? computeVersion,@OptionalTimestampConverter() DateTime? lastComputedAt, String? selectedTeeName, String? selectedFemaleTeeName, CourseConfig courseConfig
 });
 
 
-$CompetitionRulesCopyWith<$Res> get rules;
+$CompetitionRulesCopyWith<$Res> get rules;$CourseConfigCopyWith<$Res> get courseConfig;
 
 }
 /// @nodoc
@@ -713,7 +713,7 @@ class _$CompetitionCopyWithImpl<$Res>
 
 /// Create a copy of Competition
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = freezed,Object? templateId = freezed,Object? type = null,Object? status = null,Object? rules = null,Object? startDate = null,Object? endDate = null,Object? publishSettings = null,Object? isDirty = null,Object? computeVersion = freezed,Object? lastComputedAt = freezed,Object? lastComputedBy = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = freezed,Object? templateId = freezed,Object? type = null,Object? status = null,Object? rules = null,Object? startDate = null,Object? endDate = null,Object? publishSettings = null,Object? isDirty = null,Object? computeVersion = freezed,Object? lastComputedAt = freezed,Object? selectedTeeName = freezed,Object? selectedFemaleTeeName = freezed,Object? courseConfig = null,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,name: freezed == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
@@ -727,8 +727,10 @@ as DateTime,publishSettings: null == publishSettings ? _self.publishSettings : p
 as Map<String, dynamic>,isDirty: null == isDirty ? _self.isDirty : isDirty // ignore: cast_nullable_to_non_nullable
 as bool,computeVersion: freezed == computeVersion ? _self.computeVersion : computeVersion // ignore: cast_nullable_to_non_nullable
 as int?,lastComputedAt: freezed == lastComputedAt ? _self.lastComputedAt : lastComputedAt // ignore: cast_nullable_to_non_nullable
-as DateTime?,lastComputedBy: freezed == lastComputedBy ? _self.lastComputedBy : lastComputedBy // ignore: cast_nullable_to_non_nullable
-as String?,
+as DateTime?,selectedTeeName: freezed == selectedTeeName ? _self.selectedTeeName : selectedTeeName // ignore: cast_nullable_to_non_nullable
+as String?,selectedFemaleTeeName: freezed == selectedFemaleTeeName ? _self.selectedFemaleTeeName : selectedFemaleTeeName // ignore: cast_nullable_to_non_nullable
+as String?,courseConfig: null == courseConfig ? _self.courseConfig : courseConfig // ignore: cast_nullable_to_non_nullable
+as CourseConfig,
   ));
 }
 /// Create a copy of Competition
@@ -739,6 +741,15 @@ $CompetitionRulesCopyWith<$Res> get rules {
   
   return $CompetitionRulesCopyWith<$Res>(_self.rules, (value) {
     return _then(_self.copyWith(rules: value));
+  });
+}/// Create a copy of Competition
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$CourseConfigCopyWith<$Res> get courseConfig {
+  
+  return $CourseConfigCopyWith<$Res>(_self.courseConfig, (value) {
+    return _then(_self.copyWith(courseConfig: value));
   });
 }
 }
@@ -822,10 +833,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String? name,  String? templateId,  CompetitionType type,  CompetitionStatus status,  CompetitionRules rules, @TimestampConverter()  DateTime startDate, @TimestampConverter()  DateTime endDate,  Map<String, dynamic> publishSettings,  bool isDirty,  int? computeVersion, @OptionalTimestampConverter()  DateTime? lastComputedAt,  String? lastComputedBy)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String? name,  String? templateId,  CompetitionType type,  CompetitionStatus status,  CompetitionRules rules, @TimestampConverter()  DateTime startDate, @TimestampConverter()  DateTime endDate,  Map<String, dynamic> publishSettings,  bool isDirty,  int? computeVersion, @OptionalTimestampConverter()  DateTime? lastComputedAt,  String? selectedTeeName,  String? selectedFemaleTeeName,  CourseConfig courseConfig)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Competition() when $default != null:
-return $default(_that.id,_that.name,_that.templateId,_that.type,_that.status,_that.rules,_that.startDate,_that.endDate,_that.publishSettings,_that.isDirty,_that.computeVersion,_that.lastComputedAt,_that.lastComputedBy);case _:
+return $default(_that.id,_that.name,_that.templateId,_that.type,_that.status,_that.rules,_that.startDate,_that.endDate,_that.publishSettings,_that.isDirty,_that.computeVersion,_that.lastComputedAt,_that.selectedTeeName,_that.selectedFemaleTeeName,_that.courseConfig);case _:
   return orElse();
 
 }
@@ -843,10 +854,10 @@ return $default(_that.id,_that.name,_that.templateId,_that.type,_that.status,_th
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String? name,  String? templateId,  CompetitionType type,  CompetitionStatus status,  CompetitionRules rules, @TimestampConverter()  DateTime startDate, @TimestampConverter()  DateTime endDate,  Map<String, dynamic> publishSettings,  bool isDirty,  int? computeVersion, @OptionalTimestampConverter()  DateTime? lastComputedAt,  String? lastComputedBy)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String? name,  String? templateId,  CompetitionType type,  CompetitionStatus status,  CompetitionRules rules, @TimestampConverter()  DateTime startDate, @TimestampConverter()  DateTime endDate,  Map<String, dynamic> publishSettings,  bool isDirty,  int? computeVersion, @OptionalTimestampConverter()  DateTime? lastComputedAt,  String? selectedTeeName,  String? selectedFemaleTeeName,  CourseConfig courseConfig)  $default,) {final _that = this;
 switch (_that) {
 case _Competition():
-return $default(_that.id,_that.name,_that.templateId,_that.type,_that.status,_that.rules,_that.startDate,_that.endDate,_that.publishSettings,_that.isDirty,_that.computeVersion,_that.lastComputedAt,_that.lastComputedBy);case _:
+return $default(_that.id,_that.name,_that.templateId,_that.type,_that.status,_that.rules,_that.startDate,_that.endDate,_that.publishSettings,_that.isDirty,_that.computeVersion,_that.lastComputedAt,_that.selectedTeeName,_that.selectedFemaleTeeName,_that.courseConfig);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -863,10 +874,10 @@ return $default(_that.id,_that.name,_that.templateId,_that.type,_that.status,_th
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String? name,  String? templateId,  CompetitionType type,  CompetitionStatus status,  CompetitionRules rules, @TimestampConverter()  DateTime startDate, @TimestampConverter()  DateTime endDate,  Map<String, dynamic> publishSettings,  bool isDirty,  int? computeVersion, @OptionalTimestampConverter()  DateTime? lastComputedAt,  String? lastComputedBy)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String? name,  String? templateId,  CompetitionType type,  CompetitionStatus status,  CompetitionRules rules, @TimestampConverter()  DateTime startDate, @TimestampConverter()  DateTime endDate,  Map<String, dynamic> publishSettings,  bool isDirty,  int? computeVersion, @OptionalTimestampConverter()  DateTime? lastComputedAt,  String? selectedTeeName,  String? selectedFemaleTeeName,  CourseConfig courseConfig)?  $default,) {final _that = this;
 switch (_that) {
 case _Competition() when $default != null:
-return $default(_that.id,_that.name,_that.templateId,_that.type,_that.status,_that.rules,_that.startDate,_that.endDate,_that.publishSettings,_that.isDirty,_that.computeVersion,_that.lastComputedAt,_that.lastComputedBy);case _:
+return $default(_that.id,_that.name,_that.templateId,_that.type,_that.status,_that.rules,_that.startDate,_that.endDate,_that.publishSettings,_that.isDirty,_that.computeVersion,_that.lastComputedAt,_that.selectedTeeName,_that.selectedFemaleTeeName,_that.courseConfig);case _:
   return null;
 
 }
@@ -878,7 +889,7 @@ return $default(_that.id,_that.name,_that.templateId,_that.type,_that.status,_th
 @JsonSerializable()
 
 class _Competition extends Competition {
-  const _Competition({required this.id, this.name, this.templateId, required this.type, this.status = CompetitionStatus.draft, required this.rules, @TimestampConverter() required this.startDate, @TimestampConverter() required this.endDate, final  Map<String, dynamic> publishSettings = const {}, this.isDirty = false, this.computeVersion, @OptionalTimestampConverter() this.lastComputedAt, this.lastComputedBy}): _publishSettings = publishSettings,super._();
+  const _Competition({required this.id, this.name, this.templateId, required this.type, this.status = CompetitionStatus.draft, required this.rules, @TimestampConverter() required this.startDate, @TimestampConverter() required this.endDate, final  Map<String, dynamic> publishSettings = const {}, this.isDirty = false, this.computeVersion, @OptionalTimestampConverter() this.lastComputedAt, this.selectedTeeName, this.selectedFemaleTeeName, this.courseConfig = const CourseConfig()}): _publishSettings = publishSettings,super._();
   factory _Competition.fromJson(Map<String, dynamic> json) => _$CompetitionFromJson(json);
 
 @override final  String id;
@@ -899,7 +910,9 @@ class _Competition extends Competition {
 @override@JsonKey() final  bool isDirty;
 @override final  int? computeVersion;
 @override@OptionalTimestampConverter() final  DateTime? lastComputedAt;
-@override final  String? lastComputedBy;
+@override final  String? selectedTeeName;
+@override final  String? selectedFemaleTeeName;
+@override@JsonKey() final  CourseConfig courseConfig;
 
 /// Create a copy of Competition
 /// with the given fields replaced by the non-null parameter values.
@@ -914,16 +927,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Competition&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.templateId, templateId) || other.templateId == templateId)&&(identical(other.type, type) || other.type == type)&&(identical(other.status, status) || other.status == status)&&(identical(other.rules, rules) || other.rules == rules)&&(identical(other.startDate, startDate) || other.startDate == startDate)&&(identical(other.endDate, endDate) || other.endDate == endDate)&&const DeepCollectionEquality().equals(other._publishSettings, _publishSettings)&&(identical(other.isDirty, isDirty) || other.isDirty == isDirty)&&(identical(other.computeVersion, computeVersion) || other.computeVersion == computeVersion)&&(identical(other.lastComputedAt, lastComputedAt) || other.lastComputedAt == lastComputedAt)&&(identical(other.lastComputedBy, lastComputedBy) || other.lastComputedBy == lastComputedBy));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Competition&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.templateId, templateId) || other.templateId == templateId)&&(identical(other.type, type) || other.type == type)&&(identical(other.status, status) || other.status == status)&&(identical(other.rules, rules) || other.rules == rules)&&(identical(other.startDate, startDate) || other.startDate == startDate)&&(identical(other.endDate, endDate) || other.endDate == endDate)&&const DeepCollectionEquality().equals(other._publishSettings, _publishSettings)&&(identical(other.isDirty, isDirty) || other.isDirty == isDirty)&&(identical(other.computeVersion, computeVersion) || other.computeVersion == computeVersion)&&(identical(other.lastComputedAt, lastComputedAt) || other.lastComputedAt == lastComputedAt)&&(identical(other.selectedTeeName, selectedTeeName) || other.selectedTeeName == selectedTeeName)&&(identical(other.selectedFemaleTeeName, selectedFemaleTeeName) || other.selectedFemaleTeeName == selectedFemaleTeeName)&&(identical(other.courseConfig, courseConfig) || other.courseConfig == courseConfig));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,templateId,type,status,rules,startDate,endDate,const DeepCollectionEquality().hash(_publishSettings),isDirty,computeVersion,lastComputedAt,lastComputedBy);
+int get hashCode => Object.hash(runtimeType,id,name,templateId,type,status,rules,startDate,endDate,const DeepCollectionEquality().hash(_publishSettings),isDirty,computeVersion,lastComputedAt,selectedTeeName,selectedFemaleTeeName,courseConfig);
 
 @override
 String toString() {
-  return 'Competition(id: $id, name: $name, templateId: $templateId, type: $type, status: $status, rules: $rules, startDate: $startDate, endDate: $endDate, publishSettings: $publishSettings, isDirty: $isDirty, computeVersion: $computeVersion, lastComputedAt: $lastComputedAt, lastComputedBy: $lastComputedBy)';
+  return 'Competition(id: $id, name: $name, templateId: $templateId, type: $type, status: $status, rules: $rules, startDate: $startDate, endDate: $endDate, publishSettings: $publishSettings, isDirty: $isDirty, computeVersion: $computeVersion, lastComputedAt: $lastComputedAt, selectedTeeName: $selectedTeeName, selectedFemaleTeeName: $selectedFemaleTeeName, courseConfig: $courseConfig)';
 }
 
 
@@ -934,11 +947,11 @@ abstract mixin class _$CompetitionCopyWith<$Res> implements $CompetitionCopyWith
   factory _$CompetitionCopyWith(_Competition value, $Res Function(_Competition) _then) = __$CompetitionCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String? name, String? templateId, CompetitionType type, CompetitionStatus status, CompetitionRules rules,@TimestampConverter() DateTime startDate,@TimestampConverter() DateTime endDate, Map<String, dynamic> publishSettings, bool isDirty, int? computeVersion,@OptionalTimestampConverter() DateTime? lastComputedAt, String? lastComputedBy
+ String id, String? name, String? templateId, CompetitionType type, CompetitionStatus status, CompetitionRules rules,@TimestampConverter() DateTime startDate,@TimestampConverter() DateTime endDate, Map<String, dynamic> publishSettings, bool isDirty, int? computeVersion,@OptionalTimestampConverter() DateTime? lastComputedAt, String? selectedTeeName, String? selectedFemaleTeeName, CourseConfig courseConfig
 });
 
 
-@override $CompetitionRulesCopyWith<$Res> get rules;
+@override $CompetitionRulesCopyWith<$Res> get rules;@override $CourseConfigCopyWith<$Res> get courseConfig;
 
 }
 /// @nodoc
@@ -951,7 +964,7 @@ class __$CompetitionCopyWithImpl<$Res>
 
 /// Create a copy of Competition
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = freezed,Object? templateId = freezed,Object? type = null,Object? status = null,Object? rules = null,Object? startDate = null,Object? endDate = null,Object? publishSettings = null,Object? isDirty = null,Object? computeVersion = freezed,Object? lastComputedAt = freezed,Object? lastComputedBy = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = freezed,Object? templateId = freezed,Object? type = null,Object? status = null,Object? rules = null,Object? startDate = null,Object? endDate = null,Object? publishSettings = null,Object? isDirty = null,Object? computeVersion = freezed,Object? lastComputedAt = freezed,Object? selectedTeeName = freezed,Object? selectedFemaleTeeName = freezed,Object? courseConfig = null,}) {
   return _then(_Competition(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,name: freezed == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
@@ -965,8 +978,10 @@ as DateTime,publishSettings: null == publishSettings ? _self._publishSettings : 
 as Map<String, dynamic>,isDirty: null == isDirty ? _self.isDirty : isDirty // ignore: cast_nullable_to_non_nullable
 as bool,computeVersion: freezed == computeVersion ? _self.computeVersion : computeVersion // ignore: cast_nullable_to_non_nullable
 as int?,lastComputedAt: freezed == lastComputedAt ? _self.lastComputedAt : lastComputedAt // ignore: cast_nullable_to_non_nullable
-as DateTime?,lastComputedBy: freezed == lastComputedBy ? _self.lastComputedBy : lastComputedBy // ignore: cast_nullable_to_non_nullable
-as String?,
+as DateTime?,selectedTeeName: freezed == selectedTeeName ? _self.selectedTeeName : selectedTeeName // ignore: cast_nullable_to_non_nullable
+as String?,selectedFemaleTeeName: freezed == selectedFemaleTeeName ? _self.selectedFemaleTeeName : selectedFemaleTeeName // ignore: cast_nullable_to_non_nullable
+as String?,courseConfig: null == courseConfig ? _self.courseConfig : courseConfig // ignore: cast_nullable_to_non_nullable
+as CourseConfig,
   ));
 }
 
@@ -978,6 +993,15 @@ $CompetitionRulesCopyWith<$Res> get rules {
   
   return $CompetitionRulesCopyWith<$Res>(_self.rules, (value) {
     return _then(_self.copyWith(rules: value));
+  });
+}/// Create a copy of Competition
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$CourseConfigCopyWith<$Res> get courseConfig {
+  
+  return $CourseConfigCopyWith<$Res>(_self.courseConfig, (value) {
+    return _then(_self.copyWith(courseConfig: value));
   });
 }
 }

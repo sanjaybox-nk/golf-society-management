@@ -37,9 +37,7 @@ class ScenarioSeeder {
 
     final courseRepo = ref.read(courseRepositoryProvider);
     var courses = await courseRepo.watchCourses().first;
-    if (courses.isEmpty) {
-      courses = await CourseSeeder(ref, random).seed();
-    }
+    courses = await CourseSeeder(ref, random).seed();
     final course = courses.first;
 
     final eventSeeder = EventSeeder(ref, random);
@@ -120,9 +118,7 @@ class ScenarioSeeder {
 
     final courseRepo = ref.read(courseRepositoryProvider);
     var courses = await courseRepo.watchCourses().first;
-    if (courses.isEmpty) {
-      courses = await CourseSeeder(ref, random).seed();
-    }
+    courses = await CourseSeeder(ref, random).seed();
     final course = courses.first;
 
     final eventSeeder = EventSeeder(ref, random);
@@ -131,16 +127,15 @@ class ScenarioSeeder {
     
     final date = DateTime.now();
 
-    // 1. Find the best matching template (Priority: "Medal Play" name, then any "Medal" name, then "tmpl_medal_solo" ID)
+    // 1. Find or create Medal Template
     var medalTemplate = templates.firstWhereOrNull((t) => t.name?.trim().toLowerCase() == 'medal play') ??
                         templates.firstWhereOrNull((t) => t.name?.toLowerCase().contains('medal') ?? false) ??
                         templates.firstWhereOrNull((t) => t.id == 'tmpl_medal_solo');
 
     if (medalTemplate == null) {
-      // Create it if it doesn't exist yet
       medalTemplate = Competition(
         id: 'tmpl_medal_solo',
-        name: 'Medal Play', // Standardized name
+        name: 'Medal Play',
         type: CompetitionType.game,
         rules: const CompetitionRules(
           format: CompetitionFormat.stroke,
@@ -151,13 +146,12 @@ class ScenarioSeeder {
         endDate: DateTime.now(),
       );
       await compRepo.addTemplate(medalTemplate);
-      // Refresh templates list
       final updatedTemplates = await compRepo.getTemplates();
       templates.clear();
       templates.addAll(updatedTemplates);
     }
 
-    // 2. Create a Medal event as "In Play"
+    // 2. Create Event
     await eventSeeder.createFullEvent(
       seasonId: seasonId,
       course: course,
@@ -182,36 +176,44 @@ class ScenarioSeeder {
     
     for (int i = 0; i < groups.length; i++) {
       final group = groups[i];
-      // Granular sequential progress: Holes(i) >= Holes(i+1)
-      // Earlier groups (low index) are always equal to or ahead of later groups.
       
+      // Progress States
       int groupHolesPlayed = 18;
-      if (i >= groups.length - 1) {
-        groupHolesPlayed = 14;
-      } else if (i >= groups.length - 2) {
-        groupHolesPlayed = 15;
-      } else if (i >= groups.length - 3) {
-        groupHolesPlayed = 16;
-      } else if (i >= groups.length - 4) {
-        groupHolesPlayed = 17;
+      if (i == groups.length - 1) {
+        groupHolesPlayed = 16; // Last group
+      } else if (i == groups.length - 2) {
+        groupHolesPlayed = 15; // Second last
+      } else if (i == groups.length - 3) {
+        groupHolesPlayed = 18; // Third last (Verification state)
       }
 
-      // Only groups with 18 holes can be submitted
-      final bool isGroupSubmitted = groupHolesPlayed == 18 && i < (groups.length * 0.5);
+      final bool isThirdLast = (i == groups.length - 3);
+      final bool isGroupSubmitted = (i < groups.length - 3) && (i < groups.length * 0.5);
 
-      for (var p in group.players) {
+      for (int j = 0; j < group.players.length; j++) {
+        final p = group.players[j];
         final entryId = p.isGuest ? '${p.registrationMemberId}_guest' : p.registrationMemberId;
         final s = scorecards.firstWhereOrNull((sc) => sc.entryId == entryId);
         if (s == null) continue;
 
-        final List<int?> scores = List.generate(
+        final List<int?> holeScores = List.generate(
           18, 
-          (idx) => idx < groupHolesPlayed ? 3 + random.nextInt(4) : null
+          (idx) => idx < groupHolesPlayed ? 4 + random.nextInt(3) : null
         );
+
+        final List<int?> markerScores = List.from(holeScores);
+
+        // Introduce error on 18th hole for the first player of the third-last group
+        if (isThirdLast && j == 0) {
+           if (markerScores[17] != null) {
+             markerScores[17] = markerScores[17]! + 1;
+           }
+        }
         
         await scoreRepo.updateScorecard(s.copyWith(
           status: isGroupSubmitted ? ScorecardStatus.submitted : ScorecardStatus.draft,
-          holeScores: scores,
+          holeScores: holeScores,
+          playerVerifierScores: markerScores,
           submittedAt: isGroupSubmitted ? DateTime.now().subtract(Duration(minutes: (groups.length - i) * 10)) : null,
         ));
       }
@@ -230,9 +232,7 @@ class ScenarioSeeder {
 
     final courseRepo = ref.read(courseRepositoryProvider);
     var courses = await courseRepo.watchCourses().first;
-    if (courses.isEmpty) {
-      courses = await CourseSeeder(ref, random).seed();
-    }
+    courses = await CourseSeeder(ref, random).seed();
     final course = courses.first;
 
     // 1. Season Opener (Stableford + Match Play Round 1)
@@ -562,5 +562,118 @@ class ScenarioSeeder {
     }
 
     return eventId;
+  }
+  Future<String> seedHandshakeVerificationScenario() async {
+    final membersRepo = ref.read(membersRepositoryProvider);
+    var members = await membersRepo.getMembers();
+    if (members.length < 32) {
+      await MemberSeeder(ref, random).seed();
+      members = await membersRepo.getMembers();
+    }
+
+    final courseRepo = ref.read(courseRepositoryProvider);
+    var courses = await courseRepo.watchCourses().first;
+    courses = await CourseSeeder(ref, random).seed();
+    final course = courses.first;
+
+    final eventSeeder = EventSeeder(ref, random);
+    final compRepo = ref.read(competitionsRepositoryProvider);
+    final templates = await compRepo.getTemplates();
+    
+    final date = DateTime.now();
+
+    // 1. Create Event
+    await eventSeeder.createFullEvent(
+      seasonId: seasonId,
+      course: course,
+      title: 'Handshake Verification UAT',
+      date: date,
+      format: CompetitionFormat.stableford,
+      isInvitational: false,
+      isSeasonEvent: true,
+      members: members,
+      appliedCuts: {},
+      status: EventStatus.inPlay,
+      templates: templates,
+    );
+
+    final events = await ref.read(eventsRepositoryProvider).getEvents(seasonId: seasonId);
+    final event = events.firstWhere((e) => e.title == 'Handshake Verification UAT');
+    
+    final scoreRepo = ref.read(scorecardRepositoryProvider);
+    final scorecards = await scoreRepo.getScorecards(event.id);
+    
+    final List<TeeGroup> groups = (event.grouping['groups'] as List).map((g) => TeeGroup.fromJson(g)).toList();
+    final Map<String, String> allMarkers = {};
+    
+    for (int i = 0; i < groups.length; i++) {
+      final group = groups[i];
+      
+      // Assign Markers (Circular)
+      for (int j = 0; j < group.players.length; j++) {
+        final p = group.players[j];
+        final marker = group.players[(j + 1) % group.players.length];
+        final pId = p.isGuest ? '${p.registrationMemberId}_guest' : p.registrationMemberId;
+        final markerId = marker.isGuest ? '${marker.registrationMemberId}_guest' : marker.registrationMemberId;
+        allMarkers[pId] = markerId;
+      }
+
+      // Progress States as per request:
+      // Last group on hole 17
+      // Second last on hole 16
+      // Third last completed 18 holes but not submitted (Verification stage)
+      int groupHolesPlayed = 18;
+      if (i == groups.length - 1) {
+        groupHolesPlayed = 17;
+      } else if (i == groups.length - 2) {
+        groupHolesPlayed = 16;
+      } else if (i == groups.length - 3) {
+        groupHolesPlayed = 18;
+      } else {
+        groupHolesPlayed = 18;
+      }
+
+      final bool isThirdLast = (i == groups.length - 3);
+      final bool isGroupSubmitted = (i < groups.length - 3);
+
+      for (int j = 0; j < group.players.length; j++) {
+        final p = group.players[j];
+        final entryId = p.isGuest ? '${p.registrationMemberId}_guest' : p.registrationMemberId;
+        final s = scorecards.firstWhereOrNull((sc) => sc.entryId == entryId);
+        if (s == null) continue;
+
+        final List<int?> holeScores = List.generate(
+          18, 
+          (idx) => idx < groupHolesPlayed ? 4 + random.nextInt(3) : null
+        );
+
+        final List<int?> markerScores = List.from(holeScores);
+
+        // Show some errors on the third from last group for verification UAT
+        if (isThirdLast && j == 1) { 
+           if (markerScores[17] != null) {
+             markerScores[17] = markerScores[17]! + 1; 
+           }
+        }
+        
+        await scoreRepo.updateScorecard(s.copyWith(
+          status: isGroupSubmitted ? ScorecardStatus.submitted : ScorecardStatus.draft,
+          markerId: allMarkers[entryId],
+          holeScores: holeScores,
+          playerVerifierScores: markerScores,
+          submittedAt: isGroupSubmitted ? DateTime.now().subtract(Duration(minutes: (groups.length - i) * 10)) : null,
+        ));
+      }
+    }
+
+    // Update event with markers map
+    await ref.read(eventsRepositoryProvider).updateEvent(event.copyWith(
+      grouping: {
+        ...event.grouping,
+        'markers': allMarkers,
+      }
+    ));
+
+    return event.id;
   }
 }

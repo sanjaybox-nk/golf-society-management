@@ -1,5 +1,4 @@
 import '../design_system.dart';
-import '../../utils/string_utils.dart';
 
 /// A standardized avatar for the Boxy Art design system.
 class BoxyArtAvatar extends StatelessWidget {

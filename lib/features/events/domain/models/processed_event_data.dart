@@ -23,6 +23,7 @@ abstract class ProcessedPlayerScore with _$ProcessedPlayerScore {
     String? tieBreakLabel,
     String? thruLabel,
     @Default(ScoringStatus.ok) ScoringStatus scoringStatus,
+    @Default(0) int maxHolePlayed,
   }) = _ProcessedPlayerScore;
 
   factory ProcessedPlayerScore.fromJson(Map<String, dynamic> json) =>

@@ -53,6 +53,7 @@ Matches track status using a standardized format:
 - **`Dormie`**: Leading player is ahead by the same number of holes remaining.
 - **`3 & 2`**: Match ended on the 16th hole with one player 3 up.
 - **`HALVED`**: Match completed as a tie.
+- **`Dynamic Derivation`**: If no explicit match is seeded, the system auto-derives pairings within the group (e.g., 1 vs 2 for Singles, or 1&2 vs 3&4 for Pairs). This ensures real-time "side-game" stats are available immediately upon score entry.
 
 ## 6. Implementation Status (Updated April 2026)
 

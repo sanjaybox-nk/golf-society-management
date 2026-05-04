@@ -114,12 +114,14 @@ class ScoringCalculator {
     required GolfEvent event,
     required List<Member> membersList,
     String? manualTeeName,
+    String? gender,
   }) {
     final nonNullTee = resolvePlayerTee(
       memberId: memberId,
       event: event,
       membersList: membersList,
       manualTeeName: manualTeeName,
+      gender: gender,
     );
     
     final pars = nonNullTee.holePars;
@@ -146,69 +148,66 @@ class ScoringCalculator {
   static TeeConfig resolvePlayerTee({
     required String memberId,
     required GolfEvent event,
-    required List<Member> membersList,
+    required List<dynamic> membersList,
     String? manualTeeName,
+    String? gender,
   }) {
     final tees = event.courseConfig.tees;
-    
-    if (tees.isEmpty) {
-       // Return a dummy/empty tee config based on event baseline if no tees defined
-       return TeeConfig(
-         name: 'Default',
-         rating: event.courseConfig.rating ?? 72.0,
-         slope: event.courseConfig.slope ?? 113,
-         holePars: event.courseConfig.holes.map((h) => h.par).toList(),
-         holeSIs: event.courseConfig.holes.map((h) => h.si).toList(),
-         yardages: event.courseConfig.holes.map((h) => h.yardage ?? 0).toList(),
-       );
+    if (tees.isEmpty) return const TeeConfig(name: 'Default', rating: 72.0, slope: 113, holePars: [], holeSIs: [], yardages: []);
+
+    // 1. MANUAL OVERRIDE
+    if (manualTeeName != null && manualTeeName.toLowerCase() != 'auto') {
+      final match = tees.firstWhereOrNull((t) => t.name.toLowerCase().trim() == manualTeeName.toLowerCase().trim());
+      if (match != null) return match;
     }
 
-    final baseId = memberId.replaceFirst('_guest', '');
-    final registration = event.registrations.firstWhereOrNull((r) => r.memberId == baseId);
-    final isGuest = memberId.contains('_guest');
-    final registrationTeeName = isGuest ? registration?.guestTeeName : registration?.teeName;
+    // 2. GENDER DETECTION (Harden matching)
+    final baseId = memberId.replaceFirst('_guest', '').trim().toLowerCase();
+    final member = membersList.firstWhereOrNull((m) {
+      final mId = (m is Member ? m.id : m['id']?.toString() ?? '').toLowerCase().trim();
+      return mId == baseId;
+    });
     
-    final effectiveTeeName = manualTeeName ?? registrationTeeName;
-
-    final member = membersList.firstWhereOrNull((m) => m.id == baseId);
-    final gender = member?.gender?.toLowerCase() ?? 'male';
+    final String g = (gender ?? (member is Member ? member.gender : member?['gender']?.toString()) ?? '').toLowerCase().trim();
+    final bool isFemale = g == 'female' || g == 'woman' || g == 'f';
     
-    TeeConfig? selectedTee;
-    
-    // 1. Manual Override logic (priority)
-    if (effectiveTeeName != null) {
-      selectedTee = tees.firstWhereOrNull((t) => 
-        t.name.toLowerCase().trim() == effectiveTeeName.toLowerCase().trim()
+    // [PRODUCTION LOGIC]
+    if (isFemale) {
+      final femaleTeeName = event.selectedFemaleTeeName ?? 'Red';
+      
+      // 1. Try to find the exact match in the course list
+      var match = tees.firstWhereOrNull((t) => t.name.toLowerCase().trim() == femaleTeeName.toLowerCase().trim());
+      
+      // 2. Try to find 'Red' anywhere in name or color if no exact match
+      match ??= tees.firstWhereOrNull((t) => 
+        t.name.toLowerCase().contains('red') || 
+        (t.color?.toLowerCase().trim() == 'red')
       );
-    }
 
-    if (selectedTee == null) {
-      if (gender == 'female') {
-         if (event.selectedFemaleTeeName != null) {
-           selectedTee = tees.firstWhereOrNull((t) => 
-             t.name.toLowerCase().trim() == event.selectedFemaleTeeName!.toLowerCase().trim()
-           );
-         }
-         selectedTee ??= tees.firstWhereOrNull((t) => 
-           t.name.toLowerCase().contains('red') || 
-           t.name.toLowerCase().contains('lady') ||
-           t.name.toLowerCase().contains('female')
-         );
+      // 3. VIRTUAL FAIL-SAFE: If the event says 'Red' but the course list is missing it, 
+      // we create a virtual tee based on the baseline so the UI is correct.
+      if (match == null) {
+        final baseline = tees.firstWhereOrNull((t) => t.name.toLowerCase().trim() == (event.selectedTeeName ?? 'yellow').toLowerCase().trim()) ?? tees.first;
+        return baseline.copyWith(name: femaleTeeName, color: 'red');
       }
       
-      if (selectedTee == null && event.selectedTeeName != null) {
-         selectedTee = tees.firstWhereOrNull((t) => 
-           t.name.toLowerCase().trim() == event.selectedTeeName!.toLowerCase().trim()
-         );
-      }
-
-      selectedTee ??= tees.firstWhereOrNull((t) => 
-         t.name.toLowerCase().trim() == (event.selectedTeeName ?? 'white').toLowerCase().trim()
-      );
-  
-      selectedTee ??= tees.first;
+      return match;
     }
-    return selectedTee;
+
+    // 3. REGISTRATION / EVENT DEFAULT
+    final registration = event.registrations.firstWhereOrNull((r) => r.memberId.toLowerCase().trim() == baseId);
+    final regTee = memberId.contains('_guest') ? registration?.guestTeeName : registration?.teeName;
+    
+    if (regTee != null && regTee.toLowerCase() != 'auto' && regTee != event.selectedTeeName) {
+       final match = tees.firstWhereOrNull((t) => t.name.toLowerCase().trim() == regTee.toLowerCase().trim());
+       if (match != null) return match;
+    }
+
+    // 4. FINAL FALLBACK
+    final baseline = event.selectedTeeName ?? 'white';
+    final match = tees.firstWhereOrNull((t) => t.name.toLowerCase().trim() == baseline.toLowerCase().trim());
+    
+    return match ?? tees.first;
   }
 
   /// Calculates "Score to Par" (Net) or Stableford Points.

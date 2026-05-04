@@ -101,6 +101,15 @@ class MatchPlaySeeder {
         rating: tee.rating,
         par: tee.holePars.reduce((a, b) => a + b),
         selectedTeeName: tee.name,
+        tees: course.tees.map((t) => TeeConfig(
+          name: t.name,
+          color: t.color,
+          rating: t.rating,
+          slope: t.slope,
+          holePars: t.holePars,
+          holeSIs: t.holeSIs,
+          yardages: t.yardages,
+        )).toList(),
         holes: List.generate(18, (i) => CourseHole(
           hole: i + 1,
           par: tee.holePars[i],

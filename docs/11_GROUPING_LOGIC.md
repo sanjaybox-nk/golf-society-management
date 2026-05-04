@@ -130,10 +130,25 @@ The grouping interface follows the **BoxyArt Design 4.1 (True Minimal)** standar
 -   **Vertical Rhythm**: Uses standardized `AppSpacingTokens` (e.g., `spacing?.cardToLabel` for tab-to-list gaps, `spacing?.cardToCard` for list item spacing).
 -   **Card Styling**: Grouping cards use a clean **Surface background** (`AppColors.surface`) with high corner radii and soft shadows.
 - **Full-Width Actions**: Buttons like **Generate** and **Reset** are standardized to full-width for better touch targets and visual balance within the Hub.
+- **Edge-to-Edge Layout (Design 4.x)**: The grouping interface utilizes the full width of the screen by aligning `BoxyArtCard` containers flush with the 16px (`AppSpacing.lg`) gutters provided by the `BoxyArtBottomSheet`. Any internal horizontal padding within these containers is minimized to ensure complex elements like Tee Dropdowns and Marker Toggles have sufficient horizontal space to prevent layout overflow.
+- **Vertical Alignment**: Fixed-width containers (e.g., 28px for leading icons) are used to maintain perfect vertical rhythm for administrative controls across multi-player rows.
 
 ---
 
-## 11. Automated Society Cuts (Handicap Adjustments)
+## 13. Marker Accountability & Designation
+
+To maintain scoring integrity, every player in a group is assigned an official **Marker** who is responsible for verifying their final score.
+
+### Manual Designation Workflow
+During pre-round setup, the user manually designates their official marker within the **Marker & Tee Selection** sheet:
+- **Marker Selection Toggle**: A specialized interaction area on the **left** of each player row allows users to tap a designated icon (`edit_note_rounded`) to set that player as their marker.
+- **Visual Feedback**: The active marker is highlighted with a **vibrant lime green** indicator, clearly distinguishing the primary accountability role from secondary administrative actions (like tee selection).
+- **Self-Marking**: The system supports "Self-Marking" for cases where a player is playing solo or in a specific non-standard flight configuration.
+- **Persistence**: These assignments are managed via the `markerSelectionProvider` and persisted to the local device and cloud to ensure the "Marked By" verification flow surfaces the correct member during the final round sign-off.
+
+---
+
+## 14. Automated Society Cuts (Handicap Adjustments)
 
 The system includes an automated **Society Cuts Engine** that manages temporary handicap adjustments based on recent high-performance finishes.
 

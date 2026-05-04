@@ -136,6 +136,7 @@ const _$CompetitionFormatEnumMap = {
   CompetitionFormat.stableford: 'stableford',
   CompetitionFormat.maxScore: 'maxScore',
   CompetitionFormat.scramble: 'scramble',
+  CompetitionFormat.matchPlay: 'matchPlay',
 };
 
 const _$CompetitionSubtypeEnumMap = {
@@ -215,7 +216,11 @@ _Competition _$CompetitionFromJson(Map<String, dynamic> json) => _Competition(
   lastComputedAt: const OptionalTimestampConverter().fromJson(
     json['lastComputedAt'],
   ),
-  lastComputedBy: json['lastComputedBy'] as String?,
+  selectedTeeName: json['selectedTeeName'] as String?,
+  selectedFemaleTeeName: json['selectedFemaleTeeName'] as String?,
+  courseConfig: json['courseConfig'] == null
+      ? const CourseConfig()
+      : CourseConfig.fromJson(json['courseConfig'] as Map<String, dynamic>),
 );
 
 Map<String, dynamic> _$CompetitionToJson(_Competition instance) =>
@@ -234,7 +239,9 @@ Map<String, dynamic> _$CompetitionToJson(_Competition instance) =>
       'lastComputedAt': const OptionalTimestampConverter().toJson(
         instance.lastComputedAt,
       ),
-      'lastComputedBy': instance.lastComputedBy,
+      'selectedTeeName': instance.selectedTeeName,
+      'selectedFemaleTeeName': instance.selectedFemaleTeeName,
+      'courseConfig': instance.courseConfig.toJson(),
     };
 
 const _$CompetitionTypeEnumMap = {

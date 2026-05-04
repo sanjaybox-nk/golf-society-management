@@ -2,52 +2,88 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:golf_society/services/persistence_service.dart';
+import 'package:golf_society/features/members/presentation/profile_provider.dart';
 
-// [LAB MODE] Persistence for Marker Selection
+// [LAB MODE] Persistence for Marker Selection - Now supports multi-marking
 class MarkerSelection {
   final bool isSelfMarking;
-  final String? targetEntryId;
+  final List<String> targetEntryIds;
   final Map<String, String> teeOverrides;
+  final int lastViewedHoleIndex;
+  final String? myMarkerId;
+  final bool isGroupScorer;
+  final Map<String, String> markerAssignments; // playerId -> markerId
 
   MarkerSelection({
     required this.isSelfMarking, 
-    this.targetEntryId,
+    List<String>? targetEntryIds,
     Map<String, String>? teeOverrides,
-  }) : teeOverrides = teeOverrides ?? <String, String>{};
+    this.lastViewedHoleIndex = 0,
+    this.myMarkerId,
+    this.isGroupScorer = false,
+    Map<String, String>? markerAssignments,
+  }) : targetEntryIds = targetEntryIds ?? const [],
+       teeOverrides = teeOverrides ?? <String, String>{},
+       markerAssignments = markerAssignments ?? <String, String>{};
 
   MarkerSelection copyWith({
     bool? isSelfMarking,
-    String? targetEntryId,
+    List<String>? targetEntryIds,
     Map<String, String>? teeOverrides,
-    bool clearTarget = false,
+    int? lastViewedHoleIndex,
+    String? myMarkerId,
+    bool? isGroupScorer,
+    Map<String, String>? markerAssignments,
   }) {
     return MarkerSelection(
       isSelfMarking: isSelfMarking ?? this.isSelfMarking,
-      targetEntryId: clearTarget ? null : (targetEntryId ?? this.targetEntryId),
+      targetEntryIds: targetEntryIds ?? this.targetEntryIds,
       teeOverrides: teeOverrides ?? this.teeOverrides,
+      lastViewedHoleIndex: lastViewedHoleIndex ?? this.lastViewedHoleIndex,
+      myMarkerId: myMarkerId ?? this.myMarkerId,
+      isGroupScorer: isGroupScorer ?? this.isGroupScorer,
+      markerAssignments: markerAssignments ?? this.markerAssignments,
     );
   }
 }
 
 class MarkerSelectionNotifier extends Notifier<MarkerSelection> {
-  static const _keySelf = 'lab_marker_self';
-  static const _keyTarget = 'lab_marker_target';
-  static const _keyTeeOverrides = 'lab_marker_tee_overrides';
+  // Base keys - will be prefixed with userId
+  static const _baseKeySelf = 'lab_marker_self';
+  static const _baseKeyTargets = 'lab_marker_targets_v2';
+  static const _baseKeyTeeOverrides = 'lab_marker_tee_overrides';
+  static const _baseKeyLastHole = 'lab_marker_last_hole';
+  static const _baseKeyMyMarker = 'lab_marker_my_marker';
+
+  String _getKey(String base) {
+    final userId = ref.read(effectiveUserProvider).id;
+    return '${base}_$userId';
+  }
   
   @override
   MarkerSelection build() {
+    // Watch effectiveUser to trigger a full state rebuild when the user switches
+    final currentUser = ref.watch(effectiveUserProvider);
+    final userId = currentUser.id;
     final prefs = ref.watch(persistenceServiceProvider);
     
     // Default values
     bool self = true;
-    String? target;
+    List<String> targets = [];
     final Map<String, String> overrides = {};
+    int lastHole = 0;
+    String? myMarker;
 
     try {
-      self = prefs.getBool(_keySelf) ?? true;
-      target = prefs.getString(_keyTarget);
-      
-      final overridesJson = prefs.getString(_keyTeeOverrides);
+      self = prefs.getBool('${_baseKeySelf}_$userId') ?? true;
+      final targetsJson = prefs.getString('${_baseKeyTargets}_$userId');
+      if (targetsJson != null && targetsJson.isNotEmpty) {
+        final decoded = jsonDecode(targetsJson);
+        if (decoded is List) {
+          targets = decoded.map((e) => e.toString()).toList();
+        }
+      }
+      final overridesJson = prefs.getString('${_baseKeyTeeOverrides}_$userId');
       if (overridesJson != null && overridesJson.isNotEmpty && overridesJson != 'null') {
         final decoded = jsonDecode(overridesJson);
         if (decoded is Map) {
@@ -56,27 +92,48 @@ class MarkerSelectionNotifier extends Notifier<MarkerSelection> {
           });
         }
       }
+      lastHole = prefs.getInt('${_baseKeyLastHole}_$userId') ?? 0;
+      myMarker = prefs.getString('${_baseKeyMyMarker}_$userId');
     } catch (e) {
-      debugPrint('Error loading MarkerSelection state: $e');
+      debugPrint('Error loading MarkerSelection state for $userId: $e');
     }
 
     return MarkerSelection(
       isSelfMarking: self,
-      targetEntryId: target,
+      targetEntryIds: targets,
       teeOverrides: overrides,
+      lastViewedHoleIndex: lastHole,
+      myMarkerId: myMarker,
     );
   }
   
-  void selectSelf() {
-    state = state.copyWith(isSelfMarking: true, clearTarget: true);
-    ref.read(persistenceServiceProvider).setBool(_keySelf, true);
-    ref.read(persistenceServiceProvider).remove(_keyTarget);
+  void setSelfMarking(bool val) {
+    state = state.copyWith(isSelfMarking: val);
+    ref.read(persistenceServiceProvider).setBool(_getKey(_baseKeySelf), val);
   }
   
-  void selectTarget(String targetId) {
-    state = state.copyWith(isSelfMarking: false, targetEntryId: targetId);
-    ref.read(persistenceServiceProvider).setBool(_keySelf, false);
-    ref.read(persistenceServiceProvider).setString(_keyTarget, targetId);
+  void toggleTarget(String targetId) {
+    final List<String> currentTargets = List<String>.from(state.targetEntryIds);
+    if (currentTargets.contains(targetId)) {
+      currentTargets.remove(targetId);
+    } else {
+      if (currentTargets.length < 10) { 
+        currentTargets.add(targetId);
+      }
+    }
+    
+    state = state.copyWith(targetEntryIds: currentTargets);
+    ref.read(persistenceServiceProvider).setString(_getKey(_baseKeyTargets), jsonEncode(currentTargets));
+  }
+
+  void validateTargets(List<String> validIds) {
+    final List<String> currentTargets = List<String>.from(state.targetEntryIds);
+    final List<String> validated = currentTargets.where((id) => validIds.contains(id)).toList();
+    
+    if (validated.length != currentTargets.length) {
+      state = state.copyWith(targetEntryIds: validated);
+      ref.read(persistenceServiceProvider).setString(_getKey(_baseKeyTargets), jsonEncode(validated));
+    }
   }
 
   void setManualTee(String entryId, String teeName) {
@@ -84,22 +141,42 @@ class MarkerSelectionNotifier extends Notifier<MarkerSelection> {
     newOverrides[entryId] = teeName;
     state = state.copyWith(teeOverrides: newOverrides);
     
-    // Persist as JSON
-    ref.read(persistenceServiceProvider).setString(_keyTeeOverrides, jsonEncode(newOverrides));
+    ref.read(persistenceServiceProvider).setString(_getKey(_baseKeyTeeOverrides), jsonEncode(newOverrides));
   }
 
   void clearManualTee(String entryId) {
-    debugPrint(' [Provider] Clearing Manual Tee for $entryId');
     final Map<String, String> newOverrides = Map<String, String>.from(state.teeOverrides);
-    final exists = newOverrides.containsKey(entryId);
-    if (exists) {
+    if (newOverrides.containsKey(entryId)) {
       newOverrides.remove(entryId);
       state = state.copyWith(teeOverrides: newOverrides);
-      ref.read(persistenceServiceProvider).setString(_keyTeeOverrides, jsonEncode(newOverrides));
-      debugPrint(' [Provider] Successfully cleared override for $entryId');
-    } else {
-      debugPrint(' [Provider] No override found to clear for $entryId (already Auto)');
+      ref.read(persistenceServiceProvider).setString(_getKey(_baseKeyTeeOverrides), jsonEncode(newOverrides));
     }
+  }
+
+  void setLastViewedHole(int index) {
+    if (state.lastViewedHoleIndex != index) {
+      state = state.copyWith(lastViewedHoleIndex: index);
+      ref.read(persistenceServiceProvider).setInt(_getKey(_baseKeyLastHole), index);
+    }
+  }
+
+  void setMyMarker(String? markerId) {
+    state = state.copyWith(myMarkerId: markerId);
+    if (markerId != null) {
+      ref.read(persistenceServiceProvider).setString(_getKey(_baseKeyMyMarker), markerId);
+    } else {
+      ref.read(persistenceServiceProvider).remove(_getKey(_baseKeyMyMarker));
+    }
+  }
+
+  void toggleGroupScorer(bool value) {
+    state = state.copyWith(isGroupScorer: value);
+  }
+
+  void assignMarker(String playerId, String markerId) {
+    final assignments = Map<String, String>.from(state.markerAssignments);
+    assignments[playerId] = markerId;
+    state = state.copyWith(markerAssignments: assignments);
   }
 }
 

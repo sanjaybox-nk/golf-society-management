@@ -110,7 +110,7 @@ class _ModernUnderlinedFilterBarState<T> extends State<ModernUnderlinedFilterBar
             : SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
                 physics: const BouncingScrollPhysics(),
-                child: Center(child: childRow),
+                child: childRow,
               ),
       ),
     );

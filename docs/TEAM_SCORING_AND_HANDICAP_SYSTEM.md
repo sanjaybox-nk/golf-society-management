@@ -109,6 +109,7 @@ For unified team formats, the **My Card** tab transforms into a shared team dash
 - **Unified Scorecard**: All team members "see" and edit the same authoritative scorecard (attributed to the Team Leader).
 - **Team Identity Header**: The tab title is updated to "TEAM SCORECARD" and displays a persistent "TEAM MEMBERS" row at the top of the hub.
 - **Member Status**: The team row provides quick-look avatars and names of all teammates, reinforcing the collaborative nature of the format.
+- **Hero Scoring Input (v11.0)**: The hole-by-hole scoring interface has been hardened with a **32pt** hero font size and a subtle, bordered container for the input digit. This ensures maximum legibility and high-speed interaction for mobile-first on-course scoring.
 
 ### 3.5 Scramble Drive Tracking
 In Scramble and Florida Scramble formats, the system includes integrated drive attribution tracking:
@@ -124,7 +125,7 @@ For all Match Play formats (Singles or Pairs), the scoring widget includes a **"
 - **Conflict Prevention:** By showing both cards on one dashboard, players can instantly identify and resolve scoring discrepancies before moving to the next hole.
 
 ---
-*Last Updated: April 25, 2026*
+*Last Updated: May 4, 2026*
 
 ---
 
@@ -247,4 +248,4 @@ In the **GROUPS** hub, administrators have access to a persistent visibility tog
 - **Visibility Integrity**: The scoring data in the Groups hub is processed for the entire field (all players in groups/scorecards), ensuring admins see results even for participants whose registration status is not yet finalized.
 
 ---
-*Last Updated: April 23, 2026*
+*Last Updated: May 4, 2026*

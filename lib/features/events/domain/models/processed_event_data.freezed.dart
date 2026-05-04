@@ -16,7 +16,7 @@ T _$identity<T>(T value) => value;
 mixin _$ProcessedPlayerScore {
 
  String get playerId; String get playerName; bool get isGuest; double get handicapIndex; double get courseHandicap; int get playingHandicap; double get appliedSocietyCut; String get teeName; String? get teeColor;// [NEW]
- List<int?> get holeScores; ScoringResult get result; String? get tieBreakLabel; String? get thruLabel; ScoringStatus get scoringStatus;
+ List<int?> get holeScores; ScoringResult get result; String? get tieBreakLabel; String? get thruLabel; ScoringStatus get scoringStatus; int get maxHolePlayed;
 /// Create a copy of ProcessedPlayerScore
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -29,16 +29,16 @@ $ProcessedPlayerScoreCopyWith<ProcessedPlayerScore> get copyWith => _$ProcessedP
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is ProcessedPlayerScore&&(identical(other.playerId, playerId) || other.playerId == playerId)&&(identical(other.playerName, playerName) || other.playerName == playerName)&&(identical(other.isGuest, isGuest) || other.isGuest == isGuest)&&(identical(other.handicapIndex, handicapIndex) || other.handicapIndex == handicapIndex)&&(identical(other.courseHandicap, courseHandicap) || other.courseHandicap == courseHandicap)&&(identical(other.playingHandicap, playingHandicap) || other.playingHandicap == playingHandicap)&&(identical(other.appliedSocietyCut, appliedSocietyCut) || other.appliedSocietyCut == appliedSocietyCut)&&(identical(other.teeName, teeName) || other.teeName == teeName)&&(identical(other.teeColor, teeColor) || other.teeColor == teeColor)&&const DeepCollectionEquality().equals(other.holeScores, holeScores)&&(identical(other.result, result) || other.result == result)&&(identical(other.tieBreakLabel, tieBreakLabel) || other.tieBreakLabel == tieBreakLabel)&&(identical(other.thruLabel, thruLabel) || other.thruLabel == thruLabel)&&(identical(other.scoringStatus, scoringStatus) || other.scoringStatus == scoringStatus));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ProcessedPlayerScore&&(identical(other.playerId, playerId) || other.playerId == playerId)&&(identical(other.playerName, playerName) || other.playerName == playerName)&&(identical(other.isGuest, isGuest) || other.isGuest == isGuest)&&(identical(other.handicapIndex, handicapIndex) || other.handicapIndex == handicapIndex)&&(identical(other.courseHandicap, courseHandicap) || other.courseHandicap == courseHandicap)&&(identical(other.playingHandicap, playingHandicap) || other.playingHandicap == playingHandicap)&&(identical(other.appliedSocietyCut, appliedSocietyCut) || other.appliedSocietyCut == appliedSocietyCut)&&(identical(other.teeName, teeName) || other.teeName == teeName)&&(identical(other.teeColor, teeColor) || other.teeColor == teeColor)&&const DeepCollectionEquality().equals(other.holeScores, holeScores)&&(identical(other.result, result) || other.result == result)&&(identical(other.tieBreakLabel, tieBreakLabel) || other.tieBreakLabel == tieBreakLabel)&&(identical(other.thruLabel, thruLabel) || other.thruLabel == thruLabel)&&(identical(other.scoringStatus, scoringStatus) || other.scoringStatus == scoringStatus)&&(identical(other.maxHolePlayed, maxHolePlayed) || other.maxHolePlayed == maxHolePlayed));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,playerId,playerName,isGuest,handicapIndex,courseHandicap,playingHandicap,appliedSocietyCut,teeName,teeColor,const DeepCollectionEquality().hash(holeScores),result,tieBreakLabel,thruLabel,scoringStatus);
+int get hashCode => Object.hash(runtimeType,playerId,playerName,isGuest,handicapIndex,courseHandicap,playingHandicap,appliedSocietyCut,teeName,teeColor,const DeepCollectionEquality().hash(holeScores),result,tieBreakLabel,thruLabel,scoringStatus,maxHolePlayed);
 
 @override
 String toString() {
-  return 'ProcessedPlayerScore(playerId: $playerId, playerName: $playerName, isGuest: $isGuest, handicapIndex: $handicapIndex, courseHandicap: $courseHandicap, playingHandicap: $playingHandicap, appliedSocietyCut: $appliedSocietyCut, teeName: $teeName, teeColor: $teeColor, holeScores: $holeScores, result: $result, tieBreakLabel: $tieBreakLabel, thruLabel: $thruLabel, scoringStatus: $scoringStatus)';
+  return 'ProcessedPlayerScore(playerId: $playerId, playerName: $playerName, isGuest: $isGuest, handicapIndex: $handicapIndex, courseHandicap: $courseHandicap, playingHandicap: $playingHandicap, appliedSocietyCut: $appliedSocietyCut, teeName: $teeName, teeColor: $teeColor, holeScores: $holeScores, result: $result, tieBreakLabel: $tieBreakLabel, thruLabel: $thruLabel, scoringStatus: $scoringStatus, maxHolePlayed: $maxHolePlayed)';
 }
 
 
@@ -49,7 +49,7 @@ abstract mixin class $ProcessedPlayerScoreCopyWith<$Res>  {
   factory $ProcessedPlayerScoreCopyWith(ProcessedPlayerScore value, $Res Function(ProcessedPlayerScore) _then) = _$ProcessedPlayerScoreCopyWithImpl;
 @useResult
 $Res call({
- String playerId, String playerName, bool isGuest, double handicapIndex, double courseHandicap, int playingHandicap, double appliedSocietyCut, String teeName, String? teeColor, List<int?> holeScores, ScoringResult result, String? tieBreakLabel, String? thruLabel, ScoringStatus scoringStatus
+ String playerId, String playerName, bool isGuest, double handicapIndex, double courseHandicap, int playingHandicap, double appliedSocietyCut, String teeName, String? teeColor, List<int?> holeScores, ScoringResult result, String? tieBreakLabel, String? thruLabel, ScoringStatus scoringStatus, int maxHolePlayed
 });
 
 
@@ -66,7 +66,7 @@ class _$ProcessedPlayerScoreCopyWithImpl<$Res>
 
 /// Create a copy of ProcessedPlayerScore
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? playerId = null,Object? playerName = null,Object? isGuest = null,Object? handicapIndex = null,Object? courseHandicap = null,Object? playingHandicap = null,Object? appliedSocietyCut = null,Object? teeName = null,Object? teeColor = freezed,Object? holeScores = null,Object? result = null,Object? tieBreakLabel = freezed,Object? thruLabel = freezed,Object? scoringStatus = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? playerId = null,Object? playerName = null,Object? isGuest = null,Object? handicapIndex = null,Object? courseHandicap = null,Object? playingHandicap = null,Object? appliedSocietyCut = null,Object? teeName = null,Object? teeColor = freezed,Object? holeScores = null,Object? result = null,Object? tieBreakLabel = freezed,Object? thruLabel = freezed,Object? scoringStatus = null,Object? maxHolePlayed = null,}) {
   return _then(_self.copyWith(
 playerId: null == playerId ? _self.playerId : playerId // ignore: cast_nullable_to_non_nullable
 as String,playerName: null == playerName ? _self.playerName : playerName // ignore: cast_nullable_to_non_nullable
@@ -82,7 +82,8 @@ as List<int?>,result: null == result ? _self.result : result // ignore: cast_nul
 as ScoringResult,tieBreakLabel: freezed == tieBreakLabel ? _self.tieBreakLabel : tieBreakLabel // ignore: cast_nullable_to_non_nullable
 as String?,thruLabel: freezed == thruLabel ? _self.thruLabel : thruLabel // ignore: cast_nullable_to_non_nullable
 as String?,scoringStatus: null == scoringStatus ? _self.scoringStatus : scoringStatus // ignore: cast_nullable_to_non_nullable
-as ScoringStatus,
+as ScoringStatus,maxHolePlayed: null == maxHolePlayed ? _self.maxHolePlayed : maxHolePlayed // ignore: cast_nullable_to_non_nullable
+as int,
   ));
 }
 
@@ -167,10 +168,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String playerId,  String playerName,  bool isGuest,  double handicapIndex,  double courseHandicap,  int playingHandicap,  double appliedSocietyCut,  String teeName,  String? teeColor,  List<int?> holeScores,  ScoringResult result,  String? tieBreakLabel,  String? thruLabel,  ScoringStatus scoringStatus)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String playerId,  String playerName,  bool isGuest,  double handicapIndex,  double courseHandicap,  int playingHandicap,  double appliedSocietyCut,  String teeName,  String? teeColor,  List<int?> holeScores,  ScoringResult result,  String? tieBreakLabel,  String? thruLabel,  ScoringStatus scoringStatus,  int maxHolePlayed)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _ProcessedPlayerScore() when $default != null:
-return $default(_that.playerId,_that.playerName,_that.isGuest,_that.handicapIndex,_that.courseHandicap,_that.playingHandicap,_that.appliedSocietyCut,_that.teeName,_that.teeColor,_that.holeScores,_that.result,_that.tieBreakLabel,_that.thruLabel,_that.scoringStatus);case _:
+return $default(_that.playerId,_that.playerName,_that.isGuest,_that.handicapIndex,_that.courseHandicap,_that.playingHandicap,_that.appliedSocietyCut,_that.teeName,_that.teeColor,_that.holeScores,_that.result,_that.tieBreakLabel,_that.thruLabel,_that.scoringStatus,_that.maxHolePlayed);case _:
   return orElse();
 
 }
@@ -188,10 +189,10 @@ return $default(_that.playerId,_that.playerName,_that.isGuest,_that.handicapInde
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String playerId,  String playerName,  bool isGuest,  double handicapIndex,  double courseHandicap,  int playingHandicap,  double appliedSocietyCut,  String teeName,  String? teeColor,  List<int?> holeScores,  ScoringResult result,  String? tieBreakLabel,  String? thruLabel,  ScoringStatus scoringStatus)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String playerId,  String playerName,  bool isGuest,  double handicapIndex,  double courseHandicap,  int playingHandicap,  double appliedSocietyCut,  String teeName,  String? teeColor,  List<int?> holeScores,  ScoringResult result,  String? tieBreakLabel,  String? thruLabel,  ScoringStatus scoringStatus,  int maxHolePlayed)  $default,) {final _that = this;
 switch (_that) {
 case _ProcessedPlayerScore():
-return $default(_that.playerId,_that.playerName,_that.isGuest,_that.handicapIndex,_that.courseHandicap,_that.playingHandicap,_that.appliedSocietyCut,_that.teeName,_that.teeColor,_that.holeScores,_that.result,_that.tieBreakLabel,_that.thruLabel,_that.scoringStatus);case _:
+return $default(_that.playerId,_that.playerName,_that.isGuest,_that.handicapIndex,_that.courseHandicap,_that.playingHandicap,_that.appliedSocietyCut,_that.teeName,_that.teeColor,_that.holeScores,_that.result,_that.tieBreakLabel,_that.thruLabel,_that.scoringStatus,_that.maxHolePlayed);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -208,10 +209,10 @@ return $default(_that.playerId,_that.playerName,_that.isGuest,_that.handicapInde
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String playerId,  String playerName,  bool isGuest,  double handicapIndex,  double courseHandicap,  int playingHandicap,  double appliedSocietyCut,  String teeName,  String? teeColor,  List<int?> holeScores,  ScoringResult result,  String? tieBreakLabel,  String? thruLabel,  ScoringStatus scoringStatus)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String playerId,  String playerName,  bool isGuest,  double handicapIndex,  double courseHandicap,  int playingHandicap,  double appliedSocietyCut,  String teeName,  String? teeColor,  List<int?> holeScores,  ScoringResult result,  String? tieBreakLabel,  String? thruLabel,  ScoringStatus scoringStatus,  int maxHolePlayed)?  $default,) {final _that = this;
 switch (_that) {
 case _ProcessedPlayerScore() when $default != null:
-return $default(_that.playerId,_that.playerName,_that.isGuest,_that.handicapIndex,_that.courseHandicap,_that.playingHandicap,_that.appliedSocietyCut,_that.teeName,_that.teeColor,_that.holeScores,_that.result,_that.tieBreakLabel,_that.thruLabel,_that.scoringStatus);case _:
+return $default(_that.playerId,_that.playerName,_that.isGuest,_that.handicapIndex,_that.courseHandicap,_that.playingHandicap,_that.appliedSocietyCut,_that.teeName,_that.teeColor,_that.holeScores,_that.result,_that.tieBreakLabel,_that.thruLabel,_that.scoringStatus,_that.maxHolePlayed);case _:
   return null;
 
 }
@@ -223,7 +224,7 @@ return $default(_that.playerId,_that.playerName,_that.isGuest,_that.handicapInde
 @JsonSerializable()
 
 class _ProcessedPlayerScore implements ProcessedPlayerScore {
-  const _ProcessedPlayerScore({required this.playerId, required this.playerName, required this.isGuest, required this.handicapIndex, this.courseHandicap = 0.0, required this.playingHandicap, this.appliedSocietyCut = 0.0, required this.teeName, this.teeColor, required final  List<int?> holeScores, required this.result, this.tieBreakLabel, this.thruLabel, this.scoringStatus = ScoringStatus.ok}): _holeScores = holeScores;
+  const _ProcessedPlayerScore({required this.playerId, required this.playerName, required this.isGuest, required this.handicapIndex, this.courseHandicap = 0.0, required this.playingHandicap, this.appliedSocietyCut = 0.0, required this.teeName, this.teeColor, required final  List<int?> holeScores, required this.result, this.tieBreakLabel, this.thruLabel, this.scoringStatus = ScoringStatus.ok, this.maxHolePlayed = 0}): _holeScores = holeScores;
   factory _ProcessedPlayerScore.fromJson(Map<String, dynamic> json) => _$ProcessedPlayerScoreFromJson(json);
 
 @override final  String playerId;
@@ -248,6 +249,7 @@ class _ProcessedPlayerScore implements ProcessedPlayerScore {
 @override final  String? tieBreakLabel;
 @override final  String? thruLabel;
 @override@JsonKey() final  ScoringStatus scoringStatus;
+@override@JsonKey() final  int maxHolePlayed;
 
 /// Create a copy of ProcessedPlayerScore
 /// with the given fields replaced by the non-null parameter values.
@@ -262,16 +264,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ProcessedPlayerScore&&(identical(other.playerId, playerId) || other.playerId == playerId)&&(identical(other.playerName, playerName) || other.playerName == playerName)&&(identical(other.isGuest, isGuest) || other.isGuest == isGuest)&&(identical(other.handicapIndex, handicapIndex) || other.handicapIndex == handicapIndex)&&(identical(other.courseHandicap, courseHandicap) || other.courseHandicap == courseHandicap)&&(identical(other.playingHandicap, playingHandicap) || other.playingHandicap == playingHandicap)&&(identical(other.appliedSocietyCut, appliedSocietyCut) || other.appliedSocietyCut == appliedSocietyCut)&&(identical(other.teeName, teeName) || other.teeName == teeName)&&(identical(other.teeColor, teeColor) || other.teeColor == teeColor)&&const DeepCollectionEquality().equals(other._holeScores, _holeScores)&&(identical(other.result, result) || other.result == result)&&(identical(other.tieBreakLabel, tieBreakLabel) || other.tieBreakLabel == tieBreakLabel)&&(identical(other.thruLabel, thruLabel) || other.thruLabel == thruLabel)&&(identical(other.scoringStatus, scoringStatus) || other.scoringStatus == scoringStatus));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ProcessedPlayerScore&&(identical(other.playerId, playerId) || other.playerId == playerId)&&(identical(other.playerName, playerName) || other.playerName == playerName)&&(identical(other.isGuest, isGuest) || other.isGuest == isGuest)&&(identical(other.handicapIndex, handicapIndex) || other.handicapIndex == handicapIndex)&&(identical(other.courseHandicap, courseHandicap) || other.courseHandicap == courseHandicap)&&(identical(other.playingHandicap, playingHandicap) || other.playingHandicap == playingHandicap)&&(identical(other.appliedSocietyCut, appliedSocietyCut) || other.appliedSocietyCut == appliedSocietyCut)&&(identical(other.teeName, teeName) || other.teeName == teeName)&&(identical(other.teeColor, teeColor) || other.teeColor == teeColor)&&const DeepCollectionEquality().equals(other._holeScores, _holeScores)&&(identical(other.result, result) || other.result == result)&&(identical(other.tieBreakLabel, tieBreakLabel) || other.tieBreakLabel == tieBreakLabel)&&(identical(other.thruLabel, thruLabel) || other.thruLabel == thruLabel)&&(identical(other.scoringStatus, scoringStatus) || other.scoringStatus == scoringStatus)&&(identical(other.maxHolePlayed, maxHolePlayed) || other.maxHolePlayed == maxHolePlayed));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,playerId,playerName,isGuest,handicapIndex,courseHandicap,playingHandicap,appliedSocietyCut,teeName,teeColor,const DeepCollectionEquality().hash(_holeScores),result,tieBreakLabel,thruLabel,scoringStatus);
+int get hashCode => Object.hash(runtimeType,playerId,playerName,isGuest,handicapIndex,courseHandicap,playingHandicap,appliedSocietyCut,teeName,teeColor,const DeepCollectionEquality().hash(_holeScores),result,tieBreakLabel,thruLabel,scoringStatus,maxHolePlayed);
 
 @override
 String toString() {
-  return 'ProcessedPlayerScore(playerId: $playerId, playerName: $playerName, isGuest: $isGuest, handicapIndex: $handicapIndex, courseHandicap: $courseHandicap, playingHandicap: $playingHandicap, appliedSocietyCut: $appliedSocietyCut, teeName: $teeName, teeColor: $teeColor, holeScores: $holeScores, result: $result, tieBreakLabel: $tieBreakLabel, thruLabel: $thruLabel, scoringStatus: $scoringStatus)';
+  return 'ProcessedPlayerScore(playerId: $playerId, playerName: $playerName, isGuest: $isGuest, handicapIndex: $handicapIndex, courseHandicap: $courseHandicap, playingHandicap: $playingHandicap, appliedSocietyCut: $appliedSocietyCut, teeName: $teeName, teeColor: $teeColor, holeScores: $holeScores, result: $result, tieBreakLabel: $tieBreakLabel, thruLabel: $thruLabel, scoringStatus: $scoringStatus, maxHolePlayed: $maxHolePlayed)';
 }
 
 
@@ -282,7 +284,7 @@ abstract mixin class _$ProcessedPlayerScoreCopyWith<$Res> implements $ProcessedP
   factory _$ProcessedPlayerScoreCopyWith(_ProcessedPlayerScore value, $Res Function(_ProcessedPlayerScore) _then) = __$ProcessedPlayerScoreCopyWithImpl;
 @override @useResult
 $Res call({
- String playerId, String playerName, bool isGuest, double handicapIndex, double courseHandicap, int playingHandicap, double appliedSocietyCut, String teeName, String? teeColor, List<int?> holeScores, ScoringResult result, String? tieBreakLabel, String? thruLabel, ScoringStatus scoringStatus
+ String playerId, String playerName, bool isGuest, double handicapIndex, double courseHandicap, int playingHandicap, double appliedSocietyCut, String teeName, String? teeColor, List<int?> holeScores, ScoringResult result, String? tieBreakLabel, String? thruLabel, ScoringStatus scoringStatus, int maxHolePlayed
 });
 
 
@@ -299,7 +301,7 @@ class __$ProcessedPlayerScoreCopyWithImpl<$Res>
 
 /// Create a copy of ProcessedPlayerScore
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? playerId = null,Object? playerName = null,Object? isGuest = null,Object? handicapIndex = null,Object? courseHandicap = null,Object? playingHandicap = null,Object? appliedSocietyCut = null,Object? teeName = null,Object? teeColor = freezed,Object? holeScores = null,Object? result = null,Object? tieBreakLabel = freezed,Object? thruLabel = freezed,Object? scoringStatus = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? playerId = null,Object? playerName = null,Object? isGuest = null,Object? handicapIndex = null,Object? courseHandicap = null,Object? playingHandicap = null,Object? appliedSocietyCut = null,Object? teeName = null,Object? teeColor = freezed,Object? holeScores = null,Object? result = null,Object? tieBreakLabel = freezed,Object? thruLabel = freezed,Object? scoringStatus = null,Object? maxHolePlayed = null,}) {
   return _then(_ProcessedPlayerScore(
 playerId: null == playerId ? _self.playerId : playerId // ignore: cast_nullable_to_non_nullable
 as String,playerName: null == playerName ? _self.playerName : playerName // ignore: cast_nullable_to_non_nullable
@@ -315,7 +317,8 @@ as List<int?>,result: null == result ? _self.result : result // ignore: cast_nul
 as ScoringResult,tieBreakLabel: freezed == tieBreakLabel ? _self.tieBreakLabel : tieBreakLabel // ignore: cast_nullable_to_non_nullable
 as String?,thruLabel: freezed == thruLabel ? _self.thruLabel : thruLabel // ignore: cast_nullable_to_non_nullable
 as String?,scoringStatus: null == scoringStatus ? _self.scoringStatus : scoringStatus // ignore: cast_nullable_to_non_nullable
-as ScoringStatus,
+as ScoringStatus,maxHolePlayed: null == maxHolePlayed ? _self.maxHolePlayed : maxHolePlayed // ignore: cast_nullable_to_non_nullable
+as int,
   ));
 }
 

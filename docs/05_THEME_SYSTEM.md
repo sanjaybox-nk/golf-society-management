@@ -36,6 +36,7 @@ Never use arbitrary alpha values. Use the consolidated tokens via `.withValues(a
 ### Plus Jakarta Sans — Display & Scoring
 Used for high-impact numeric data and leaderboard "Hero" moments.
 - **Leaderboard Scores**: 22pt / 800 weight (`AppTypography.weightBlack`), -0.5 letter spacing.
+- **Direct Score Input (v11.0)**: **32pt** / Heavy weight, 1.0 height, tabular numerals.
 - **Numeric Rule**: Always use tabular numerals for score/stat alignment.
 
 ### Inter — UI & Functional

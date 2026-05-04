@@ -176,17 +176,6 @@ class _GroupScoresViewState extends ConsumerState<GroupScoresView> {
     }
   }
 
-  void _scrollToGroup(int index) {
-    final key = _cardKeys[index];
-    if (key != null && key.currentContext != null) {
-      Scrollable.ensureVisible(
-        key.currentContext!,
-        duration: const Duration(milliseconds: 500),
-        curve: Curves.easeInOut,
-      );
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final scoringData = ref.watch(eventScoringControllerProvider(widget.event.id));
@@ -240,8 +229,6 @@ class _GroupScoresViewState extends ConsumerState<GroupScoresView> {
            ));
         }
     }
-
-    final isMatchPlay = widget.rules.isMatchPlay;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

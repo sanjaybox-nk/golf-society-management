@@ -5,7 +5,7 @@ class AppTypography {
   // Radical Theme Simplification (BoxyArt v4.0)
 
   // 0. Consolidated Heights
-  static const double sizeDisplay = 30.0;   // Hero headers (Previously 64-32)
+  static const double sizeDisplay = 24.0;   // Hero headers (Updated to 24pt)
   static const double sizeHeadline = 20.0;  // Section headers (Previously 28-20)
   static const double sizeBody = 16.0;      // Primary reading (Previously 18-16)
   static const double sizeLabel = 13.0;     // Secondary metadata (Standardized to 13pt)

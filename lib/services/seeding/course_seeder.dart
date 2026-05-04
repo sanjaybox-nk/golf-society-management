@@ -66,28 +66,28 @@ class CourseSeeder {
   }
 
   ({List<int> pars, List<int> si, List<int> yards}) _getCourseHoleData(String courseName) {
-    if (courseName == 'St Andrews') {
+    if (courseName.contains('St Andrews')) {
       return (
         pars: [4, 4, 4, 4, 5, 4, 4, 3, 4, 4, 3, 4, 4, 5, 4, 4, 4, 4],
         si: [10, 6, 16, 8, 2, 12, 4, 14, 18, 15, 7, 3, 11, 1, 9, 13, 5, 17],
         yards: [376, 413, 370, 419, 514, 374, 359, 166, 307, 318, 174, 314, 407, 533, 413, 351, 455, 357],
       );
     }
-    if (courseName == 'Pebble Beach') {
+    if (courseName.contains('Pebble Beach')) {
       return (
         pars: [4, 5, 4, 4, 3, 5, 3, 4, 4, 4, 4, 3, 4, 5, 4, 4, 3, 5],
         si: [8, 10, 12, 16, 14, 2, 18, 4, 8, 7, 9, 17, 1, 5, 11, 15, 13, 3],
         yards: [378, 511, 397, 331, 189, 506, 106, 427, 481, 444, 373, 201, 399, 573, 396, 401, 177, 543],
       );
     }
-    if (courseName == 'TPC Sawgrass') {
+    if (courseName.contains('TPC Sawgrass')) {
       return (
         pars: [4, 5, 3, 4, 4, 4, 4, 3, 5, 4, 5, 4, 3, 4, 4, 5, 3, 4],
         si: [11, 15, 17, 9, 3, 13, 1, 7, 5, 12, 8, 16, 18, 4, 6, 10, 14, 2],
         yards: [423, 532, 177, 384, 471, 393, 442, 237, 583, 424, 558, 369, 181, 481, 449, 523, 137, 462],
       );
     }
-    if (courseName == 'Augusta') {
+    if (courseName.contains('Augusta')) {
       return (
         pars: [4, 5, 4, 3, 4, 3, 4, 5, 4, 4, 4, 3, 5, 4, 5, 3, 4, 4],
         si: [9, 1, 13, 15, 5, 17, 11, 3, 7, 6, 8, 16, 4, 12, 2, 18, 14, 10],
@@ -143,14 +143,14 @@ class CourseSeeder {
         yards: [428, 491, 332, 439, 176, 427, 147, 311, 454, 475, 438, 433, 354, 504, 382, 201, 568, 431],
       );
     }
-    if (courseName == 'Dom Pedro Old Course') {
+    if (courseName.contains('Dom Pedro')) {
       return (
         pars: [4, 4, 4, 3, 5, 4, 4, 3, 4, 4, 4, 3, 4, 5, 4, 4, 5, 4],
         si: [7, 13, 3, 17, 1, 11, 5, 15, 9, 8, 14, 18, 4, 10, 2, 12, 16, 6],
         yards: [325, 403, 365, 178, 498, 382, 347, 153, 310, 345, 388, 165, 395, 485, 375, 335, 510, 378],
       );
     }
-    if (courseName == 'Victoria Golf Course') {
+    if (courseName.contains('Victoria')) {
       return (
         pars: [4, 4, 4, 3, 5, 4, 3, 4, 4, 4, 4, 5, 3, 4, 3, 4, 5, 4],
         si: [9, 5, 13, 17, 1, 3, 15, 11, 7, 10, 6, 2, 18, 4, 16, 12, 8, 14],

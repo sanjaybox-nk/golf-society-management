@@ -157,6 +157,52 @@ class AppColors {
     if (name.contains('purple')) return const Color(0xFF8E44AD); // Standard purple
     return textSecondary;
   }
+
+  // --- Drive Attribution Helpers (v4.1) ---
+
+  static Color getDriveColor(String? attribution) {
+    switch (attribution?.toUpperCase()) {
+      case 'CENTER':
+      case 'FAIRWAY':
+        return lime500;
+      case 'LEFT':
+      case 'RIGHT':
+      case 'ROUGH':
+        return amber500;
+      case 'BUNKER':
+        return const Color(0xFFF59E0B);
+      case 'HAZARD':
+      case 'WATER':
+        return coral500;
+      case 'OOB':
+        return const Color(0xFFEF4444);
+      default:
+        return dark200;
+    }
+  }
+
+  static IconData getDriveIcon(String? attribution) {
+    switch (attribution?.toUpperCase()) {
+      case 'CENTER':
+      case 'FAIRWAY':
+        return Icons.adjust_rounded;
+      case 'LEFT':
+        return Icons.west_rounded;
+      case 'RIGHT':
+        return Icons.east_rounded;
+      case 'ROUGH':
+        return Icons.grass_rounded;
+      case 'BUNKER':
+        return Icons.waves_rounded;
+      case 'HAZARD':
+      case 'WATER':
+        return Icons.tsunami_rounded;
+      case 'OOB':
+        return Icons.dangerous_rounded;
+      default:
+        return Icons.circle_outlined;
+    }
+  }
 }
 
 /// Theme Extension for Score Colors since ColorScheme doesn't cover all golf states

@@ -1,3 +1,12 @@
+### Phase 81: Scoring UX Refinement & Documentation (v4.7) (2026-05-04)
+- **Scoring UX Refinement**:
+    *   **Tee Indicator Optimization**: Replaced full tee pills with streamlined circular dots placed next to member names, resolving layout overflows and improving data density.
+    *   **Visibility Hardening**: Implemented a subtle `0.5px` border for white tee indicators to ensure clarity against light backgrounds.
+    *   **Lint & Code Quality**: Achieved a 100% clean analysis state by resolving `unnecessary_string_interpolations` and migrating deprecated `.withOpacity` to `.withValues`.
+- **Documentation & Walkthroughs**:
+    *   **Handshake Refinement**: Updated `marker_handshake_guide.md` and `walkthrough_verification_workflow.md` to reflect the modernized tee indicator standard.
+    *   **Roadmap Sync**: Marked scoring verification and UX modernization tasks as completed in `06_ROADMAP_TODO.md`.
+
 ### Phase 80: Control Tower & Grouping Hub Modernization (v4.0) (2026-03-26)
 - **Control Tower Modernization**:
     *   **Unified Grouping Hub**: Consolidated fragmented grouping controls (Strategy, Tee Seed, Interval) into a single, process-oriented `AdminGroupingHubCard`.

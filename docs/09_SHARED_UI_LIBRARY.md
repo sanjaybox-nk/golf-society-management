@@ -212,6 +212,7 @@ If a `BoxyArtIndicator` (or `BoxyArtStatusPill`) is provided with an `onTap` or 
 - **Background**: Gains a subtle 8% opacity background tint and 15% opacity border matching the dot color.
 - **Pencil Icon (✎)**: Automatically appends `Icons.edit_rounded` to indicate a state change is possible.
 - **Notification Icon (🔔)**: Can be overridden with a custom icon (e.g., `Icons.notifications_active_rounded`) for actions like "Nudging" members.
+- **Hero Scoring Input (v11.0)**: Specialized input pattern for high-speed digital scorecards. Includes a **32pt** heavy-weight digit inside a bordered container (`AppColors.lightBorder`) with society-specific `effectivePointsColor` branding.
 
 ---
 

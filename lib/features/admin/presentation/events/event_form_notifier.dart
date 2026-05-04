@@ -3,11 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:golf_society/domain/models/golf_event.dart';
 import 'package:golf_society/domain/models/competition.dart';
 import 'package:golf_society/domain/models/course.dart';
-import 'package:golf_society/domain/models/course_config.dart';
+import 'package:golf_society/domain/models/course_config.dart' as cfg;
 import 'package:golf_society/features/events/presentation/events_provider.dart';
 import 'package:golf_society/features/competitions/presentation/competitions_provider.dart';
 import 'package:golf_society/features/admin/presentation/events/event_form_state.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:golf_society/features/courses/presentation/courses_provider.dart';
 import 'package:collection/collection.dart';
 
 class EventFormNotifier extends AsyncNotifier<EventFormState> {
@@ -145,7 +146,7 @@ class EventFormNotifier extends AsyncNotifier<EventFormState> {
       selectedTeeName: tee?.name,
       holes: holePars.asMap().entries.map((entry) {
         final i = entry.key;
-        return CourseHole(
+        return cfg.CourseHole(
           hole: i + 1,
           par: holePars[i],
           si: tee?.holeSIs[i] ?? (i + 1),
@@ -305,7 +306,26 @@ class EventFormNotifier extends AsyncNotifier<EventFormState> {
     
     try {
       final repo = ref.read(eventsRepositoryProvider);
-      final event = _constructEvent(s);
+      
+      // Fetch full course data to ensure all tees are snapshotted
+      List<cfg.TeeConfig>? courseTees;
+      if (s.selectedCourseId != null) {
+        final courseRepo = ref.read(courseRepositoryProvider);
+        final course = await courseRepo.getCourse(s.selectedCourseId!);
+        if (course != null) {
+          courseTees = course.tees.map((t) => cfg.TeeConfig(
+            name: t.name,
+            color: t.color,
+            rating: t.rating,
+            slope: t.slope,
+            holePars: t.holePars,
+            holeSIs: t.holeSIs,
+            yardages: t.yardages,
+          )).toList();
+        }
+      }
+
+      final event = _constructEvent(s, courseTees);
       
       String eventId;
       if (s.eventId == null) {
@@ -327,15 +347,17 @@ class EventFormNotifier extends AsyncNotifier<EventFormState> {
   }
 
   GolfEvent constructPreviewEvent() => _constructEvent(state.value!);
-
-  GolfEvent _constructEvent(EventFormState s) {
+  
+  GolfEvent _constructEvent(EventFormState s, [List<cfg.TeeConfig>? overrideTees]) {
     final config = s.initialEvent?.courseConfig.copyWith(
       holes: s.holes,
+      tees: overrideTees ?? s.initialEvent?.courseConfig.tees ?? [],
       rating: s.rating,
       slope: s.slope,
       par: s.par,
-    ) ?? CourseConfig(
+    ) ?? cfg.CourseConfig(
       holes: s.holes,
+      tees: overrideTees ?? [],
       rating: s.rating,
       slope: s.slope,
       par: s.par,

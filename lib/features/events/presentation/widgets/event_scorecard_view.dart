@@ -51,7 +51,7 @@ class _EventScorecardViewState extends ConsumerState<EventScorecardView> {
     final currentUser = ref.watch(effectiveUserProvider);
     final markerSelection = ref.watch(markerSelectionProvider);
     final bool isSelfMarking = markerSelection.isSelfMarking;
-    final String? targetEntryId = markerSelection.targetEntryId;
+    final String? targetEntryId = markerSelection.targetEntryIds.firstOrNull;
     
     final String targetId = (isSelfMarking || targetEntryId == null) 
         ? currentUser.id
@@ -117,7 +117,7 @@ class _EventScorecardViewState extends ConsumerState<EventScorecardView> {
         if (widget.effectiveRules.isUnifiedTeamFormat)
            _buildTeamMembersRow(context, widget.event, widget.effectiveRules),
         Padding(
-          padding: EdgeInsets.only(bottom: Theme.of(context).extension<AppSpacingTokens>()?.labelToCard ?? AppSpacing.sm),
+          padding: EdgeInsets.only(bottom: AppSpacing.sm),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -142,24 +142,24 @@ class _EventScorecardViewState extends ConsumerState<EventScorecardView> {
                         Flexible(
                           child: Text(
                             isSelfMarking 
-                                ? 'Marking: Self' 
+                                ? 'MARKING: SELF' 
                                 : (targetEntryId != null 
-                                    ? 'Marking: ${toTitleCase(_getDisplayName(widget.event, targetEntryId).split(' ').first)}' 
-                                    : 'Marking: Select'),
-                            style: AppTypography.label.copyWith(
-                              color: Theme.of(context).colorScheme.onSurface,
-                              fontWeight: AppTypography.weightStrong,
-                              letterSpacing: AppTypography.lsLabel,
+                                    ? 'MARKING: ${toTitleCase(_getDisplayName(widget.event, targetEntryId).split(' ').first)}' 
+                                    : 'MARKING: SELECT'),
+                            style: AppTypography.micro.copyWith(
+                              color: AppColors.dark400,
+                              fontWeight: AppTypography.weightBlack,
+                              letterSpacing: 1.2,
                             ),
                             overflow: TextOverflow.ellipsis,
                             maxLines: 1,
                           ),
                         ),
                         const SizedBox(width: AppSpacing.xs),
-                        Icon(
+                        const Icon(
                           Icons.keyboard_arrow_down_rounded, 
-                          size: 16, 
-                          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+                          size: 14, 
+                          color: AppColors.dark300,
                         ),
                       ],
                     ),
@@ -171,7 +171,7 @@ class _EventScorecardViewState extends ConsumerState<EventScorecardView> {
                   if (displayScoring?.thruLabel != null) ...[
                     BoxyArtIndicator(
                       label: displayScoring!.thruLabel!,
-                      dotColor: displayScoring!.thruLabel == 'F' ? AppColors.dark900 : AppColors.lime500,
+                      dotColor: displayScoring.thruLabel == 'F' ? AppColors.dark900 : AppColors.lime500,
                     ),
                     const SizedBox(width: AppSpacing.md),
                   ],

@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:golf_society/domain/models/member.dart';
 import 'package:golf_society/features/members/presentation/members_provider.dart';
 import 'package:golf_society/services/persistence_service.dart';
+import 'package:golf_society/features/events/presentation/state/marker_selection_provider.dart';
 import 'package:collection/collection.dart';
 import 'dart:convert';
 
@@ -29,13 +30,10 @@ class ImpersonationNotifier extends Notifier<Member?> {
   @override
   Member? build() {
     final prefs = ref.watch(persistenceServiceProvider);
-    final saved = prefs.getString(_key);
-    if (saved != null) {
-      try {
-        return Member.fromJson(jsonDecode(saved));
-      } catch (e) {
-        return null;
-      }
+    final savedId = prefs.getString(_key);
+    if (savedId != null) {
+      final members = ref.watch(allMembersProvider).value ?? [];
+      return members.firstWhereOrNull((m) => m.id == savedId);
     }
     return null;
   }
@@ -44,15 +42,19 @@ class ImpersonationNotifier extends Notifier<Member?> {
     state = member;
     final prefs = ref.read(persistenceServiceProvider);
     if (member != null) {
-      prefs.setString(_key, jsonEncode(member.toJson()));
+      prefs.setString(_key, member.id);
     } else {
       prefs.remove(_key);
     }
+    // Hard-reset marker selection state when identity changes to prevent data bleed
+    ref.invalidate(markerSelectionProvider);
   }
   
   void clear() {
     state = null;
     ref.read(persistenceServiceProvider).remove(_key);
+    // Hard-reset marker selection state when identity changes to prevent data bleed
+    ref.invalidate(markerSelectionProvider);
   }
 }
 

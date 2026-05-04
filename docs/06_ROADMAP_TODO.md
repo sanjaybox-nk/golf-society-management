@@ -68,6 +68,13 @@ This document tracks the remaining work required to take **Golf Society Manageme
         - [x] **Story Breakdown**: Integration of all hole attributes (Penalties, Gimmes, Pick Ups) into the verification audit.
         - [x] **Automatic Invalidation**: Implemented logic to clear signatures on any score or tag update to ensure integrity.
         - [x] **Summary Grid**: Added live summary stats for total penalties/gimmes to the main scorecard view.
+- [x] **Scoring UX Modernization & Segmented Architecture (v10.5)** (Completed 2026-05-02):
+    - [x] **2-Tab Segmented Hub**: Implemented the "SCORING" vs "SCORECARD" split to decouple entry from audit.
+    - [x] **Horizontal Paging (Swipe)**: Developed a high-speed, 18-hole `PageView` scoring stream.
+    - [x] **Premium Stepper Interface**: Refined cards with large white score boxes and bold blue interaction points for mobile-first speed.
+    - [x] **Real-time Conflict Clues**: Integrated "Ghost Scores" (partner records) with **Coral** border highlighting for instant discrepancy detection.
+    - [x] **Live Meta-Stats**: Surfaced "Thru" and "Total Points" directly on the swipeable scoring cards.
+- [x] **Tee Indicator Refinement**: Replaced full tee pills with streamlined circular dots next to names, including a visibility border for white tees.
 - [x] **Live Scorecard UI Modernization (Design 4.x)** (Completed 2026-04-30):
     - [x] **State-aware Indicators**: Implemented "Thru X" vs. authoritative "F" (Finished) logic in `EventScoringProcessor`.
     - [x] **Performance Column Refactor**: Relocated status indicators to the right-hand stack in `BoxyArtMemberRow` for a cleaner visual hierarchy.
@@ -93,6 +100,12 @@ This document tracks the remaining work required to take **Golf Society Manageme
     - [x] **Manual Society Cuts**: Per-event handicap adjustments with automated group sync.
     - [x] **Stability Hardening**: Resolved null safety errors in scorecard state syncing.
     - [x] **Administrative Guest Control (v4.x)**: Implemented "Enable Guest Entry" event-level toggle to conditionally restrict guest participation in invitational or exclusive events.
+- [x] **Scoring Interface Refinement & Aesthetic Hardening (v11.0)** (Completed 2026-05-04):
+    - [x] **Reactive Token Integration**: Converted player scoring cards to `ConsumerStatefulWidget` for direct synchronization with `effectivePointsColor` branding.
+    - [x] **Information Alignment**: Standardized horizontal alignment between "HOLE" headers and scoring cards by eliminating redundant padding.
+    - [x] **Vertical Symmetrical Rhythm**: Implemented `CrossAxisAlignment.center` across all card interaction rows for a balanced visual experience.
+    - [x] **Hardened Input UI**: Added a subtle, light border to the score input box and increased the font size to **32pt** for hero-level legibility.
+    - [x] **Typographic Consolidation**: Reduced "MARKED BY" line height to `1.0` and weight to `w200` to minimize visual intrusion.
     - [x] **Stats Hub Modernization (Design 4.x)** (Completed 2026-04-25):
         - [x] Standardized all comparison heatmaps to 6-column wrap grids with Jakarta Sans w800.
         - [x] Tokenized hole numbers to `microSmall` (10pt) for consistent typographic hierarchy.
@@ -205,15 +218,6 @@ This document tracks the remaining work required to take **Golf Society Manageme
     - [x] **Visual Indicators**: Integrated player-specific tee color markers into the Leaderboard (`BoxyArtMemberRow`) and Grouping (`GroupingPlayerTile`) views.
     - [x] **Navigation Bug Fix**: Resolved the "Page Not Found" error for the Admin Scorecard Editor by defining the missing sub-route in `app_router.dart`.
     - [x] **Code Hardening**: Eliminated ambiguous imports and duplicate code in multiple scoring and grouping widgets.
-- [x] **Matchplay Engine Integration**: Independent knockouts and event-layered hybrid competitions fully integrated into the seeding engine and leaderboard UI.
-- [x] **Administrative Modularization & Architecture Hardening (v8.0)** (Completed 2026-04-29):
-    - [x] **Design System Verticalization**: Refactored atoms into specialized directories (Inputs, Badges, Layout).
-    - [x] **Domain Logic Separation**: Modularized Renewal Hub and Debt Ledger Hub with Riverpod 2.0 Notifiers.
-    - [x] **Admin Action Consolidation**: Created shared `AdminActionService` for nudges, audits, and exports.
-    - [x] **Reports Hub Refactor**: Simplified reports screen and introduced `ReportsController`.
-    - [x] **Quality Gate**: Achieving 100% `flutter analyze` pass across all administrative feature modules.
-    - [x] **Final Hardening & Zero-Warning Milestone (v10.0)** (Completed 2026-04-29):
-        - [x] Systematically eliminated 12+ remaining linting issues (dead null-aware expressions, underscores, spreads).
         - [x] Purged legacy `event_user_placeholders.dart` and standardized direct modular imports.
         - [x] Verified full architectural stability and vertical rhythm across all 30+ administrative hubs.
         - [x] Achieved a perfect, zero-warning state for production readiness.
@@ -264,3 +268,9 @@ Cuts follow a dual-accessibility pattern based on administrative context:
     - [ ] Google Play Internal Track.
 - [ ] **Public Launch**
     - [ ] Submit for Review.
+
+## 6. Completed Milestones (2026)
+- [x] **Matchplay Engine Integration** (v8.0)
+- [x] **Administrative Modularization & Architecture Hardening** (v8.0)
+- [x] **Event Form UI Hardening (iOS Simulator Stabilization)** (v8.1)
+- [ ] **Phase 10: Production Infrastructure** (Pending)

@@ -98,7 +98,7 @@ Hierarchical shell architecture:
 
 - **`GlobalAppShell`**: Wraps the 4 primary branches (Home, Events, Members, Admin). Bottom navigation bar is always visible unless the current route is a "Special Form" (creation/edit flow that should fill the screen).
 - **`EventAdminShell`**: Context-aware 5-tab hub for event administrators.
-- **`EventUserShell`**: Context-aware 5-tab hub for event members.
+- **`EventUserShell`**: Context-aware 5-tab hub for event members. Includes the **2-Tab Segmented Scoring Hub** (v10.5) featuring the "SCORING" stream and "SCORECARD" overview views.
 - **Branch Navigators**: Administrative sub-hubs (Renewal Hub, Debt Ledger, Grouping Hub) use branch navigators to maintain `GlobalAppShell` visibility. Pushing to the root navigator for these screens is a known anti-pattern to avoid.
 - **Administrative Modal Stabilization**: (v7.1) All global administrative modals (e.g. Edit Menus, Audience Managers) must use `BoxyArtBottomSheet.show(useRootNavigator: true)` or `showModalBottomSheet(useRootNavigator: true)`. This ensures they correctly overlay the `GlobalAppShell` and prevents clipping by the persistent bottom navigation bar.
 - **Stable Keys**: Nested shells use stable `ValueKey` assignments via `hubPage` to prevent widget destruction during tab switches.

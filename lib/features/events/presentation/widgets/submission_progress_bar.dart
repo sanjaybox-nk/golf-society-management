@@ -4,12 +4,14 @@ class SubmissionProgressBar extends StatelessWidget {
   final int total;
   final int submitted;
   final int inProgress;
+  final bool isFlat;
 
   const SubmissionProgressBar({
     super.key,
     required this.total,
     required this.submitted,
     required this.inProgress,
+    this.isFlat = false,
   });
 
   @override
@@ -18,15 +20,13 @@ class SubmissionProgressBar extends StatelessWidget {
 
     final double submittedPct = submitted / total;
     final double inProgressPct = inProgress / total;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
 
-    return BoxyArtCard(
-      padding: const EdgeInsets.all(AppSpacing.lg),
-      showShadow: true,
-      customShadows: Theme.of(context).extension<AppShadows>()?.inputSoft,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+    final content = Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -123,7 +123,25 @@ class SubmissionProgressBar extends StatelessWidget {
             ],
           ),
         ],
-      ),
+      );
+
+    if (isFlat) {
+      return Container(
+        padding: const EdgeInsets.all(AppSpacing.lg),
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surface.withValues(alpha: 0.3),
+          borderRadius: AppShapes.lg,
+          border: Border.all(color: theme.dividerColor.withValues(alpha: 0.1)),
+        ),
+        child: content,
+      );
+    }
+
+    return BoxyArtCard(
+      padding: const EdgeInsets.all(AppSpacing.lg),
+      showShadow: true,
+      customShadows: theme.extension<AppShadows>()?.inputSoft,
+      child: content,
     );
   }
 }

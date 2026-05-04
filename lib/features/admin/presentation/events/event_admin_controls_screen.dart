@@ -270,32 +270,6 @@ class _EventAdminControlsScreenState extends ConsumerState<EventAdminControlsScr
                     ),
                   ),
 
-                  // 6. Debug & Seeding (Bottom)
-                  const BoxyArtSectionTitle(
-                    title: 'Testing & Seeding',
-                    isPeeking: true,
-                  ),
-                  BoxyArtCard(
-                    padding: EdgeInsets.zero,
-                    child: BoxyArtNavTile(
-                      title: 'Seed Verification Scenario',
-                      subtitle: 'Generate 70% sub / 20% complete-draft / 10% in-play',
-                      icon: Icons.biotech_rounded,
-                      iconColor: AppColors.teamA,
-                      onTap: () async {
-                        final messenger = ScaffoldMessenger.of(context);
-                        messenger.showSnackBar(
-                          const SnackBar(content: Text('Seeding verification scenario...')),
-                        );
-                        await ref.read(seedingServiceProvider).seedVerificationScenario();
-                        if (!mounted) return;
-                        messenger.showSnackBar(
-                          const SnackBar(content: Text('Verification scenario seeded! Refreshing...')),
-                        );
-                        if (context.mounted) context.goNamed('admin-events');
-                      },
-                    ),
-                  ),
                   const SizedBox(height: AppSpacing.hero), // Bottom padding for shell
                 ]),
               ),

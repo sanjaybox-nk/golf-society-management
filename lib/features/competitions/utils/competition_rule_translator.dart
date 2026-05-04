@@ -34,6 +34,9 @@ class CompetitionRuleTranslator {
       case CompetitionFormat.scramble:
         parts.add('A team scramble format where the best shot is selected each time.');
         break;
+      case CompetitionFormat.matchPlay:
+        parts.add('A $modeStr Match Play competition where scores are compared hole-by-hole.');
+        break;
     }
 
     // 1.5. Match Play Overlay

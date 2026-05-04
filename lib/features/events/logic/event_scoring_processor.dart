@@ -36,7 +36,15 @@ class EventScoringProcessor {
 
     // 1. Process Individual Scores
     final List<ProcessedPlayerScore> individualScores = [];
+    final currentUser = currentUserId != null ? members.firstWhereOrNull((m) => m.id == currentUserId) : null;
     final memberMap = {for (var m in members) m.id: m};
+    
+    // Ensure current user is in the map if they have a special profile (e.g. Viewing As)
+    if (currentUserId != null && !memberMap.containsKey(currentUserId)) {
+       // We don't have the full profile in 'members', but we might have it from the effectiveUserProvider
+       // Since this is a static method, we rely on the caller passing the right 'members' list.
+       // However, to be safe, we can check if any of our registrations/scorecards match.
+    }
 
     final allPlayerIds = {
       ...event.registrations.map((r) => r.memberId),
@@ -113,9 +121,17 @@ class EventScoringProcessor {
       // Note: liveCard and seededResult are already resolved above for filtering
       
       List<int?> holeScores = List.generate(18, (_) => null);
-      if (liveCard != null && liveCard.holeScores.any((s) => s != null)) {
-         holeScores = List.from(liveCard.holeScores);
-      } else if (seededResult != null && seededResult['holeScores'] != null) {
+      if (liveCard != null) {
+         final pScores = liveCard.holeScores;
+         final vScores = liveCard.playerVerifierScores;
+         for (int i = 0; i < 18; i++) {
+            // Use player score if available, otherwise marker's verifier score
+            holeScores[i] = pScores.elementAtOrNull(i) ?? vScores.elementAtOrNull(i);
+         }
+      } 
+      
+      // If still empty, check seeded results
+      if (holeScores.every((s) => s == null) && seededResult != null && seededResult['holeScores'] != null) {
          holeScores = (seededResult['holeScores'] as List).cast<int?>();
       }
 
@@ -152,6 +168,11 @@ class EventScoringProcessor {
           ? (reg?.guestName ?? seededResult?['playerName'] as String? ?? 'Guest')
           : (reg?.memberName ?? memberMap[basePid]?.displayName ?? seededResult?['playerName'] as String? ?? (effectivePid.length > 5 ? effectivePid : 'Member'));
 
+      int lastHoleIndex = 0;
+      for (int i = 0; i < 18; i++) {
+        if (holeScores[i] != null) lastHoleIndex = i + 1;
+      }
+
       individualScores.add(ProcessedPlayerScore(
         playerId: effectivePid,
         playerName: resolvedName,
@@ -165,12 +186,52 @@ class EventScoringProcessor {
         holeScores: holeScores,
         result: result,
         tieBreakLabel: calculateTieBreakLabel(result, null),
-        thruLabel: (result.holesPlayed > 0)
-            ? (result.holesPlayed < 18 ? 'Thru ${result.holesPlayed}' : 'F')
-            : null,
+        thruLabel: null, // Calculated in next pass
         scoringStatus: _resolveScoringStatus(liveCard),
+        maxHolePlayed: lastHoleIndex,
       ));
     }
+
+    // 1.1 [NEW] Calculate Group-wide Thru Sync
+    final Map<int, int> groupMaxThru = {};
+    final groupsData = event.grouping['groups'] as List?;
+    final List<dynamic> rawGroups = groupsData ?? [];
+
+    for (int gIdx = 0; gIdx < rawGroups.length; gIdx++) {
+      final gPlayers = (rawGroups[gIdx]['players'] as List);
+      int maxThru = 0;
+      for (var p in gPlayers) {
+        final pid = p['registrationMemberId'] as String;
+        final isG = p['isGuest'] as bool? ?? false;
+        final effectiveId = isG ? '${pid}_guest' : pid;
+        final score = individualScores.firstWhereOrNull((s) => s.playerId == effectiveId);
+        if (score != null && score.maxHolePlayed > maxThru) {
+          maxThru = score.maxHolePlayed;
+        }
+      }
+      groupMaxThru[gIdx] = maxThru;
+    }
+
+    // 1.2 [NEW] Apply Synced Thru Labels
+    final List<ProcessedPlayerScore> syncedIndividualScores = individualScores.map((s) {
+      // Find group index for this player
+      int? myGroupIdx;
+      for (int i = 0; i < rawGroups.length; i++) {
+        final gPlayers = (rawGroups[i]['players'] as List);
+        if (gPlayers.any((p) => p['registrationMemberId'] == s.playerId || '${p['registrationMemberId']}_guest' == s.playerId)) {
+          myGroupIdx = i;
+          break;
+        }
+      }
+
+      final thruCount = myGroupIdx != null ? (groupMaxThru[myGroupIdx] ?? 0) : s.maxHolePlayed;
+
+      return s.copyWith(
+        thruLabel: (thruCount > 0)
+            ? (thruCount < 18 ? 'Thru $thruCount' : 'F')
+            : null,
+      );
+    }).toList();
 
     // 1.5 [NEW] Refine tie-break labels for ALL individual scores (v4.x consistency)
     final Map<int, List<List<int>>> scoreToMetricsMap = {};
@@ -181,7 +242,7 @@ class EventScoringProcessor {
       }
     }
 
-    final List<ProcessedPlayerScore> refinedIndividualScores = individualScores.map((p) {
+    final List<ProcessedPlayerScore> refinedIndividualScores = syncedIndividualScores.map((p) {
       return p.copyWith(
         tieBreakLabel: calculateTieBreakLabel(p.result, scoreToMetricsMap[p.result.score]),
       );
@@ -208,7 +269,6 @@ class EventScoringProcessor {
       }
 
       // 2b. Virtual Match Detection (for groups without explicit match definitions)
-      final groupsData = event.grouping['groups'] as List?;
       if (groupsData != null) {
         for (int groupIdx = 0; groupIdx < groupsData.length; groupIdx++) {
            final group = TeeGroup.fromJson(groupsData[groupIdx]);
@@ -374,7 +434,6 @@ class EventScoringProcessor {
         ));
       }
     } else {
-      final groupsData = event.grouping['groups'] as List?;
       final List<TeeGroup> groups = groupsData != null 
           ? groupsData.map((g) => TeeGroup.fromJson(g)).toList()
           : [];
@@ -511,7 +570,6 @@ class EventScoringProcessor {
     }
 
     // 3. Process Group Rankings (Podium)
-    final groupsData = event.grouping['groups'] as List?;
     final List<TeeGroup> groups = groupsData != null 
         ? groupsData.map((g) => TeeGroup.fromJson(g)).toList()
         : [];
@@ -684,4 +742,34 @@ class EventScoringProcessor {
     if (result.holePoints.length < end) return 0;
     return result.holePoints.sublist(start, end).whereType<int>().fold<int>(0, (sum, p) => sum + p);
   }
+
+  /// [NEW] Final system-level submission trigger.
+  /// Transitions a scorecard to [ScorecardStatus.finalScore] if both parties have verified
+  /// and there are no score discrepancies between the player's recorded scores 
+  /// and the marker's recorded scores for that player.
+  static Scorecard validateAndFinalizeHandshake({
+    required Scorecard targetScorecard,
+    required Scorecard? verifierScorecard,
+  }) {
+    if (verifierScorecard == null) return targetScorecard;
+
+    // 1. Conflict detection: Compare player's holeScores with marker's playerVerifierScores
+    final bool isConflictFree = const ListEquality().equals(
+      targetScorecard.holeScores, 
+      verifierScorecard.playerVerifierScores
+    );
+
+    if (!isConflictFree) return targetScorecard;
+
+    // 2. Transition to finalScore if both parties have signed off
+    if (targetScorecard.verifiedByPlayer && targetScorecard.verifiedByMarker) {
+      return targetScorecard.copyWith(
+        status: ScorecardStatus.finalScore,
+        updatedAt: DateTime.now(),
+      );
+    }
+    
+    return targetScorecard;
+  }
 }
+

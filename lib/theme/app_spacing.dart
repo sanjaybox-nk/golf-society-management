@@ -3,7 +3,7 @@ class AppSpacing {
   // Radical Spacing Consolidation (v4.0) - 4 Tier Scale
   static const double atomic = 8.0;   // Internal element gaps
   static const double standard = 16.0; // Card / Page padding
-  static const double large = 24.0;    // Enhanced Card Padding
+  static const double large = 18.0;    // Enhanced Card Padding (Updated to 18pt)
   static const double section = 32.0;  // Section gaps
   static const double hero = 64.0;     // Large structural breaks
 

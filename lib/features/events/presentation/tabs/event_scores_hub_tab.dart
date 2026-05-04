@@ -15,11 +15,12 @@ import '../state/marker_selection_provider.dart';
 import '../widgets/event_scorecard_view.dart';
 import '../widgets/hole_by_hole_scoring_widget.dart';
 import '../widgets/marker_selection_sheet.dart';
-import '../widgets/live_hub_toggle.dart';
+import '../widgets/scoring/scoring_verification_view.dart';
 import '../../../matchplay/presentation/widgets/match_play_bracket_hub.dart';
+import '../../../matchplay/domain/golf_event_match_extensions.dart';
 import 'event_tabs_state.dart';
 import '../../../members/presentation/profile_provider.dart';
-import '../../../matchplay/domain/golf_event_match_extensions.dart';
+import '../widgets/vertical_hole_scoring_list.dart';
 
 class EventScoresUserTab extends ConsumerStatefulWidget {
   final String eventId;
@@ -58,7 +59,7 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
             final currentUser = ref.watch(effectiveUserProvider);
             final markerSelection = ref.watch(markerSelectionProvider);
             final bool isSelfMarking = markerSelection.isSelfMarking;
-            final String? targetEntryId = markerSelection.targetEntryId;
+            final String? targetEntryId = markerSelection.targetEntryIds.firstOrNull;
 
             // [NEW] Default to SCORE (verifier) tab when self-marking
             if (isSelfMarking && _selectedMarkerTab == MarkerTab.player) {
@@ -96,7 +97,7 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
             final bool isScoringActive = !isCompleted && ((effectiveStatus == EventStatus.inPlay) || (isSameDayOrPast && !isLocked));
             final bool isCardFull = userScorecard?.holeScores.length == 18 && userScorecard!.holeScores.every((s) => s != null && s > 0);
 
-            if (isLocked) {
+            if (isLocked || (userScorecard?.status == ScorecardStatus.finalScore)) {
               headerBadgeText = "Final Score";
               headerBadgeColor = AppColors.lime600;
             } else if (isCompleted) {
@@ -106,16 +107,32 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
               headerBadgeText = "Not Active";
               headerBadgeColor = AppColors.dark300;
             } else if (userScorecard != null) {
-              if (userScorecard.status == ScorecardStatus.draft && isCardFull) {
-                headerBadgeText = "Submit";
+              // Check for conflicts
+              final officialMarkerCard = allScorecards.firstWhereOrNull((s) => s.entryId == effectiveEntryId && s.markerId != effectiveEntryId);
+              bool hasConflict = false;
+              if (officialMarkerCard != null) {
+                for (int i = 0; i < 18; i++) {
+                  final pS = userScorecard.holeScores.elementAtOrNull(i);
+                  final mS = officialMarkerCard.holeScores.elementAtOrNull(i);
+                  if (pS != null && mS != null && pS != mS) {
+                    hasConflict = true;
+                    break;
+                  }
+                }
+              }
+
+              if (hasConflict) {
+                headerBadgeText = "Conflict";
+                headerBadgeColor = AppColors.coral500;
+              } else if (userScorecard.status == ScorecardStatus.draft && isCardFull) {
+                headerBadgeText = "Verify Score";
                 headerBadgeColor = AppColors.amber500; 
-                headerOnBadgeTap = () => _submitScorecard(userScorecard.id);
+                headerOnBadgeTap = () => _showVerificationSheet(event, userScorecard);
               } else {
                 if (userScorecard.status == ScorecardStatus.submitted) {
                   headerBadgeText = "Submitted";
                   headerOnBadgeTap = () => _confirmUnsubmit(userScorecard.id);
-                } else if (userScorecard.status == ScorecardStatus.reviewed || 
-                           userScorecard.status == ScorecardStatus.finalScore) {
+                } else if (userScorecard.status == ScorecardStatus.reviewed) {
                   headerBadgeText = "Confirmed";
                 } else {
                   headerBadgeText = "Scoring";
@@ -128,6 +145,7 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
             }
 
             final isStaff = currentUser.role != MemberRole.member;
+            final selectedScoringTab = ref.watch(eventScoringTabProvider);
 
             return HeadlessScaffold(
               title: event.title,
@@ -137,6 +155,12 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
               onBack: () => context.go('/events'),
 
               actions: [
+                if (event.matches.isNotEmpty)
+                  BoxyArtGlassIconButton(
+                    icon: Icons.account_tree_rounded,
+                    tooltip: 'Match Bracket',
+                    onPressed: () => _showMatchBracket(event),
+                  ),
                 if (widget.isAdminMode && isStaff)
                   BoxyArtGlassIconButton(
                     icon: Icons.edit_rounded,
@@ -161,24 +185,44 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
                   ),
                 ),
               ],
-              pinnedBottom: _buildPinnedScoring(event, comp, scoringData, effectiveRules),
+              // [NEW] Pin keypad ONLY on the SCORECARD tab (Index 1)
+              pinnedBottom: selectedScoringTab == 1 
+                  ? _buildPinnedScoring(event, comp, scoringData, effectiveRules)
+                  : null,
               pinnedBottomPadding: AppSpacing.lg,
               slivers: [
-                if (event.matches.isNotEmpty)
-                  SliverToBoxAdapter(
-                    child: Transform.translate(
-                      offset: const Offset(0, -16.0),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
-                        child: LiveHubToggle(event: event),
+                // 1. Sticky Tab Switcher (Design 4.x Tokened Style)
+                SliverPersistentHeader(
+                  pinned: true,
+                  delegate: _StickyTabDelegate(
+                    child: Container(
+                      color: Theme.of(context).scaffoldBackgroundColor,
+                      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+                      child: ModernUnderlinedFilterBar<int>(
+                        tabs: const [
+                          ModernFilterTab(label: 'Scoring', value: 0, icon: Icons.edit_note_rounded),
+                          ModernFilterTab(label: 'Scorecard', value: 1, icon: Icons.grid_on_rounded),
+                        ],
+                        selectedValue: selectedScoringTab,
+                        onTabSelected: (val) => ref.read(eventScoringTabProvider.notifier).set(val),
+                        isExpanded: true,
                       ),
                     ),
                   ),
-                SliverToBoxAdapter(child: SizedBox(height: spacing?.tabToContent ?? AppSpacing.tabToContent)),
+                ),
+
+                // 2. Main Content
                 SliverPadding(
-                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.lg),
                   sliver: SliverToBoxAdapter(
-                     child: _buildTabContent(event, comp, effectiveRules, scoringData),
+                     child: selectedScoringTab == 0
+                        ? VerticalHoleScoringList(
+                            key: ValueKey('scoring_${event.id}_${currentUser.id}'),
+                            event: event, 
+                            scoringData: scoringData,
+                            onMarkerSelectionTap: () => MarkerSelectionSheet.show(context: context, event: event),
+                          )
+                        : _buildScoringContent(event, comp, effectiveRules, scoringData),
                   ),
                 ),
               ],
@@ -238,13 +282,12 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
   }
   
   Widget? _buildPinnedScoring(GolfEvent event, Competition? comp, ProcessedEventData? scoringData, CompetitionRules effectiveRules) {
-    final activeIndex = ref.watch(eventMyCardTabProvider);
-    if (activeIndex != 0) return null;
+    // [UNIFIED] Pin keypad for the main scoring view
     
     final currentUser = ref.watch(effectiveUserProvider);
     final markerSelection = ref.watch(markerSelectionProvider);
     final bool isSelfMarking = markerSelection.isSelfMarking;
-    final String? targetEntryId = markerSelection.targetEntryId;
+    final String? targetEntryId = markerSelection.targetEntryIds.firstOrNull;
     final String effectiveEntryId = isSelfMarking ? currentUser.id : (targetEntryId ?? currentUser.id);
     
     final allScorecards = ref.watch(scorecardsListProvider(event.id)).asData?.value ?? [];
@@ -259,7 +302,7 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
     final bool shouldShowCard = isSameDayOrPast || isCompleted || isLocked;
     
     if (!shouldShowCard) return null;
-    
+
     return HoleByHoleScoringWidget(
       event: event,
       targetScorecard: userScorecard,
@@ -277,38 +320,56 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
     );
   }
 
-  Widget _buildTabContent(GolfEvent event, Competition? comp, CompetitionRules effectiveRules, ProcessedEventData? scoringData) {
-    final activeIndex = ref.watch(eventMyCardTabProvider);
-    
-    switch (activeIndex) {
-      case 0: { 
-        return EventScorecardView(
-          event: event,
-          comp: comp,
-          scoringData: scoringData,
-          effectiveRules: effectiveRules,
-          optimisticScores: _optimisticScores,
-          optimisticIsVerifier: _optimisticIsVerifier,
-          selectedMarkerTab: _selectedMarkerTab,
-          onMarkerSelectionTap: () => MarkerSelectionSheet.show(context: context, event: event),
-          onSyncFromPartner: (card) => _copyScoresFromPartner(card),
-        );
-      }
-      case 4: 
-      case 5: { 
-        return MatchPlayBracketHub(eventId: widget.eventId);
-      }
-      default: {
-         return EventScorecardView(
-          event: event,
-          comp: comp,
-          scoringData: scoringData,
-          effectiveRules: effectiveRules,
-          selectedMarkerTab: _selectedMarkerTab,
-          onMarkerSelectionTap: () => MarkerSelectionSheet.show(context: context, event: event),
-        );
-      }
-    }
+  Widget _buildScoringContent(GolfEvent event, Competition? comp, CompetitionRules effectiveRules, ProcessedEventData? scoringData) {
+    return EventScorecardView(
+      event: event,
+      comp: comp,
+      scoringData: scoringData,
+      effectiveRules: effectiveRules,
+      optimisticScores: _optimisticScores,
+      optimisticIsVerifier: _optimisticIsVerifier,
+      selectedMarkerTab: _selectedMarkerTab,
+      onMarkerSelectionTap: () => MarkerSelectionSheet.show(context: context, event: event),
+      onSyncFromPartner: (card) => _copyScoresFromPartner(card),
+    );
+  }
+
+  void _showVerificationSheet(GolfEvent event, Scorecard userScorecard) {
+    final currentUser = ref.read(effectiveUserProvider);
+    final allScorecards = ref.read(scorecardsListProvider(event.id)).asData?.value ?? [];
+    final myCard = allScorecards.firstWhereOrNull((s) => s.entryId == currentUser.id);
+
+    BoxyArtBottomSheet.show(
+      context: context,
+      title: 'Verify Scorecard',
+      child: ScoringVerificationView(
+        event: event,
+        targetEntryId: userScorecard.entryId,
+        activeScorecard: userScorecard,
+        verifierScorecard: myCard,
+        isAdmin: widget.isAdminMode,
+        onSignOff: (isPlayer) async {
+          // Handled via state update in HoleByHoleScoringWidget or here
+          // For now, we reuse the verification logic from the view itself
+          // which updates the scorecard in the repository.
+          // After sign-off, we check if we should close the sheet.
+          final updatedAllCards = ref.read(scorecardsListProvider(event.id)).asData?.value ?? [];
+          final freshUserCard = updatedAllCards.firstWhereOrNull((s) => s.id == userScorecard.id);
+          
+          if (freshUserCard?.status == ScorecardStatus.submitted) {
+            Navigator.of(context).pop();
+          }
+        },
+      ),
+    );
+  }
+
+  void _showMatchBracket(GolfEvent event) {
+    BoxyArtBottomSheet.show(
+      context: context,
+      title: 'Match Bracket',
+      child: MatchPlayBracketHub(eventId: event.id),
+    );
   }
 
   // --- Core Persistence Logic ---
@@ -428,8 +489,25 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
     switch (status) {
       case ScorecardStatus.submitted: return AppColors.teamA;
       case ScorecardStatus.reviewed: return AppColors.lime600;
-      case ScorecardStatus.finalScore: return AppColors.lime700;
+      case ScorecardStatus.finalScore: return AppColors.lime500;
       default: return AppColors.amber500;
     }
   }
+}
+class _StickyTabDelegate extends SliverPersistentHeaderDelegate {
+  final Widget child;
+  _StickyTabDelegate({required this.child});
+
+  @override
+  double get minExtent => 48.0;
+  @override
+  double get maxExtent => 48.0;
+
+  @override
+  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
+    return child;
+  }
+
+  @override
+  bool shouldRebuild(_StickyTabDelegate oldDelegate) => true;
 }

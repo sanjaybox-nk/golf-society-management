@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:golf_society/utils/json_converters.dart';
+import 'course_config.dart';
 
 part 'competition.freezed.dart';
 part 'competition.g.dart';
@@ -9,7 +10,7 @@ enum CompetitionType { game, event }
 
 enum CompetitionStatus { draft, open, scoring, review, published, closed }
 
-enum CompetitionFormat { stroke, stableford, maxScore, scramble }
+enum CompetitionFormat { stroke, stableford, maxScore, scramble, matchPlay }
 
 enum CompetitionSubtype { 
   none, 
@@ -105,7 +106,9 @@ abstract class Competition with _$Competition {
     @Default(false) bool isDirty,
     int? computeVersion,
     @OptionalTimestampConverter() DateTime? lastComputedAt,
-    String? lastComputedBy,
+    String? selectedTeeName,
+    String? selectedFemaleTeeName,
+    @Default(CourseConfig()) CourseConfig courseConfig,
   }) = _Competition;
 
   factory Competition.fromJson(Map<String, dynamic> json) =>
@@ -133,6 +136,7 @@ extension CompetitionRulesX on CompetitionRules {
       CompetitionFormat.stroke     => 'Stroke Play',
       CompetitionFormat.maxScore   => 'Max Score',
       CompetitionFormat.scramble   => 'Scramble',
+      CompetitionFormat.matchPlay  => 'Match Play',
     };
 
     if ((hasMatchPlayOverlay == true)) {
@@ -204,6 +208,7 @@ extension CompetitionRulesX on CompetitionRules {
       CompetitionFormat.stroke     => Icons.golf_course_rounded,
       CompetitionFormat.maxScore   => Icons.vertical_align_top_rounded,
       CompetitionFormat.scramble   => Icons.group_work_rounded,
+      CompetitionFormat.matchPlay  => Icons.compare_arrows_rounded,
     };
   }
 

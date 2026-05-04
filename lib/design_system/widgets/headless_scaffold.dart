@@ -25,6 +25,7 @@ class HeadlessScaffold extends StatelessWidget {
   final bool showAdminShortcut;
   final Widget? pinnedBottom;
   final double? pinnedBottomPadding;
+  final double? headerBottomPadding;
   final bool isModal;
   final Widget? floatingActionButton;
 
@@ -49,6 +50,7 @@ class HeadlessScaffold extends StatelessWidget {
     this.showAdminShortcut = true,
     this.pinnedBottom,
     this.pinnedBottomPadding,
+    this.headerBottomPadding,
     this.isModal = false,
     this.floatingActionButton,
   });
@@ -86,13 +88,13 @@ class HeadlessScaffold extends StatelessWidget {
               // Standardized 4.x Headless Header (Absolute Rhythm parity: 120px from Physical Top)
               SliverToBoxAdapter(
                 child: Padding(
-                  padding: const EdgeInsets.only(
+                  padding: EdgeInsets.only(
                     // Absolute Golden Rhythm: Exactly 124px from Physical Top (Grid-snapped + 4px nudge)
                     // Absolute Golden Rhythm: Restored to 124px to tighten connection to actions
                     top: 124.0, 
                     left: AppSpacing.xl,
                     right: AppSpacing.xl,
-                    bottom: AppSpacing.large,
+                    bottom: headerBottomPadding ?? AppSpacing.large,
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,

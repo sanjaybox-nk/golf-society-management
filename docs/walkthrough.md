@@ -1,26 +1,23 @@
-# Walkthrough: Final Administrative Suite Hygiene & Hardening
+# Walkthrough: Scoring UI Stabilization & Rendering Hardening
 
-Objective: Achieving a 100% zero-warning, production-ready codebase for the administrative event suite.
+We have successfully stabilized the **Scoring Verification** interface, resolving a critical rendering crash that occurred during tab transitions.
 
-## 1. Analysis Warning Resolution
-We systematically addressed the final batch of 12 linting issues identified by `flutter analyze`.
+## 1. Resolution of Rendering Crashes
+The `!semantics.parentDataDirty` assertion failure was caused by a conditional widget tree mutation within a `Sliver` host. We resolved this by:
+- **Persistent Layout Anchoring**: Refactored `HoleByHoleScoringWidget` to ensure an unconditional `BoxyArtCard` wrapper, providing a stable render object identity for the Flutter framework.
+- **State Identity Management**: Applied a `ValueKey` using the `selectedTab` to the internal content tree, ensuring clean state separation and preventing identity leakage between the **SCORE** and **VERIFY** views.
 
-### Key Fixes:
-- **Dead Null-Aware Expressions**: Removed redundant defaults in `BoxyArtDateBadge` where `themeController` fields were already non-nullable.
-- **Null-Aware Elements**: Refactored `if (x case var p?) p` and `if (x != null) x!` patterns to `x ?? const SizedBox.shrink()` in `event_cards.dart` and `section_title.dart` to satisfy the `use_null_aware_elements` lint.
-- **Unnecessary Underscores**: Standardized all `errorBuilder` and `separatorBuilder` signatures to use `(context, error, stackTrace)` or `(context, index)` instead of multiple underscores.
-- **Spread/ToList Spreads**: Optimized `distribution_list_modal.dart` by removing redundant `toList()` calls inside collection spreads.
-- **Child Sorting**: Reordered properties in `BoxyArtBottomSheet.show` to ensure `child` is always the last parameter, adhering to the `sort_child_properties_last` rule.
+- **Business Logic**: `EventScoringProcessor.validateAndFinalizeHandshake` correctly promotes scorecards to `ScorecardStatus.finalScore` only when both parties have signed off and no discrepancies exist.
 
-## 2. Architectural Modularization
-We eliminated the last remaining "placeholder" file to complete the transition to a fully modular architecture.
+## 3. Hub-Level Feedback Improvements
+Enhanced the **Event Scores Hub** visibility:
+- **Prioritized Finalization**: The status badge now correctly prioritizes the `Final Score` state, ensuring consistent visual feedback once a card is locked.
+- **Proactive Conflict Detection**: Introduced a **"Conflict"** badge state in the hub header. This provides immediate visual feedback to the player if their scores diverge from the marker's record, allowing them to resolve issues before entering the sign-off workflow.
 
-- **Purged Legacy File**: Deleted `lib/features/events/presentation/tabs/event_user_placeholders.dart`.
-- **Import Standardization**: Updated `EventFieldAdminScreen` and `EventAdminScoresScreen` to import direct state and logic files (`event_tabs_state.dart`, `event_shared_logic.dart`).
+## 3. Documentation Updates
+Updated the following files to reflect the structural hardening and verification workflow:
+- [walkthrough_verification_workflow.md](file:///Users/sanjaypatel/Documents/Projects/Golf Society Management/docs/walkthrough_verification_workflow.md)
+- [12_EVENT_FINALIZATION_WORKFLOW.md](file:///Users/sanjaypatel/Documents/Projects/Golf Society Management/docs/12_EVENT_FINALIZATION_WORKFLOW.md)
 
-## 3. Verification & Quality Gate
-- **Static Analysis**: Verified with `flutter analyze`. **Result: No issues found! (Exit code 0)**.
-- **Documentation**: Synchronized `06_ROADMAP_TODO.md` and `04_ARCHITECTURE.md` with the latest modular standards.
-
----
-**Status: Production Ready (Zero Warnings)**
+## Status: STABLE & HARDENED
+The scoring module is now optimized for high-performance use without rendering jitter or layout-based exceptions.

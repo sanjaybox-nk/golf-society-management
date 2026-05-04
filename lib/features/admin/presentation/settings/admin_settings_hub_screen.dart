@@ -140,10 +140,10 @@ class AdminSettingsHubScreen extends ConsumerWidget {
                     ),
                     const BoxyArtDivider(),
                     BoxyArtNavTile(
-                      icon: Icons.verified_user_rounded,
-                      title: 'Verify Medal Play',
-                      subtitle: 'Seed Medal Scenario (Absolute Score Test)',
-                      onTap: () => _showMedalSeedConfirmation(context, ref),
+                      icon: Icons.handshake_outlined,
+                      title: 'Handshake & Rhythm UAT',
+                      subtitle: 'Consolidated: Medal + Stableford + Conflicts',
+                      onTap: () => _showUATSeedConfirmation(context, ref),
                     ),
                     const BoxyArtDivider(),
                     BoxyArtNavTile(
@@ -357,23 +357,24 @@ class AdminSettingsHubScreen extends ConsumerWidget {
     }
   }
 
-  void _showMedalSeedConfirmation(BuildContext context, WidgetRef ref) async {
+
+  void _showUATSeedConfirmation(BuildContext context, WidgetRef ref) async {
     final confirm = await showBoxyArtDialog<bool>(
       context: context,
-      title: 'Verify Medal Play?',
-      message: 'This will seed a special Medal Play event with mixed scoring states to verify the Phase 3 visual standardization. Continue?',
-      confirmText: 'VERIFY',
+      title: 'Initialize UAT?',
+      message: 'This will perform a safe wipe and seed two distinct events (Medal & Stableford) with specific conflict states for full Handshake and Vertical Rhythm UAT. Continue?',
+      confirmText: 'INITIALIZE',
       onConfirm: () => Navigator.of(context, rootNavigator: true).pop(true),
       onCancel: () => Navigator.of(context, rootNavigator: true).pop(false),
     );
 
     if (confirm == true && context.mounted) {
       final messenger = ScaffoldMessenger.of(context);
-      messenger.showSnackBar(const SnackBar(content: Text('Seeding Medal Play Verification...')));
+      messenger.showSnackBar(const SnackBar(content: Text('Initializing Master UAT Scenario...')));
       
       try {
-        await ref.read(seedingServiceProvider).seedMedalVerificationScenario();
-        messenger.showSnackBar(const SnackBar(content: Text('✅ Medal Verification Scenario Initialized')));
+        await ref.read(seedingServiceProvider).seedHandshakeAndRhythmUAT();
+        messenger.showSnackBar(const SnackBar(content: Text('✅ UAT Environment Ready')));
       } catch (e) {
         messenger.showSnackBar(SnackBar(content: Text('Error: $e')));
       }

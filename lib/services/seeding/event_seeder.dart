@@ -73,6 +73,10 @@ class EventSeeder {
     final DateTime golfRegTime = date.copyWith(hour: regHour, minute: regMinutes);
     final DateTime golfTeeOff = golfRegTime.add(const Duration(minutes: 90));
 
+    if (course != null) {
+      print('SEEDER_DIAG: Course ${course.name} has ${course.tees.length} tees');
+    }
+
     var event = GolfEvent(
       id: 'demo_e_${random.nextInt(100000)}',
       seasonId: seasonId,
@@ -94,6 +98,7 @@ class EventSeeder {
       courseConfig: (isSocial || course == null) ? const cfg.CourseConfig() : cfg.CourseConfig(
         tees: course.tees.map((t) => cfg.TeeConfig(
           name: t.name,
+          color: t.color, // [FIX] Added missing color mapping
           rating: t.rating,
           slope: t.slope,
           holePars: t.holePars,
@@ -304,67 +309,83 @@ class EventSeeder {
       final cardStatus = status == EventStatus.completed ? ScorecardStatus.finalScore : ScorecardStatus.submitted;
       final List<Scorecard> scorecards = [];
 
+      final Map<String, String> markersMap = {};
+
       for (var group in groups) {
-        for (var p in group.players) {
-            final memberId = p.registrationMemberId;
-            final entryId = p.isGuest ? '${memberId}_guest' : memberId;
-            final member = members.firstWhereOrNull((m) => m.id == memberId);
-            final index = member?.handicap ?? 18.0;
-            final teeName = (member?.gender == 'Female') ? 'Red' : 'Yellow';
-            final tee = course!.tees.firstWhere((t) => t.name == teeName, orElse: () => course.tees.first);
-            final phc = HandicapCalculator.calculatePlayingHandicap(
-              handicapIndex: index, rules: rules, 
-              courseConfig: cfg.CourseConfig(
-                rating: tee.rating, slope: tee.slope, 
-                par: tee.holePars.fold<int>(0, (a, b) => a + b), 
-                holes: tee.holePars.asMap().entries.map((e) => cfg.CourseHole(hole: e.key + 1, par: e.value, si: tee.holeSIs[e.key])).toList(),
-              ),
-            );
+        for (int j = 0; j < group.players.length; j++) {
+          final p = group.players[j];
+          final marker = group.players[(j + 1) % group.players.length];
+          
+          final pId = p.isGuest ? '${p.registrationMemberId}_guest' : p.registrationMemberId;
+          final markerId = marker.isGuest ? '${marker.registrationMemberId}_guest' : marker.registrationMemberId;
+          markersMap[pId] = markerId;
 
-            final holeScores = <int?>[];
-            int grossTotal = 0;
-            int pointsTotal = 0;
+          final memberId = p.registrationMemberId;
+          final entryId = p.isGuest ? '${memberId}_guest' : memberId;
+          final member = members.firstWhereOrNull((m) => m.id == memberId);
+          final index = member?.handicap ?? 18.0;
+          final teeName = (member?.gender == 'Female') ? 'Red' : 'Yellow';
+          final tee = course!.tees.firstWhere((t) => t.name == teeName, orElse: () => course.tees.first);
+          final phc = HandicapCalculator.calculatePlayingHandicap(
+            handicapIndex: index, rules: rules, 
+            courseConfig: cfg.CourseConfig(
+              rating: tee.rating, slope: tee.slope, 
+              par: tee.holePars.fold<int>(0, (a, b) => a + b), 
+              holes: tee.holePars.asMap().entries.map((e) => cfg.CourseHole(hole: e.key + 1, par: e.value, si: tee.holeSIs[e.key])).toList(),
+            ),
+          );
 
-            int holesPassed = 18;
-            if (status == EventStatus.inPlay) {
-              final now = DateTime.now();
-              final groupTime = group.teeTime;
-              if (now.isAfter(groupTime)) {
-                final minsSince = now.difference(groupTime).inMinutes;
-                holesPassed = (minsSince / 12).floor().clamp(0, 18);
-              } else {
-                holesPassed = 0;
-              }
+          final holeScores = <int?>[];
+          int grossTotal = 0;
+          int pointsTotal = 0;
+
+          int holesPassed = 18;
+          if (status == EventStatus.inPlay) {
+            final now = DateTime.now();
+            final groupTime = group.teeTime;
+            if (now.isAfter(groupTime)) {
+              final minsSince = now.difference(groupTime).inMinutes;
+              holesPassed = (minsSince / 12).floor().clamp(0, 18);
+            } else {
+              holesPassed = 0;
             }
+          }
 
-            for (int h = 0; h < 18; h++) {
-              if (h >= holesPassed) { holeScores.add(null); continue; }
-              final par = tee.holePars[h];
-              final si = tee.holeSIs[h];
-              int shots = (phc / 18).floor();
-              if (phc % 18 >= si) shots++;
-              final rand = random.nextDouble();
-              int netScore = (rand < 0.25) ? par - 1 : ((rand < 0.80) ? par : ((rand < 0.95) ? par + 1 : par + 2));
-              final gross = netScore + shots;
-              holeScores.add(gross);
-              grossTotal += gross;
-              pointsTotal += (par - netScore + 2).clamp(0, 10).toInt();
-            }
+          for (int h = 0; h < 18; h++) {
+            if (h >= holesPassed) { holeScores.add(null); continue; }
+            final par = tee.holePars[h];
+            final si = tee.holeSIs[h];
+            int shots = (phc / 18).floor();
+            if (phc % 18 >= si) shots++;
+            final rand = random.nextDouble();
+            int netScore = (rand < 0.25) ? par - 1 : ((rand < 0.80) ? par : ((rand < 0.95) ? par + 1 : par + 2));
+            final gross = netScore + shots;
+            holeScores.add(gross);
+            grossTotal += gross;
+            pointsTotal += (par - netScore + 2).clamp(0, 10).toInt();
+          }
 
-            final newScorecard = Scorecard(
-              id: 'seed_${updatedEvent.id}_$entryId', competitionId: updatedEvent.id,
-              roundId: '1', entryId: entryId, submittedByUserId: 'system_seed',
-              status: status == EventStatus.inPlay ? ScorecardStatus.draft : cardStatus, 
-              holeScores: holeScores, points: isStableford ? pointsTotal : null,
-              handicapIndex: index, playingHandicap: phc,
-              netTotal: grossTotal - (phc * (holesPassed / 18)).round(),
-              submittedAt: (cardStatus == ScorecardStatus.submitted || cardStatus == ScorecardStatus.finalScore) && status != EventStatus.inPlay
-                  ? date.copyWith(hour: 14, minute: random.nextInt(60)) 
-                  : null,
-              createdAt: DateTime.now(), updatedAt: DateTime.now(),
-            );
-            await scoreRepo.addScorecard(newScorecard);
-            scorecards.add(newScorecard);
+          final newScorecard = Scorecard(
+            id: 'seed_${updatedEvent.id}_$entryId', 
+            competitionId: updatedEvent.id,
+            roundId: '1', 
+            entryId: entryId, 
+            submittedByUserId: 'system_seed',
+            status: status == EventStatus.inPlay ? ScorecardStatus.draft : cardStatus, 
+            markerId: markerId,
+            holeScores: holeScores, 
+            points: isStableford ? pointsTotal : null,
+            handicapIndex: index, 
+            playingHandicap: phc,
+            netTotal: grossTotal - (phc * (holesPassed / 18)).round(),
+            submittedAt: (cardStatus == ScorecardStatus.submitted || cardStatus == ScorecardStatus.finalScore) && status != EventStatus.inPlay
+                ? date.copyWith(hour: 14, minute: random.nextInt(60)) 
+                : null,
+            createdAt: DateTime.now(), 
+            updatedAt: DateTime.now(),
+          );
+          await scoreRepo.addScorecard(newScorecard);
+          scorecards.add(newScorecard);
         }
       }
 
@@ -413,7 +434,11 @@ class EventSeeder {
       }
 
       await eventRepo.updateEvent(updatedEvent.copyWith(
-        grouping: {'groups': groups.map((g) => g.toJson()).toList(), 'isPublished': true}, 
+        grouping: {
+          'groups': groups.map((g) => g.toJson()).toList(), 
+          'isPublished': true,
+          'markers': markersMap,
+        }, 
         results: results, awards: awards,
         feedItems: _generateFeedItems(updatedEvent, results),
       ));

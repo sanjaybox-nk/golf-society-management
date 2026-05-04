@@ -17,12 +17,12 @@
 11. **Demo Seeding (Admin)**: Sophisticated multi-phase engine for generating historical member, event, and competition data for development and testing.
 
 ## Typography
-- **Body / Labels**: Inter
-- **Display**: Fredoka
+- **Primary / UI**: Plus Jakarta Sans (v4.x Standard)
+- **Numeric**: Plus Jakarta Sans (Tabular)
 
 ## Code Health & Standards
 
-- **Zero Error State**: The project enforces a strict "Zero Warning/Error" policy. `flutter analyze` must exit with **code 0**. Last verified: **April 2026**.
+- **Zero Error State**: The project enforces a strict "Zero Warning/Error" policy. `flutter analyze` must exit with **code 0**. Last verified: **May 2026**.
 - **Architecture**: Feature-First Clean Architecture with distinct `domain`, `features`, and `design_system` layers.
 - **Async Safety**: Standardized `mounted` guards before all post-`await` `BuildContext` usages across the entire codebase.
 - **Universal Parity**: 1:1 visual alignment between Admin and Member scoring and survey components.

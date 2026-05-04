@@ -83,14 +83,17 @@ The "Verify" tab provides a side-by-side comparison of:
 - **Player Scores**: The self-recorded strokes from the player's own card.
 - **Marker Scores**: The strokes recorded by the official marker for that player.
 - **Conflict Highlighting**: Any discrepancies between the two rows are highlighted in red (Boxy Art Coral).
+- **Proactive Hub Alerts**: The main Event Hub display features a dynamic "Conflict" badge if discrepancies are detected, serving as a primary visual cue for the user to resolve issues in the Verify tab.
 
 ### Signature Handshake
 Both the **Player** and the **Marker** must tap "Sign Off" within the Verify tab to finalize the card.
 - **Locking**: Once both signatures are present, the card is visually "locked" for submission.
 - **Invalidation**: Any subsequent change to a hole score or a "Story" tag (Penalty/Gimme) automatically clears both signatures, requiring a fresh review.
 
-### Hole Story Audit
-All non-numerical scoring attributes (Penalties, Gimmes, Pick Ups) are aggregated into a **Round Story Breakdown** within the Verification view, allowing for a line-by-line audit of the "story of the round" before sign-off.
+### Rendering Stability & Integrity
+To maintain a professional, crash-free interface during high-stakes sign-offs, the verification UI utilizes a **Hardened Layout Pattern**:
+- **Persistent Card Context**: The interface is anchored within a stable `BoxyArtCard` wrapper to prevent rendering tree reconciliation errors during tab switches.
+- **Identity Enforcement**: A `ValueKey` is applied to the content tree to ensure Flutter explicitly manages the transition between Entry and Verification states without state leakage.
 
 ---
 

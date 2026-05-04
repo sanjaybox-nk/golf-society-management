@@ -82,7 +82,7 @@ class BoxyArtBottomSheet extends StatelessWidget {
                   children: [
                     child,
                     if (addNavBarPadding)
-                      const SizedBox(height: 120.0) // Account for floating bottom nav bar (86px + safe area)
+                      const SizedBox(height: 60.0) // Account for floating bottom nav bar
                     else
                       const SizedBox(height: AppSpacing.x2l), // Standard breathing room
                   ],
@@ -107,6 +107,7 @@ class BoxyArtBottomSheet extends StatelessWidget {
     double initialChildSize = 0.68,
     double minChildSize = 0.5,
     double maxChildSize = 0.80,
+    bool addNavBarPadding = true,
   }) {
     return showModalBottomSheet<T>(
       context: context,
@@ -121,7 +122,7 @@ class BoxyArtBottomSheet extends StatelessWidget {
         builder: (context, scrollController) => BoxyArtBottomSheet(
           title: title,
           scrollController: scrollController,
-          addNavBarPadding: !useRootNavigator,
+          addNavBarPadding: addNavBarPadding,
           child: child,
         ),
       ),

@@ -27,6 +27,7 @@ _ProcessedPlayerScore _$ProcessedPlayerScoreFromJson(
   scoringStatus:
       $enumDecodeNullable(_$ScoringStatusEnumMap, json['scoringStatus']) ??
       ScoringStatus.ok,
+  maxHolePlayed: (json['maxHolePlayed'] as num?)?.toInt() ?? 0,
 );
 
 Map<String, dynamic> _$ProcessedPlayerScoreToJson(
@@ -46,6 +47,7 @@ Map<String, dynamic> _$ProcessedPlayerScoreToJson(
   'tieBreakLabel': instance.tieBreakLabel,
   'thruLabel': instance.thruLabel,
   'scoringStatus': _$ScoringStatusEnumMap[instance.scoringStatus]!,
+  'maxHolePlayed': instance.maxHolePlayed,
 };
 
 const _$ScoringStatusEnumMap = {

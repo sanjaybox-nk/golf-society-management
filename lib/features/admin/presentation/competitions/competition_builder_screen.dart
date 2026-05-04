@@ -134,6 +134,8 @@ class CompetitionBuilderScreen extends ConsumerWidget {
         return ScrambleControl(competition: compToUse, competitionId: competitionId, isTemplate: isTemplate);
       case CompetitionFormat.maxScore:
         return MaxScoreControl(competition: compToUse, competitionId: competitionId, isTemplate: isTemplate);
+      case CompetitionFormat.matchPlay:
+        return MatchPlayControl(competition: compToUse, competitionId: competitionId, isTemplate: isTemplate);
     }
   }
 

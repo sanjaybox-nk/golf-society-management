@@ -78,9 +78,9 @@ class EventBasicInfoSection extends ConsumerWidget {
                           ),
                   ),
                 ),
-                BoxyArtInputField(
+                BoxyArtFormField(
                   label: 'Event title',
-                  controller: TextEditingController(text: state.title)..selection = TextSelection.collapsed(offset: state.title.length),
+                  initialValue: state.title,
                   onChanged: (v) => ref.read(eventFormNotifierProvider.notifier).updateTitle(v),
                   validator: (v) => v == null || v.isEmpty ? 'Required' : null,
                 ),

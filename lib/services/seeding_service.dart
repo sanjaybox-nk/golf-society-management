@@ -245,12 +245,29 @@ class SeedingService {
     await seedMatchPlayTestLab(MatchPlayStage.registration);
   }
 
-  Future<void> seedVerificationScenario() async {
-    await ScenarioSeeder(ref, _random).seedVerificationScenario();
-  }
 
-  Future<void> seedMedalVerificationScenario() async {
-    await ScenarioSeeder(ref, _random).seedMedalVerificationScenario();
+  Future<void> seedHandshakeAndRhythmUAT() async {
+    try {
+      debugPrint('--- STARTING CONSOLIDATED HANDSHAKE & RHYTHM UAT SEED ---');
+      
+      // 1. Clear Activity (Preserve branding)
+      await clearActivityData();
+      
+      // 2. Seed Members (Hardening equivalent)
+      await MemberSeeder(ref, _random).seed();
+      
+      // 3. Seed Medal Scenario
+      await ScenarioSeeder(ref, _random).seedMedalVerificationScenario();
+      
+      // 4. Seed Handshake Scenario (Stableford + Conflicts)
+      await ScenarioSeeder(ref, _random).seedHandshakeVerificationScenario();
+      
+      debugPrint('--- CONSOLIDATED UAT SEED COMPLETED ---');
+    } catch (e, stack) {
+      debugPrint('UAT SEEDER FAILURE: $e');
+      debugPrint(stack.toString());
+      rethrow;
+    }
   }
 
   /// Incremental Hardening: Seed/Refresh members only.
@@ -283,7 +300,7 @@ class SeedingService {
     // to preserve the scaffolding work (Branding & Rules)
     final collections = [
       'scorecards', 'events', 'competitions', 'seasons', 'members',
-      'notifications', 'campaigns', 'global_expenses', 'surveys', 'activities',
+      'notifications', 'campaigns', 'global_expenses', 'surveys', 'activities', 'courses',
     ];
 
     for (var collection in collections) {
@@ -372,7 +389,7 @@ class SeedingService {
     final collections = [
       'scorecards', 'events', 'competitions', 'seasons', 'members',
       'notifications', 'campaigns', 'global_expenses', 'surveys', 'activities',
-      'templates', 'leaderboard_templates',
+      'templates', 'leaderboard_templates', 'courses',
     ];
 
     for (var collection in collections) {
