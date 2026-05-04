@@ -249,8 +249,16 @@ class ScorecardModal {
                                                 confirmText: 'Approve',
                                               );
                                               if (confirmed == true) {
-                                                await ref.read(scorecardRepositoryProvider).updateScorecardStatus(actualScorecard.id, ScorecardStatus.reviewed);
-                                                if (context.mounted) Navigator.pop(context);
+                                                try {
+                                                  await ref.read(scorecardRepositoryProvider).updateScorecardStatus(actualScorecard.id, ScorecardStatus.reviewed);
+                                                  if (context.mounted) Navigator.pop(context);
+                                                } catch (_) {
+                                                  if (context.mounted) {
+                                                    ScaffoldMessenger.of(context).showSnackBar(
+                                                      const SnackBar(content: Text('Failed to approve scorecard — check your connection.')),
+                                                    );
+                                                  }
+                                                }
                                               }
                                             },
                                           ),
@@ -306,8 +314,16 @@ class ScorecardModal {
                                                 submittedByUserId: id, // Fallback for legacy
                                                 updatedAt: DateTime.now(),
                                               );
-                                              await ref.read(scorecardRepositoryProvider).updateScorecard(updatedCard);
-                                              // We need to update local markerId to show immediate UI feedback
+                                              try {
+                                                await ref.read(scorecardRepositoryProvider).updateScorecard(updatedCard);
+                                              } catch (_) {
+                                                if (context.mounted) {
+                                                  ScaffoldMessenger.of(context).showSnackBar(
+                                                    const SnackBar(content: Text('Failed to update scorecard — check your connection.')),
+                                                  );
+                                                }
+                                              }
+                                              // Immediate UI feedback regardless of write outcome
                                               setModalState(() => activeMarkerId = id);
                                             }
                                           },

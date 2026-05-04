@@ -134,7 +134,9 @@ class EventScoringProcessor {
       
       // If still empty, check seeded results
       if (holeScores.every((s) => s == null) && seededResult != null && seededResult['holeScores'] != null) {
-         holeScores = (seededResult['holeScores'] as List).cast<int?>();
+         holeScores = (seededResult['holeScores'] as List)
+             .map((e) => e == null ? null : (e as num).toInt())
+             .toList();
       }
 
       // 122. [NEW] Scramble Logic: If it's a team scramble, use the team PHC and scorecard
