@@ -48,8 +48,9 @@ app.*.map.json
 google-services.json
 GoogleService-Info.plist
 
-# Agent specialized state (runtime only — skills are tracked)
+# Agent runtime/system dirs (workspace skills in .agent/skills/ are tracked)
 .agent/state/
+.agent/skill
 
 # Node/Firebase Functions
 **/node_modules/

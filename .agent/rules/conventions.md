@@ -1,25 +1,29 @@
-# Golf Society — Agent Rules
+---
+trigger: always_on
+---
 
-## Non-negotiable constraints
+## Hard constraints
 
 - Never import design system widgets directly — always use the `design_system.dart` barrel
-- Never hardcode score IDs, round IDs, or user sentinels — use `ScorecardConstants`
+- Never hardcode scorecard IDs, round IDs, or user sentinels — use `ScorecardConstants`
 - Never construct `Scorecard(...)` inline — use `ScorecardFactory`
 - Never resolve player IDs with `?? userId ?? playerId` chains — use `FirestoreNormalizer` or `GuestIdHelper`
 - Never check `format == CompetitionFormat.stableford` for sort direction — use `ScoringStrategyRegistry`
-- Never hardcode `BorderRadius.circular()` or `BoxShadow` — use `AppShapeTokens` / `AppShadows` ThemeExtensions
+- Never hardcode `BorderRadius.circular()` or `BoxShadow` inline — use `AppShapeTokens` / `AppShadows` ThemeExtensions
 - Never use raw float opacity values — use `AppColors.opacityStrong` / `opacitySubtle` / `opacityFaint`
 - Never use `ref.read` inside `build()` — use `ref.watch`
 - Never add `.autoDispose` to the Notifier class — add it to the provider declaration only
 - Never target a feature branch as a PR base — always target `main`
-- Never run `build_runner` unless a `.freezed.dart` or `.g.dart` model was changed
-- Never skip `kDebugMode` guard on `debugPrint` calls
 - Never cast Firestore numeric values with `as int` — use `(value as num).toInt()`
+- Never add `debugPrint` without a `kDebugMode` guard
 
 ## Preferred patterns
 
-- Society-customised colors → `ref.watch(visualTokensProvider)`; structural/fixed colors → `AppColors`
+- Society-customised colors → `ref.watch(visualTokensProvider)`; fixed structural colors → `AppColors`
 - Spacing in widgets → `Theme.of(context).extension<AppSpacingTokens>()` with `AppSpacing` fallback
+- Shape radii → `Theme.of(context).extension<AppShapeTokens>()` named getters (`.card`, `.button`, `.pill`…)
+- Shadows → `Theme.of(context).extension<AppShadows>()` named sets (`softScale`, `floatingAlt`…)
 - Screen-scoped state → `Provider.autoDispose.family`
 - Large files sharing private state → `part` / `part of` (directives after imports, before declarations)
-- Tests → plain `flutter_test`, no mocks, no fakes, lives in `test/domain/`
+- Tests → plain `flutter_test`, no mocks, lives in `test/domain/`
+- Commit messages → Conventional Commits (`feat:`, `fix:`, `refactor:`, `test:`, `docs:`)
