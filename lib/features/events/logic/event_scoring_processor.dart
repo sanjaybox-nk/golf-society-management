@@ -1,4 +1,5 @@
 import 'package:golf_society/domain/models/golf_event.dart';
+import 'scoring/scoring_utils.dart';
 import 'package:golf_society/utils/firestore_normalizer.dart';
 import 'package:golf_society/utils/guest_id_helper.dart';
 import 'package:golf_society/domain/models/competition.dart';
@@ -189,9 +190,9 @@ class EventScoringProcessor {
         teeColor: courseConfig.selectedTeeColor,
         holeScores: holeScores,
         result: result,
-        tieBreakLabel: calculateTieBreakLabel(result, null),
+        tieBreakLabel: ScoringUtils.calculateTieBreakLabel(result, null),
         thruLabel: null, // Calculated in next pass
-        scoringStatus: _resolveScoringStatus(liveCard),
+        scoringStatus: ScoringUtils.resolveScoringStatus(liveCard),
         maxHolePlayed: lastHoleIndex,
       ));
     }
@@ -240,13 +241,13 @@ class EventScoringProcessor {
     for (var p in individualScores) {
       if (p.scoringStatus == ScoringStatus.ok && p.result.holesPlayed > 0) {
         scoreToMetricsMap[p.result.score] ??= [];
-        scoreToMetricsMap[p.result.score]!.add(_calculateTieBreakMetrics(p.result));
+        scoreToMetricsMap[p.result.score]!.add(ScoringUtils.calculateTieBreakMetrics(p.result));
       }
     }
 
     final List<ProcessedPlayerScore> refinedIndividualScores = syncedIndividualScores.map((p) {
       return p.copyWith(
-        tieBreakLabel: calculateTieBreakLabel(p.result, scoreToMetricsMap[p.result.score]),
+        tieBreakLabel: ScoringUtils.calculateTieBreakLabel(p.result, scoreToMetricsMap[p.result.score]),
       );
     }).toList();
 
@@ -340,8 +341,8 @@ class EventScoringProcessor {
         if (scoreCompare != 0) return scoreCompare;
 
         // 3. Tie-break (Countback)
-        final aMetrics = _calculateTieBreakMetrics(a.result);
-        final bMetrics = _calculateTieBreakMetrics(b.result);
+        final aMetrics = ScoringUtils.calculateTieBreakMetrics(a.result);
+        final bMetrics = ScoringUtils.calculateTieBreakMetrics(b.result);
         
         for (int i = 0; i < aMetrics.length; i++) {
           final mCompare = isStableford
@@ -372,8 +373,8 @@ class EventScoringProcessor {
         // Only share position if everything matches (including tie-breaks)
         if (i > 0) {
           final prev = sortedIndividual[i - 1];
-          final aMetrics = _calculateTieBreakMetrics(p.result);
-          final bMetrics = _calculateTieBreakMetrics(prev.result);
+          final aMetrics = ScoringUtils.calculateTieBreakMetrics(p.result);
+          final bMetrics = ScoringUtils.calculateTieBreakMetrics(prev.result);
           bool metricsMatch = const ListEquality().equals(aMetrics, bMetrics);
           
           if (p.result.score == prev.result.score && metricsMatch) {
@@ -421,11 +422,11 @@ class EventScoringProcessor {
           holePoints: p.result.holePoints,
           hasSocietyCut: p.appliedSocietyCut != 0,
           position: pos,
-          tieBreakMetrics: _calculateTieBreakMetrics(p.result),
+          tieBreakMetrics: ScoringUtils.calculateTieBreakMetrics(p.result),
           handicapIndex: p.handicapIndex,
           tieBreakLabel: p.tieBreakLabel,
           thruLabel: p.thruLabel,
-          scoringStatus: _resolveScoringStatus(liveScorecards.firstWhereOrNull((s) => s.entryId == p.playerId)),
+          scoringStatus: ScoringUtils.resolveScoringStatus(liveScorecards.firstWhereOrNull((s) => s.entryId == p.playerId)),
           matchStatus: matchStatusLabel,
           matchScore: matchLead,
           isMatch: matchResult != null,
@@ -472,7 +473,7 @@ class EventScoringProcessor {
             final teamStatus = teamPlayers.map((p) {
               final id = p.isGuest ? '${p.registrationMemberId}_guest' : p.registrationMemberId;
               final card = liveScorecards.firstWhereOrNull((s) => s.entryId == id);
-              return _resolveScoringStatus(card);
+              return ScoringUtils.resolveScoringStatus(card);
             }).firstWhere((s) => s != ScoringStatus.ok, orElse: () => ScoringStatus.ok);
 
             final String teamLeaderId = playerIds.firstOrNull ?? '';
@@ -521,9 +522,9 @@ class EventScoringProcessor {
               individualHoleNetScores: teamResults.map((r) => r.holeNetScores).toList().cast<List<int?>>(),
               individualHolePoints: teamResults.map((r) => r.holePoints).toList().cast<List<int?>>(),
               handicapIndex: teamPlayers.firstOrNull?.handicapIndex ?? 0.0,
-              tieBreakLabel: calculateTieBreakLabel(finalResult, null), // TODO: Group tie-break comparison if needed
+              tieBreakLabel: ScoringUtils.calculateTieBreakLabel(finalResult, null), // TODO: Group tie-break comparison if needed
               position: 0,
-              tieBreakMetrics: _calculateTieBreakMetrics(finalResult),
+              tieBreakMetrics: ScoringUtils.calculateTieBreakMetrics(finalResult),
               scoringStatus: teamStatus,
               matchStatus: teamMatchStatusLabel,
               matchScore: teamMatchLead,
@@ -693,85 +694,12 @@ class EventScoringProcessor {
     );
   }
 
-  static ScoringStatus _resolveScoringStatus(Scorecard? card) {
-    if (card == null) return ScoringStatus.ok;
-    
-    // Explicit manual overrides (WD, DQ, NR set by admin)
-    if (card.scoringStatus != ScoringStatus.ok) return card.scoringStatus;
 
-    // Automatic NR detection: If submitted/final but incomplete
-    final isSubmitted = card.status == ScorecardStatus.submitted || card.status == ScorecardStatus.finalScore;
-    final holesPlayed = card.holeScores.where((s) => s != null).length;
-    
-    if (isSubmitted && holesPlayed < 18) {
-      return ScoringStatus.nr;
-    }
-
-    return ScoringStatus.ok;
-  }
-
-  static String? calculateTieBreakLabel(ScoringResult result, List<List<int>>? otherMetrics) {
-    if (otherMetrics == null || otherMetrics.length <= 1) return null;
-
-    // Standard countback: B9, B6, B3, B1
-    final metrics = _calculateTieBreakMetrics(result);
-    final mNames = ['B9', 'B6', 'B3', 'B1'];
-
-    // Find first metric that differs from ANY other player with the same score
-    for (int i = 0; i < metrics.length; i++) {
-      final val = metrics[i];
-      final anyDiff = otherMetrics.any((other) => i < other.length && other[i] != val);
-      if (anyDiff) {
-        return '${mNames[i]}: $val';
-      }
-    }
-    
-    // If absolutely everything is tied, show B9 as fallback
-    return 'B9: ${metrics[0]}';
-  }
-
-  static List<int> _calculateTieBreakMetrics(ScoringResult result) {
-    // Standard countback: B9, B6, B3, B1
-    return [
-      _getSegmentTotal(result, 9, 18),
-      _getSegmentTotal(result, 12, 18),
-      _getSegmentTotal(result, 15, 18),
-      _getSegmentTotal(result, 17, 18),
-    ];
-  }
-
-  static int _getSegmentTotal(ScoringResult result, int start, int end) {
-    if (result.holePoints.length < end) return 0;
-    return result.holePoints.sublist(start, end).whereType<int>().fold<int>(0, (sum, p) => sum + p);
-  }
-
-  /// [NEW] Final system-level submission trigger.
-  /// Transitions a scorecard to [ScorecardStatus.finalScore] if both parties have verified
-  /// and there are no score discrepancies between the player's recorded scores 
-  /// and the marker's recorded scores for that player.
   static Scorecard validateAndFinalizeHandshake({
     required Scorecard targetScorecard,
     required Scorecard? verifierScorecard,
-  }) {
-    if (verifierScorecard == null) return targetScorecard;
-
-    // 1. Conflict detection: Compare player's holeScores with marker's playerVerifierScores
-    final bool isConflictFree = const ListEquality().equals(
-      targetScorecard.holeScores, 
-      verifierScorecard.playerVerifierScores
-    );
-
-    if (!isConflictFree) return targetScorecard;
-
-    // 2. Transition to finalScore if both parties have signed off
-    if (targetScorecard.verifiedByPlayer && targetScorecard.verifiedByMarker) {
-      return targetScorecard.copyWith(
-        status: ScorecardStatus.finalScore,
-        updatedAt: DateTime.now(),
-      );
-    }
-    
-    return targetScorecard;
-  }
+  }) => ScoringUtils.validateAndFinalizeHandshake(
+    targetScorecard: targetScorecard,
+    verifierScorecard: verifierScorecard,
+  );
 }
-

@@ -1,0 +1,280 @@
+import 'package:intl/intl.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:golf_society/design_system/design_system.dart';
+import 'package:golf_society/utils/string_utils.dart';
+import 'package:golf_society/domain/models/member.dart';
+import '../../domain/models/processed_event_data.dart';
+import 'package:golf_society/domain/models/golf_event.dart';
+import 'package:golf_society/domain/models/competition.dart';
+import 'package:golf_society/domain/models/scorecard.dart';
+import 'package:golf_society/domain/models/course_config.dart';
+import '../../../../domain/scoring/handicap_calculator.dart';
+import '../../../../domain/grouping/grouping_service.dart';
+import '../../../matchplay/domain/match_definition.dart';
+import '../../../matchplay/domain/match_play_calculator.dart';
+
+class GroupingPlayerTile extends ConsumerWidget {
+  final TeeGroupParticipant player;
+  final TeeGroup group;
+  final Member? member;
+  final List<GolfEvent> history;
+  final int totalGroups;
+  final CompetitionRules? rules;
+  final CourseConfig? courseConfig;
+  final bool useWhs;
+  final bool isAdmin;
+  final Function(String action, TeeGroupParticipant p, TeeGroup g)? onAction;
+  final VoidCallback? onTap;
+  final bool isSelected;
+  final bool useCard;
+  final bool hasGuest;
+  final bool isScoreMode;
+  final String? scoreDisplay;
+  final bool isWinner;
+  final String? tieBreakLabel;
+  final String? thruLabel;
+  final double? handicapIndex;
+  final ScoringStatus scoringStatus;
+  final bool hasSocietyCut;
+  final bool isStableford;
+  final String? matchSide; // [NEW] Side A or B for Match Play
+  final int? phcOverride;
+  final bool hasGuestInGroup; // [NEW] Member who brought a guest
+  final bool isEventClosed; // [NEW] surfaced only once admin has confirmed cards and closed the game
+
+  const GroupingPlayerTile({
+    super.key,
+    required this.player,
+    required this.group,
+    this.member,
+    required this.history,
+    required this.totalGroups,
+    this.rules,
+    this.courseConfig,
+    this.useWhs = true,
+    this.isAdmin = false,
+    this.onAction,
+    this.onTap,
+    this.isSelected = false,
+    this.useCard = true,
+    this.hasGuest = false,
+    this.isScoreMode = false,
+    this.scoreDisplay,
+    this.isWinner = false,
+    this.matchSide,
+    this.phcOverride,
+    this.tieBreakLabel,
+    this.thruLabel,
+    this.handicapIndex,
+    this.scoringStatus = ScoringStatus.ok,
+    this.hasSocietyCut = false,
+    this.isStableford = false,
+    this.hasGuestInGroup = false,
+    this.isEventClosed = false,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final config = ref.watch(themeControllerProvider);
+    // Single Source of Truth: PHC comes from stored grouping data.
+    final int displayPhc = phcOverride ?? player.playingHandicap.round();
+
+    // Calculate Variety Color (Priority: Match Side > Grouping History)
+    Color? varietyColor;
+    if (matchSide != null && config.showMatchPlayOverlay) {
+       // Match Play side coloring removed as per user preference
+       varietyColor = null;
+    } else if (!player.isGuest) {
+      final matchesCount = GroupingService.getTeeTimeVariety(
+        player.registrationMemberId,
+        group.index,
+        totalGroups,
+        history,
+      );
+      if (matchesCount == 0) {
+        varietyColor = AppColors.lime600;
+      } else if (matchesCount == 1) {
+        varietyColor = AppColors.amber500;
+      } else {
+        varietyColor = AppColors.coral500;
+      }
+    }
+
+    final theme = Theme.of(context);
+
+    // Score Text Formatting (v4.0 standardized)
+    final bool isScramble = rules?.format == CompetitionFormat.scramble;
+    final bool hasScore = isScoreMode && (scoreDisplay != null && scoreDisplay != '-') && !isScramble;
+
+    final teeColor = AppColors.getTeeColor(player.teeName, courseConfig?.tees);
+
+    return BoxyArtMemberRow(
+      name: player.name,
+      secondaryName: (player.isGuest && member != null) ? 'Guest of ${member!.displayName}' : null,
+      initials: player.name,
+      avatarUrl: member?.avatarUrl,
+      handicapIndex: handicapIndex ?? player.handicapIndex,
+      playingHandicap: displayPhc,
+      isGuest: player.isGuest,
+      isCaptain: player.isCaptain,
+      hasMemberGuest: hasGuestInGroup,
+      isWinner: isWinner,
+      matchSide: config.showMatchPlayOverlay ? matchSide : null,
+      varietyPillarColor: varietyColor,
+      hasSocietyCut: hasSocietyCut,
+      thruLabel: thruLabel,
+      score: hasScore ? scoreDisplay : null,
+      isStableford: isStableford,
+      scoreColor: null,
+      tieBreakLabel: isEventClosed ? tieBreakLabel : null,
+      teeName: player.teeName,
+      teeColor: teeColor,
+      onTeeTap: isAdmin ? () => onAction?.call('tee', player, group) : null,
+      onTap: onTap,
+      isSelected: isSelected,
+      useCard: useCard,
+      showTee: !isScoreMode,
+      showVerticalDivider: true,
+      showChevron: false,
+      accentColor: null,
+      leading: isAdmin 
+        ? PopupMenuButton<String>(
+            onSelected: (val) => onAction?.call(val, player, group),
+            color: theme.brightness == Brightness.dark ? AppColors.dark700 : AppColors.pureWhite,
+            surfaceTintColor: Colors.transparent,
+            elevation: 8,
+            offset: const Offset(0, 48),
+            shape: RoundedRectangleBorder(borderRadius: AppShapes.lg),
+            itemBuilder: (context) => [
+              PopupMenuItem(
+                value: 'move',
+                child: Row(
+                  children: [
+                    Icon(Icons.drive_file_move_outlined, size: AppShapes.iconSm),
+                    const SizedBox(width: AppSpacing.md),
+                    const Text('Move to Group...'),
+                  ],
+                ),
+              ),
+              PopupMenuItem(
+                value: 'tee',
+                child: Row(
+                  children: [
+                    Icon(Icons.flag_circle_outlined, size: AppShapes.iconSm),
+                    const SizedBox(width: AppSpacing.md),
+                    const Text('Change Tee...'),
+                  ],
+                ),
+              ),
+              PopupMenuItem(
+                value: 'remove',
+                child: Row(
+                  children: [
+                    Icon(Icons.person_remove_outlined, size: AppShapes.iconSm),
+                    const SizedBox(width: AppSpacing.md),
+                    const Text('Remove from Group'),
+                  ],
+                ),
+              ),
+              PopupMenuItem(
+                value: 'captain',
+                child: Row(
+                  children: [
+                    Icon(Icons.shield_outlined, size: AppShapes.iconSm),
+                    const SizedBox(width: AppSpacing.md),
+                    const Text('Toggle Captain'),
+                  ],
+                ),
+              ),
+              PopupMenuItem(
+                value: 'withdraw',
+                child: Row(
+                  children: [
+                    Icon(Icons.exit_to_app, size: AppShapes.iconSm, color: AppColors.coral500),
+                    const SizedBox(width: AppSpacing.md),
+                    const Text('Withdraw Member', style: TextStyle(color: AppColors.coral500)),
+                  ],
+                ),
+              ),
+            ],
+            child: _buildAvatarStack(context, isScoreMode, varietyColor, hasGuestInGroup),
+          )
+        : null, // BoxyArtMemberRow handles standard avatar if leading is null
+    );
+  }
+
+  Widget _buildAvatarStack(BuildContext context, bool isScoreMode, Color? varietyColor, bool hasGuestInGroup) {
+    
+    return Stack(
+      alignment: Alignment.center,
+      clipBehavior: Clip.none,
+      children: [
+        BoxyArtAvatar(
+          url: member?.avatarUrl,
+          initials: extractInitials(player.name),
+          radius: 38, // Standardized 76px diameter for premium cards
+          isCircle: true,
+          borderColor: Colors.transparent, // Removed thin distinguisher borders
+          borderWidth: 0,
+        ),
+        // Host Badge Overlay (Bottom Left)
+        if (hasGuestInGroup)
+          Positioned(
+            bottom: 0,
+            left: 0,
+            child: BoxyArtIconBadge(
+              icon: Icons.person_add_rounded,
+              color: Theme.of(context).colorScheme.primary,
+              size: 24,
+              iconSize: 14,
+              useCircle: true,
+            ),
+          ),
+        // Captain Badge Overlay (Bottom)
+        if (player.isCaptain && !player.isGuest)
+          Positioned(
+            bottom: -2,
+            right: -2,
+            child: BoxyArtIconBadge(
+              icon: Icons.shield_rounded,
+              color: AppColors.amber500,
+              size: 24,
+              iconSize: 14,
+              useCircle: true,
+            ),
+          ),
+        // Guest Icon Overlay (Bottom Left)
+        if (player.isGuest)
+          Positioned(
+            bottom: 0,
+            left: 0,
+            child: Container(
+              width: 24,
+              height: 24,
+              decoration: BoxDecoration(
+                color: AppColors.amber500,
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.15),
+                    blurRadius: 4,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              alignment: Alignment.center,
+              child: const Text(
+                'G',
+                style: TextStyle(
+                  color: AppColors.dark900,
+                  fontSize: 12,
+                  fontWeight: AppTypography.weightExtraBold,
+                ),
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+}
+
