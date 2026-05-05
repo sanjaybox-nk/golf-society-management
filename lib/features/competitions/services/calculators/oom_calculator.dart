@@ -1,6 +1,7 @@
 import 'package:golf_society/domain/models/leaderboard_config.dart';
 import 'package:golf_society/domain/models/leaderboard_standing.dart';
 import 'package:golf_society/domain/models/competition.dart';
+import 'package:golf_society/utils/guest_id_helper.dart';
 import 'package:golf_society/domain/models/scorecard.dart';
 import 'package:golf_society/features/events/domain/models/processed_event_data.dart';
 import 'leaderboard_calculator.dart';
@@ -49,7 +50,7 @@ class OOMCalculator implements LeaderboardCalculator {
 
         // Attribute points to each member in the entry (handles Pairs/Teams)
         for (var mId in entry.teamMemberIds) {
-          if (mId.endsWith('_guest')) continue; // Skip guests in OOM
+          if (GuestIdHelper.isGuestId(mId)) continue; // Skip guests in OOM
           
           memberScores.putIfAbsent(mId, () => []);
           memberScores[mId]!.add(_EventScore(comp.id, pointsEarned));

@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:golf_society/utils/guest_id_helper.dart';
 import 'package:collection/collection.dart';
 import 'package:golf_society/design_system/design_system.dart';
 import 'package:golf_society/domain/models/golf_event.dart';
@@ -64,7 +65,7 @@ class SharedTournamentLogic {
     required TeeGroupParticipant participant,
   }) {
     final scoringData = ref.read(eventScoringControllerProvider(event.id));
-    final entryId = participant.isGuest ? '${participant.registrationMemberId}_guest' : participant.registrationMemberId;
+    final entryId = GuestIdHelper.buildId(participant.registrationMemberId, isGuest: participant.isGuest);
     final processedEntry = scoringData.leaderboard.firstWhereOrNull((e) => e.entryId == entryId);
 
     if (processedEntry != null) {

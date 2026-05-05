@@ -6,6 +6,7 @@ import '../../../domain/models/course_config.dart';
 import '../../../domain/scoring/handicap_calculator.dart';
 import '../../../domain/models/member.dart';
 import 'package:uuid/uuid.dart';
+import 'package:golf_society/utils/guest_id_helper.dart';
 
 class MatchPlayDrawService {
   static const _uuid = Uuid();
@@ -221,7 +222,7 @@ class MatchPlayDrawService {
     int minPhc = 999;
 
     for (final id in allPlayerIds) {
-      final cleanId = id.replaceFirst('_guest', '');
+      final cleanId = GuestIdHelper.stripGuestSuffix(id);
       final member = membersMap[cleanId];
       if (member == null) continue;
 

@@ -1,6 +1,7 @@
 import 'package:golf_society/domain/models/leaderboard_config.dart';
 import 'package:golf_society/domain/models/leaderboard_standing.dart';
 import 'package:golf_society/domain/models/competition.dart';
+import 'package:golf_society/utils/guest_id_helper.dart';
 import 'package:golf_society/domain/models/scorecard.dart';
 import 'package:golf_society/features/events/domain/models/processed_event_data.dart';
 import 'leaderboard_calculator.dart';
@@ -38,7 +39,7 @@ class BestOfSeriesCalculator implements LeaderboardCalculator {
         }
         
         for (var mId in entry.teamMemberIds) {
-          if (mId.endsWith('_guest')) continue;
+          if (GuestIdHelper.isGuestId(mId)) continue;
           playerScores.putIfAbsent(mId, () => []).add(score);
         }
       }

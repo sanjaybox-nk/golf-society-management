@@ -68,12 +68,12 @@ class CurrentMatchController extends _$CurrentMatchController {
                     final Map<String, CourseConfig> configs = {};
 
                     for (var pid in pIds) {
-                      final baseId = pid.replaceFirst('_guest', '');
+                      final baseId = GuestIdHelper.stripGuestSuffix(pid);
                       final reg = event.registrations.firstWhereOrNull((r) => r.memberId == baseId);
                       final member = membersList.firstWhereOrNull((m) => m.id == baseId);
                       
                       double index = 18.0;
-                      if (pid.contains('_guest')) {
+                      if (GuestIdHelper.isGuestId(pid)) {
                         index = double.tryParse(reg?.guestHandicap ?? '18') ?? 18.0;
                       } else {
                         index = member?.handicap ?? 18.0;
@@ -118,12 +118,12 @@ class CurrentMatchController extends _$CurrentMatchController {
                    final Map<String, CourseConfig> configs = {};
 
                    for (var pid in pIds) {
-                      final baseId = pid.replaceFirst('_guest', '');
+                      final baseId = GuestIdHelper.stripGuestSuffix(pid);
                       final reg = event.registrations.firstWhereOrNull((r) => r.memberId == baseId);
                       final member = membersList.firstWhereOrNull((m) => m.id == baseId);
                       
                       double index = 18.0;
-                      if (pid.contains('_guest')) {
+                      if (GuestIdHelper.isGuestId(pid)) {
                         index = double.tryParse(reg?.guestHandicap ?? '18') ?? 18.0;
                       } else {
                         index = member?.handicap ?? 18.0;

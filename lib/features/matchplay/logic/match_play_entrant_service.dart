@@ -1,5 +1,6 @@
 import 'package:golf_society/domain/models/golf_event.dart';
 import 'package:golf_society/domain/models/member.dart';
+import 'package:golf_society/utils/guest_id_helper.dart';
 import '../domain/match_play_tournament.dart';
 import 'package:golf_society/features/events/domain/registration_logic.dart';
 import 'package:uuid/uuid.dart';
@@ -30,7 +31,7 @@ class MatchPlayEntrantService {
 
         // 1. Check for registered guest
         if (reg.guestName != null && reg.guestName!.isNotEmpty) {
-           playerIds.add('${reg.memberId}_guest');
+           playerIds.add(GuestIdHelper.buildId(reg.memberId, isGuest: true));
            entrantName = '$entrantName & ${reg.guestName}';
         } 
         // 2. Check for chosen member partner
@@ -53,7 +54,7 @@ class MatchPlayEntrantService {
       for (var item in playing) {
         entrants.add(MatchPlayEntrant(
           id: _uuid.v4(),
-          playerIds: [item.isGuest ? '${item.registration.memberId}_guest' : item.registration.memberId],
+          playerIds: [GuestIdHelper.buildId(item.registration.memberId, isGuest: item.isGuest)],
           name: item.name,
         ));
       }

@@ -3,6 +3,7 @@ import 'package:golf_society/domain/models/golf_event.dart';
 import 'package:golf_society/domain/models/scorecard.dart';
 import 'package:golf_society/domain/scoring/scorecard_factory.dart';
 import 'package:golf_society/utils/firestore_normalizer.dart';
+import 'package:golf_society/utils/guest_id_helper.dart';
 import 'package:golf_society/domain/models/competition.dart';
 import 'package:golf_society/domain/models/event_registration.dart';
 import 'package:collection/collection.dart';
@@ -144,10 +145,10 @@ class EventAnalysisEngine {
 
     for (var s in mergedScorecards) {
       final reg = event.registrations.firstWhere(
-        (r) => r.memberId == s.entryId.replaceFirst('_guest', ''),
+        (r) => r.memberId == GuestIdHelper.stripGuestSuffix(s.entryId),
         orElse: () => EventRegistration(memberId: '', memberName: 'Unknown', attendingGolf: true),
       );
-      final name = s.entryId.endsWith('_guest') ? (reg.guestName ?? 'Guest') : reg.memberName;
+      final name = GuestIdHelper.isGuestId(s.entryId) ? (reg.guestName ?? 'Guest') : reg.memberName;
 
       // Hot Streak
       int currentStreak = 0;
@@ -375,7 +376,7 @@ class EventAnalysisEngine {
                 for (var p in chunk) {
                    final id = p['registrationMemberId'] as String;
                    participantNames[id] = teamName;
-                   participantNames['${id}_guest'] = teamName; // Case where guest ID used
+                   participantNames[GuestIdHelper.buildId(id, isGuest: true)] = teamName;
                    // print('DEBUG: Key: $id -> $teamName');
                 }
             }
@@ -405,7 +406,7 @@ class EventAnalysisEngine {
         final reg = event.registrations.firstWhereOrNull((r) => 
             (r.isGuest ? (r.guestName ?? 'Guest') : r.memberName) == name
         );
-        if (reg != null) return reg.isGuest ? '${reg.memberId}_guest' : reg.memberId;
+        if (reg != null) return GuestIdHelper.buildId(reg.memberId, isGuest: reg.isGuest);
         return null;
     }
 
@@ -422,7 +423,7 @@ class EventAnalysisEngine {
     final isStb = competition?.rules.format == CompetitionFormat.stableford;
 
     for (var s in mergedScorecards) {
-       final reg = event.registrations.firstWhereOrNull((r) => r.memberId == s.entryId.replaceFirst('_guest', ''));
+       final reg = event.registrations.firstWhereOrNull((r) => r.memberId == GuestIdHelper.stripGuestSuffix(s.entryId));
        final phc = reg?.playingHandicap ?? 0;
        
        // Calculate Hole Values (Points or Net)
@@ -451,11 +452,11 @@ class EventAnalysisEngine {
        final metrics = [getSum(9, 18), getSum(12, 18), getSum(15, 18), getSum(17, 18)];
 
        tempResults.add({
-         'playerId': s.entryId.replaceFirst('_guest', ''),
+         'playerId': GuestIdHelper.stripGuestSuffix(s.entryId),
          'playerName': reg?.memberName ?? 'Unknown',
          'points': s.points,
          'netTotal': s.netTotal,
-         'isGuest': s.entryId.endsWith('_guest'),
+         'isGuest': GuestIdHelper.isGuestId(s.entryId),
          'holeScores': s.holeScores,
          'metrics': metrics,
        });

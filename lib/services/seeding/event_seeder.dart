@@ -319,12 +319,12 @@ class EventSeeder {
           final p = group.players[j];
           final marker = group.players[(j + 1) % group.players.length];
           
-          final pId = p.isGuest ? '${p.registrationMemberId}_guest' : p.registrationMemberId;
-          final markerId = marker.isGuest ? '${marker.registrationMemberId}_guest' : marker.registrationMemberId;
+          final pId = GuestIdHelper.buildId(p.registrationMemberId, isGuest: p.isGuest);
+          final markerId = GuestIdHelper.buildId(marker.registrationMemberId, isGuest: marker.isGuest);
           markersMap[pId] = markerId;
 
           final memberId = p.registrationMemberId;
-          final entryId = p.isGuest ? '${memberId}_guest' : memberId;
+          final entryId = GuestIdHelper.buildId(memberId, isGuest: p.isGuest);
           final member = members.firstWhereOrNull((m) => m.id == memberId);
           final index = member?.handicap ?? 18.0;
           final teeName = (member?.gender == 'Female') ? 'Red' : 'Yellow';

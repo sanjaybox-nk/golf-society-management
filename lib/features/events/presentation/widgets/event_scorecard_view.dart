@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:collection/collection.dart';
 import 'package:golf_society/design_system/design_system.dart';
+import 'package:golf_society/utils/guest_id_helper.dart';
 import 'package:golf_society/domain/models/golf_event.dart';
 import 'package:golf_society/domain/models/competition.dart';
 import 'package:golf_society/domain/models/scorecard.dart';
@@ -234,8 +235,8 @@ class _EventScorecardViewState extends ConsumerState<EventScorecardView> {
   }
 
   String _getDisplayName(GolfEvent event, String entryId) {
-    if (entryId.endsWith('_guest')) {
-      final hostId = entryId.replaceFirst('_guest', '');
+    if (GuestIdHelper.isGuestId(entryId)) {
+      final hostId = GuestIdHelper.stripGuestSuffix(entryId);
       final groups = event.grouping['groups'] as List?;
       if (groups != null) {
         for (var g in groups) {

@@ -1,5 +1,6 @@
 import 'package:golf_society/domain/models/competition.dart';
 import 'package:golf_society/domain/models/course_config.dart';
+import 'package:golf_society/utils/guest_id_helper.dart';
 
 class HandicapCalculator {
   
@@ -185,7 +186,7 @@ class HandicapCalculator {
   /// Resilience: Automatically strips '_guest' suffix for lookup.
   static int getStoredPhc(Map<String, dynamic> grouping, String memberId) {
     final groups = (grouping['groups'] as List?) ?? [];
-    final lookupId = memberId.replaceFirst('_guest', '');
+    final lookupId = GuestIdHelper.stripGuestSuffix(memberId);
     for (final g in groups) {
       final players = (g['players'] as List?) ?? [];
       for (final p in players) {

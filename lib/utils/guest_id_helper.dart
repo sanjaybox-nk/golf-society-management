@@ -17,6 +17,18 @@ class GuestIdHelper {
     return player['isGuest'] == true || rawId.endsWith(_guestSuffix);
   }
 
+  /// Builds an effective player ID from a typed object's base ID and isGuest flag.
+  /// Use this for typed domain objects (EventRegistration, TeeGroupParticipant, etc.)
+  /// instead of inline string interpolation.
+  static String buildId(String baseId, {required bool isGuest}) {
+    if (!isGuest) return baseId;
+    return baseId.endsWith(_guestSuffix) ? baseId : '$baseId$_guestSuffix';
+  }
+
+  /// Returns true if a raw string player ID represents a guest.
+  /// Use this for bare string ID checks instead of inline .endsWith/_guest.
+  static bool isGuestId(String id) => id.endsWith(_guestSuffix);
+
   /// Strips the _guest suffix to get the underlying member ID.
   static String stripGuestSuffix(String id) =>
       id.endsWith(_guestSuffix) ? id.substring(0, id.length - _guestSuffix.length) : id;

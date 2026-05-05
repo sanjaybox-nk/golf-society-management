@@ -5,6 +5,7 @@ import 'package:golf_society/domain/models/golf_event.dart';
 import 'package:golf_society/domain/models/scorecard.dart';
 import 'package:golf_society/domain/models/competition.dart';
 import 'package:golf_society/domain/models/member.dart';
+import 'package:golf_society/utils/guest_id_helper.dart';
 import '../../../events/presentation/events_provider.dart';
 import '../../../members/presentation/members_provider.dart';
 import '../../../competitions/presentation/competitions_provider.dart';
@@ -195,7 +196,7 @@ class _EventAdminScoresScreenState extends ConsumerState<EventAdminScoresScreen>
             isAdmin: true,
             onTapParticipant: (p, g) {
               final scoringData = ref.read(eventScoringControllerProvider(event.id));
-              final entryId = p.isGuest ? '${p.registrationMemberId}_guest' : p.registrationMemberId;
+              final entryId = GuestIdHelper.buildId(p.registrationMemberId, isGuest: p.isGuest);
               final processedEntry = scoringData.leaderboard.firstWhereOrNull((e) => e.entryId == entryId);
               
               if (processedEntry != null) {

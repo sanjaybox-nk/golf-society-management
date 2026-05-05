@@ -3,6 +3,7 @@ import 'package:golf_society/domain/models/golf_event.dart';
 import 'package:golf_society/domain/models/member.dart';
 import 'package:collection/collection.dart';
 import 'package:golf_society/domain/models/course_config.dart';
+import 'package:golf_society/utils/guest_id_helper.dart';
 
 class ScoringResult {
   final int score;
@@ -162,7 +163,7 @@ class ScoringCalculator {
     }
 
     // 2. GENDER DETECTION (Harden matching)
-    final baseId = memberId.replaceFirst('_guest', '').trim().toLowerCase();
+    final baseId = GuestIdHelper.stripGuestSuffix(memberId).trim().toLowerCase();
     final member = membersList.firstWhereOrNull((m) {
       final mId = (m is Member ? m.id : m['id']?.toString() ?? '').toLowerCase().trim();
       return mId == baseId;
@@ -196,7 +197,7 @@ class ScoringCalculator {
 
     // 3. REGISTRATION / EVENT DEFAULT
     final registration = event.registrations.firstWhereOrNull((r) => r.memberId.toLowerCase().trim() == baseId);
-    final regTee = memberId.contains('_guest') ? registration?.guestTeeName : registration?.teeName;
+    final regTee = GuestIdHelper.isGuestId(memberId) ? registration?.guestTeeName : registration?.teeName;
     
     if (regTee != null && regTee.toLowerCase() != 'auto' && regTee != event.selectedTeeName) {
        final match = tees.firstWhereOrNull((t) => t.name.toLowerCase().trim() == regTee.toLowerCase().trim());

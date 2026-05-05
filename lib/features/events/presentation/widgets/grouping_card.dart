@@ -10,6 +10,7 @@ import 'package:golf_society/domain/models/scorecard.dart';
 import 'package:golf_society/domain/models/course_config.dart';
 import '../../../../domain/scoring/handicap_calculator.dart';
 import '../../../../domain/grouping/grouping_service.dart';
+import 'package:golf_society/utils/guest_id_helper.dart';
 import '../../../matchplay/domain/match_definition.dart';
 import '../../../matchplay/domain/match_play_calculator.dart';
 
@@ -113,7 +114,7 @@ class GroupingCard extends ConsumerWidget {
         ).toDouble();
       } else {
         for (var p in group.players) {
-          final id = p.isGuest ? '${p.registrationMemberId}_guest' : p.registrationMemberId;
+          final id = GuestIdHelper.buildId(p.registrationMemberId, isGuest: p.isGuest);
           final livePhc = phcMap?[id];
           displayTotalHandicap += livePhc?.toDouble() ?? p.playingHandicap;
         }
@@ -131,8 +132,8 @@ class GroupingCard extends ConsumerWidget {
     // 2. Relative PHC Map for Match Play
     final Map<String, int> relativePhcMap = phcMap != null ? Map.from(phcMap!) : {};
     if (isMatchPlay && rules != null) {
-      final List<String> playerIds = group.players.map((p) => p.isGuest ? '${p.registrationMemberId}_guest' : p.registrationMemberId).toList();
-      final Map<String, double> playerIndices = { for (var p in group.players) (p.isGuest ? '${p.registrationMemberId}_guest' : p.registrationMemberId) : p.handicapIndex };
+      final List<String> playerIds = group.players.map((p) => GuestIdHelper.buildId(p.registrationMemberId, isGuest: p.isGuest)).toList();
+      final Map<String, double> playerIndices = { for (var p in group.players) (GuestIdHelper.buildId(p.registrationMemberId, isGuest: p.isGuest)) : p.handicapIndex };
       final baseRating = courseConfig?.rating ?? 72.0;
       
       final Map<String, int> centralizedStrokes = MatchPlayCalculator.calculateRelativeStrokes(
@@ -148,7 +149,7 @@ class GroupingCard extends ConsumerWidget {
     // 3. Centralized Result Mapping (Unified source of truth)
     final Map<String, MatchResult> playerMatchResults = {};
     if (isScoreMode && computedEntries != null) {
-      for (final id in group.players.map((p) => p.isGuest ? '${p.registrationMemberId}_guest' : p.registrationMemberId)) {
+      for (final id in group.players.map((p) => GuestIdHelper.buildId(p.registrationMemberId, isGuest: p.isGuest))) {
         final entry = computedEntries![id];
         if (entry != null && entry.isMatch && entry.matchStatus != null) {
            // Create a lightweight result for display
@@ -195,7 +196,7 @@ class GroupingCard extends ConsumerWidget {
 
       for (int i = 0; i < group.players.length; i++) {
         final p = group.players[i];
-        final id = p.isGuest ? '${p.registrationMemberId}_guest' : p.registrationMemberId;
+        final id = GuestIdHelper.buildId(p.registrationMemberId, isGuest: p.isGuest);
         final scoreText = scoreMap![id];
 
         if (scoreText != null && scoreText != '-') {
@@ -302,7 +303,7 @@ class GroupingCard extends ConsumerWidget {
             if (rules?.isUnifiedTeamFormat == true) {
               return players.asMap().entries.map((entry) {
                 final p = entry.value;
-                final id = p.isGuest ? '${p.registrationMemberId}_guest' : p.registrationMemberId;
+                final id = GuestIdHelper.buildId(p.registrationMemberId, isGuest: p.isGuest);
                 final isLast = entry.key == players.length - 1;
 
                 return Column(
@@ -326,7 +327,7 @@ class GroupingCard extends ConsumerWidget {
                 final List<TeeGroupParticipant> sideB = [];
 
                 for (var p in players) {
-                  final pid = p.isGuest ? '${p.registrationMemberId}_guest' : p.registrationMemberId;
+                  final pid = GuestIdHelper.buildId(p.registrationMemberId, isGuest: p.isGuest);
                   if (processedIds.contains(pid)) continue;
 
                   if (match.team1Ids.contains(pid) || match.team1Ids.contains(p.registrationMemberId)) {
@@ -354,7 +355,7 @@ class GroupingCard extends ConsumerWidget {
 
                   // Add Side A Cards
                   for (var p in sideA) {
-                    final id = p.isGuest ? '${p.registrationMemberId}_guest' : p.registrationMemberId;
+                    final id = GuestIdHelper.buildId(p.registrationMemberId, isGuest: p.isGuest);
                     processedIds.add(id);
                     final tile = buildParticipantTile(p, id, 'A');
                     children.add(isAdmin ? _wrapWithDraggable(context, p, tile) : tile);
@@ -384,7 +385,7 @@ class GroupingCard extends ConsumerWidget {
 
                   // Add Side B Cards
                   for (var p in sideB) {
-                    final id = p.isGuest ? '${p.registrationMemberId}_guest' : p.registrationMemberId;
+                    final id = GuestIdHelper.buildId(p.registrationMemberId, isGuest: p.isGuest);
                     processedIds.add(id);
                     final tile = buildParticipantTile(p, id, 'B');
                     children.add(isAdmin ? _wrapWithDraggable(context, p, tile) : tile);
@@ -401,7 +402,7 @@ class GroupingCard extends ConsumerWidget {
 
               // 2. Add remaining players (Fallback)
               for (var p in players) {
-                final id = p.isGuest ? '${p.registrationMemberId}_guest' : p.registrationMemberId;
+                final id = GuestIdHelper.buildId(p.registrationMemberId, isGuest: p.isGuest);
                 if (!processedIds.contains(id)) {
                   final tile = buildParticipantTile(p, id, null);
                   children.add(isAdmin ? _wrapWithDraggable(context, p, tile) : tile);
@@ -412,7 +413,7 @@ class GroupingCard extends ConsumerWidget {
               // Legacy Flat List / Split Team Logic
               for (int index = 0; index < group.players.length; index++) {
                 final p = group.players[index];
-                final id = p.isGuest ? '${p.registrationMemberId}_guest' : p.registrationMemberId;
+                final id = GuestIdHelper.buildId(p.registrationMemberId, isGuest: p.isGuest);
                 
                 final tile = buildParticipantTile(p, id, null, useCard: true);
                 Widget playerWidget = isAdmin ? _wrapWithDraggable(context, p, tile) : tile;

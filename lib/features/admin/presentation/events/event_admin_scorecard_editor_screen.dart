@@ -3,6 +3,7 @@ import 'package:collection/collection.dart';
 import 'package:golf_society/domain/models/event_registration.dart';
 import 'package:golf_society/domain/models/scorecard.dart';
 import 'package:golf_society/design_system/design_system.dart';
+import 'package:golf_society/utils/guest_id_helper.dart';
 import 'package:golf_society/domain/models/golf_event.dart';
 import 'package:golf_society/domain/models/competition.dart';
 import 'package:golf_society/domain/models/course_config.dart';
@@ -65,7 +66,7 @@ class EventAdminScorecardEditorScreen extends ConsumerWidget {
                   
                   // Calculate PHC for this player
                   final reg = event.registrations.firstWhere(
-                    (r) => (r.isGuest ? '${r.memberId}_guest' : r.memberId) == playerId,
+                    (r) => GuestIdHelper.buildId(r.memberId, isGuest: r.isGuest) ==playerId,
                     orElse: () => event.registrations.firstWhereOrNull((r) => r.memberId == playerId) ?? 
                                   EventRegistration(memberId: playerId, memberName: 'Unknown Player', attendingGolf: true),
                   );
@@ -212,7 +213,7 @@ class EventAdminScorecardEditorScreen extends ConsumerWidget {
   String _getDisplayName(GolfEvent event, String id) {
     try {
       final reg = event.registrations.firstWhere(
-        (r) => (r.isGuest ? '${r.memberId}_guest' : r.memberId) == id,
+        (r) => GuestIdHelper.buildId(r.memberId, isGuest: r.isGuest) ==id,
       );
       return reg.displayName;
     } catch (_) {

@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/foundation.dart';
 import 'package:golf_society/utils/string_utils.dart';
+import 'package:golf_society/utils/guest_id_helper.dart';
 import 'package:collection/collection.dart';
 import 'package:go_router/go_router.dart';
 import 'package:golf_society/domain/models/scorecard.dart';
@@ -100,8 +101,8 @@ class ScorecardModal {
               membersList: membersList,
               manualTeeName: manualTee,
             );
-            if (pid.contains('_guest')) {
-              final baseId = pid.replaceAll('_guest', '');
+            if (GuestIdHelper.isGuestId(pid)) {
+              final baseId = GuestIdHelper.stripGuestSuffix(pid);
               final reg = event.registrations.firstWhereOrNull((r) => r.memberId == baseId);
               playerIndices[pid] = double.tryParse(reg?.guestHandicap ?? '18') ?? 18.0;
             } else {
@@ -359,7 +360,7 @@ class ScorecardModal {
                                             if (idx >= 0) {
                                               final reg = registrations[idx];
                                               // Determine if guest or member
-                                              final isGuestId = effectiveFocusId.contains('_guest');
+                                              final isGuestId = GuestIdHelper.isGuestId(effectiveFocusId);
                                               final updatedReg = isGuestId 
                                                   ? reg.copyWith(guestTeeName: newTee)
                                                   : reg.copyWith(teeName: newTee);

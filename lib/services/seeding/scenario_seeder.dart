@@ -1,5 +1,6 @@
 import 'dart:math';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:golf_society/utils/guest_id_helper.dart';
 import 'package:golf_society/domain/models/golf_event.dart';
 import 'package:golf_society/domain/models/competition.dart';
 import 'package:golf_society/domain/models/member.dart';
@@ -86,7 +87,7 @@ class ScenarioSeeder {
       final bool isGroupSubmitted = (progress < 0.7);
 
       for (var p in group.players) {
-        final entryId = p.isGuest ? '${p.registrationMemberId}_guest' : p.registrationMemberId;
+        final entryId = GuestIdHelper.buildId(p.registrationMemberId, isGuest: p.isGuest);
         final s = scorecards.firstWhereOrNull((sc) => sc.entryId == entryId);
         if (s == null) continue;
 
@@ -192,7 +193,7 @@ class ScenarioSeeder {
 
       for (int j = 0; j < group.players.length; j++) {
         final p = group.players[j];
-        final entryId = p.isGuest ? '${p.registrationMemberId}_guest' : p.registrationMemberId;
+        final entryId = GuestIdHelper.buildId(p.registrationMemberId, isGuest: p.isGuest);
         final s = scorecards.firstWhereOrNull((sc) => sc.entryId == entryId);
         if (s == null) continue;
 
@@ -613,8 +614,8 @@ class ScenarioSeeder {
       for (int j = 0; j < group.players.length; j++) {
         final p = group.players[j];
         final marker = group.players[(j + 1) % group.players.length];
-        final pId = p.isGuest ? '${p.registrationMemberId}_guest' : p.registrationMemberId;
-        final markerId = marker.isGuest ? '${marker.registrationMemberId}_guest' : marker.registrationMemberId;
+        final pId = GuestIdHelper.buildId(p.registrationMemberId, isGuest: p.isGuest);
+        final markerId = GuestIdHelper.buildId(marker.registrationMemberId, isGuest: marker.isGuest);
         allMarkers[pId] = markerId;
       }
 
@@ -638,7 +639,7 @@ class ScenarioSeeder {
 
       for (int j = 0; j < group.players.length; j++) {
         final p = group.players[j];
-        final entryId = p.isGuest ? '${p.registrationMemberId}_guest' : p.registrationMemberId;
+        final entryId = GuestIdHelper.buildId(p.registrationMemberId, isGuest: p.isGuest);
         final s = scorecards.firstWhereOrNull((sc) => sc.entryId == entryId);
         if (s == null) continue;
 

@@ -14,6 +14,7 @@ import 'package:golf_society/features/events/presentation/widgets/scorecard_moda
 import 'package:golf_society/features/competitions/presentation/widgets/leaderboard_widget.dart';
 import 'package:golf_society/features/competitions/presentation/competitions_provider.dart';
 import 'package:golf_society/domain/scoring/handicap_calculator.dart';
+import 'package:golf_society/utils/guest_id_helper.dart';
 
 class AdminScorecardList extends ConsumerWidget {
   final GolfEvent event;
@@ -116,7 +117,7 @@ class AdminScorecardList extends ConsumerWidget {
     final status = scorecard?.status ?? ScorecardStatus.draft;
     final isConfirmed = status == ScorecardStatus.reviewed || status == ScorecardStatus.finalScore;
     final isPending = status == ScorecardStatus.submitted;
-    final id = item.isGuest ? '${item.registration.memberId}_guest' : item.registration.memberId;
+    final id = GuestIdHelper.buildId(item.registration.memberId, isGuest: item.isGuest);
 
     final member = membersList.firstWhereOrNull((m) => m.id == item.registration.memberId);
     final double baseHcp = item.isGuest 
@@ -172,7 +173,7 @@ class AdminScorecardList extends ConsumerWidget {
 
   Widget _buildTeamTile(BuildContext context, WidgetRef ref, int index, TeamScoreGroup team, Competition? comp) {
     final names = team.players.map((p) => p.name).toList();
-    final ids = team.players.map((p) => p.isGuest ? '${p.registrationMemberId}_guest' : p.registrationMemberId).toList();
+    final ids = team.players.map((p) => GuestIdHelper.buildId(p.registrationMemberId, isGuest: p.isGuest)).toList();
     
     Scorecard? scorecard;
     for (final id in ids) {
@@ -352,8 +353,8 @@ class AdminScorecardList extends ConsumerWidget {
     );
     
     final phc = HandicapCalculator.calculatePlayingHandicap(
-      handicapIndex: card.entryId.contains('_guest') 
-          ? (double.tryParse(event.registrations.firstWhereOrNull((r) => '${r.memberId}_guest' == card.entryId)?.guestHandicap ?? '18.0') ?? 18.0)
+      handicapIndex: GuestIdHelper.isGuestId(card.entryId)
+          ? (double.tryParse(event.registrations.firstWhereOrNull((r) => GuestIdHelper.buildId(r.memberId, isGuest: true) == card.entryId)?.guestHandicap ?? '18.0') ?? 18.0)
           : (membersList.firstWhereOrNull((m) => m.id == card.entryId)?.handicap ?? 18.0),
       rules: rules,
       courseConfig: playerTeeConfig,
@@ -388,7 +389,7 @@ class AdminScorecardList extends ConsumerWidget {
 
   Scorecard? _getScorecard({RegistrationItem? item, EventRegistration? reg}) {
     if (item != null) {
-      final expectedId = item.isGuest ? '${item.registration.memberId}_guest' : item.registration.memberId;
+      final expectedId = GuestIdHelper.buildId(item.registration.memberId, isGuest: item.isGuest);
       try {
         return scorecards.firstWhere((s) => s.entryId == expectedId);
       } catch (_) {
@@ -397,7 +398,7 @@ class AdminScorecardList extends ConsumerWidget {
     }
     
     if (reg != null) {
-       final expectedId = reg.isGuest ? '${reg.memberId}_guest' : reg.memberId;
+       final expectedId = GuestIdHelper.buildId(reg.memberId, isGuest: reg.isGuest);
        try {
          return scorecards.firstWhere((s) => s.entryId == expectedId);
        } catch (_) {

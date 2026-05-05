@@ -36,7 +36,7 @@ class EventScoringProcessor {
     // 27. [NEW] Synchronize "Playing" set with RegistrationLogic (FCFS + Capacity Aware)
     final playingItems = RegistrationLogic.getPlayingParticipants(event);
     final playingIds = playingItems.map((item) {
-      return item.isGuest ? '${item.registration.memberId}_guest' : item.registration.memberId;
+      return GuestIdHelper.buildId(item.registration.memberId, isGuest: item.isGuest);
     }).toSet();
 
     // 1. Process Individual Scores
@@ -53,15 +53,15 @@ class EventScoringProcessor {
 
     final allPlayerIds = {
       ...event.registrations.map((r) => r.memberId),
-      ...event.registrations.where((r) => r.guestName != null).map((r) => '${r.memberId}_guest'),
+      ...event.registrations.where((r) => r.guestName != null).map((r) => GuestIdHelper.buildId(r.memberId, isGuest: true)),
       ...event.results.map((r) => FirestoreNormalizer.resolveMemberId(r)),
       ...liveScorecards.map((s) => s.entryId),
       if (currentUserId case String id) id,
     }..remove('');
 
     for (var effectivePid in allPlayerIds) {
-      final isGuestSuffix = effectivePid.endsWith('_guest');
-      final basePid = isGuestSuffix ? effectivePid.replaceFirst('_guest', '') : effectivePid;
+      final isGuestSuffix = GuestIdHelper.isGuestId(effectivePid);
+      final basePid = GuestIdHelper.stripGuestSuffix(effectivePid);
       
       final reg = event.registrations.firstWhereOrNull((r) => r.memberId == basePid) ??
                   event.registrations.firstWhereOrNull((r) => r.memberId == effectivePid);
@@ -222,7 +222,7 @@ class EventScoringProcessor {
       int? myGroupIdx;
       for (int i = 0; i < rawGroups.length; i++) {
         final gPlayers = (rawGroups[i]['players'] as List);
-        if (gPlayers.any((p) => p['registrationMemberId'] == s.playerId || '${p['registrationMemberId']}_guest' == s.playerId)) {
+        if (gPlayers.any((p) => p['registrationMemberId'] == s.playerId || GuestIdHelper.buildId(p['registrationMemberId'] as String, isGuest: true) == s.playerId)) {
           myGroupIdx = i;
           break;
         }
@@ -279,14 +279,14 @@ class EventScoringProcessor {
            
            // If any player in the group doesn't have a result yet, try virtual match
            final needsVirtualMatch = group.players.any((p) {
-             final pid = p.isGuest ? '${p.registrationMemberId}_guest' : p.registrationMemberId;
+             final pid = GuestIdHelper.buildId(p.registrationMemberId, isGuest: p.isGuest);
              return !playerMatchResults.containsKey(pid);
            });
 
            if (needsVirtualMatch) {
               if (isFourball && group.players.length >= 4) {
-                final t1Ids = group.players.take(2).map((p) => p.isGuest ? '${p.registrationMemberId}_guest' : p.registrationMemberId).toList();
-                final t2Ids = group.players.skip(2).take(2).map((p) => p.isGuest ? '${p.registrationMemberId}_guest' : p.registrationMemberId).toList();
+                final t1Ids = group.players.take(2).map((p) => GuestIdHelper.buildId(p.registrationMemberId, isGuest: p.isGuest)).toList();
+                final t2Ids = group.players.skip(2).take(2).map((p) => GuestIdHelper.buildId(p.registrationMemberId, isGuest: p.isGuest)).toList();
                 final res = MatchPlayCalculator.calculate(
                   match: MatchDefinition(id: 'v_$groupIdx', type: MatchType.fourball, team1Ids: t1Ids, team2Ids: t2Ids),
                   scorecards: liveScorecards,
@@ -300,8 +300,8 @@ class EventScoringProcessor {
                 // Singles matches for pairs
                 for (int i = 0; i < group.players.length; i += 2) {
                   if (i + 1 < group.players.length) {
-                    final p1Id = group.players[i].isGuest ? '${group.players[i].registrationMemberId}_guest' : group.players[i].registrationMemberId;
-                    final p2Id = group.players[i+1].isGuest ? '${group.players[i+1].registrationMemberId}_guest' : group.players[i+1].registrationMemberId;
+                    final p1Id = GuestIdHelper.buildId(group.players[i].registrationMemberId, isGuest: group.players[i].isGuest);
+                    final p2Id = GuestIdHelper.buildId(group.players[i+1].registrationMemberId, isGuest: group.players[i+1].isGuest);
                     final res = MatchPlayCalculator.calculate(
                       match: MatchDefinition(id: 'id_v_${groupIdx}_$i', type: MatchType.singles, team1Ids: [p1Id], team2Ids: [p2Id]),
                       scorecards: liveScorecards,
@@ -357,7 +357,7 @@ class EventScoringProcessor {
         // they should only appear on the leaderboard if they are actually participating.
         final bool isParticipating = playingIds.contains(p.playerId) || 
                                     (event.grouping['groups'] as List?)?.any((g) => 
-                                      (g['players'] as List).any((pl) => pl['registrationMemberId'] == p.playerId || '${pl['registrationMemberId']}_guest' == p.playerId)
+                                      (g['players'] as List).any((pl) => pl['registrationMemberId'] == p.playerId || GuestIdHelper.buildId(pl['registrationMemberId'] as String, isGuest: true) == p.playerId)
                                     ) == true ||
                                     p.result.holesPlayed > 0 ||
                                     (liveScorecards.any((s) => s.entryId == p.playerId && s.holeScores.any((h) => h != null)));
@@ -447,7 +447,7 @@ class EventScoringProcessor {
             final teamPlayers = group.players.skip(i).take(teamSize).toList();
             if (teamPlayers.isEmpty) continue;
 
-            final playerIds = teamPlayers.map((p) => p.isGuest ? '${p.registrationMemberId}_guest' : p.registrationMemberId).toList();
+            final playerIds = teamPlayers.map((p) => GuestIdHelper.buildId(p.registrationMemberId, isGuest: p.isGuest)).toList();
             final names = teamPlayers.map((p) => p.name).toList();
             final teamResults = playerIds.map((id) => individualScores.firstWhereOrNull((s) => s.playerId == id)?.result).whereType<ScoringResult>().toList();
 
@@ -467,7 +467,7 @@ class EventScoringProcessor {
             }
 
             final teamStatus = teamPlayers.map((p) {
-              final id = p.isGuest ? '${p.registrationMemberId}_guest' : p.registrationMemberId;
+              final id = GuestIdHelper.buildId(p.registrationMemberId, isGuest: p.isGuest);
               final card = liveScorecards.firstWhereOrNull((s) => s.entryId == id);
               return ScoringUtils.resolveScoringStatus(card);
             }).firstWhere((s) => s != ScoringStatus.ok, orElse: () => ScoringStatus.ok);
@@ -508,7 +508,7 @@ class EventScoringProcessor {
               teamMemberIds: playerIds,
               teamMemberNames: names,
               individualPlayingHandicaps: teamPlayers.map((p) {
-                final id = p.isGuest ? '${p.registrationMemberId}_guest' : p.registrationMemberId;
+                final id = GuestIdHelper.buildId(p.registrationMemberId, isGuest: p.isGuest);
                 return individualScores.firstWhereOrNull((s) => s.playerId == id)?.playingHandicap ?? 0;
               }).toList(),
               holeScores: finalResult.holeScores,
@@ -574,7 +574,7 @@ class EventScoringProcessor {
 
     for (var group in groups) {
        final groupIndividualResults = group.players.map((p) {
-         final pid = p.isGuest ? '${p.registrationMemberId}_guest' : p.registrationMemberId;
+         final pid = GuestIdHelper.buildId(p.registrationMemberId, isGuest: p.isGuest);
          return individualScores.firstWhereOrNull((s) => s.playerId == pid)?.result;
        }).whereType<ScoringResult>().toList();
 

@@ -1,4 +1,5 @@
 import 'package:golf_society/domain/models/course_config.dart';
+import 'package:golf_society/utils/guest_id_helper.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'dart:math' as math;
@@ -102,7 +103,7 @@ class _EventStatsContent extends ConsumerWidget {
 
     // Use the authoritative individual score for personal recap
     final myScoreEntry = data.individualScores.firstWhereOrNull(
-      (s) => s.playerId.replaceFirst('_guest', '') == currentUserId
+      (s) => GuestIdHelper.stripGuestSuffix(s.playerId) == currentUserId
     );
 
     final statsReleased = event.isStatsReleased == true || isAdmin || event.status == EventStatus.completed;

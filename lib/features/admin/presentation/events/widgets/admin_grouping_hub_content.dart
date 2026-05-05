@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:golf_society/design_system/design_system.dart';
 import 'package:golf_society/domain/models/golf_event.dart';
+import 'package:golf_society/utils/guest_id_helper.dart';
 import 'package:collection/collection.dart';
 import 'package:golf_society/domain/models/member.dart';
 import 'package:golf_society/domain/models/competition.dart';
@@ -239,7 +240,7 @@ class _AdminGroupingHubContentState extends ConsumerState<AdminGroupingHubConten
                     matchPlayMode: matchPlayMode,
                     matches: event.matches,
                     groupIndex: index,
-                    hcMap: {for (var p in localGroups.expand((g) => g.players)) (p.isGuest ? '${p.registrationMemberId}_guest' : p.registrationMemberId): p.handicapIndex},
+                    hcMap: {for (var p in localGroups.expand((g) => g.players)) GuestIdHelper.buildId(p.registrationMemberId, isGuest: p.isGuest): p.handicapIndex},
                      scorecardMap: scorecardsAsync.asData?.value != null 
                          ? {for (var s in scorecardsAsync.asData!.value) s.entryId: s}
                          : null,
