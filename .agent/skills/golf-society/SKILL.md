@@ -5,6 +5,8 @@ description: Coding conventions, architecture patterns, and design system rules 
 
 # Golf Society — Agent Skill
 
+> For full project history, current state, and key decisions: `docs/PROJECT_CONTEXT.md`
+
 ## Stack
 - Flutter/Dart `^3.8.0`, Riverpod `^3.3.1`, go_router `^17.2.0`
 - Firebase (Auth, Firestore, Storage)
