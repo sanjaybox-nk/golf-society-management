@@ -59,7 +59,7 @@ class StorageService {
     } catch (e) {
       if (e is FirebaseException) {
          // Log the full error to debug console
-         debugPrint('Firebase Storage Error: ${e.code} - ${e.message}');
+         if (kDebugMode) debugPrint('Firebase Storage Error: ${e.code} - ${e.message}');
          throw Exception('Upload failed: ${e.message}');
       }
       rethrow;

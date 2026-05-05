@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter/foundation.dart';
 import 'package:golf_society/domain/models/member.dart';
 
 import 'package:golf_society/features/members/presentation/members_provider.dart';
@@ -49,7 +50,7 @@ class AdminActionService {
     // Placeholder for persistent audit logging
     // In a real implementation, this would write to an 'audit_logs' collection
     // ignore: avoid_print
-    print('AUDIT [$type]: $message');
+    if (kDebugMode) print('AUDIT [$type]: $message');
   }
 
   /// Placeholder for data export logic (PDF/CSV)

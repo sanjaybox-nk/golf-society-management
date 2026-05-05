@@ -39,6 +39,12 @@ class _CurrencySelectionScreenState extends ConsumerState<CurrencySelectionScree
   }
 
   @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final spacing = Theme.of(context).extension<AppSpacingTokens>();
     final societyConfig = ref.watch(themeControllerProvider);

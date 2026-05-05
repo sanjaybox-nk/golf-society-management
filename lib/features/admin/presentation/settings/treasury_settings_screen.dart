@@ -9,9 +9,24 @@ class TreasurySettingsScreen extends ConsumerStatefulWidget {
 }
 
 class _TreasurySettingsScreenState extends ConsumerState<TreasurySettingsScreen> {
+  late final TextEditingController _balanceController;
+
+  @override
+  void initState() {
+    super.initState();
+    final initialBalance = ref.read(themeControllerProvider).startingBalance;
+    _balanceController = TextEditingController(text: initialBalance.toStringAsFixed(0));
+  }
+
+  @override
+  void dispose() {
+    _balanceController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
-    final config = ref.watch(themeControllerProvider);
+    ref.watch(themeControllerProvider);
     final theme = Theme.of(context);
     final spacing = theme.extension<AppSpacingTokens>();
 
@@ -37,7 +52,7 @@ class _TreasurySettingsScreenState extends ConsumerState<TreasurySettingsScreen>
                   children: [
                     BoxyArtInputField(
                       label: 'Opening bank balance',
-                      controller: TextEditingController(text: config.startingBalance.toStringAsFixed(0)),
+                      controller: _balanceController,
                       prefixIcon: const Icon(Icons.account_balance_rounded),
                       keyboardType: const TextInputType.numberWithOptions(decimal: true),
                       onChanged: (val) {

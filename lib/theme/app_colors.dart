@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:golf_society/domain/models/society_config.dart';
 
@@ -136,7 +137,7 @@ class AppColors {
                final hex = tColor.replaceAll('#', '').padLeft(8, 'F');
                return Color(int.parse(hex, radix: 16));
              } catch (e) {
-               debugPrint('Error parsing tee color: $tColor');
+               if (kDebugMode) debugPrint('Error parsing tee color: $tColor');
              }
            }
          }

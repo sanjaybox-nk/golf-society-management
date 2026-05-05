@@ -45,7 +45,7 @@ class MatchPlaySeeder {
   }
 
   Future<String> _seedRegistration() async {
-    debugPrint('--- SEEDING MATCH PLAY: STAGE 1 (REGISTRATION) ---');
+    if (kDebugMode) debugPrint('--- SEEDING MATCH PLAY: STAGE 1 (REGISTRATION) ---');
     
     final eventsRepo = ref.read(eventsRepositoryProvider);
     final compRepo = ref.read(competitionsRepositoryProvider);
@@ -54,7 +54,7 @@ class MatchPlaySeeder {
     final courseRepo = ref.read(courseRepositoryProvider);
     var courses = await courseRepo.watchCourses().first;
     if (courses.isEmpty) {
-      debugPrint('No courses found, seeding default course library...');
+      if (kDebugMode) debugPrint('No courses found, seeding default course library...');
       courses = await CourseSeeder(ref, random).seed();
     }
     final course = courses.first;
@@ -139,7 +139,7 @@ class MatchPlaySeeder {
 
   Future<void> _seedDrawPublished() async {
     final eventId = await _seedRegistration();
-    debugPrint('--- SEEDING MATCH PLAY: STAGE 2 (DRAW PUBLISHED) ---');
+    if (kDebugMode) debugPrint('--- SEEDING MATCH PLAY: STAGE 2 (DRAW PUBLISHED) ---');
 
     final mpRepo = ref.read(matchPlayRepositoryProvider);
     final eventsRepo = ref.read(eventsRepositoryProvider);
@@ -181,7 +181,7 @@ class MatchPlaySeeder {
   }
 
   Future<void> _seedMidRoundResults() async {
-    debugPrint('--- SEEDING MATCH PLAY: STAGE 3 (PARTIAL RESULTS) ---');
+    if (kDebugMode) debugPrint('--- SEEDING MATCH PLAY: STAGE 3 (PARTIAL RESULTS) ---');
     
     final mpRepo = ref.read(matchPlayRepositoryProvider);
     final eventsRepo = ref.read(eventsRepositoryProvider);

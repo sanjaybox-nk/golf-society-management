@@ -1,4 +1,5 @@
 import 'package:go_router/go_router.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:collection/collection.dart';
 import 'package:golf_society/design_system/design_system.dart';
@@ -103,7 +104,7 @@ CustomTransitionPage boxyPage({
       ? 'hub:$hubId:${isAdmin ? 'admin' : 'user'}' 
       : 'page:${state.matchedLocation}');
   
-  debugPrint('DEBUG_ROUTER [HARDENED]: Identity anchored -> $stableKey');
+  if (kDebugMode) debugPrint('DEBUG_ROUTER [HARDENED]: Identity anchored -> $stableKey');
 
   return CustomTransitionPage(
     key: stableKey,

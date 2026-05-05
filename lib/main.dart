@@ -1,4 +1,5 @@
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 // ForceSync: Unified Scorecard UI Update
 
@@ -21,10 +22,10 @@ void main() async {
      // [FIX] Ensure we are authenticated for Storage Rules
      if (FirebaseAuth.instance.currentUser == null) {
        await FirebaseAuth.instance.signInAnonymously();
-       debugPrint('✅ Signed in anonymously for development');
+       if (kDebugMode) debugPrint('✅ Signed in anonymously for development');
      }
   } catch (e) {
-    debugPrint('Firebase init failed (expected if no config): $e');
+    if (kDebugMode) debugPrint('Firebase init failed (expected if no config): $e');
   }
 
   final prefs = await SharedPreferences.getInstance();

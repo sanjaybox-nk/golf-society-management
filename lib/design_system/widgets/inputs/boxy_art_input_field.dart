@@ -240,7 +240,7 @@ class _BoxyArtFormFieldState extends State<BoxyArtFormField> {
 }
 
 /// Legacy alias for BoxyArtInputField with specific naming.
-class ModernTextField extends StatelessWidget {
+class ModernTextField extends StatefulWidget {
   final String label;
   final String? initialValue;
   final String? hintText;
@@ -263,16 +263,37 @@ class ModernTextField extends StatelessWidget {
   });
 
   @override
+  State<ModernTextField> createState() => _ModernTextFieldState();
+}
+
+class _ModernTextFieldState extends State<ModernTextField> {
+  TextEditingController? _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.initialValue != null) {
+      _controller = TextEditingController(text: widget.initialValue);
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller?.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return BoxyArtInputField(
-      label: label,
-      controller: initialValue != null ? TextEditingController(text: initialValue) : null,
-      hint: hintText,
-      onChanged: onChanged,
-      prefixIcon: icon is IconData ? Icon(icon) : (icon as Widget?),
-      readOnly: readOnly,
-      validator: validator,
-      isSeamless: isSeamless,
+      label: widget.label,
+      controller: _controller,
+      hint: widget.hintText,
+      onChanged: widget.onChanged,
+      prefixIcon: widget.icon is IconData ? Icon(widget.icon) : (widget.icon as Widget?),
+      readOnly: widget.readOnly,
+      validator: widget.validator,
+      isSeamless: widget.isSeamless,
     );
   }
 }

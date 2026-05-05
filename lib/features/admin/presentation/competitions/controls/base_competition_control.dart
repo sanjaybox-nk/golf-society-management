@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter/foundation.dart';
 import 'package:uuid/uuid.dart';
 import 'package:go_router/go_router.dart';
 import 'package:golf_society/domain/models/competition.dart';
@@ -123,17 +124,17 @@ abstract class BaseCompetitionControlState<T extends BaseCompetitionControl> ext
        try {
         final repo = ref.read(competitionsRepositoryProvider);
         
-        debugPrint('🎮 Saving competition: ID=${newComp.id}, Name=${newComp.name}, Ver=${newComp.computeVersion}, Allowance=${newComp.rules.handicapAllowance}');
+        if (kDebugMode) debugPrint('🎮 Saving competition: ID=${newComp.id}, Name=${newComp.name}, Ver=${newComp.computeVersion}, Allowance=${newComp.rules.handicapAllowance}');
         
         if (widget.competition == null) {
-          debugPrint('  → Creating NEW competition');
+          if (kDebugMode) debugPrint('  → Creating NEW competition');
           if (widget.isTemplate) {
             createdId = await repo.addTemplate(newComp);
           } else {
             createdId = await repo.addCompetition(newComp);
           }
         } else {
-          debugPrint('  → Updating EXISTING competition');
+          if (kDebugMode) debugPrint('  → Updating EXISTING competition');
           if (widget.isTemplate) {
             await repo.updateTemplate(newComp);
           } else {
@@ -142,7 +143,7 @@ abstract class BaseCompetitionControlState<T extends BaseCompetitionControl> ext
           createdId = newComp.id;
         }
         
-        debugPrint('  ✅ Save complete! ID=$createdId');
+        if (kDebugMode) debugPrint('  ✅ Save complete! ID=$createdId');
         
         // Invalidate the cache so fresh data is loaded next time
         ref.invalidate(competitionDetailProvider(createdId));

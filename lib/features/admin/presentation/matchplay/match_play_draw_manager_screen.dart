@@ -725,62 +725,66 @@ class _ManualResultSheet extends StatelessWidget {
     );
   }
 
-  void _showScoreDialog(BuildContext context) {
+  Future<void> _showScoreDialog(BuildContext context) async {
     final controller = TextEditingController();
-    int winner = 1; // 1 or 2
+    int winner = 1;
 
-    BoxyArtDialog.show(
-      context: context,
-      title: 'Custom Result',
-      content: StatefulBuilder(
-        builder: (context, setState) => Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            BoxyArtInputField(
-              controller: controller,
-              label: 'Result Text',
-              hint: 'e.g. 2 & 1',
-            ),
-            const SizedBox(height: AppSpacing.lg),
-            Row(
-              children: [
-                Expanded(
-                  child: BoxyArtButton(
-                    title: 'Side A Wins',
-                    isSmall: true,
-                    isPrimary: winner == 1,
-                    isSecondary: winner != 1,
-                    onTap: () => setState(() => winner = 1),
+    try {
+      await BoxyArtDialog.show(
+        context: context,
+        title: 'Custom Result',
+        content: StatefulBuilder(
+          builder: (context, setState) => Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              BoxyArtInputField(
+                controller: controller,
+                label: 'Result Text',
+                hint: 'e.g. 2 & 1',
+              ),
+              const SizedBox(height: AppSpacing.lg),
+              Row(
+                children: [
+                  Expanded(
+                    child: BoxyArtButton(
+                      title: 'Side A Wins',
+                      isSmall: true,
+                      isPrimary: winner == 1,
+                      isSecondary: winner != 1,
+                      onTap: () => setState(() => winner = 1),
+                    ),
                   ),
-                ),
-                const SizedBox(width: AppSpacing.sm),
-                Expanded(
-                  child: BoxyArtButton(
-                    title: 'Side B Wins',
-                    isSmall: true,
-                    isPrimary: winner == 2,
-                    isSecondary: winner != 2,
-                    onTap: () => setState(() => winner = 2),
+                  const SizedBox(width: AppSpacing.sm),
+                  Expanded(
+                    child: BoxyArtButton(
+                      title: 'Side B Wins',
+                      isSmall: true,
+                      isPrimary: winner == 2,
+                      isSecondary: winner != 2,
+                      onTap: () => setState(() => winner = 2),
+                    ),
                   ),
-                ),
-              ],
-            ),
-          ],
+                ],
+              ),
+            ],
+          ),
         ),
-      ),
-      confirmText: 'SET RESULT',
-      onConfirm: () {
-        onUpdate(MatchResult(
-          matchId: match.id,
-          winningTeamIndex: winner - 1,
-          status: controller.text.toUpperCase(),
-          score: 1, // Placeholder
-          holeResults: [],
-          holesPlayed: 0,
-          isFinal: true,
-        ));
-      },
-    );
+        confirmText: 'SET RESULT',
+        onConfirm: () {
+          onUpdate(MatchResult(
+            matchId: match.id,
+            winningTeamIndex: winner - 1,
+            status: controller.text.toUpperCase(),
+            score: 1,
+            holeResults: [],
+            holesPlayed: 0,
+            isFinal: true,
+          ));
+        },
+      );
+    } finally {
+      controller.dispose();
+    }
   }
 }
 
