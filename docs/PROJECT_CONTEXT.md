@@ -9,7 +9,7 @@ A Flutter app for managing a golf society — events, scoring, handicaps, match 
 
 ## Current state (as of 2026-05-05)
 
-The codebase has just completed a full architectural refactor driven by a May 2026 audit of all 361 source files (~79k LOC). All 5 phases are complete and merged to `main`. The app is feature-complete and heading toward production infrastructure (CI/CD, TestFlight, Play Store).
+The codebase has just completed a full architectural refactor driven by a May 2026 audit of all 361 source files (~79k LOC). All 6 phases are complete and merged to `main`. The app is feature-complete and heading toward production infrastructure (CI/CD, TestFlight, Play Store).
 
 Full audit report: `docs/CODEBASE_AUDIT_REPORT.md`
 
@@ -63,6 +63,12 @@ It is safe to re-run — already-normalised documents are skipped.
 | `ScrambleStrategy.isTeamBased == true` but `texas`/`florida` subtypes are not in the strategy | Those are format overlays, not pure format differences; handled separately in the processor |
 | Stacked PRs should each target `main` directly | Merging stacked branches into each other causes commits to land on feature branches, not main |
 
+### Phase 6 — Post-audit sweep (PRs #7–#11, merged 2026-05-05)
+- **Guest ID sweep** — 72 raw `'_guest'` string patterns across ~20 files replaced with `GuestIdHelper`; added `GuestIdHelper.buildId()` and `GuestIdHelper.isGuestId()` to the helper
+- **God file splits** — `event_admin_grouping_screen.dart` (1234L→851L), `event_user_details_tab.dart` (1147L→198L), `match_play_draw_manager_screen.dart` (1080L→492L)
+- **`isStableford` → `higherIsBetter`** — `TieBreakerLogic` parameter renamed to be format-agnostic
+- **49 new unit tests** — `ScoringStrategy` (26), `TieBreakerLogic` (9), `HandicapCalculator` (14)
+
 ## What comes next
 
 - **Production infrastructure** — CI/CD (GitHub Actions or Codemagic), TestFlight internal beta, Google Play internal track
@@ -73,7 +79,11 @@ It is safe to re-run — already-normalised documents are skipped.
 
 | File | Purpose |
 |---|---|
-| `lib/domain/scoring/scoring_strategy.dart` | Per-format sort strategy |
+| `lib/domain/scoring/scoring_strategy.dart` | Per-format sort strategy (`ScoringStrategyRegistry.forRules()`) |
+| `lib/domain/scoring/tie_breaker_logic.dart` | Countback logic (`higherIsBetter` param) |
+| `test/domain/scoring_strategy_test.dart` | 26 strategy tests |
+| `test/domain/tie_breaker_logic_test.dart` | 9 countback tests |
+| `test/domain/handicap_calculator_test.dart` | 14 handicap tests |
 | `lib/domain/scoring/scorecard_factory.dart` | Canonical scorecard construction |
 | `lib/domain/scoring/scorecard_constants.dart` | ID prefixes, sentinels |
 | `lib/utils/firestore_normalizer.dart` | Canonical Firestore ID resolution |
