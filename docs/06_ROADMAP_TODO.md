@@ -274,3 +274,41 @@ Cuts follow a dual-accessibility pattern based on administrative context:
 - [x] **Administrative Modularization & Architecture Hardening** (v8.0)
 - [x] **Event Form UI Hardening (iOS Simulator Stabilization)** (v8.1)
 - [ ] **Phase 10: Production Infrastructure** (Pending)
+- [x] **Phase 12: Codebase Audit** (Completed 2026-05-04): Comprehensive architectural audit of all 361 source files (~79K LOC). Full report at `docs/CODEBASE_AUDIT_REPORT.md`.
+
+## 7. Refactoring Backlog (Post-Audit)
+> See `docs/CODEBASE_AUDIT_REPORT.md` for full analysis. Phases below map to the report's roadmap.
+
+### Phase 1 — Zero-Risk Hygiene 🟢 (Scheduled)
+- [ ] Create `ScorecardFactory` (`lib/domain/scoring/scorecard_factory.dart`)
+- [ ] Create `FirestoreNormalizer.resolveMemberId()` (`lib/utils/firestore_normalizer.dart`)
+- [ ] Replace 72 `debugPrint` calls with `kDebugMode`-gated logging
+- [ ] Extract `roundId: '1'` and `'system'` to `ScorecardConstants`
+- [ ] Consolidate orphan barrel files in `design_system/widgets/`
+
+### Phase 2 — Extract Shared Logic 🟡 (Scheduled)
+- [ ] Replace all 10+ inline `Scorecard(...)` constructions with `ScorecardFactory`
+- [ ] Replace all 160+ `memberId ?? userId ?? playerId` chains with `FirestoreNormalizer`
+- [ ] Extract `buildParticipantTile` closure to `_buildTile()` in `GroupingCard`
+- [ ] Remove duplicate `GroupingPlayerTile` in legacy flat-list path (`grouping_widgets.dart:711-741`)
+- [ ] Audit and consolidate `seeding_service.dart` vs `event_seeder.dart` (delete orphan)
+- [ ] Split `SocietyConfig` into `SocietyConfig` + `VisualTokens` sub-objects
+
+### Phase 3 — Decompose God Files 🟠 (Scheduled)
+- [ ] `scorecard_modal.dart` → `ScorecardResolver` + `ScorecardSheet`
+- [ ] `event_scoring_processor.dart` → per-format processors + thin orchestrator
+- [ ] `grouping_widgets.dart` → 3 separate widget files
+- [ ] `app_router.dart` → 4 route family files
+- [ ] `member_home_screen.dart` → screen + `HomeScreenViewModel` AsyncNotifier
+
+### Phase 4 — Move Logic Out of `build()` 🟠 (Scheduled)
+- [ ] Pre-compute scorecard resolution before opening `ScorecardSheet`
+- [ ] Move match play computation out of `ScorecardModal` builder
+- [ ] Cache `relativePhcMap` in `GroupingCard` (not computed inline)
+- [ ] Introduce `HomeScreenViewModel` provider
+
+### Phase 5 — Architecture Upgrade 🔵 (Long-term)
+- [ ] Normalize Firestore result documents to canonical `memberId` field
+- [ ] Introduce per-format `ScoringStrategy` interface
+- [ ] Add unit tests for `ScorecardFactory`, `FirestoreNormalizer`, `HandicapCalculator`
+- [ ] Design system: formal atoms/molecules/organisms folder structure
