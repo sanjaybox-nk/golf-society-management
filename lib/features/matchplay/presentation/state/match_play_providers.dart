@@ -1,5 +1,6 @@
 
 import 'package:golf_society/domain/models/course_config.dart';
+import 'package:golf_society/utils/guest_id_helper.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:collection/collection.dart';
@@ -48,9 +49,7 @@ class CurrentMatchController extends _$CurrentMatchController {
             final myGroup = groups.firstWhereOrNull((g) {
               final players = g['players'] as List?;
               return players?.any((p) {
-                final pid = p['registrationMemberId'] ?? p['id'];
-                final id = p['isGuest'] == true ? '${pid}_guest' : pid;
-                return id == user.id;
+                return GuestIdHelper.resolveEffectiveId(p) == user.id;
               }) ?? false;
             });
 
@@ -62,8 +61,7 @@ class CurrentMatchController extends _$CurrentMatchController {
                 if (subtype == CompetitionSubtype.fourball || subtype == CompetitionSubtype.foursomes) {
                    // Split 1+2 vs 3+4
                    final pIds = players.map((p) {
-                      final pid = p['registrationMemberId'] ?? p['id'];
-                      return p['isGuest'] == true ? '${pid}_guest' : pid as String;
+                      return GuestIdHelper.resolveEffectiveId(p);
                    }).toList();
 
                     final Map<String, double> indices = {};
@@ -113,8 +111,7 @@ class CurrentMatchController extends _$CurrentMatchController {
                 } else {
                    // Singles Match Play: 1 vs 2, 3 vs 4
                    final pIds = players.map((p) {
-                      final pid = p['registrationMemberId'] ?? p['id'];
-                      return p['isGuest'] == true ? '${pid}_guest' : pid as String;
+                      return GuestIdHelper.resolveEffectiveId(p);
                    }).toList();
 
                    final Map<String, double> indices = {};
@@ -205,6 +202,6 @@ class CurrentMatchController extends _$CurrentMatchController {
   }
 }
 
-final matchPlayTournamentProvider = FutureProvider.family<MatchPlayTournament?, String>((ref, eventId) {
+final matchPlayTournamentProvider = FutureProvider.autoDispose.family<MatchPlayTournament?, String>((ref, eventId) {
   return ref.watch(matchPlayRepositoryProvider).getTournament(eventId);
 });

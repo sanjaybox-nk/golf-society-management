@@ -16,15 +16,15 @@ final scorecardRepositoryProvider = Provider<ScorecardRepository>((ref) {
   return FirestoreScorecardRepository();
 });
 
-final competitionsByStatusesProvider = StreamProvider.family<List<Competition>, List<CompetitionStatus>>((ref, statuses) {
+final competitionsByStatusesProvider = StreamProvider.autoDispose.family<List<Competition>, List<CompetitionStatus>>((ref, statuses) {
   return ref.watch(competitionsRepositoryProvider).watchCompetitions(statuses: statuses);
 });
 
-final templatesListProvider = StreamProvider<List<Competition>>((ref) {
+final templatesListProvider = StreamProvider.autoDispose<List<Competition>>((ref) {
   return ref.watch(competitionsRepositoryProvider).watchTemplates();
 });
 
-final competitionDetailProvider = StreamProvider.family<Competition?, String>((ref, id) {
+final competitionDetailProvider = StreamProvider.autoDispose.family<Competition?, String>((ref, id) {
   if (id.isEmpty) {
     if (kDebugMode) debugPrint('DEBUG_PROVIDER: competitionDetailProvider called with EMPTY ID');
     return Stream.value(null);
@@ -38,7 +38,7 @@ final competitionDetailProvider = StreamProvider.family<Competition?, String>((r
   });
 });
 
-final scorecardsListProvider = StreamProvider.family<List<Scorecard>, String>((ref, competitionId) {
+final scorecardsListProvider = StreamProvider.autoDispose.family<List<Scorecard>, String>((ref, competitionId) {
   return ref.watch(scorecardRepositoryProvider).watchScorecards(competitionId);
 });
 

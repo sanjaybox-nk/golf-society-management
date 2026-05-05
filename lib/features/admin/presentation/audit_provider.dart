@@ -8,6 +8,6 @@ final auditRepositoryProvider = Provider<AuditRepository>((ref) {
   return FirestoreAuditRepository(FirebaseFirestore.instance);
 });
 
-final auditActivitiesProvider = StreamProvider.family<List<AuditActivity>, int>((ref, limit) {
+final auditActivitiesProvider = StreamProvider.autoDispose.family<List<AuditActivity>, int>((ref, limit) {
   return ref.watch(auditRepositoryProvider).watchActivities(limit: limit);
 });

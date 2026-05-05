@@ -3,61 +3,37 @@ export 'package:flutter/material.dart' hide RefreshCallback;
 export 'package:flutter/widgets.dart';
 export 'package:flutter/cupertino.dart';
 
-// Atoms - Buttons
+// ── Atoms ─────────────────────────────────────────────────────────────────────
 export 'atoms/buttons/boxy_art_button.dart';
 export 'atoms/buttons/boxy_art_icon_buttons.dart';
-
-// Atoms - Inputs
 export 'atoms/inputs/boxy_art_text_field.dart';
 export 'atoms/inputs/boxy_art_search_input.dart';
 export 'atoms/inputs/boxy_art_metric_input.dart';
 export 'atoms/indicators/boxy_art_indicator.dart';
 
-// Legacy Widgets (to be decomposed)
-export 'widgets/admin_shortcut_action.dart';
-export 'widgets/image.dart';
-export 'widgets/avatars.dart';
-export 'widgets/badges/badges.dart';
-export 'widgets/bottom_sheets.dart';
-export 'widgets/empty_states.dart';
-export 'widgets/boxy_art_empty_card.dart';
-export 'widgets/boxy_art_loading_card.dart';
-export 'widgets/dialogs.dart';
-export 'widgets/error_handler.dart';
-export 'widgets/floating_action_bar.dart';
-export 'widgets/headless_scaffold.dart';
-export 'widgets/inputs/inputs.dart';
-export 'widgets/boxy_art_form.dart';
-export 'widgets/layout/layout.dart';
-export 'widgets/member_cards.dart';
-export 'widgets/metrics.dart';
-export 'widgets/info_rows.dart';
-export 'widgets/navigation.dart';
-export 'widgets/selectors.dart';
-export 'widgets/app_bar.dart';
-export 'widgets/card.dart';
-export 'widgets/boxy_art_rich_editor.dart';
-export 'widgets/boxy_art_nav_bar.dart';
-export 'widgets/responsive_layout.dart';
-export 'widgets/staggered_entrance.dart';
-export 'widgets/event_cards.dart';
-export 'widgets/scorecard_tile.dart';
-export 'widgets/boxy_art_member_row.dart';
+// ── Molecules ─────────────────────────────────────────────────────────────────
+export 'molecules/molecules.dart';
 
-// Theme v3.1 - Source of Truth
+// ── Organisms ─────────────────────────────────────────────────────────────────
+export 'organisms/organisms.dart';
+
+// ── Theme ─────────────────────────────────────────────────────────────────────
 export 'package:golf_society/theme/app_theme.dart';
 export 'package:golf_society/theme/app_colors.dart';
 export 'package:golf_society/theme/app_typography.dart';
 export 'package:golf_society/theme/app_shapes.dart';
 export 'package:golf_society/theme/app_spacing.dart';
-
-// UI Helpers
+export 'package:golf_society/theme/app_gradients.dart';
 export 'theme/app_palettes.dart';
 export 'theme/app_shadows.dart';
-export 'theme/theme_controller.dart';
+export 'theme/app_shape_tokens.dart';
+export 'theme/app_spacing_tokens.dart';
 export 'theme/status_colors.dart';
 export 'theme/contrast_helper.dart';
 export 'theme/animation_constants.dart';
-export 'theme/app_shape_tokens.dart';
-export 'theme/app_spacing_tokens.dart';
-export 'package:golf_society/theme/app_gradients.dart';
+
+// ── Design tokens & providers ─────────────────────────────────────────────────
+export 'theme/theme_controller.dart';
+export 'package:golf_society/domain/models/visual_tokens.dart';
+export 'package:golf_society/domain/models/financial_config.dart';
+export 'package:golf_society/domain/models/membership_config.dart';

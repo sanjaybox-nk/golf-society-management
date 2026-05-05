@@ -4,6 +4,9 @@ import 'package:golf_society/utils/string_utils.dart';
 import 'package:collection/collection.dart';
 import 'package:go_router/go_router.dart';
 import 'package:golf_society/domain/models/scorecard.dart';
+import 'package:golf_society/domain/scoring/scorecard_factory.dart';
+import 'scorecard_resolver.dart';
+import 'package:golf_society/utils/firestore_normalizer.dart';
 import 'package:golf_society/domain/models/golf_event.dart';
 import 'package:golf_society/design_system/design_system.dart';
 import 'package:golf_society/domain/models/competition.dart';
@@ -34,126 +37,12 @@ class ScorecardModal {
     bool isAdmin = false,
     Map<String, String>? teeOverrides, // [NEW] Manual tee overrides
   }) {
-    if (kDebugMode) debugPrint("--- SCORECARD MODAL SHOW: ${entry.playerName} ---");
-    if (kDebugMode) debugPrint("Entry ID: ${entry.entryId}");
-    if (kDebugMode) debugPrint("Mode: ${entry.mode}");
-    if (kDebugMode) debugPrint("TeamMemberIds: ${entry.teamMemberIds?.length} -> ${entry.teamMemberIds}");
-    if (kDebugMode) debugPrint("TeamMemberNames: ${entry.teamMemberNames?.length} -> ${entry.teamMemberNames}");
-    if (kDebugMode) debugPrint("HoleScores provided: ${entry.holeScores != null && entry.holeScores!.any((s) => s != null)}");
-    
-    // 0. Prioritize scores passed directly from Leaderboard (Fix for Scramble populating)
-    Scorecard? scorecard;
-    bool isScorecardEmpty = true;
+    final actualScorecard = ScorecardResolver.resolve(
+      entry: entry,
+      scorecards: scorecards,
+      event: event,
+    );
 
-    if (entry.holeScores != null && entry.holeScores!.any((s) => s != null)) {
-      if (kDebugMode) debugPrint("Found scores via Direct Bridge");
-      scorecard = Scorecard(
-        id: 'direct_${entry.entryId}',
-        competitionId: event.id,
-        roundId: '1',
-        entryId: entry.entryId,
-        submittedByUserId: 'system',
-        status: ScorecardStatus.finalScore,
-        holeScores: entry.holeScores!,
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
-      );
-      isScorecardEmpty = false;
-    }
-
-    // 1. Try to find a live scorecard if not found directly
-    if (isScorecardEmpty) {
-      scorecard = scorecards.firstWhereOrNull((s) => s.entryId == entry.entryId);
-      isScorecardEmpty = scorecard == null || scorecard.holeScores.every((s) => s == null);
-      if (kDebugMode) if (!isScorecardEmpty) debugPrint("Found scores via Step 1 (Live Scorecard)");
-    }
-    
-    // 1b. Fallback for Team: Try each member ID if the combined team ID lookup fails or is empty
-    if (isScorecardEmpty && entry.teamMemberIds != null) {
-      for (final memberId in entry.teamMemberIds!) {
-        final memberCard = scorecards.firstWhereOrNull((s) => s.entryId == memberId);
-        if (memberCard != null && memberCard.holeScores.any((s) => s != null)) {
-          scorecard = memberCard;
-          isScorecardEmpty = false;
-          if (kDebugMode) debugPrint("Found scores via Step 1b (Team Member Scorecard)");
-          break;
-        }
-      }
-    }
-    
-    // 1c. Double Fallback for Seeded Teams (team_N pattern)
-    if (isScorecardEmpty && entry.teamIndex != null) {
-      final seededTeamId = 'team_${entry.teamIndex}';
-      final teamCard = scorecards.firstWhereOrNull((s) => s.entryId == seededTeamId);
-      if (teamCard != null && teamCard.holeScores.any((s) => s != null)) {
-         scorecard = teamCard;
-         isScorecardEmpty = false;
-         if (kDebugMode) debugPrint("Found scores via Step 1c (Seeded team_N Scorecard)");
-      }
-    }
-
-    // 2. Fallback: Reconstruct from seeded results if live scorecard is missing or empty
-    if (isScorecardEmpty) {
-      // 2a. Direct Match
-      var seededResult = event.results.firstWhereOrNull(
-        (r) => (r['memberId'] ?? r['userId'] ?? r['playerId'] ?? 'unknown').toString() == entry.entryId,
-      );
-      
-      // 2b. Fallback for Team Seeded: Try each member
-      if (seededResult == null && entry.teamMemberIds != null) {
-        for (final memberId in entry.teamMemberIds!) {
-          final s = event.results.firstWhereOrNull(
-            (r) => (r['memberId'] ?? r['userId'] ?? r['playerId'] ?? 'unknown').toString() == memberId
-          );
-          if (s != null && s['holeScores'] != null && (s['holeScores'] as List).any((score) => score != null)) {
-            seededResult = s;
-            break;
-          }
-        }
-      }
-
-      // 2c. Last Resort: Try team index pattern in results (if stored there)
-      if (seededResult == null && entry.teamIndex != null) {
-        final seededTeamId = 'team_${entry.teamIndex}';
-        seededResult = event.results.firstWhereOrNull(
-          (r) => (r['memberId'] ?? r['userId'] ?? r['playerId'] ?? 'unknown').toString() == seededTeamId,
-        );
-      }
-
-      if (seededResult != null && seededResult['holeScores'] != null) {
-        if (kDebugMode) debugPrint("Found scores via Step 2 (Seeded Results map)");
-        // Reconstruct temporary scorecard object
-        scorecard = Scorecard(
-          id: 'temp_${entry.entryId}',
-          competitionId: event.id,
-          roundId: '1',
-          entryId: entry.entryId,
-          submittedByUserId: 'system',
-          status: ScorecardStatus.finalScore,
-          holeScores: List<int?>.from(seededResult['holeScores']),
-          createdAt: DateTime.now(),
-          updatedAt: DateTime.now(),
-          points: seededResult['points'] is num ? (seededResult['points'] as num).toInt() : null,
-          netTotal: seededResult['netTotal'] is num ? (seededResult['netTotal'] as num).toInt() : null,
-        );
-        isScorecardEmpty = false;
-      }
-    }
-
-    // 3. Final Bail if truly missing (but allow empty modal for groups with NO scores yet)
-    scorecard ??= Scorecard(
-        id: 'empty_${entry.entryId}',
-        competitionId: event.id,
-        roundId: '1',
-        entryId: entry.entryId,
-        submittedByUserId: 'system',
-        status: ScorecardStatus.draft,
-        holeScores: List.generate(18, (index) => null),
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
-      );
-
-    final actualScorecard = scorecard;
     
     // Respect Lab Mode override
     final currentFormat = comp?.rules.format ?? CompetitionFormat.stableford;
@@ -179,6 +68,95 @@ class ScorecardModal {
     if (activeMarkerId == 'system') activeMarkerId = null;
 
     final currentUserId = ref.read(effectiveUserProvider).id;
+
+    // --- Pre-compute match play result before opening the sheet ---
+    // This block previously ran inside the StatefulBuilder, re-executing on every
+    // setModalState() call (e.g. player name tap). Moving it here means it runs once.
+    List<String>? matchPlayResults;
+    String? matchPlaySummary;
+    int? conclusionHole;
+    if (comp != null && comp.rules.isMatchPlay == true) {
+      final myIds = entry.teamMemberIds ?? [entry.entryId];
+      List<String>? myGroupIds;
+      final groupsData = event.grouping["groups"] as List? ?? [];
+      for (var g in groupsData) {
+        final players = g['players'] as List? ?? [];
+        final playerIds = players.map((p) => p['registrationMemberId']?.toString()).whereType<String>().toList();
+        if (playerIds.any((id) => myIds.contains(id))) {
+          myGroupIds = playerIds;
+          break;
+        }
+      }
+      if (myGroupIds != null) {
+        final oppIds = myGroupIds.where((id) => !myIds.contains(id)).toList();
+        if (oppIds.isNotEmpty) {
+          final Map<String, double> playerIndices = {};
+          final Map<String, CourseConfig> courseConfigs = {};
+          for (final pid in myGroupIds) {
+            final manualTee = teeOverrides?[pid];
+            courseConfigs[pid] = ScoringCalculator.resolvePlayerCourseConfig(
+              memberId: pid,
+              event: event,
+              membersList: membersList,
+              manualTeeName: manualTee,
+            );
+            if (pid.contains('_guest')) {
+              final baseId = pid.replaceAll('_guest', '');
+              final reg = event.registrations.firstWhereOrNull((r) => r.memberId == baseId);
+              playerIndices[pid] = double.tryParse(reg?.guestHandicap ?? '18') ?? 18.0;
+            } else {
+              final member = membersList.firstWhereOrNull((m) => m.id == pid);
+              playerIndices[pid] = member?.handicap ?? 18.0;
+            }
+          }
+          final strokesReceived = MatchPlayCalculator.calculateRelativeStrokes(
+            playerIds: myGroupIds,
+            playerIndices: playerIndices,
+            courseConfigs: courseConfigs,
+            rules: comp.rules,
+            baseRating: event.courseConfig.rating ?? 72.0,
+          );
+          final virtualMatch = MatchDefinition(
+            id: 'virtual_modal_${entry.entryId}',
+            type: comp.rules.subtype == CompetitionSubtype.fourball ? MatchType.fourball : MatchType.foursomes,
+            team1Ids: myIds,
+            team2Ids: oppIds,
+            strokesReceived: strokesReceived,
+          );
+          final List<Scorecard> sourceCards = [];
+          for (var pid in myGroupIds) {
+            Scorecard? card = scorecards.firstWhereOrNull((s) => s.entryId == pid);
+            if (card == null) {
+              final seeded = event.results.firstWhereOrNull((r) => FirestoreNormalizer.resolveMemberId(r) == pid);
+              if (seeded != null && seeded['holeScores'] != null) {
+                card = ScorecardFactory.fromSeededResult(entryId: pid, competitionId: event.id, result: seeded);
+              }
+            }
+            if (card != null) sourceCards.add(card);
+          }
+          final result = MatchPlayCalculator.calculate(
+            match: virtualMatch,
+            scorecards: sourceCards,
+            courseConfig: event.courseConfig,
+            holesToPlay: event.courseConfig.holes.length,
+          );
+          conclusionHole = result.isFinal ? result.holesPlayed : null;
+          matchPlayResults = result.holeResults.map((r) {
+            if (r == 1) return 'W';
+            if (r == -1) return 'L';
+            if (r == 0) return 'H';
+            return '';
+          }).toList();
+          if (result.score == 0) {
+            matchPlaySummary = result.holesPlayed == 0 ? 'AS' : (result.isFinal ? 'HALVED' : 'AS');
+          } else if (result.score > 0) {
+            matchPlaySummary = result.isFinal ? 'WIN ${result.status}' : '${result.status} (UP)';
+          } else {
+            matchPlaySummary = result.isFinal ? 'LOSS ${result.status}' : '${result.status} (DN)';
+          }
+        }
+      }
+    }
 
     showModalBottomSheet(
       context: context,
@@ -268,8 +246,16 @@ class ScorecardModal {
                                                 confirmText: 'Approve',
                                               );
                                               if (confirmed == true) {
-                                                await ref.read(scorecardRepositoryProvider).updateScorecardStatus(actualScorecard.id, ScorecardStatus.reviewed);
-                                                if (context.mounted) Navigator.pop(context);
+                                                try {
+                                                  await ref.read(scorecardRepositoryProvider).updateScorecardStatus(actualScorecard.id, ScorecardStatus.reviewed);
+                                                  if (context.mounted) Navigator.pop(context);
+                                                } catch (_) {
+                                                  if (context.mounted) {
+                                                    ScaffoldMessenger.of(context).showSnackBar(
+                                                      const SnackBar(content: Text('Failed to approve scorecard — check your connection.')),
+                                                    );
+                                                  }
+                                                }
                                               }
                                             },
                                           ),
@@ -325,8 +311,16 @@ class ScorecardModal {
                                                 submittedByUserId: id, // Fallback for legacy
                                                 updatedAt: DateTime.now(),
                                               );
-                                              await ref.read(scorecardRepositoryProvider).updateScorecard(updatedCard);
-                                              // We need to update local markerId to show immediate UI feedback
+                                              try {
+                                                await ref.read(scorecardRepositoryProvider).updateScorecard(updatedCard);
+                                              } catch (_) {
+                                                if (context.mounted) {
+                                                  ScaffoldMessenger.of(context).showSnackBar(
+                                                    const SnackBar(content: Text('Failed to update scorecard — check your connection.')),
+                                                  );
+                                                }
+                                              }
+                                              // Immediate UI feedback regardless of write outcome
                                               setModalState(() => activeMarkerId = id);
                                             }
                                           },
@@ -433,106 +427,9 @@ class ScorecardModal {
 
                       final totalPoints = entry.holePoints?.whereType<int>().fold<int>(0, (a, b) => a + b);
 
-                      // --- [NEW] AUTHORITATIVE MATCH PLAY CALCULATION ---
-                      List<String>? matchPlayResults;
-                      String? matchPlaySummary;
-                      int? conclusionHole;
-                      if (comp.rules.isMatchPlay == true) {
-                        final myIds = entry.teamMemberIds ?? [entry.entryId];
-                        List<String>? myGroupIds;
-                        final groupsData = event.grouping["groups"] as List? ?? [];
-                        for (var g in groupsData) {
-                          final players = g['players'] as List? ?? [];
-                          final playerIds = players.map((p) => p['registrationMemberId']?.toString()).whereType<String>().toList();
-                          if (playerIds.any((id) => myIds.contains(id))) {
-                            myGroupIds = playerIds;
-                            break;
-                          }
-                        }
-                        if (myGroupIds != null) {
-                          final oppIds = myGroupIds.where((id) => !myIds.contains(id)).toList();
-                          if (oppIds.isNotEmpty) {
-                            final Map<String, double> playerIndices = {};
-                            final Map<String, CourseConfig> courseConfigs = {};
-                            for (final pid in myGroupIds) {
-                              final manualTee = teeOverrides?[pid];
-                              courseConfigs[pid] = ScoringCalculator.resolvePlayerCourseConfig(
-                                memberId: pid, 
-                                event: event, 
-                                membersList: membersList, 
-                                manualTeeName: manualTee,
-                              );
-                              if (pid.contains('_guest')) {
-                                final baseId = pid.replaceAll('_guest', '');
-                                final reg = event.registrations.firstWhereOrNull((r) => r.memberId == baseId);
-                                playerIndices[pid] = double.tryParse(reg?.guestHandicap ?? '18') ?? 18.0;
-                              } else {
-                                final member = membersList.firstWhereOrNull((m) => m.id == pid);
-                                playerIndices[pid] = member?.handicap ?? 18.0;
-                              }
-                            }
-
-                            final baseRating = event.courseConfig.rating ?? 72.0;
-                            final strokesReceived = MatchPlayCalculator.calculateRelativeStrokes(
-                              playerIds: myGroupIds,
-                              playerIndices: playerIndices,
-                              courseConfigs: courseConfigs,
-                              rules: comp.rules,
-                              baseRating: baseRating,
-                            );
-
-                            final virtualMatch = MatchDefinition(
-                              id: 'virtual_modal_${entry.entryId}',
-                              type: comp.rules.subtype == CompetitionSubtype.fourball ? MatchType.fourball : MatchType.foursomes,
-                              team1Ids: myIds,
-                              team2Ids: oppIds,
-                              strokesReceived: strokesReceived,
-                            );
-
-                            final List<Scorecard> sourceCards = [];
-                            for (var pid in myGroupIds) {
-                              Scorecard? card = scorecards.firstWhereOrNull((s) => s.entryId == pid);
-                              if (card == null) {
-                                final seeded = event.results.firstWhereOrNull((r) => 
-                                  (r['memberId'] ?? r['userId'] ?? r['playerId'] ?? '').toString() == pid
-                                );
-                                if (seeded != null && seeded['holeScores'] != null) {
-                                  card = Scorecard(
-                                    id: 'temp_$pid', competitionId: event.id, roundId: '1', entryId: pid, submittedByUserId: 'system',
-                                    status: ScorecardStatus.finalScore, holeScores: List<int?>.from(seeded['holeScores']),
-                                    createdAt: DateTime.now(), updatedAt: DateTime.now()
-                                  );
-                                }
-                              }
-                              if (card != null) sourceCards.add(card);
-                            }
-
-                            final result = MatchPlayCalculator.calculate(
-                              match: virtualMatch,
-                              scorecards: sourceCards,
-                              courseConfig: event.courseConfig,
-                              holesToPlay: event.courseConfig.holes.length,
-                            );
-
-                            conclusionHole = result.isFinal ? result.holesPlayed : null;
-
-                            matchPlayResults = result.holeResults.map((r) {
-                              if (r == 1) return 'W';
-                              if (r == -1) return 'L';
-                              if (r == 0) return 'H';
-                              return ''; 
-                            }).toList();
-                            
-                            if (result.score == 0) {
-                              matchPlaySummary = result.holesPlayed == 0 ? 'AS' : (result.isFinal ? 'HALVED' : 'AS');
-                            } else if (result.score > 0) {
-                              matchPlaySummary = result.isFinal ? 'WIN ${result.status}' : '${result.status} (UP)';
-                            } else {
-                              matchPlaySummary = result.isFinal ? 'LOSS ${result.status}' : '${result.status} (DN)';
-                            }
-                          }
-                        }
-                      }
+                      // matchPlayResults / matchPlaySummary / conclusionHole are now
+                      // pre-computed before showModalBottomSheet to avoid re-running on
+                      // every setModalState() call.
 
                       final config = ref.watch(themeControllerProvider);
                       final pointsColor = Color(config.effectivePointsColor);

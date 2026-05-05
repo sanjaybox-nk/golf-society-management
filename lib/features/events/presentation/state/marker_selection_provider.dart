@@ -172,10 +172,11 @@ class MarkerSelectionNotifier extends Notifier<MarkerSelection> {
     state = state.copyWith(isGroupScorer: value);
   }
 
-  void assignMarker(String playerId, String markerId) {
-    final assignments = Map<String, String>.from(state.markerAssignments);
-    assignments[playerId] = markerId;
-    state = state.copyWith(markerAssignments: assignments);
+  /// Clears all marker targets when the active event changes, preventing stale
+  /// targets from a previous event appearing pre-selected in the new event's sheet.
+  void clearTargets(String eventId) {
+    state = state.copyWith(targetEntryIds: []);
+    ref.read(persistenceServiceProvider).setString(_getKey(_baseKeyTargets), jsonEncode([]));
   }
 }
 

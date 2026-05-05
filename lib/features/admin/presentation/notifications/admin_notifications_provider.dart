@@ -2,7 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:golf_society/domain/models/campaign.dart';
 
-final adminNotificationsProvider = StreamProvider<List<Campaign>>((ref) {
+final adminNotificationsProvider = StreamProvider.autoDispose<List<Campaign>>((ref) {
   return FirebaseFirestore.instance
       .collection('campaigns')
       .orderBy('timestamp', descending: true)

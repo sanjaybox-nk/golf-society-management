@@ -113,7 +113,7 @@ class CompetitionReviewSummary {
   CompetitionReviewSummary({required this.id, required this.name, required this.pendingCount});
 }
 
-final pendingReviewsProvider = FutureProvider<List<CompetitionReviewSummary>>((ref) async {
+final pendingReviewsProvider = FutureProvider.autoDispose<List<CompetitionReviewSummary>>((ref) async {
   // Placeholder logic
   return [
     CompetitionReviewSummary(id: 'comp1', name: 'Winter Stableford', pendingCount: 12),

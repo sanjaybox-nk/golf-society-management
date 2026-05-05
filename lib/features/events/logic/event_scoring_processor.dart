@@ -1,10 +1,14 @@
 import 'package:golf_society/domain/models/golf_event.dart';
+import 'scoring/scoring_utils.dart';
+import 'package:golf_society/utils/firestore_normalizer.dart';
+import 'package:golf_society/utils/guest_id_helper.dart';
 import 'package:golf_society/domain/models/competition.dart';
 import 'package:golf_society/domain/models/scorecard.dart';
 import 'package:golf_society/domain/models/member.dart';
 import 'package:golf_society/domain/grouping/tee_group.dart';
 import 'package:golf_society/domain/scoring/handicap_calculator.dart';
 import 'package:golf_society/domain/scoring/scoring_calculator.dart';
+import 'package:golf_society/domain/scoring/scoring_strategy.dart';
 import 'package:golf_society/features/events/logic/event_analysis_engine.dart';
 import 'package:golf_society/features/events/presentation/state/marker_selection_provider.dart'; // MarkerSelection
 import '../domain/models/processed_event_data.dart';
@@ -25,6 +29,7 @@ class EventScoringProcessor {
     String? currentUserId,
   }) {
     final rules = comp.rules;
+    final strategy = ScoringStrategyRegistry.forRules(rules);
     final teeOverrides = markerSelection.teeOverrides;
     final manualCuts = event.manualCuts;
 
@@ -49,7 +54,7 @@ class EventScoringProcessor {
     final allPlayerIds = {
       ...event.registrations.map((r) => r.memberId),
       ...event.registrations.where((r) => r.guestName != null).map((r) => '${r.memberId}_guest'),
-      ...event.results.map((r) => (r['memberId'] ?? r['userId'] ?? r['playerId'] ?? '').toString()),
+      ...event.results.map((r) => FirestoreNormalizer.resolveMemberId(r)),
       ...liveScorecards.map((s) => s.entryId),
       if (currentUserId case String id) id,
     }..remove('');
@@ -77,8 +82,8 @@ class EventScoringProcessor {
                        liveScorecards.firstWhereOrNull((s) => s.entryId == basePid);
       
       // Seeded lookup priority: ID match -> Name match against Registration -> Name match against Member profile
-      final seededResult = event.results.firstWhereOrNull((r) => (r['memberId'] ?? r['userId'] ?? r['playerId']) == effectivePid) ?? 
-                           event.results.firstWhereOrNull((r) => (r['memberId'] ?? r['userId'] ?? r['playerId']) == basePid) ??
+      final seededResult = event.results.firstWhereOrNull((r) => FirestoreNormalizer.resolveMemberId(r) == effectivePid) ??
+                           event.results.firstWhereOrNull((r) => FirestoreNormalizer.resolveMemberId(r) == basePid) ??
                            event.results.firstWhereOrNull((r) => r['playerName'] == (isGuest ? reg?.guestName : reg?.memberName)) ??
                            event.results.firstWhereOrNull((r) => r['playerName'] == memberMap[basePid]?.displayName);
       
@@ -132,12 +137,13 @@ class EventScoringProcessor {
       
       // If still empty, check seeded results
       if (holeScores.every((s) => s == null) && seededResult != null && seededResult['holeScores'] != null) {
-         holeScores = (seededResult['holeScores'] as List).cast<int?>();
+         holeScores = (seededResult['holeScores'] as List)
+             .map((e) => e == null ? null : (e as num).toInt())
+             .toList();
       }
 
       // 122. [NEW] Scramble Logic: If it's a team scramble, use the team PHC and scorecard
-      final isScramble = rules.format == CompetitionFormat.scramble;
-      final bool isTeamGame = isScramble || rules.subtype == CompetitionSubtype.texas || rules.subtype == CompetitionSubtype.florida;
+      final bool isTeamGame = strategy.isTeamBased || rules.subtype == CompetitionSubtype.texas || rules.subtype == CompetitionSubtype.florida;
       
       double effectivePhc = phc.toDouble();
       if (isTeamGame) {
@@ -185,9 +191,9 @@ class EventScoringProcessor {
         teeColor: courseConfig.selectedTeeColor,
         holeScores: holeScores,
         result: result,
-        tieBreakLabel: calculateTieBreakLabel(result, null),
+        tieBreakLabel: ScoringUtils.calculateTieBreakLabel(result, null),
         thruLabel: null, // Calculated in next pass
-        scoringStatus: _resolveScoringStatus(liveCard),
+        scoringStatus: ScoringUtils.resolveScoringStatus(liveCard),
         maxHolePlayed: lastHoleIndex,
       ));
     }
@@ -201,9 +207,7 @@ class EventScoringProcessor {
       final gPlayers = (rawGroups[gIdx]['players'] as List);
       int maxThru = 0;
       for (var p in gPlayers) {
-        final pid = p['registrationMemberId'] as String;
-        final isG = p['isGuest'] as bool? ?? false;
-        final effectiveId = isG ? '${pid}_guest' : pid;
+        final effectiveId = GuestIdHelper.resolveEffectiveId(p);
         final score = individualScores.firstWhereOrNull((s) => s.playerId == effectiveId);
         if (score != null && score.maxHolePlayed > maxThru) {
           maxThru = score.maxHolePlayed;
@@ -238,13 +242,13 @@ class EventScoringProcessor {
     for (var p in individualScores) {
       if (p.scoringStatus == ScoringStatus.ok && p.result.holesPlayed > 0) {
         scoreToMetricsMap[p.result.score] ??= [];
-        scoreToMetricsMap[p.result.score]!.add(_calculateTieBreakMetrics(p.result));
+        scoreToMetricsMap[p.result.score]!.add(ScoringUtils.calculateTieBreakMetrics(p.result));
       }
     }
 
     final List<ProcessedPlayerScore> refinedIndividualScores = syncedIndividualScores.map((p) {
       return p.copyWith(
-        tieBreakLabel: calculateTieBreakLabel(p.result, scoreToMetricsMap[p.result.score]),
+        tieBreakLabel: ScoringUtils.calculateTieBreakLabel(p.result, scoreToMetricsMap[p.result.score]),
       );
     }).toList();
 
@@ -321,8 +325,7 @@ class EventScoringProcessor {
 
     if (!isTeamComp) {
       final sortedIndividual = List<ProcessedPlayerScore>.from(refinedIndividualScores);
-      final isStableford = currentFormat == CompetitionFormat.stableford;
-      
+
       sortedIndividual.sort((a, b) {
         // 1. Status Check (WD/DQ/NR at bottom)
         if (a.scoringStatus != b.scoringStatus) {
@@ -331,23 +334,19 @@ class EventScoringProcessor {
         }
 
         // 2. Score check
-        final scoreCompare = isStableford 
-            ? b.result.score.compareTo(a.result.score)
-            : a.result.score.compareTo(b.result.score);
+        final scoreCompare = strategy.compareScores(a.result.score, b.result.score);
         
         if (scoreCompare != 0) return scoreCompare;
 
         // 3. Tie-break (Countback)
-        final aMetrics = _calculateTieBreakMetrics(a.result);
-        final bMetrics = _calculateTieBreakMetrics(b.result);
+        final aMetrics = ScoringUtils.calculateTieBreakMetrics(a.result);
+        final bMetrics = ScoringUtils.calculateTieBreakMetrics(b.result);
         
         for (int i = 0; i < aMetrics.length; i++) {
-          final mCompare = isStableford
-              ? bMetrics[i].compareTo(aMetrics[i])
-              : aMetrics[i].compareTo(bMetrics[i]);
+          final mCompare = strategy.compareScores(aMetrics[i], bMetrics[i]);
           if (mCompare != 0) return mCompare;
         }
-        
+
         return 0;
       });
 
@@ -370,8 +369,8 @@ class EventScoringProcessor {
         // Only share position if everything matches (including tie-breaks)
         if (i > 0) {
           final prev = sortedIndividual[i - 1];
-          final aMetrics = _calculateTieBreakMetrics(p.result);
-          final bMetrics = _calculateTieBreakMetrics(prev.result);
+          final aMetrics = ScoringUtils.calculateTieBreakMetrics(p.result);
+          final bMetrics = ScoringUtils.calculateTieBreakMetrics(prev.result);
           bool metricsMatch = const ListEquality().equals(aMetrics, bMetrics);
           
           if (p.result.score == prev.result.score && metricsMatch) {
@@ -419,11 +418,11 @@ class EventScoringProcessor {
           holePoints: p.result.holePoints,
           hasSocietyCut: p.appliedSocietyCut != 0,
           position: pos,
-          tieBreakMetrics: _calculateTieBreakMetrics(p.result),
+          tieBreakMetrics: ScoringUtils.calculateTieBreakMetrics(p.result),
           handicapIndex: p.handicapIndex,
           tieBreakLabel: p.tieBreakLabel,
           thruLabel: p.thruLabel,
-          scoringStatus: _resolveScoringStatus(liveScorecards.firstWhereOrNull((s) => s.entryId == p.playerId)),
+          scoringStatus: ScoringUtils.resolveScoringStatus(liveScorecards.firstWhereOrNull((s) => s.entryId == p.playerId)),
           matchStatus: matchStatusLabel,
           matchScore: matchLead,
           isMatch: matchResult != null,
@@ -470,7 +469,7 @@ class EventScoringProcessor {
             final teamStatus = teamPlayers.map((p) {
               final id = p.isGuest ? '${p.registrationMemberId}_guest' : p.registrationMemberId;
               final card = liveScorecards.firstWhereOrNull((s) => s.entryId == id);
-              return _resolveScoringStatus(card);
+              return ScoringUtils.resolveScoringStatus(card);
             }).firstWhere((s) => s != ScoringStatus.ok, orElse: () => ScoringStatus.ok);
 
             final String teamLeaderId = playerIds.firstOrNull ?? '';
@@ -519,9 +518,9 @@ class EventScoringProcessor {
               individualHoleNetScores: teamResults.map((r) => r.holeNetScores).toList().cast<List<int?>>(),
               individualHolePoints: teamResults.map((r) => r.holePoints).toList().cast<List<int?>>(),
               handicapIndex: teamPlayers.firstOrNull?.handicapIndex ?? 0.0,
-              tieBreakLabel: calculateTieBreakLabel(finalResult, null), // TODO: Group tie-break comparison if needed
+              tieBreakLabel: ScoringUtils.calculateTieBreakLabel(finalResult, null), // TODO: Group tie-break comparison if needed
               position: 0,
-              tieBreakMetrics: _calculateTieBreakMetrics(finalResult),
+              tieBreakMetrics: ScoringUtils.calculateTieBreakMetrics(finalResult),
               scoringStatus: teamStatus,
               matchStatus: teamMatchStatusLabel,
               matchScore: teamMatchLead,
@@ -532,8 +531,6 @@ class EventScoringProcessor {
          }
       }
 
-      final isStableford = currentFormat == CompetitionFormat.stableford;
-      
       teamEntries.sort((a, b) {
         // 1. Status Check (WD/DQ/NR at bottom)
         final aOk = a.scoringStatus == ScoringStatus.ok;
@@ -541,17 +538,12 @@ class EventScoringProcessor {
         if (aOk != bOk) return aOk ? -1 : 1;
 
         // 2. Score check
-        final scoreCompare = isStableford 
-            ? b.score.compareTo(a.score)
-            : a.score.compareTo(b.score);
-            
+        final scoreCompare = strategy.compareScores(a.score, b.score);
         if (scoreCompare != 0) return scoreCompare;
 
         // Tie-break
         for (int i = 0; i < a.tieBreakMetrics.length; i++) {
-          final mCompare = isStableford
-              ? b.tieBreakMetrics[i].compareTo(a.tieBreakMetrics[i])
-              : a.tieBreakMetrics[i].compareTo(b.tieBreakMetrics[i]);
+          final mCompare = strategy.compareScores(a.tieBreakMetrics[i], b.tieBreakMetrics[i]);
           if (mCompare != 0) return mCompare;
         }
         return 0;
@@ -577,7 +569,7 @@ class EventScoringProcessor {
     final List<ProcessedGroupResult> groupRankings = [];
     final bool isFourballRule = rules.subtype == CompetitionSubtype.fourball;
     final isPairs = rules.mode == CompetitionMode.pairs;
-    final isScramblePairs = rules.format == CompetitionFormat.scramble && rules.teamSize == 2;
+    final isScramblePairs = strategy.isTeamBased && rules.teamSize == 2;
     final isSplitTeam = isFourballRule || isPairs || isScramblePairs;
 
     for (var group in groups) {
@@ -634,18 +626,12 @@ class EventScoringProcessor {
     }
 
     // 4. [NEW] Sort Group Rankings (Podium)
-    final isStableford = rules.format == CompetitionFormat.stableford;
     groupRankings.sort((a, b) {
-      final scoreCompare = isStableford 
-          ? b.totalScore.compareTo(a.totalScore)
-          : a.totalScore.compareTo(b.totalScore);
+      final scoreCompare = strategy.compareScores(a.totalScore, b.totalScore);
       if (scoreCompare != 0) return scoreCompare;
-      
-      // Tie-break
+
       for (int i = 0; i < a.tieBreakMetrics.length; i++) {
-        final mCompare = isStableford
-            ? b.tieBreakMetrics[i].compareTo(a.tieBreakMetrics[i])
-            : a.tieBreakMetrics[i].compareTo(b.tieBreakMetrics[i]);
+        final mCompare = strategy.compareScores(a.tieBreakMetrics[i], b.tieBreakMetrics[i]);
         if (mCompare != 0) return mCompare;
       }
       return 0;
@@ -656,7 +642,7 @@ class EventScoringProcessor {
       scorecards: liveScorecards, 
       event: event, 
       competition: comp,
-      isStableford: rules.format == CompetitionFormat.stableford,
+      isStableford: strategy.higherIsBetter,
     );
     
 
@@ -691,85 +677,12 @@ class EventScoringProcessor {
     );
   }
 
-  static ScoringStatus _resolveScoringStatus(Scorecard? card) {
-    if (card == null) return ScoringStatus.ok;
-    
-    // Explicit manual overrides (WD, DQ, NR set by admin)
-    if (card.scoringStatus != ScoringStatus.ok) return card.scoringStatus;
 
-    // Automatic NR detection: If submitted/final but incomplete
-    final isSubmitted = card.status == ScorecardStatus.submitted || card.status == ScorecardStatus.finalScore;
-    final holesPlayed = card.holeScores.where((s) => s != null).length;
-    
-    if (isSubmitted && holesPlayed < 18) {
-      return ScoringStatus.nr;
-    }
-
-    return ScoringStatus.ok;
-  }
-
-  static String? calculateTieBreakLabel(ScoringResult result, List<List<int>>? otherMetrics) {
-    if (otherMetrics == null || otherMetrics.length <= 1) return null;
-
-    // Standard countback: B9, B6, B3, B1
-    final metrics = _calculateTieBreakMetrics(result);
-    final mNames = ['B9', 'B6', 'B3', 'B1'];
-
-    // Find first metric that differs from ANY other player with the same score
-    for (int i = 0; i < metrics.length; i++) {
-      final val = metrics[i];
-      final anyDiff = otherMetrics.any((other) => i < other.length && other[i] != val);
-      if (anyDiff) {
-        return '${mNames[i]}: $val';
-      }
-    }
-    
-    // If absolutely everything is tied, show B9 as fallback
-    return 'B9: ${metrics[0]}';
-  }
-
-  static List<int> _calculateTieBreakMetrics(ScoringResult result) {
-    // Standard countback: B9, B6, B3, B1
-    return [
-      _getSegmentTotal(result, 9, 18),
-      _getSegmentTotal(result, 12, 18),
-      _getSegmentTotal(result, 15, 18),
-      _getSegmentTotal(result, 17, 18),
-    ];
-  }
-
-  static int _getSegmentTotal(ScoringResult result, int start, int end) {
-    if (result.holePoints.length < end) return 0;
-    return result.holePoints.sublist(start, end).whereType<int>().fold<int>(0, (sum, p) => sum + p);
-  }
-
-  /// [NEW] Final system-level submission trigger.
-  /// Transitions a scorecard to [ScorecardStatus.finalScore] if both parties have verified
-  /// and there are no score discrepancies between the player's recorded scores 
-  /// and the marker's recorded scores for that player.
   static Scorecard validateAndFinalizeHandshake({
     required Scorecard targetScorecard,
     required Scorecard? verifierScorecard,
-  }) {
-    if (verifierScorecard == null) return targetScorecard;
-
-    // 1. Conflict detection: Compare player's holeScores with marker's playerVerifierScores
-    final bool isConflictFree = const ListEquality().equals(
-      targetScorecard.holeScores, 
-      verifierScorecard.playerVerifierScores
-    );
-
-    if (!isConflictFree) return targetScorecard;
-
-    // 2. Transition to finalScore if both parties have signed off
-    if (targetScorecard.verifiedByPlayer && targetScorecard.verifiedByMarker) {
-      return targetScorecard.copyWith(
-        status: ScorecardStatus.finalScore,
-        updatedAt: DateTime.now(),
-      );
-    }
-    
-    return targetScorecard;
-  }
+  }) => ScoringUtils.validateAndFinalizeHandshake(
+    targetScorecard: targetScorecard,
+    verifierScorecard: verifierScorecard,
+  );
 }
-
