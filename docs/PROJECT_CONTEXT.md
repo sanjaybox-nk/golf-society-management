@@ -43,15 +43,11 @@ Full audit report: `docs/CODEBASE_AUDIT_REPORT.md`
 - **Design system layering** — `molecules/molecules.dart` and `organisms/organisms.dart` barrel files; `design_system.dart` exports by atomic layer
 - **Firestore migration** — `runMigrateMemberIds` HTTP Cloud Function normalises legacy `userId`/`playerId` fields to canonical `memberId` across all event result documents
 
-## How to run the Firestore migration
+## Firestore migration
 
-The migration has not been run in production yet. When ready:
-```
-firebase functions:config:set migration.secret="<your-secret>"
-firebase deploy --only functions
-curl -H "x-admin-secret: <your-secret>" https://<region>-<project>.cloudfunctions.net/runMigrateMemberIds
-```
-It is safe to re-run — already-normalised documents are skipped.
+**Already run in production (2026-05-05).** Result: `{ scanned: 2, updated: 2, errors: 0 }`. All event result documents now use `memberId` exclusively.
+
+The `runMigrateMemberIds` function remains deployed and is idempotent — safe to re-run if new legacy documents appear. Secret is stored in Firebase Secret Manager as `MIGRATION_SECRET`. Function is live at `https://us-central1-golf-society-managment.cloudfunctions.net/runMigrateMemberIds`.
 
 ## Key architectural decisions
 
