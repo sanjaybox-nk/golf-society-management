@@ -8,14 +8,14 @@ final courseRepositoryProvider = Provider<CourseRepository>((ref) {
   return FirestoreCourseRepository(FirebaseFirestore.instance);
 });
 
-final coursesProvider = StreamProvider<List<Course>>((ref) {
+final coursesProvider = StreamProvider.autoDispose<List<Course>>((ref) {
   return ref.watch(courseRepositoryProvider).watchCourses();
 });
 
-final courseSearchProvider = FutureProvider.family<List<Course>, String>((ref, query) {
+final courseSearchProvider = FutureProvider.autoDispose.family<List<Course>, String>((ref, query) {
   return ref.watch(courseRepositoryProvider).searchCourses(query);
 });
 
-final courseDetailProvider = FutureProvider.family<Course?, String>((ref, id) {
+final courseDetailProvider = FutureProvider.autoDispose.family<Course?, String>((ref, id) {
   return ref.watch(courseRepositoryProvider).getCourse(id);
 });

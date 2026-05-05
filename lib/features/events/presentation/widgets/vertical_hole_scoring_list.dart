@@ -352,57 +352,58 @@ class _VerticalHoleScoringListState extends ConsumerState<VerticalHoleScoringLis
 
   void _updateScore(String entryId, int holeIndex, int score, List<Scorecard> allCards) async {
     final currentUser = ref.read(effectiveUserProvider);
-    
     final scorecard = allCards.firstWhereOrNull((s) => s.entryId == entryId);
-    
-    if (scorecard != null) {
-      if (entryId == currentUser.id) {
-        // I am updating my own scores
-        final List<int?> updatedScores = List<int?>.from(scorecard.holeScores);
-        if (updatedScores.length < 18) {
-          updatedScores.addAll(List.generate(18 - updatedScores.length, (i) => null));
+
+    try {
+      if (scorecard != null) {
+        if (entryId == currentUser.id) {
+          final List<int?> updatedScores = List<int?>.from(scorecard.holeScores);
+          if (updatedScores.length < 18) {
+            updatedScores.addAll(List.generate(18 - updatedScores.length, (i) => null));
+          }
+          updatedScores[holeIndex] = score;
+          await ref.read(scorecardRepositoryProvider).updateScorecard(scorecard.copyWith(
+            holeScores: updatedScores,
+            updatedAt: DateTime.now(),
+          ));
+        } else {
+          final List<int?> updatedVerifierScores = List<int?>.from(scorecard.playerVerifierScores);
+          if (updatedVerifierScores.length < 18) {
+            updatedVerifierScores.addAll(List.generate(18 - updatedVerifierScores.length, (i) => null));
+          }
+          updatedVerifierScores[holeIndex] = score;
+          await ref.read(scorecardRepositoryProvider).updateScorecard(scorecard.copyWith(
+            playerVerifierScores: updatedVerifierScores,
+            markerId: currentUser.id,
+            updatedAt: DateTime.now(),
+          ));
         }
-        updatedScores[holeIndex] = score;
-        
-        await ref.read(scorecardRepositoryProvider).updateScorecard(scorecard.copyWith(
-          holeScores: updatedScores,
-          updatedAt: DateTime.now(),
-        ));
+        HapticFeedback.lightImpact();
       } else {
-        // I am marking someone else: update playerVerifierScores
-        final List<int?> updatedVerifierScores = List<int?>.from(scorecard.playerVerifierScores);
-        if (updatedVerifierScores.length < 18) {
-          updatedVerifierScores.addAll(List.generate(18 - updatedVerifierScores.length, (i) => null));
-        }
-        updatedVerifierScores[holeIndex] = score;
-        
-        await ref.read(scorecardRepositoryProvider).updateScorecard(scorecard.copyWith(
-          playerVerifierScores: updatedVerifierScores,
-          markerId: currentUser.id, // Ensure markerId is set correctly
+        final bool isMe = entryId == currentUser.id;
+        final List<int?> initialScores = List.generate(18, (i) => i == holeIndex ? score : null);
+        final newCard = Scorecard(
+          id: '',
+          competitionId: widget.event.id,
+          roundId: widget.event.id,
+          entryId: entryId,
+          markerId: isMe ? entryId : currentUser.id,
+          submittedByUserId: currentUser.id,
+          holeScores: isMe ? initialScores : [],
+          playerVerifierScores: isMe ? [] : initialScores,
+          status: ScorecardStatus.draft,
+          createdAt: DateTime.now(),
           updatedAt: DateTime.now(),
-        ));
+        );
+        await ref.read(scorecardRepositoryProvider).addScorecard(newCard);
+        HapticFeedback.lightImpact();
       }
-      HapticFeedback.lightImpact();
-    } else {
-      // Create new scorecard if it doesn't exist
-      final bool isMe = entryId == currentUser.id;
-      final List<int?> initialScores = List.generate(18, (i) => i == holeIndex ? score : null);
-      
-      final newCard = Scorecard(
-        id: '', 
-        competitionId: widget.event.id,
-        roundId: widget.event.id,
-        entryId: entryId,
-        markerId: isMe ? entryId : currentUser.id,
-        submittedByUserId: currentUser.id,
-        holeScores: isMe ? initialScores : [],
-        playerVerifierScores: isMe ? [] : initialScores,
-        status: ScorecardStatus.draft,
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
-      );
-      await ref.read(scorecardRepositoryProvider).addScorecard(newCard);
-      HapticFeedback.lightImpact();
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to save score — check your connection and try again.')),
+        );
+      }
     }
   }
 

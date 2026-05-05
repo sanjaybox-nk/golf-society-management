@@ -72,6 +72,6 @@ final userStatsProvider = Provider<Map<String, dynamic>>((ref) {
 });
 
 // New provider to watch scorecards for a specific member
-final memberScorecardsProvider = StreamProvider.family<List<Scorecard>, String>((ref, memberId) {
+final memberScorecardsProvider = StreamProvider.autoDispose.family<List<Scorecard>, String>((ref, memberId) {
   return ref.watch(scorecardRepositoryProvider).watchMemberScorecards(memberId);
 });

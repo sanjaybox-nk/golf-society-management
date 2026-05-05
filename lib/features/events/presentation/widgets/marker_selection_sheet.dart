@@ -6,6 +6,7 @@ import 'package:golf_society/features/members/presentation/profile_provider.dart
 import 'package:golf_society/features/members/presentation/members_provider.dart';
 import 'package:golf_society/domain/scoring/scoring_calculator.dart';
 import '../state/marker_selection_provider.dart';
+import 'package:golf_society/utils/guest_id_helper.dart';
 
 class MarkerSelectionSheet extends ConsumerStatefulWidget {
   final GolfEvent event;
@@ -132,8 +133,7 @@ class _MarkerSelectionSheetState extends ConsumerState<MarkerSelectionSheet> {
             child: Column(
               children: (() {
                 final otherPlayers = widget.groupPlayers.where((p) {
-                  final pid = p['id'] ?? p['registrationMemberId'];
-                  final id = (p['isGuest'] == true || pid.toString().contains('_guest')) ? (pid.toString().contains('_guest') ? pid : '${pid}_guest') : pid;
+                  final id = GuestIdHelper.resolveEffectiveId(p);
                   return id != currentUser.id;
                 }).toList();
 
@@ -166,29 +166,29 @@ class _MarkerSelectionSheetState extends ConsumerState<MarkerSelectionSheet> {
                   ...otherPlayers.asMap().entries.map((entry) {
                     final idx = entry.key;
                     final p = entry.value;
-                    final pid = p['id'] ?? p['registrationMemberId'];
-                    final id = (p['isGuest'] == true || pid.toString().contains('_guest')) ? (pid.toString().contains('_guest') ? pid : '${pid}_guest') : pid;
+                    final id = GuestIdHelper.resolveEffectiveId(p);
                     final name = p['name'] ?? 'Unknown';
                     final isSelected = markerSelection.targetEntryIds.contains(id);
 
-                    final memberProfile = members.firstWhereOrNull((m) => m.id == pid);
+                    final baseId = GuestIdHelper.stripGuestSuffix(id);
+                    final memberProfile = members.firstWhereOrNull((m) => m.id == baseId);
                     final String playerDefaultTee = ScoringCalculator.resolvePlayerTee(
-                      memberId: id ?? '', 
-                      event: widget.event, 
+                      memberId: id,
+                      event: widget.event,
                       membersList: members,
                       gender: memberProfile?.gender,
                     ).name;
-                     
+
                     return _buildSelectionRow(
                       context,
                       ref,
                       isSelected: isSelected,
                       name: name,
-                      entryId: id ?? '',
+                      entryId: id,
                       tees: tees,
                       overrides: markerSelection.teeOverrides,
                       onSelect: () {
-                        if (id != null) {
+                        if (id.isNotEmpty) {
                           ref.read(markerSelectionProvider.notifier).toggleTarget(id);
                         }
                       },

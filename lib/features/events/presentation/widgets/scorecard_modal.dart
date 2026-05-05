@@ -4,6 +4,8 @@ import 'package:golf_society/utils/string_utils.dart';
 import 'package:collection/collection.dart';
 import 'package:go_router/go_router.dart';
 import 'package:golf_society/domain/models/scorecard.dart';
+import 'package:golf_society/domain/scoring/scorecard_factory.dart';
+import 'package:golf_society/utils/firestore_normalizer.dart';
 import 'package:golf_society/domain/models/golf_event.dart';
 import 'package:golf_society/design_system/design_system.dart';
 import 'package:golf_society/domain/models/competition.dart';
@@ -47,16 +49,10 @@ class ScorecardModal {
 
     if (entry.holeScores != null && entry.holeScores!.any((s) => s != null)) {
       if (kDebugMode) debugPrint("Found scores via Direct Bridge");
-      scorecard = Scorecard(
-        id: 'direct_${entry.entryId}',
-        competitionId: event.id,
-        roundId: '1',
+      scorecard = ScorecardFactory.fromDirectBridge(
         entryId: entry.entryId,
-        submittedByUserId: 'system',
-        status: ScorecardStatus.finalScore,
+        competitionId: event.id,
         holeScores: entry.holeScores!,
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
       );
       isScorecardEmpty = false;
     }
@@ -96,14 +92,14 @@ class ScorecardModal {
     if (isScorecardEmpty) {
       // 2a. Direct Match
       var seededResult = event.results.firstWhereOrNull(
-        (r) => (r['memberId'] ?? r['userId'] ?? r['playerId'] ?? 'unknown').toString() == entry.entryId,
+        (r) => FirestoreNormalizer.resolveMemberId(r) == entry.entryId,
       );
-      
+
       // 2b. Fallback for Team Seeded: Try each member
       if (seededResult == null && entry.teamMemberIds != null) {
         for (final memberId in entry.teamMemberIds!) {
           final s = event.results.firstWhereOrNull(
-            (r) => (r['memberId'] ?? r['userId'] ?? r['playerId'] ?? 'unknown').toString() == memberId
+            (r) => FirestoreNormalizer.resolveMemberId(r) == memberId,
           );
           if (s != null && s['holeScores'] != null && (s['holeScores'] as List).any((score) => score != null)) {
             seededResult = s;
@@ -116,42 +112,27 @@ class ScorecardModal {
       if (seededResult == null && entry.teamIndex != null) {
         final seededTeamId = 'team_${entry.teamIndex}';
         seededResult = event.results.firstWhereOrNull(
-          (r) => (r['memberId'] ?? r['userId'] ?? r['playerId'] ?? 'unknown').toString() == seededTeamId,
+          (r) => FirestoreNormalizer.resolveMemberId(r) == seededTeamId,
         );
       }
 
       if (seededResult != null && seededResult['holeScores'] != null) {
         if (kDebugMode) debugPrint("Found scores via Step 2 (Seeded Results map)");
         // Reconstruct temporary scorecard object
-        scorecard = Scorecard(
-          id: 'temp_${entry.entryId}',
-          competitionId: event.id,
-          roundId: '1',
+        scorecard = ScorecardFactory.fromSeededResult(
           entryId: entry.entryId,
-          submittedByUserId: 'system',
-          status: ScorecardStatus.finalScore,
-          holeScores: List<int?>.from(seededResult['holeScores']),
-          createdAt: DateTime.now(),
-          updatedAt: DateTime.now(),
-          points: seededResult['points'] is num ? (seededResult['points'] as num).toInt() : null,
-          netTotal: seededResult['netTotal'] is num ? (seededResult['netTotal'] as num).toInt() : null,
+          competitionId: event.id,
+          result: seededResult,
         );
         isScorecardEmpty = false;
       }
     }
 
     // 3. Final Bail if truly missing (but allow empty modal for groups with NO scores yet)
-    scorecard ??= Scorecard(
-        id: 'empty_${entry.entryId}',
-        competitionId: event.id,
-        roundId: '1',
-        entryId: entry.entryId,
-        submittedByUserId: 'system',
-        status: ScorecardStatus.draft,
-        holeScores: List.generate(18, (index) => null),
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
-      );
+    scorecard ??= ScorecardFactory.createEmpty(
+      entryId: entry.entryId,
+      competitionId: event.id,
+    );
 
     final actualScorecard = scorecard;
     
@@ -268,8 +249,16 @@ class ScorecardModal {
                                                 confirmText: 'Approve',
                                               );
                                               if (confirmed == true) {
-                                                await ref.read(scorecardRepositoryProvider).updateScorecardStatus(actualScorecard.id, ScorecardStatus.reviewed);
-                                                if (context.mounted) Navigator.pop(context);
+                                                try {
+                                                  await ref.read(scorecardRepositoryProvider).updateScorecardStatus(actualScorecard.id, ScorecardStatus.reviewed);
+                                                  if (context.mounted) Navigator.pop(context);
+                                                } catch (_) {
+                                                  if (context.mounted) {
+                                                    ScaffoldMessenger.of(context).showSnackBar(
+                                                      const SnackBar(content: Text('Failed to approve scorecard — check your connection.')),
+                                                    );
+                                                  }
+                                                }
                                               }
                                             },
                                           ),
@@ -325,8 +314,16 @@ class ScorecardModal {
                                                 submittedByUserId: id, // Fallback for legacy
                                                 updatedAt: DateTime.now(),
                                               );
-                                              await ref.read(scorecardRepositoryProvider).updateScorecard(updatedCard);
-                                              // We need to update local markerId to show immediate UI feedback
+                                              try {
+                                                await ref.read(scorecardRepositoryProvider).updateScorecard(updatedCard);
+                                              } catch (_) {
+                                                if (context.mounted) {
+                                                  ScaffoldMessenger.of(context).showSnackBar(
+                                                    const SnackBar(content: Text('Failed to update scorecard — check your connection.')),
+                                                  );
+                                                }
+                                              }
+                                              // Immediate UI feedback regardless of write outcome
                                               setModalState(() => activeMarkerId = id);
                                             }
                                           },
@@ -493,14 +490,14 @@ class ScorecardModal {
                             for (var pid in myGroupIds) {
                               Scorecard? card = scorecards.firstWhereOrNull((s) => s.entryId == pid);
                               if (card == null) {
-                                final seeded = event.results.firstWhereOrNull((r) => 
-                                  (r['memberId'] ?? r['userId'] ?? r['playerId'] ?? '').toString() == pid
+                                final seeded = event.results.firstWhereOrNull((r) =>
+                                  FirestoreNormalizer.resolveMemberId(r) == pid
                                 );
                                 if (seeded != null && seeded['holeScores'] != null) {
-                                  card = Scorecard(
-                                    id: 'temp_$pid', competitionId: event.id, roundId: '1', entryId: pid, submittedByUserId: 'system',
-                                    status: ScorecardStatus.finalScore, holeScores: List<int?>.from(seeded['holeScores']),
-                                    createdAt: DateTime.now(), updatedAt: DateTime.now()
+                                  card = ScorecardFactory.fromSeededResult(
+                                    entryId: pid,
+                                    competitionId: event.id,
+                                    result: seeded,
                                   );
                                 }
                               }
