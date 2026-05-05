@@ -1,6 +1,7 @@
 import * as admin from 'firebase-admin';
 import * as functions from 'firebase-functions';
 import { processMatchPlayReminders } from './match_play_reminders';
+import { migrateMemberIds } from './migrate_member_ids';
 
 // Initialize Admin SDK once
 admin.initializeApp();
@@ -11,7 +12,7 @@ admin.initializeApp();
  */
 export const matchPlayReminderPulse = functions.pubsub.schedule('0 8 * * *')
     .timeZone('UTC')
-    .onRun(async (context) => {
+    .onRun(async (_context) => {
         console.log('Starting automated Match Play reminders scan...');
         try {
             await processMatchPlayReminders();
@@ -21,5 +22,26 @@ export const matchPlayReminderPulse = functions.pubsub.schedule('0 8 * * *')
         }
     });
 
-// Placeholder for other functions if they need triggers
-// export const syncSeasonStandings = ...
+/**
+ * One-shot admin migration: normalises result entries in every `events` document
+ * so that the player ID is stored under `memberId` only (removes legacy `userId`
+ * and `playerId` fields). Safe to re-run — already-normalised docs are skipped.
+ *
+ * Secured by requiring a shared secret in the `x-admin-secret` request header.
+ * Set the secret via: firebase functions:config:set migration.secret="<value>"
+ */
+export const runMigrateMemberIds = functions.https.onRequest(async (req, res) => {
+    const expectedSecret = functions.config().migration?.secret;
+    if (!expectedSecret || req.headers['x-admin-secret'] !== expectedSecret) {
+        res.status(403).json({ error: 'Forbidden' });
+        return;
+    }
+
+    try {
+        const result = await migrateMemberIds();
+        res.status(200).json({ ok: true, ...result });
+    } catch (err) {
+        console.error('migrateMemberIds failed:', err);
+        res.status(500).json({ ok: false, error: String(err) });
+    }
+});
