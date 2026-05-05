@@ -48,8 +48,8 @@ app.*.map.json
 google-services.json
 GoogleService-Info.plist
 
-# Agent specialized state
-.agent/
+# Agent specialized state (runtime only — skills are tracked)
+.agent/state/
 
 # Node/Firebase Functions
 **/node_modules/
