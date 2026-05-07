@@ -204,13 +204,12 @@ class _FieldHubToggle extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final selectedTab = ref.watch(eventFieldTabProvider);
 
-    return ModernUnderlinedFilterBar<int>(
+    return BoxyArtTabBar<int>(
       selectedValue: selectedTab,
-      isExpanded: true,
       onTabSelected: (val) => ref.read(eventFieldTabProvider.notifier).set(val),
       tabs: const [
-        ModernFilterTab(label: 'Entries', value: 0, icon: Icons.people_rounded),
-        ModernFilterTab(label: 'Tee Times', value: 1, icon: Icons.access_time_rounded),
+        ModernFilterTab(label: 'Entries', value: 0),
+        ModernFilterTab(label: 'Tee Times', value: 1),
       ],
     );
   }

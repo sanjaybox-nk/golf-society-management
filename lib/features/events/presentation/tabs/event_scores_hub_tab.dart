@@ -20,7 +20,9 @@ import '../../../matchplay/presentation/widgets/match_play_bracket_hub.dart';
 import '../../../matchplay/domain/golf_event_match_extensions.dart';
 import 'event_tabs_state.dart';
 import '../../../members/presentation/profile_provider.dart';
+import '../../../members/presentation/members_provider.dart';
 import '../widgets/vertical_hole_scoring_list.dart';
+import 'package:golf_society/utils/guest_id_helper.dart';
 
 /// Resolved state needed to decide whether to show the pinned scoring keypad,
 /// and which scorecard to target. Extracted from _buildPinnedScoring to keep
@@ -72,9 +74,10 @@ class EventScoresUserTab extends ConsumerStatefulWidget {
 }
 
 class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
-  Map<int, int>? _optimisticScores; 
+  Map<int, int>? _optimisticScores;
   bool _optimisticIsVerifier = false;
   MarkerTab _selectedMarkerTab = MarkerTab.player;
+  String? _switchedCardId;
 
   void _onScoresChanged(Map<int, int> scores, bool isVerifier) {
     setState(() {
@@ -166,8 +169,7 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
                 headerBadgeColor = AppColors.coral500;
               } else if (userScorecard.status == ScorecardStatus.draft && isCardFull) {
                 headerBadgeText = "Verify Score";
-                headerBadgeColor = AppColors.amber500; 
-                headerOnBadgeTap = () => _showVerificationSheet(event, userScorecard);
+                headerBadgeColor = AppColors.amber500;
               } else {
                 if (userScorecard.status == ScorecardStatus.submitted) {
                   headerBadgeText = "Submitted";
@@ -186,6 +188,38 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
 
             final isStaff = currentUser.role != MemberRole.member;
             final selectedScoringTab = ref.watch(eventScoringTabProvider);
+            final allTargetIds = markerSelection.targetEntryIds.toList();
+            final members = ref.watch(allMembersProvider).value ?? [];
+
+            // Pinned card switcher — only on Scorecard tab when marking others
+            Widget? pinnedSwitcher;
+            if (selectedScoringTab == 1 && allTargetIds.isNotEmpty) {
+              final shadows = Theme.of(context).extension<AppShadows>();
+              pinnedSwitcher = Container(
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surface,
+                  borderRadius: Theme.of(context).extension<AppShapeTokens>()?.card ?? BorderRadius.circular(12),
+                  boxShadow: shadows?.useShadows == true ? shadows!.floatingAlt : null,
+                ),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.standard,
+                  vertical: AppSpacing.atomic,
+                ),
+                child: BoxyArtChipBar<String>(
+                  value: _switchedCardId ?? currentUser.id,
+                  options: [
+                    BoxyOption(value: currentUser.id, label: 'My Card'),
+                    ...allTargetIds.map((id) {
+                      final baseId = GuestIdHelper.stripGuestSuffix(id);
+                      final member = members.firstWhereOrNull((m) => m.id == baseId);
+                      final firstName = (member?.displayName ?? id).split(' ').first;
+                      return BoxyOption(value: id, label: firstName);
+                    }),
+                  ],
+                  onChanged: (id) => setState(() => _switchedCardId = id),
+                ),
+              );
+            }
 
             return HeadlessScaffold(
               title: event.title,
@@ -212,7 +246,7 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
                     padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
                     child: GestureDetector(
                       onTap: headerOnBadgeTap,
-                      child: headerBadgeText == null 
+                      child: headerBadgeText == null
                         ? const SizedBox.shrink()
                         : BoxyArtPill.status(
                             label: headerBadgeText,
@@ -225,11 +259,8 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
                   ),
                 ),
               ],
-              // [NEW] Pin keypad ONLY on the SCORECARD tab (Index 1)
-              pinnedBottom: selectedScoringTab == 1 
-                  ? _buildPinnedScoring(event, comp, scoringData, effectiveRules)
-                  : null,
-              pinnedBottomPadding: AppSpacing.lg,
+              pinnedBottom: pinnedSwitcher,
+              pinnedBottomPadding: AppSpacing.section,
               slivers: [
                 // 1. Sticky Tab Switcher (Design 4.x Tokened Style)
                 SliverPersistentHeader(
@@ -238,14 +269,13 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
                     child: Container(
                       color: Theme.of(context).scaffoldBackgroundColor,
                       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
-                      child: ModernUnderlinedFilterBar<int>(
+                      child: BoxyArtTabBar<int>(
                         tabs: const [
-                          ModernFilterTab(label: 'Scoring', value: 0, icon: Icons.edit_note_rounded),
-                          ModernFilterTab(label: 'Scorecard', value: 1, icon: Icons.grid_on_rounded),
+                          ModernFilterTab(label: 'Scoring', value: 0),
+                          ModernFilterTab(label: 'Scorecard', value: 1),
                         ],
                         selectedValue: selectedScoringTab,
                         onTabSelected: (val) => ref.read(eventScoringTabProvider.notifier).set(val),
-                        isExpanded: true,
                       ),
                     ),
                   ),
@@ -258,11 +288,14 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
                      child: selectedScoringTab == 0
                         ? VerticalHoleScoringList(
                             key: ValueKey('scoring_${event.id}_${currentUser.id}'),
-                            event: event, 
+                            event: event,
                             scoringData: scoringData,
                             onMarkerSelectionTap: () => MarkerSelectionSheet.show(context: context, event: event),
+                            onVerifyTap: (userScorecard != null && userScorecard.status == ScorecardStatus.draft && isCardFull)
+                                ? () => _showVerificationSheet(event, userScorecard)
+                                : null,
                           )
-                        : _buildScoringContent(event, comp, effectiveRules, scoringData),
+                        : _buildScoringContent(event, comp, effectiveRules, scoringData, _switchedCardId),
                   ),
                 ),
               ],
@@ -286,7 +319,7 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
             onBack: () => context.go('/events'),
             slivers: [
               SliverFillRemaining(
-                child: BoxyArtEmptyState(
+                child: BoxyArtEmptyCard(
                   title: 'Could not load scoring data',
                   message: err.toString(),
                   icon: Icons.error_outline_rounded,
@@ -310,7 +343,7 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
         onBack: () => context.go('/events'),
         slivers: [
           SliverFillRemaining(
-            child: BoxyArtEmptyState(
+            child: BoxyArtEmptyCard(
               title: 'Could not load event',
               message: err.toString(),
               icon: Icons.error_outline_rounded,
@@ -342,7 +375,7 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
     );
   }
 
-  Widget _buildScoringContent(GolfEvent event, Competition? comp, CompetitionRules effectiveRules, ProcessedEventData? scoringData) {
+  Widget _buildScoringContent(GolfEvent event, Competition? comp, CompetitionRules effectiveRules, ProcessedEventData? scoringData, String? switchedCardId) {
     return EventScorecardView(
       event: event,
       comp: comp,
@@ -353,6 +386,7 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
       selectedMarkerTab: _selectedMarkerTab,
       onMarkerSelectionTap: () => MarkerSelectionSheet.show(context: context, event: event),
       onSyncFromPartner: (card) => _copyScoresFromPartner(card),
+      switchedCardId: switchedCardId,
     );
   }
 

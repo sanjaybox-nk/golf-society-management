@@ -4,6 +4,7 @@ class BoxyHoleSelector extends StatefulWidget {
   final Map<int, int> scores;
   final ValueChanged<int> onHoleChanged;
   final double height;
+  final Set<int> conflictedHoles;
 
   const BoxyHoleSelector({
     super.key,
@@ -11,6 +12,7 @@ class BoxyHoleSelector extends StatefulWidget {
     required this.scores,
     required this.onHoleChanged,
     this.height = 48,
+    this.conflictedHoles = const {},
   });
 
   @override
@@ -90,7 +92,8 @@ class _BoxyHoleSelectorState extends State<BoxyHoleSelector> {
                 final holeNum = index + 1;
                 final isSelected = holeNum == widget.currentHole;
                 final hasScore = widget.scores.containsKey(holeNum);
-                return _buildHoleItem(context, holeNum, isSelected, hasScore);
+                final hasConflict = widget.conflictedHoles.contains(holeNum);
+                return _buildHoleItem(context, holeNum, isSelected, hasScore, hasConflict);
               },
             ),
           ),
@@ -103,9 +106,12 @@ class _BoxyHoleSelectorState extends State<BoxyHoleSelector> {
     );
   }
 
-  Widget _buildHoleItem(BuildContext context, int holeNum, bool isSelected, bool hasScore) {
+  Widget _buildHoleItem(BuildContext context, int holeNum, bool isSelected, bool hasScore, bool hasConflict) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final dotColor = hasConflict
+        ? AppColors.coral500
+        : (isSelected ? theme.colorScheme.primary : theme.colorScheme.primary.withValues(alpha: AppColors.opacityMuted));
 
     return GestureDetector(
       onTap: () => widget.onHoleChanged(holeNum),
@@ -117,7 +123,9 @@ class _BoxyHoleSelectorState extends State<BoxyHoleSelector> {
           color: Colors.transparent,
           border: Border(
             bottom: BorderSide(
-              color: isSelected ? theme.colorScheme.primary : Colors.transparent,
+              color: hasConflict
+                  ? AppColors.coral500
+                  : (isSelected ? theme.colorScheme.primary : Colors.transparent),
               width: AppShapes.borderMedium,
             ),
           ),
@@ -128,21 +136,23 @@ class _BoxyHoleSelectorState extends State<BoxyHoleSelector> {
             AnimatedDefaultTextStyle(
               duration: AppAnimations.fast,
               style: AppTypography.displayHeading.copyWith(
-                color: isSelected
-                    ? (isDark ? AppColors.pureWhite : AppColors.dark900)
-                    : theme.colorScheme.onSurface.withValues(alpha: AppColors.opacityHalf),
+                color: hasConflict
+                    ? AppColors.coral500
+                    : (isSelected
+                        ? (isDark ? AppColors.pureWhite : AppColors.dark900)
+                        : theme.colorScheme.onSurface.withValues(alpha: AppColors.opacityHalf)),
                 fontSize: isSelected ? 24 : 18,
               ),
               child: Text('$holeNum'),
             ),
-            if (hasScore)
+            if (hasScore || hasConflict)
               Positioned(
                 bottom: AppSpacing.xs,
                 child: Container(
                   width: 5,
                   height: 5,
                   decoration: BoxDecoration(
-                    color: isSelected ? theme.colorScheme.primary : theme.colorScheme.primary.withValues(alpha: AppColors.opacityMuted),
+                    color: dotColor,
                     shape: BoxShape.circle,
                   ),
                 ),

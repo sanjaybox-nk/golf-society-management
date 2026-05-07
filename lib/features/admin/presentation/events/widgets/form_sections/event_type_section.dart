@@ -16,21 +16,12 @@ class EventTypeSection extends ConsumerWidget {
       data: (state) => Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          ModernUnderlinedFilterBar<EventType>(
-            isExpanded: true,
+          BoxyArtTabBar<EventType>(
             selectedValue: state.eventType,
             onTabSelected: (type) => ref.read(eventFormNotifierProvider.notifier).updateEventType(type),
             tabs: const [
-              ModernFilterTab(
-                label: 'Golf', 
-                value: EventType.golf, 
-                icon: Icons.sports_golf_rounded,
-              ),
-              ModernFilterTab(
-                label: 'Social', 
-                value: EventType.social, 
-                icon: Icons.groups_rounded,
-              ),
+              ModernFilterTab(label: 'Golf', value: EventType.golf),
+              ModernFilterTab(label: 'Social', value: EventType.social),
             ],
           ),
         ],

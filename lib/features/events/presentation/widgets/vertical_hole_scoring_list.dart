@@ -21,12 +21,14 @@ class VerticalHoleScoringList extends ConsumerStatefulWidget {
   final GolfEvent event;
   final ProcessedEventData? scoringData;
   final VoidCallback? onMarkerSelectionTap;
+  final VoidCallback? onVerifyTap;
 
   const VerticalHoleScoringList({
     super.key,
     required this.event,
     this.scoringData,
     this.onMarkerSelectionTap,
+    this.onVerifyTap,
   });
 
   @override
@@ -72,17 +74,12 @@ class _VerticalHoleScoringListState extends ConsumerState<VerticalHoleScoringLis
     final otherPlayersIds = groupPlayersRaw.where((id) => id != currentUser.id).toList();
 
     final localTargets = markerSelection.targetEntryIds;
-    final dbTargets = allScorecards
-        .where((s) => s.markerId == currentUser.id && s.entryId != currentUser.id)
-        .map((s) => s.entryId)
-        .toList();
 
-    final List<String> targetEntryIds = isGroupScorer 
-        ? otherPlayersIds 
-        : {...localTargets, ...dbTargets}.toList();
+    final List<String> targetEntryIds = isGroupScorer
+        ? otherPlayersIds
+        : localTargets.toList();
 
-    final bool isSelfMarking = markerSelection.isSelfMarking || 
-        allScorecards.any((s) => s.entryId == currentUser.id && s.markerId == currentUser.id);
+    final bool isSelfMarking = markerSelection.isSelfMarking;
     
     // For TEE configuration, we usually use the first target or self
     final String primaryTargetId = (isSelfMarking || targetEntryIds.isEmpty) 
@@ -163,13 +160,15 @@ class _VerticalHoleScoringListState extends ConsumerState<VerticalHoleScoringLis
                         final int? seedScore = mySeedCard?.holeScores.elementAtOrNull(index);
                         final int? displayScore = markerScore ?? seedScore ?? myStats?.holeScores.elementAtOrNull(index);
 
+                        final myActiveCard = myMarkerCard ?? mySeedCard;
+                        final myConflicts = _computeConflictedHoles(myActiveCard);
                         return _PlayerScoringCard(
                           label: '',
                           name: currentUser.displayName,
                           hc: currentUser.handicap.toDouble(),
                           phc: HandicapCalculator.calculatePlayingHandicap(
-                            handicapIndex: currentUser.handicap.toDouble(), 
-                            rules: widget.event.courseConfig.holes.any((h) => h.par == 0) ? const CompetitionRules() : (ref.watch(competitionDetailProvider(widget.event.id)).value?.rules ?? const CompetitionRules()), 
+                            handicapIndex: currentUser.handicap.toDouble(),
+                            rules: widget.event.courseConfig.holes.any((h) => h.par == 0) ? const CompetitionRules() : (ref.watch(competitionDetailProvider(widget.event.id)).value?.rules ?? const CompetitionRules()),
                             courseConfig: myCourseConfig,
                             societyCut: widget.event.manualCuts[currentUser.id] ?? 0.0,
                           ),
@@ -187,6 +186,9 @@ class _VerticalHoleScoringListState extends ConsumerState<VerticalHoleScoringLis
                           isLocked: isLocked,
                           isMe: true,
                           markerName: myMarkerName,
+                          holeTags: myActiveCard?.holeTags[index + 1] ?? [],
+                          onStoryTap: isLocked ? null : () => _showStorySheet(context, currentUser.id, index + 1),
+                          hasConflict: myConflicts.contains(index + 1),
                         );
                       })(),
                       if (targetEntryIds.isNotEmpty) const SizedBox(height: AppSpacing.md),
@@ -222,6 +224,15 @@ class _VerticalHoleScoringListState extends ConsumerState<VerticalHoleScoringLis
                         ],
                       ),
                     ),
+                    if (widget.onVerifyTap != null) ...[
+                      const SizedBox(height: AppSpacing.standard),
+                      BoxyArtButton(
+                        title: 'Verify Score',
+                        isPrimary: true,
+                        fullWidth: true,
+                        onTap: widget.onVerifyTap,
+                      ),
+                    ],
                     const SizedBox(height: AppSpacing.xl), // Bottom breathing room
                   ],
                 ),
@@ -328,6 +339,7 @@ class _VerticalHoleScoringListState extends ConsumerState<VerticalHoleScoringLis
     final markerId = scorecard?.markerId;
     final markerName = markerId == currentUser.id ? 'ME' : (markerId != null ? _getDisplayName(members, markerId) : null);
 
+    final targetConflicts = _computeConflictedHoles(scorecard);
     return _PlayerScoringCard(
       label: '',
       name: _getDisplayName(members, tId),
@@ -338,7 +350,7 @@ class _VerticalHoleScoringListState extends ConsumerState<VerticalHoleScoringLis
       par: targetCourseConfig.holes[index].par,
       si: targetCourseConfig.holes[index].si,
       score: dScore,
-      hint: pScore, // Show the player's own input as a hint to the marker
+      hint: pScore,
       thru: targetStats?.thruLabel,
       points: targetStats?.result.score,
       matchStatus: targetEntry?.matchStatus,
@@ -347,6 +359,9 @@ class _VerticalHoleScoringListState extends ConsumerState<VerticalHoleScoringLis
       isLocked: isLocked,
       isMe: false,
       markerName: markerName,
+      holeTags: scorecard?.holeTags[index + 1] ?? [],
+      onStoryTap: isLocked ? null : () => _showStorySheet(context, tId, index + 1),
+      hasConflict: targetConflicts.contains(index + 1),
     );
   }
 
@@ -408,9 +423,149 @@ class _VerticalHoleScoringListState extends ConsumerState<VerticalHoleScoringLis
   }
 
   String _getDisplayName(List<Member> members, String id) {
-    final m = members.firstWhereOrNull((m) => m.id == id);
-    return m?.displayName ?? 'Player';
+    return members.firstWhereOrNull((m) => m.id == id)?.displayName ?? 'Player';
   }
+
+  Set<int> _computeConflictedHoles(Scorecard? scorecard) {
+    if (scorecard == null) return const {};
+    final conflicts = <int>{};
+    for (int i = 0; i < 18; i++) {
+      final pScore = scorecard.holeScores.elementAtOrNull(i);
+      final mScore = scorecard.playerVerifierScores.elementAtOrNull(i);
+      if (pScore != null && mScore != null && pScore != mScore) {
+        conflicts.add(i + 1);
+      }
+    }
+    return conflicts;
+  }
+
+  void _showStorySheet(BuildContext context, String entryId, int holeNum) {
+    BoxyArtBottomSheet.show(
+      context: context,
+      title: 'Hole Story',
+      initialChildSize: 0.5,
+      minChildSize: 0.45,
+      maxChildSize: 0.65,
+      child: StatefulBuilder(
+        builder: (ctx, setModalState) {
+          final allCards = ref.read(scorecardsListProvider(widget.event.id)).asData?.value ?? [];
+          final scorecard = allCards.firstWhereOrNull((s) => s.entryId == entryId);
+          if (scorecard == null) return const SizedBox.shrink();
+
+          final tags = List<String>.from(scorecard.holeTags[holeNum] ?? []);
+          final isGimme = tags.contains('GIMME');
+          final isPickUp = tags.contains('PICK_UP');
+          // PENALTY_1_<ts> = 1-stroke, PENALTY_2_<ts> = 2-stroke
+          // Legacy PENALTY_<ts> (no type digit) treated as 1-stroke
+          final p1Count = tags.where((t) => t.startsWith('PENALTY_1_') || (t.startsWith('PENALTY_') && !t.startsWith('PENALTY_1_') && !t.startsWith('PENALTY_2_'))).length;
+          final p2Count = tags.where((t) => t.startsWith('PENALTY_2_')).length;
+          final hasPenalties = p1Count > 0 || p2Count > 0;
+
+          void persist(List<String> updated) {
+            final updatedTags = Map<int, List<String>>.from(scorecard.holeTags);
+            updatedTags[holeNum] = updated;
+            ref.read(scorecardRepositoryProvider).updateScorecard(scorecard.copyWith(holeTags: updatedTags));
+            setModalState(() {});
+          }
+
+          return Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: BoxyArtButton(
+                      title: 'Gimme',
+                      icon: Icons.check_circle_outline_rounded,
+                      fullWidth: true,
+                      backgroundColor: isGimme ? AppColors.lime500 : null,
+                      textColor: isGimme ? Colors.white : null,
+                      onTap: () {
+                        if (isGimme) { tags.remove('GIMME'); } else { tags.add('GIMME'); }
+                        persist(tags);
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: AppSpacing.sm),
+                  Expanded(
+                    child: BoxyArtButton(
+                      title: 'Pick Up',
+                      icon: Icons.upload_rounded,
+                      fullWidth: true,
+                      backgroundColor: isPickUp ? AppColors.coral500 : null,
+                      textColor: isPickUp ? Colors.white : null,
+                      onTap: () {
+                        if (isPickUp) { tags.remove('PICK_UP'); } else { tags.add('PICK_UP'); }
+                        persist(tags);
+                      },
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: AppSpacing.standard),
+              Text(
+                'PENALTY STROKES',
+                style: AppTypography.label.copyWith(
+                  color: AppColors.dark400,
+                  fontWeight: AppTypography.weightBold,
+                  letterSpacing: AppTypography.lsLabel,
+                ),
+              ),
+              const SizedBox(height: AppSpacing.atomic),
+              Row(
+                children: [
+                  Expanded(
+                    child: BoxyArtButton(
+                      title: '+1 Stroke${p1Count > 0 ? ' (×$p1Count)' : ''}',
+                      icon: Icons.add_circle_outline_rounded,
+                      fullWidth: true,
+                      backgroundColor: p1Count > 0 ? AppColors.amber500 : null,
+                      textColor: p1Count > 0 ? Colors.white : null,
+                      onTap: () {
+                        tags.add('PENALTY_1_${DateTime.now().millisecondsSinceEpoch}');
+                        persist(tags);
+                      },
+                      onLongPress: p1Count > 0 ? () {
+                        tags.removeWhere((t) => t.startsWith('PENALTY_1_') || (t.startsWith('PENALTY_') && !t.startsWith('PENALTY_1_') && !t.startsWith('PENALTY_2_')));
+                        persist(tags);
+                      } : null,
+                    ),
+                  ),
+                  const SizedBox(width: AppSpacing.sm),
+                  Expanded(
+                    child: BoxyArtButton(
+                      title: '+2 Strokes${p2Count > 0 ? ' (×$p2Count)' : ''}',
+                      icon: Icons.add_circle_outline_rounded,
+                      fullWidth: true,
+                      backgroundColor: p2Count > 0 ? AppColors.amber500 : null,
+                      textColor: p2Count > 0 ? Colors.white : null,
+                      onTap: () {
+                        tags.add('PENALTY_2_${DateTime.now().millisecondsSinceEpoch}');
+                        persist(tags);
+                      },
+                      onLongPress: p2Count > 0 ? () {
+                        tags.removeWhere((t) => t.startsWith('PENALTY_2_'));
+                        persist(tags);
+                      } : null,
+                    ),
+                  ),
+                ],
+              ),
+              if (hasPenalties) ...[
+                const SizedBox(height: AppSpacing.atomic),
+                Text(
+                  'Long-press to clear that type',
+                  style: AppTypography.micro.copyWith(color: AppColors.dark400),
+                ),
+              ],
+            ],
+          );
+        },
+      ),
+    );
+  }
+
 }
 
 class _PlayerScoringCard extends ConsumerStatefulWidget {
@@ -432,6 +587,9 @@ class _PlayerScoringCard extends ConsumerStatefulWidget {
   final ValueChanged<int> onChanged;
   final bool isStableford;
   final bool isLocked;
+  final List<String> holeTags;
+  final VoidCallback? onStoryTap;
+  final bool hasConflict;
 
   const _PlayerScoringCard({
     required this.label,
@@ -452,6 +610,9 @@ class _PlayerScoringCard extends ConsumerStatefulWidget {
     required this.onChanged,
     this.isStableford = true,
     this.isLocked = false,
+    this.holeTags = const [],
+    this.onStoryTap,
+    this.hasConflict = false,
   });
 
   @override
@@ -504,24 +665,29 @@ class _PlayerScoringCardState extends ConsumerState<_PlayerScoringCard> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final shapes = theme.extension<AppShapeTokens>();
+    final spacing = theme.extension<AppSpacingTokens>();
     return Container(
-      padding: const EdgeInsets.all(AppSpacing.cardPadding),
+      padding: EdgeInsets.all(spacing?.cardVerticalPadding ?? AppSpacing.cardPadding),
       decoration: BoxDecoration(
         color: isDark ? AppColors.dark800 : theme.cardColor,
-        borderRadius: BorderRadius.circular(AppShapes.rMd),
+        borderRadius: shapes?.card,
         border: Border.all(
           color: isDark ? AppColors.dark700 : AppColors.lightBorder,
           width: 1.0,
         ),
-        boxShadow: Theme.of(context).extension<AppShadows>()?.softScale,
+        boxShadow: theme.extension<AppShadows>()?.softScale,
       ),
       child: IntrinsicHeight(
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // Left Column: Player Info
+            // Left Column: Player Info (long-press for hole story)
             Expanded(
-              child: Column(
+              child: GestureDetector(
+                onLongPress: widget.isLocked ? null : widget.onStoryTap,
+                behavior: HitTestBehavior.opaque,
+                child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   if (widget.label.isNotEmpty)
@@ -549,7 +715,7 @@ class _PlayerScoringCardState extends ConsumerState<_PlayerScoringCard> {
                   const SizedBox(height: 4),
                   Row(
                     children: [
-                      BoxyArtIndicator.hc(label: widget.hc.toStringAsFixed(1)),
+                      BoxyArtIndicator.hc(label: widget.hc.toStringAsFixed(1), hasHorizontalMargin: false),
                       BoxyArtIndicator.phc(context: context, label: '${widget.phc}'),
                     ],
                   ),
@@ -560,14 +726,16 @@ class _PlayerScoringCardState extends ConsumerState<_PlayerScoringCard> {
                     Text(
                       'MARKED BY ${widget.markerName!.toUpperCase()}',
                       style: AppTypography.micro.copyWith(
+                        fontSize: 10,
                         color: AppColors.dark400,
-                        fontWeight: FontWeight.w200,
+                        fontWeight: FontWeight.w100,
                         letterSpacing: 0.5,
                         height: 1.0,
                       ),
                     ),
                   ],
                 ],
+                ),
               ),
             ),
 
@@ -643,46 +811,68 @@ class _PlayerScoringCardState extends ConsumerState<_PlayerScoringCard> {
                           },
                         ),
                         const SizedBox(width: AppSpacing.xs),
-                        Container(
-                          width: 48,
-                          height: 48,
-                          alignment: Alignment.center,
-                          decoration: BoxDecoration(
-                            color: isDark ? AppColors.dark900.withOpacity(0.5) : AppColors.dark50.withOpacity(0.5),
-                            borderRadius: BorderRadius.circular(AppShapes.rSm),
-                            border: Border.all(
-                              color: isDark ? AppColors.dark700 : AppColors.lightBorder,
-                              width: 1.0,
+                        Stack(
+                          clipBehavior: Clip.none,
+                          children: [
+                            Container(
+                              width: 48,
+                              height: 48,
+                              alignment: Alignment.center,
+                              decoration: BoxDecoration(
+                                color: widget.hasConflict
+                                    ? AppColors.coral500.withValues(alpha: AppColors.opacityLow)
+                                    : (isDark ? AppColors.dark900.withValues(alpha: AppColors.opacityHalf) : AppColors.dark50.withValues(alpha: AppColors.opacityHalf)),
+                                borderRadius: shapes?.input,
+                                border: Border.all(
+                                  color: widget.hasConflict
+                                      ? AppColors.coral500
+                                      : (isDark ? AppColors.dark700 : AppColors.lightBorder),
+                                  width: widget.hasConflict ? AppShapes.borderMedium : 1.0,
+                                ),
+                              ),
+                              child: TextField(
+                                controller: _controller,
+                                focusNode: _focusNode,
+                                textAlign: TextAlign.center,
+                                keyboardType: TextInputType.number,
+                                readOnly: widget.isLocked,
+                                decoration: const InputDecoration(
+                                  border: InputBorder.none,
+                                  enabledBorder: InputBorder.none,
+                                  focusedBorder: InputBorder.none,
+                                  errorBorder: InputBorder.none,
+                                  disabledBorder: InputBorder.none,
+                                  contentPadding: EdgeInsets.zero,
+                                  hintText: '-',
+                                  filled: false,
+                                  fillColor: Colors.transparent,
+                                ),
+                                style: AppTypography.display.copyWith(
+                                  color: _getScoreColor(),
+                                  fontWeight: AppTypography.weightHeavy,
+                                  fontSize: 32,
+                                  height: 1.0,
+                                ),
+                                onSubmitted: (v) {
+                                  final val = int.tryParse(v);
+                                  if (val != null) widget.onChanged(val);
+                                },
+                              ),
                             ),
-                          ),
-                          child: TextField(
-                            controller: _controller,
-                            focusNode: _focusNode,
-                            textAlign: TextAlign.center,
-                            keyboardType: TextInputType.number,
-                            readOnly: widget.isLocked,
-                            decoration: const InputDecoration(
-                              border: InputBorder.none,
-                              enabledBorder: InputBorder.none,
-                              focusedBorder: InputBorder.none,
-                              errorBorder: InputBorder.none,
-                              disabledBorder: InputBorder.none,
-                              contentPadding: EdgeInsets.zero,
-                              hintText: '-',
-                              filled: false,
-                              fillColor: Colors.transparent,
-                            ),
-                            style: AppTypography.display.copyWith(
-                              color: _getScoreColor(),
-                              fontWeight: AppTypography.weightHeavy,
-                              fontSize: 32,
-                              height: 1.0,
-                            ),
-                            onSubmitted: (v) {
-                              final val = int.tryParse(v);
-                              if (val != null) widget.onChanged(val);
-                            },
-                          ),
+                            if (widget.holeTags.isNotEmpty)
+                              Positioned(
+                                top: 3,
+                                right: 3,
+                                child: Container(
+                                  width: 6,
+                                  height: 6,
+                                  decoration: const BoxDecoration(
+                                    color: AppColors.amber500,
+                                    shape: BoxShape.circle,
+                                  ),
+                                ),
+                              ),
+                          ],
                         ),
                         const SizedBox(width: AppSpacing.xs),
                         _StepperIcon(

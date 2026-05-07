@@ -17,7 +17,8 @@ class SlidingCourseInfoCard extends StatefulWidget {
   final List<String>? matchPlayResults;
   final double? handicapAllowance;
   final String? tieBreakLabel;
-  final Map<int, List<String>>? holeTags; // [NEW]
+  final Map<int, List<String>>? holeTags;
+  final Set<int> conflictedHoles;
 
   const SlidingCourseInfoCard({
     super.key,
@@ -35,6 +36,7 @@ class SlidingCourseInfoCard extends StatefulWidget {
     this.handicapAllowance,
     this.tieBreakLabel,
     this.holeTags,
+    this.conflictedHoles = const {},
   });
 
   @override
@@ -208,22 +210,24 @@ class _SlidingCourseInfoCardState extends State<SlidingCourseInfoCard> {
               onPageChanged: (idx) => setState(() => _currentPage = idx),
               children: [
                 _buildNineView(
-                  context, 
-                  'OUT', 
-                  holePars.take(9).toList(), 
-                  holeSIs.take(9).toList(), 
+                  context,
+                  'OUT',
+                  holePars.take(9).toList(),
+                  holeSIs.take(9).toList(),
                   holeDistances.take(9).toList(),
                   front9Pars, 1,
                   result,
+                  widget.conflictedHoles,
                 ),
                 _buildNineView(
-                  context, 
-                  'IN', 
-                  holePars.skip(9).take(9).toList(), 
-                  holeSIs.skip(9).take(9).toList(), 
+                  context,
+                  'IN',
+                  holePars.skip(9).take(9).toList(),
+                  holeSIs.skip(9).take(9).toList(),
                   holeDistances.skip(9).take(9).toList(),
                   back9Pars, 10,
                   result,
+                  widget.conflictedHoles,
                 ),
               ],
             ),
@@ -303,7 +307,7 @@ class _SlidingCourseInfoCardState extends State<SlidingCourseInfoCard> {
   }
 
 
-  Widget _buildNineView(BuildContext context, String label, List<int> pars, List<int> sis, List<int> distances, int ninePar, int startHole, ScoringResult result) {
+  Widget _buildNineView(BuildContext context, String label, List<int> pars, List<int> sis, List<int> distances, int ninePar, int startHole, ScoringResult result, Set<int> conflictedHoles) {
     final String distLabel = widget.distanceUnit.toUpperCase().contains('METRE') ? 'MTR' : 'YDS';
     final int nineDist = distances.fold<int>(0, (a, b) => a + b);
     final bool isStrokePlay = !widget.isStableford && widget.matchPlayResults == null;
@@ -367,9 +371,11 @@ class _SlidingCourseInfoCardState extends State<SlidingCourseInfoCard> {
               _buildSideLabel(context, 'STR'),
               for (int i = 0; i < 9; i++)
                 (() {
-                  final idx = startHole - 1 + i;
+                  final holeNum = startHole + i;
+                  final idx = holeNum - 1;
                   final s = (widget.scores != null && idx < widget.scores!.length) ? widget.scores![idx] : null;
-                  return Expanded(child: _buildScoreCell(context, s, pars[i]));
+                  final hasConflict = conflictedHoles.contains(holeNum);
+                  return Expanded(child: _buildScoreCell(context, s, pars[i], hasConflict: hasConflict));
                 })(),
               _buildTotalCell(context, _calcNineTotal(startHole), isBold: true),
             ],
@@ -570,55 +576,80 @@ class _SlidingCourseInfoCardState extends State<SlidingCourseInfoCard> {
     );
   }
 
-  Widget _buildScoreCell(BuildContext context, int? score, int par) {
-    if (score == null) return _buildValueCell(context, '-');
-    
+  Widget _buildScoreCell(BuildContext context, int? score, int par, {bool hasConflict = false}) {
+    if (score == null) {
+      return hasConflict
+          ? Container(
+              height: 32,
+              alignment: Alignment.center,
+              child: Container(
+                width: 22,
+                height: 22,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(4),
+                  border: Border.all(color: AppColors.coral500, width: 1.5),
+                ),
+                alignment: Alignment.center,
+                child: Text('-', style: AppTypography.labelStrong.copyWith(fontSize: 14, color: AppColors.coral500)),
+              ),
+            )
+          : _buildValueCell(context, '-');
+    }
+
     final diff = score - par;
     final isDark = theme.brightness == Brightness.dark;
-    
+
     Color? bg;
     Color fg = Colors.white;
     BoxBorder? border;
-    
+
     if (diff <= -2) {
-      bg = AppColors.amber500; // Eagle - Yellow
+      bg = AppColors.amber500;
       fg = Colors.black;
     } else if (diff == -1) {
-      bg = AppColors.coral500; // Birdie - Red
+      bg = AppColors.coral500;
     } else if (diff == 0) {
-      bg = Colors.transparent; 
+      bg = Colors.transparent;
       fg = theme.colorScheme.onSurface;
       border = Border.all(
         color: isDark ? AppColors.dark500 : AppColors.lightBorder,
         width: 1,
       );
     } else if (diff == 1) {
-      bg = AppColors.dark900; // Bogey - Black
+      bg = AppColors.dark900;
     } else {
-      bg = AppColors.dark600; // Double Bogey+ - Dark Grey
+      bg = AppColors.dark600;
     }
+
+    final pip = Container(
+      width: 22,
+      height: 22,
+      decoration: BoxDecoration(
+        color: bg,
+        shape: diff < 0 ? BoxShape.circle : BoxShape.rectangle,
+        borderRadius: diff < 0 ? null : BorderRadius.circular(4),
+        border: border,
+      ),
+      alignment: Alignment.center,
+      child: Text(
+        '$score',
+        style: AppTypography.labelStrong.copyWith(fontSize: 14, color: fg),
+      ),
+    );
 
     return Container(
       height: 32,
       alignment: Alignment.center,
-      child: Container(
-        width: 22,
-        height: 22,
-        decoration: BoxDecoration(
-          color: bg,
-          shape: diff < 0 ? BoxShape.circle : BoxShape.rectangle,
-          borderRadius: diff < 0 ? null : BorderRadius.circular(4),
-          border: border,
-        ),
-        alignment: Alignment.center,
-        child: Text(
-          '$score',
-          style: AppTypography.labelStrong.copyWith(
-            fontSize: 14,
-            color: fg,
-          ),
-        ),
-      ),
+      child: hasConflict
+          ? Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(6),
+                border: Border.all(color: AppColors.coral500, width: 1.5),
+              ),
+              padding: const EdgeInsets.all(2),
+              child: pip,
+            )
+          : pip,
     );
   }
 

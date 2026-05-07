@@ -7,7 +7,6 @@ class BoxyArtBottomNavBar extends StatelessWidget {
   final Color? backgroundColor;
   final Color? activeColor;
   final Color? unselectedColor;
-  final Color? borderColor;
   final bool isAdmin;
 
   const BoxyArtBottomNavBar({
@@ -18,7 +17,6 @@ class BoxyArtBottomNavBar extends StatelessWidget {
     this.backgroundColor,
     this.activeColor,
     this.unselectedColor,
-    this.borderColor,
     this.isAdmin = false,
   });
 
@@ -26,20 +24,43 @@ class BoxyArtBottomNavBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    
+    final shapes = theme.extension<AppShapeTokens>();
+    final shadows = theme.extension<AppShadows>();
+
+    final bg = backgroundColor ?? (isDark ? AppColors.dark800 : AppColors.pureWhite);
+    final active = activeColor ?? (isDark ? theme.colorScheme.primary : AppColors.dark950);
+    final inactive = unselectedColor ?? (isDark ? AppColors.dark200 : AppColors.dark400);
+
     return Material(
       type: MaterialType.transparency,
       child: Container(
         width: double.infinity,
         decoration: BoxDecoration(
-          color: backgroundColor ?? (isDark ? AppColors.dark800 : AppColors.pureWhite),
-          boxShadow: isDark ? [] : [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
-              offset: const Offset(0, -4),
-              blurRadius: 12,
-            ),
-          ],
+          color: bg,
+          borderRadius: shapes?.navBar,
+          boxShadow: shadows?.useShadows == true
+              ? [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.08),
+                    offset: const Offset(0, -6),
+                    blurRadius: 20,
+                    spreadRadius: 0,
+                  ),
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: isDark ? 0.15 : 0.04),
+                    offset: const Offset(0, -2),
+                    blurRadius: 6,
+                    spreadRadius: 0,
+                  ),
+                ]
+              : [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.06),
+                    offset: const Offset(0, -4),
+                    blurRadius: 12,
+                    spreadRadius: 0,
+                  ),
+                ],
         ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -47,43 +68,52 @@ class BoxyArtBottomNavBar extends StatelessWidget {
             final index = entry.key;
             final item = entry.value;
             final isSelected = selectedIndex == index;
-            final Color unselectedItemColor = unselectedColor ?? 
-                (isDark ? AppColors.dark200 : AppColors.dark600);
-  
+
             return Expanded(
               child: GestureDetector(
                 onTap: () => onItemSelected(index),
                 behavior: HitTestBehavior.opaque,
                 child: SafeArea(
                   top: false,
-                  bottom: true,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const SizedBox(height: 12), // Spacing from top of bar
-                      Icon(
-                        isSelected ? item.activeIcon : item.icon,
-                        color: isSelected 
-                          ? (isDark ? theme.colorScheme.primary : AppColors.dark950) 
-                          : unselectedItemColor,
-                        size: 28,
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        item.label,
-                        style: AppTypography.micro.copyWith(
-                          fontSize: 11.0,
-                          fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-                          color: isSelected 
-                              ? (isDark ? theme.colorScheme.primary : AppColors.dark950) 
-                              : unselectedItemColor,
-                          letterSpacing: 0.2,
-                          decoration: TextDecoration.none, // Safety override
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: AppSpacing.atomic),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        AnimatedContainer(
+                          duration: AppAnimations.fast,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: AppSpacing.atomic,
+                            vertical: AppSpacing.xs,
+                          ),
+                          decoration: BoxDecoration(
+                            color: isSelected
+                                ? active.withValues(alpha: AppColors.opacityLow)
+                                : Colors.transparent,
+                            borderRadius: shapes?.pill ?? BorderRadius.circular(20),
+                          ),
+                          child: Icon(
+                            isSelected ? item.activeIcon : item.icon,
+                            color: isSelected ? active : inactive,
+                            size: 24,
+                          ),
                         ),
-                        maxLines: 1,
-                      ),
-                      const SizedBox(height: 12), // Spacing from bottom of clickable area
-                    ],
+                        const SizedBox(height: 2),
+                        AnimatedDefaultTextStyle(
+                          duration: AppAnimations.fast,
+                          style: AppTypography.micro.copyWith(
+                            fontSize: 11.0,
+                            fontWeight: isSelected
+                                ? AppTypography.weightBold
+                                : AppTypography.weightRegular,
+                            color: isSelected ? active : inactive,
+                            letterSpacing: 0.2,
+                            decoration: TextDecoration.none,
+                          ),
+                          child: Text(item.label, maxLines: 1),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -94,7 +124,6 @@ class BoxyArtBottomNavBar extends StatelessWidget {
     );
   }
 }
-
 
 class BoxyArtBottomNavItem {
   final IconData icon;

@@ -11,6 +11,7 @@ import 'package:golf_society/features/members/presentation/members_provider.dart
 import 'package:golf_society/features/competitions/presentation/competitions_provider.dart';
 import 'package:golf_society/features/notifications/domain/notification_broadcast_service.dart';
 import 'package:golf_society/features/members/presentation/profile_provider.dart';
+import 'package:golf_society/features/guests/data/guest_repository.dart';
 
 class EventRegistrationScreen extends ConsumerStatefulWidget {
   final String eventId;
@@ -40,11 +41,13 @@ class _EventRegistrationScreenState extends ConsumerState<EventRegistrationScree
   
   bool _registerGuest = false;
   final _guestNameController = TextEditingController();
+  final _guestEmailController = TextEditingController();
   final _guestHandicapController = TextEditingController();
   bool _guestAttendingBreakfast = false;
   bool _guestAttendingLunch = false;
   bool _guestAttendingDinner = false;
   bool _guestNeedsBuggy = false;
+  String? _resolvedGuestId;
 
 
   final _dietaryController = TextEditingController();
@@ -53,6 +56,7 @@ class _EventRegistrationScreenState extends ConsumerState<EventRegistrationScree
   @override
   void dispose() {
     _guestNameController.dispose();
+    _guestEmailController.dispose();
     _guestHandicapController.dispose();
     _dietaryController.dispose();
     _specialNeedsController.dispose();
@@ -94,11 +98,20 @@ class _EventRegistrationScreenState extends ConsumerState<EventRegistrationScree
           totalCost += event.eventCost ?? 0.0;
         } else {
           totalCost += event.guestCost ?? 0.0;
-          // Buggy cost is indicative and paid to pro shop directly, so we exclude it from totalCost
         }
         if (_guestAttendingBreakfast) totalCost += event.breakfastCost ?? 0.0;
         if (_guestAttendingLunch) totalCost += event.lunchCost ?? 0.0;
         if (_guestAttendingDinner) totalCost += event.dinnerCost ?? 0.0;
+
+        // Look up or create persistent guest record
+        final guestRepo = ref.read(guestRepositoryProvider);
+        final handicapVal = double.tryParse(_guestHandicapController.text.trim()) ?? 28.0;
+        final guest = await guestRepo.findOrCreate(
+          email: _guestEmailController.text.trim(),
+          name: _guestNameController.text.trim(),
+          handicap: handicapVal,
+        );
+        _resolvedGuestId = guest.id;
       }
 
       final newList = List<EventRegistration>.from(event.registrations);
@@ -125,6 +138,8 @@ class _EventRegistrationScreenState extends ConsumerState<EventRegistrationScree
         creditApplied: 0.0, // Default, will update below
         dietaryRequirements: _dietaryController.text.trim(),
         specialNeeds: _specialNeedsController.text.trim(),
+        guestId: _registerGuest ? _resolvedGuestId : null,
+        guestEmail: _registerGuest ? _guestEmailController.text.trim().toLowerCase() : null,
         guestName: _registerGuest ? _guestNameController.text.trim() : null,
         guestHandicap: _registerGuest ? _guestHandicapController.text.trim() : null,
         guestAttendingBreakfast: _registerGuest && _guestAttendingBreakfast,
@@ -338,7 +353,9 @@ class _EventRegistrationScreenState extends ConsumerState<EventRegistrationScree
             if (myReg.guestName != null) {
               _registerGuest = true;
               _guestNameController.text = myReg.guestName!;
+              _guestEmailController.text = myReg.guestEmail ?? '';
               _guestHandicapController.text = myReg.guestHandicap ?? '';
+              _resolvedGuestId = myReg.guestId;
               _guestAttendingBreakfast = myReg.guestAttendingBreakfast;
               _guestAttendingLunch = myReg.guestAttendingLunch;
               _guestAttendingDinner = myReg.guestAttendingDinner;
@@ -445,6 +462,21 @@ class _EventRegistrationScreenState extends ConsumerState<EventRegistrationScree
                                             controller: _guestNameController,
                                             hint: 'Full name',
                                             validator: (val) => _registerGuest && (val == null || val.isEmpty) ? 'Required' : null,
+                                          ),
+                                        ),
+                                        Padding(
+                                          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+                                          child: BoxyArtInputField(
+                                            label: 'Guest Email',
+                                            controller: _guestEmailController,
+                                            hint: 'email@example.com',
+                                            keyboardType: TextInputType.emailAddress,
+                                            validator: (val) {
+                                              if (!_registerGuest) return null;
+                                              if (val == null || val.isEmpty) return 'Required';
+                                              if (!val.contains('@') || !val.contains('.')) return 'Enter a valid email';
+                                              return null;
+                                            },
                                           ),
                                         ),
                                         Padding(

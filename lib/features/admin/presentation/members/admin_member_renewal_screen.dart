@@ -63,15 +63,14 @@ class _AdminMemberRenewalScreenState extends ConsumerState<AdminMemberRenewalScr
             SliverToBoxAdapter(
               child: Padding(
                 padding: EdgeInsets.only(bottom: spacing?.cardToLabel ?? AppSpacing.cardToLabel),
-                child: ModernUnderlinedFilterBar<RenewalFilter>(
+                child: BoxyArtTabBar<RenewalFilter>(
                   selectedValue: _currentFilter,
                   onTabSelected: (filter) => setState(() => _currentFilter = filter),
                   padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
-                  isExpanded: true,
-                  tabs: [
-                    const ModernFilterTab(label: 'Pending', value: RenewalFilter.pending),
-                    const ModernFilterTab(label: 'Renewing', value: RenewalFilter.renewing),
-                    const ModernFilterTab(label: 'Paid', value: RenewalFilter.paid),
+                  tabs: const [
+                    ModernFilterTab(label: 'Pending', value: RenewalFilter.pending),
+                    ModernFilterTab(label: 'Renewing', value: RenewalFilter.renewing),
+                    ModernFilterTab(label: 'Paid', value: RenewalFilter.paid),
                   ],
                 ),
               ),

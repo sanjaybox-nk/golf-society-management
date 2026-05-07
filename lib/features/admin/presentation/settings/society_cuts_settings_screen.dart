@@ -60,12 +60,11 @@ class _SocietyCutsSettingsScreenState extends ConsumerState<SocietyCutsSettingsS
       slivers: [
         // 1. Tab Bar
         SliverToBoxAdapter(
-          child: ModernUnderlinedFilterBar<int>(
+          child: BoxyArtTabBar<int>(
             padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
-            isExpanded: true,
             tabs: const [
-              ModernFilterTab(label: 'Rules', value: 0, icon: Icons.rule_rounded),
-              ModernFilterTab(label: 'Impacts', value: 1, icon: Icons.auto_graph_rounded),
+              ModernFilterTab(label: 'Rules', value: 0),
+              ModernFilterTab(label: 'Impacts', value: 1),
             ],
             selectedValue: _selectedTabIndex,
             onTabSelected: (v) => setState(() => _selectedTabIndex = v),

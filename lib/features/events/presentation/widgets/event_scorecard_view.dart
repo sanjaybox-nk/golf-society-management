@@ -6,7 +6,6 @@ import 'package:golf_society/domain/models/competition.dart';
 import 'package:golf_society/domain/models/scorecard.dart';
 import 'package:golf_society/domain/scoring/scoring_calculator.dart';
 import 'package:golf_society/domain/scoring/handicap_calculator.dart';
-import 'package:golf_society/utils/string_utils.dart';
 import 'package:golf_society/features/members/presentation/members_provider.dart';
 import 'package:golf_society/features/members/presentation/profile_provider.dart';
 import 'package:golf_society/features/events/domain/models/processed_event_data.dart';
@@ -26,6 +25,7 @@ class EventScorecardView extends ConsumerStatefulWidget {
   final MarkerTab selectedMarkerTab;
   final VoidCallback? onMarkerSelectionTap;
   final Function(Scorecard)? onSyncFromPartner;
+  final String? switchedCardId;
 
   const EventScorecardView({
     super.key,
@@ -38,6 +38,7 @@ class EventScorecardView extends ConsumerStatefulWidget {
     required this.selectedMarkerTab,
     this.onMarkerSelectionTap,
     this.onSyncFromPartner,
+    this.switchedCardId,
   });
 
   @override
@@ -45,6 +46,7 @@ class EventScorecardView extends ConsumerStatefulWidget {
 }
 
 class _EventScorecardViewState extends ConsumerState<EventScorecardView> {
+
   @override
   Widget build(BuildContext context) {
     final config = ref.watch(themeControllerProvider);
@@ -52,26 +54,28 @@ class _EventScorecardViewState extends ConsumerState<EventScorecardView> {
     final markerSelection = ref.watch(markerSelectionProvider);
     final bool isSelfMarking = markerSelection.isSelfMarking;
     final String? targetEntryId = markerSelection.targetEntryIds.firstOrNull;
-    
-    final String targetId = (isSelfMarking || targetEntryId == null) 
+
+    final String targetId = (isSelfMarking || targetEntryId == null)
         ? currentUser.id
         : targetEntryId;
-    
+
     final allScorecards = ref.watch(scorecardsListProvider(widget.event.id)).asData?.value ?? [];
     final myCard = allScorecards.firstWhereOrNull((s) => s.entryId == currentUser.id);
 
     final bool isMeView = !isSelfMarking && widget.selectedMarkerTab == MarkerTab.verifier;
-    final String displayId = isMeView ? currentUser.id : targetId;
-    
+
+    // Pinned switcher (from parent) overrides displayId when set
+    final String displayId = widget.switchedCardId ?? (isMeView ? currentUser.id : targetId);
+
     final members = ref.watch(allMembersProvider).value ?? [];
     final manualTee = markerSelection.teeOverrides[displayId];
     final playerTeeConfig = ScoringCalculator.resolvePlayerCourseConfig(
-      memberId: displayId, 
-      event: widget.event, 
-      membersList: members, 
+      memberId: displayId,
+      event: widget.event,
+      membersList: members,
       manualTeeName: manualTee,
     );
-    
+
     final memberProfile = members.firstWhereOrNull((m) => m.id == displayId);
     final String playerTeeName = manualTee ?? (
       (memberProfile?.gender?.toLowerCase() == 'female')
@@ -82,11 +86,11 @@ class _EventScorecardViewState extends ConsumerState<EventScorecardView> {
     final displayScoring = widget.scoringData?.individualScores.firstWhereOrNull((s) => s.playerId == displayId);
     final double displayBaseHcp = displayScoring?.handicapIndex ?? (isMeView ? currentUser.handicap : 18.0);
     final displayCard = allScorecards.firstWhereOrNull((s) => s.entryId == displayId);
-    
+
     final int displayPlayingHcp = displayScoring?.playingHandicap ?? (
       HandicapCalculator.calculatePlayingHandicap(
-        handicapIndex: displayBaseHcp, 
-        rules: widget.effectiveRules, 
+        handicapIndex: displayBaseHcp,
+        rules: widget.effectiveRules,
         courseConfig: playerTeeConfig,
         societyCut: widget.event.manualCuts[displayId] ?? 0.0,
       )
@@ -95,15 +99,15 @@ class _EventScorecardViewState extends ConsumerState<EventScorecardView> {
     final bool hasSocietyCutActual = (displayScoring?.appliedSocietyCut ?? (widget.event.manualCuts[displayId] ?? 0.0)) != 0;
 
     List<int?> gridScores = displayScoring?.holeScores ?? List.generate(18, (i) {
-       final live = (displayCard != null && i < displayCard.holeScores.length) ? displayCard.holeScores[i] : null;
-       
-       if (!isMeView && displayId == targetId) {
-          final myVerifier = myCard?.playerVerifierScores ?? [];
-          final mine = i < myVerifier.length ? myVerifier[i] : null;
-          return live ?? mine;
-       }
-       
-       return live;
+      final live = (displayCard != null && i < displayCard.holeScores.length) ? displayCard.holeScores[i] : null;
+
+      if (!isMeView && displayId == targetId) {
+        final myVerifier = myCard?.playerVerifierScores ?? [];
+        final mine = i < myVerifier.length ? myVerifier[i] : null;
+        return live ?? mine;
+      }
+
+      return live;
     });
 
     if (widget.optimisticScores != null && widget.optimisticIsVerifier == (widget.selectedMarkerTab == MarkerTab.verifier)) {
@@ -112,78 +116,35 @@ class _EventScorecardViewState extends ConsumerState<EventScorecardView> {
       });
     }
 
+    final conflictedHoles = _computeConflictedHoles(displayCard);
+
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         if (widget.effectiveRules.isUnifiedTeamFormat)
-           _buildTeamMembersRow(context, widget.event, widget.effectiveRules),
+          _buildTeamMembersRow(context, widget.event, widget.effectiveRules),
+
         Padding(
           padding: EdgeInsets.only(bottom: AppSpacing.sm),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Expanded(
-                child: GestureDetector(
-                  onTap: widget.onMarkerSelectionTap,
-                  child: Container(
-                    color: Colors.transparent,
-                    padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Container(
-                          width: 8,
-                          height: 8,
-                          decoration: const BoxDecoration(
-                            color: AppColors.lime500,
-                            shape: BoxShape.circle,
-                          ),
-                        ),
-                        const SizedBox(width: AppSpacing.sm),
-                        Flexible(
-                          child: Text(
-                            isSelfMarking 
-                                ? 'MARKING: SELF' 
-                                : (targetEntryId != null 
-                                    ? 'MARKING: ${toTitleCase(_getDisplayName(widget.event, targetEntryId).split(' ').first)}' 
-                                    : 'MARKING: SELECT'),
-                            style: AppTypography.micro.copyWith(
-                              color: AppColors.dark400,
-                              fontWeight: AppTypography.weightBlack,
-                              letterSpacing: 1.2,
-                            ),
-                            overflow: TextOverflow.ellipsis,
-                            maxLines: 1,
-                          ),
-                        ),
-                        const SizedBox(width: AppSpacing.xs),
-                        const Icon(
-                          Icons.keyboard_arrow_down_rounded, 
-                          size: 14, 
-                          color: AppColors.dark300,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-               Row(
+              Row(
                 children: [
-                  if (displayScoring?.thruLabel != null) ...[
-                    BoxyArtIndicator(
-                      label: displayScoring!.thruLabel!,
-                      dotColor: displayScoring.thruLabel == 'F' ? AppColors.dark900 : AppColors.lime500,
-                    ),
-                    const SizedBox(width: AppSpacing.md),
-                  ],
-                  BoxyArtIndicator.hc(label: _formatHcp(displayBaseHcp)),
-                  const SizedBox(width: AppSpacing.md),
+                  BoxyArtIndicator.hc(label: _formatHcp(displayBaseHcp), hasHorizontalMargin: false),
                   BoxyArtIndicator.phc(context: context, label: '$displayPlayingHcp${hasSocietyCutActual ? '*' : ''}'),
                 ],
               ),
+              if (displayScoring?.thruLabel != null)
+                BoxyArtIndicator(
+                  label: displayScoring!.thruLabel!,
+                  dotColor: displayScoring.thruLabel == 'F' ? AppColors.dark900 : AppColors.lime500,
+                  hasHorizontalMargin: false,
+                ),
             ],
           ),
         ),
-        
+
         SlidingCourseInfoCard(
           courseConfig: playerTeeConfig,
           selectedTeeName: playerTeeName,
@@ -194,60 +155,119 @@ class _EventScorecardViewState extends ConsumerState<EventScorecardView> {
           tieBreakLabel: displayScoring?.tieBreakLabel,
           headerColor: isMeView ? AppColors.amber500.withValues(alpha: AppColors.opacityMuted) : null,
           holeTags: displayCard?.holeTags,
+          conflictedHoles: conflictedHoles,
+          handicapAllowance: widget.effectiveRules.handicapAllowance,
         ),
+
+        // Conflict strip — below the card for birds-eye summary
+        if (conflictedHoles.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.only(top: AppSpacing.sm),
+            child: _buildConflictStrip(context, conflictedHoles, displayCard),
+          ),
+
       ],
     );
   }
 
-  Widget _buildTeamMembersRow(BuildContext context, GolfEvent event, CompetitionRules rules) {
-     final currentUser = ref.watch(effectiveUserProvider);
-     final groupData = event.grouping['groups'] as List?;
-     final myGroup = groupData?.firstWhereOrNull((g) => (g['players'] as List).any((p) => p['registrationMemberId'] == currentUser.id));
-     if (myGroup == null) return const SizedBox.shrink();
+  Widget _buildConflictStrip(BuildContext context, Set<int> conflictedHoles, Scorecard? card) {
+    final theme = Theme.of(context);
+    final shapes = theme.extension<AppShapeTokens>();
+    final sortedHoles = conflictedHoles.toList()..sort();
 
-     final List<TeeGroupParticipant> players = (myGroup['players'] as List).map((p) => TeeGroupParticipant.fromJson(p)).toList();
-     final playerIdx = players.indexWhere((p) => p.registrationMemberId == currentUser.id);
-     final teamSize = rules.teamSize;
-     int teamIdx = playerIdx ~/ teamSize;
-     final List<TeeGroupParticipant> teamMembers = players.skip(teamIdx * teamSize).take(teamSize).toList();
+    return Row(
+        children: [
+          Icon(Icons.warning_amber_rounded, size: AppShapes.iconXs, color: AppColors.coral500),
+          const SizedBox(width: AppSpacing.xs),
+          Expanded(
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: sortedHoles.map((holeNum) {
+                  final idx = holeNum - 1;
+                  final playerScore = (card != null && idx < card.holeScores.length) ? card.holeScores[idx] : null;
+                  final markerScore = (card != null && idx < card.playerVerifierScores.length) ? card.playerVerifierScores[idx] : null;
 
-     return Padding(
-       padding: const EdgeInsets.only(bottom: AppSpacing.md),
-       child: Row(
-         children: teamMembers.map((p) => Expanded(
-           child: Padding(
-             padding: const EdgeInsets.only(right: 4.0),
-             child: BoxyArtCard(
-               padding: const EdgeInsets.all(8),
-               child: Text(
-                 p.name.split(' ').first,
-                 textAlign: TextAlign.center,
-                 style: AppTypography.micro.copyWith(
-                   fontWeight: p.registrationMemberId == currentUser.id ? AppTypography.weightBold : AppTypography.weightRegular,
-                 ),
-               ),
-             ),
-           ),
-         )).toList(),
-       ),
-     );
+                  final label = playerScore != null && markerScore != null
+                      ? 'H$holeNum · ${playerScore}v$markerScore'
+                      : 'H$holeNum';
+
+                  return Container(
+                    margin: const EdgeInsets.only(right: AppSpacing.xs),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.atomic,
+                      vertical: 3,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppColors.coral500.withValues(alpha: AppColors.opacityLow),
+                      borderRadius: shapes?.pill ?? BorderRadius.circular(20),
+                      border: Border.all(
+                        color: AppColors.coral500.withValues(alpha: AppColors.opacityMuted),
+                        width: AppShapes.borderThin,
+                      ),
+                    ),
+                    child: Text(
+                      label,
+                      style: AppTypography.micro.copyWith(
+                        color: AppColors.coral500,
+                        fontWeight: AppTypography.weightBold,
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
+            ),
+          ),
+        ],
+      );
   }
 
-  String _getDisplayName(GolfEvent event, String entryId) {
-    if (entryId.endsWith('_guest')) {
-      final hostId = entryId.replaceFirst('_guest', '');
-      final groups = event.grouping['groups'] as List?;
-      if (groups != null) {
-        for (var g in groups) {
-          final players = g['players'] as List?;
-          final guest = players?.firstWhere((p) => p['registrationMemberId'] == hostId && p['isGuest'] == true, orElse: () => null);
-          if (guest != null) return guest['name'] ?? 'Guest';
-        }
+  Widget _buildTeamMembersRow(BuildContext context, GolfEvent event, CompetitionRules rules) {
+    final currentUser = ref.watch(effectiveUserProvider);
+    final groupData = event.grouping['groups'] as List?;
+    final myGroup = groupData?.firstWhereOrNull((g) => (g['players'] as List).any((p) => p['registrationMemberId'] == currentUser.id));
+    if (myGroup == null) return const SizedBox.shrink();
+
+    final List<TeeGroupParticipant> players = (myGroup['players'] as List).map((p) => TeeGroupParticipant.fromJson(p)).toList();
+    final playerIdx = players.indexWhere((p) => p.registrationMemberId == currentUser.id);
+    final teamSize = rules.teamSize;
+    int teamIdx = playerIdx ~/ teamSize;
+    final List<TeeGroupParticipant> teamMembers = players.skip(teamIdx * teamSize).take(teamSize).toList();
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppSpacing.md),
+      child: Row(
+        children: teamMembers.map((p) => Expanded(
+          child: Padding(
+            padding: const EdgeInsets.only(right: 4.0),
+            child: BoxyArtCard(
+              padding: const EdgeInsets.all(8),
+              child: Text(
+                p.name.split(' ').first,
+                textAlign: TextAlign.center,
+                style: AppTypography.micro.copyWith(
+                  fontWeight: p.registrationMemberId == currentUser.id ? AppTypography.weightBold : AppTypography.weightRegular,
+                ),
+              ),
+            ),
+          ),
+        )).toList(),
+      ),
+    );
+  }
+
+  Set<int> _computeConflictedHoles(Scorecard? card) {
+    if (card == null) return const {};
+    final Set<int> result = {};
+    final verifier = card.playerVerifierScores;
+    for (int i = 0; i < card.holeScores.length && i < verifier.length; i++) {
+      final player = card.holeScores[i];
+      final marker = verifier[i];
+      if (player != null && marker != null && player != marker) {
+        result.add(i + 1);
       }
-      return 'Guest';
     }
-    final member = ref.watch(allMembersProvider).value?.firstWhereOrNull((m) => m.id == entryId);
-    return member?.displayName ?? 'Unknown';
+    return result;
   }
 
   String _formatHcp(double hcp) {

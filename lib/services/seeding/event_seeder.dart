@@ -21,6 +21,7 @@ import 'package:golf_society/features/matchplay/domain/match_definition.dart';
 import 'package:golf_society/features/events/logic/event_analysis_engine.dart';
 import 'data_constants.dart';
 import 'newsletter_templates.dart';
+import 'package:golf_society/features/guests/data/guest_repository.dart';
 
 class EventSeeder {
   final Ref ref;
@@ -216,10 +217,25 @@ class EventSeeder {
 
         bool hasGuest = !isWithdrawn && random.nextDouble() < (isSocial ? 0.3 : 0.15);
         String? guestName;
+        String? guestEmail;
+        String? guestId;
+        double? guestHcp;
         if (hasGuest) {
-          final guestFirstName = SeedingData.maleFirstNames[random.nextInt(SeedingData.maleFirstNames.length)];
-          final guestLastName = SeedingData.lastNames[random.nextInt(SeedingData.lastNames.length)];
-          guestName = '$guestFirstName $guestLastName';
+          final seedGuest = SeedingData.seedGuests[random.nextInt(SeedingData.seedGuests.length)];
+          guestName = seedGuest['name'] as String;
+          guestEmail = seedGuest['email'] as String;
+          guestHcp = seedGuest['handicap'] as double;
+          try {
+            final guestRepo = ref.read(guestRepositoryProvider);
+            final profile = await guestRepo.findOrCreate(
+              email: guestEmail,
+              name: guestName,
+              handicap: guestHcp,
+            );
+            guestId = profile.id;
+          } catch (_) {
+            // Seeding continues even if guest persistence fails
+          }
         }
 
         double totalCost = 0;
@@ -246,10 +262,12 @@ class EventSeeder {
           attendingLunch: attendsLunch,
           attendingDinner: attendsDinner,
           needsBuggy: needsBuggy,
+          guestId: guestId,
+          guestEmail: guestEmail,
           guestName: guestName,
           teeName: (m.gender == 'Female') ? 'Red' : 'Yellow',
           guestTeeName: 'Yellow',
-          guestHandicap: hasGuest ? (15 + random.nextInt(15)).toString() : null,
+          guestHandicap: hasGuest ? guestHcp!.toStringAsFixed(1) : null,
           guestAttendingBreakfast: hasGuest && attendsBreakfast,
           guestAttendingLunch: hasGuest && attendsLunch,
           guestAttendingDinner: hasGuest && attendsDinner,

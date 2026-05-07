@@ -128,16 +128,14 @@ class _MatchPlayDrawManagerScreenState extends ConsumerState<MatchPlayDrawManage
           ),
       ],
       slivers: [
-        // Tab Switcher - Using ModernUnderlinedFilterBar for Standard Identity
         SliverToBoxAdapter(
-          child: ModernUnderlinedFilterBar<int>(
+          child: BoxyArtTabBar<int>(
             selectedValue: _selectedTab,
-            isExpanded: true,
             onTabSelected: (val) => setState(() => _selectedTab = val),
             padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
             tabs: const [
-              ModernFilterTab(label: 'Entries', value: 0, icon: Icons.people_rounded),
-              ModernFilterTab(label: 'The Draw', value: 1, icon: Icons.account_tree_rounded),
+              ModernFilterTab(label: 'Entries', value: 0),
+              ModernFilterTab(label: 'The Draw', value: 1),
             ],
           ),
         ),

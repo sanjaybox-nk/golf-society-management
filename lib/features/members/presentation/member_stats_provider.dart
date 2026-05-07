@@ -75,3 +75,38 @@ final userStatsProvider = Provider<Map<String, dynamic>>((ref) {
 final memberScorecardsProvider = StreamProvider.autoDispose.family<List<Scorecard>, String>((ref, memberId) {
   return ref.watch(scorecardRepositoryProvider).watchMemberScorecards(memberId);
 });
+
+/// Aggregates lifetime hole tag stats across all of a member's scorecards.
+final memberRoundStoryStatsProvider = Provider.autoDispose.family<Map<String, int>, String>((ref, memberId) {
+  final scorecardsAsync = ref.watch(memberScorecardsProvider(memberId));
+  return scorecardsAsync.when(
+    data: (scorecards) {
+      int gimmes = 0;
+      int pickUps = 0;
+      int penalty1 = 0;
+      int penalty2 = 0;
+      for (final card in scorecards) {
+        for (final tags in card.holeTags.values) {
+          for (final tag in tags) {
+            if (tag == 'GIMME') gimmes++;
+            if (tag == 'PICK_UP') pickUps++;
+            if (tag.startsWith('PENALTY_1_') ||
+                (tag.startsWith('PENALTY_') &&
+                    !tag.startsWith('PENALTY_1_') &&
+                    !tag.startsWith('PENALTY_2_'))) penalty1++;
+            if (tag.startsWith('PENALTY_2_')) penalty2++;
+          }
+        }
+      }
+      return {
+        'gimmes': gimmes,
+        'pickUps': pickUps,
+        'penalty1': penalty1,
+        'penalty2': penalty2,
+        'totalPenaltyStrokes': penalty1 + (penalty2 * 2),
+      };
+    },
+    loading: () => {},
+    error: (_, __) => {},
+  );
+});

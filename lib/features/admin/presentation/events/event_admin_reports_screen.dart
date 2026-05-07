@@ -40,14 +40,13 @@ class EventAdminReportsScreen extends ConsumerWidget {
           onBack: () => context.go('/admin/events'),
           slivers: [
             SliverToBoxAdapter(
-              child: ModernUnderlinedFilterBar<int>(
+              child: BoxyArtTabBar<int>(
                 padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
-                isExpanded: true,
                 selectedValue: selectedTab,
                 onTabSelected: (val) => ref.read(adminReportsTabProvider.notifier).set(val),
                 tabs: const [
-                  ModernFilterTab(label: 'Financials', value: 0, icon: Icons.payments_rounded),
-                  ModernFilterTab(label: 'Event Stats', value: 1, icon: Icons.analytics_rounded),
+                  ModernFilterTab(label: 'Financials', value: 0),
+                  ModernFilterTab(label: 'Event Stats', value: 1),
                 ],
               ),
             ),

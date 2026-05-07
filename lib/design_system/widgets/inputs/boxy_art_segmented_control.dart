@@ -22,7 +22,8 @@ class BoxyArtSegmentedControl<T> extends ConsumerWidget {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final config = ref.watch(themeControllerProvider);
-    final radius = config.inputRadius;
+    final shapes = theme.extension<AppShapeTokens>();
+    final radius = shapes?.pill.topLeft.x ?? config.inputRadius;
 
     final selectedIndex = options.indexWhere((o) => o.value == value);
     final count = options.length;

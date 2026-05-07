@@ -22,32 +22,29 @@ class AchievementTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final spacing = Theme.of(context).extension<AppSpacingTokens>();
-    final double vPadding = spacing?.cardVerticalPadding ?? AppSpacing.lg;
-    final double hPadding = spacing?.cardHorizontalPadding ?? AppSpacing.lg;
+    final shapes = Theme.of(context).extension<AppShapeTokens>();
+    final double vPadding = spacing?.cardVerticalPadding ?? AppSpacing.standard;
+    final double hPadding = spacing?.cardHorizontalPadding ?? AppSpacing.standard;
 
     return BoxyArtCard(
       padding: EdgeInsets.zero,
       child: InkWell(
         onTap: onTap,
-        borderRadius: AppShapes.lg,
+        borderRadius: shapes?.card ?? AppShapes.lg,
         child: Container(
           padding: EdgeInsets.symmetric(vertical: vPadding, horizontal: hPadding),
           decoration: BoxDecoration(
-            border: Border(left: BorderSide(color: color, width: AppSpacing.xs)),
+            border: Border(left: BorderSide(color: color, width: AppShapes.borderMedium)),
           ),
           child: Row(
             children: [
-              // Premium Icon Container
-              Container(
-                padding: const EdgeInsets.all(AppSpacing.md),
-                decoration: BoxDecoration(
-                  color: color.withValues(alpha: AppColors.opacityLow),
-                  borderRadius: AppShapes.lg,
-                  border: Border.all(color: color.withValues(alpha: AppColors.opacityLow)),
-                ),
-                child: Icon(icon, color: color, size: 26),
+              BoxyArtIconBadge(
+                icon: icon,
+                color: color,
+                iconSize: AppShapes.iconLg,
+                isTinted: true,
               ),
-              const SizedBox(width: AppSpacing.lg),
+              SizedBox(width: spacing?.cardHorizontalPadding ?? AppSpacing.standard),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -57,7 +54,7 @@ class AchievementTile extends StatelessWidget {
                       style: AppTypography.label.copyWith(
                         color: Theme.of(context).colorScheme.onSurface,
                         fontWeight: AppTypography.weightBold,
-                        letterSpacing: 1.0,
+                        letterSpacing: AppTypography.lsLabel,
                       ),
                     ),
                     const SizedBox(height: AppSpacing.xs),
@@ -65,11 +62,10 @@ class AchievementTile extends StatelessWidget {
                       toTitleCase(playerName),
                       style: AppTypography.body.copyWith(
                         fontWeight: AppTypography.weightStrong,
-                        fontSize: AppTypography.sizeBody,
                         letterSpacing: -0.4,
                       ),
                     ),
-                    const SizedBox(height: 2),
+                    const SizedBox(height: AppSpacing.xs),
                     Text(
                       value,
                       style: AppTypography.label.copyWith(
@@ -93,53 +89,31 @@ class SocietyQuoteCard extends StatelessWidget {
   const SocietyQuoteCard({super.key});
 
   static const List<Map<String, String>> _quotes = [
-    {
-      'headline': 'What a day for the society!',
-      'subtitle': 'See you at the 19th hole.',
-    },
-    {
-      'headline': 'Fairways and greens!',
-      'subtitle': 'The society is looking sharp today.',
-    },
-    {
-      'headline': 'The best walk in the world!',
-      'subtitle': 'Great round, everyone.',
-    },
-    {
-      'headline': 'Drive for show, putt for dough!',
-      'subtitle': 'Time to settle the bets at the bar.',
-    },
-    {
-      'headline': 'Golf is a game of misses!',
-      'subtitle': 'But we missed in style today.',
-    },
-    {
-      'headline': 'A bad day at golf...',
-      'subtitle': '...beats a good day at the office!',
-    },
-    {
-      'headline': 'A slice is just a power fade in disguise!',
-      'subtitle': 'Aim left and hope for the best.',
-    },
+    {'headline': 'What a day for the society!', 'subtitle': 'See you at the 19th hole.'},
+    {'headline': 'Fairways and greens!', 'subtitle': 'The society is looking sharp today.'},
+    {'headline': 'The best walk in the world!', 'subtitle': 'Great round, everyone.'},
+    {'headline': 'Drive for show, putt for dough!', 'subtitle': 'Time to settle the bets at the bar.'},
+    {'headline': 'Golf is a game of misses!', 'subtitle': 'But we missed in style today.'},
+    {'headline': 'A bad day at golf...', 'subtitle': '...beats a good day at the office!'},
+    {'headline': 'A slice is just a power fade in disguise!', 'subtitle': 'Aim left and hope for the best.'},
   ];
 
   @override
   Widget build(BuildContext context) {
-    // Stable random based on day of year to keep it consistent for the day
     final dayOfYear = DateTime.now().difference(DateTime(DateTime.now().year, 1, 1)).inDays;
     final quote = _quotes[dayOfYear % _quotes.length];
 
     return BoxyArtCard(
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: AppSpacing.x3l, horizontal: AppSpacing.xl),
+        padding: const EdgeInsets.symmetric(vertical: AppSpacing.section, horizontal: AppSpacing.standard),
         child: Column(
           children: [
             Icon(
-              Icons.format_quote_rounded, 
-              color: Theme.of(context).colorScheme.primary.withValues(alpha: AppColors.opacityMedium), 
-              size: 32,
+              Icons.format_quote_rounded,
+              color: Theme.of(context).colorScheme.primary.withValues(alpha: AppColors.opacityMedium),
+              size: AppShapes.iconXl,
             ),
-            const SizedBox(height: AppSpacing.lg),
+            const SizedBox(height: AppSpacing.standard),
             Text(
               quote['headline']!.toUpperCase(),
               textAlign: TextAlign.center,
@@ -150,7 +124,7 @@ class SocietyQuoteCard extends StatelessWidget {
                 height: 1.1,
               ),
             ),
-            const SizedBox(height: AppSpacing.md),
+            const SizedBox(height: AppSpacing.atomic),
             Text(
               quote['subtitle']!,
               textAlign: TextAlign.center,

@@ -3,6 +3,7 @@ import 'package:golf_society/design_system/design_system.dart';
 import 'package:golf_society/domain/models/member.dart';
 import 'package:golf_society/features/members/presentation/widgets/member_tile.dart';
 import 'package:golf_society/features/members/presentation/profile_provider.dart';
+import 'package:golf_society/features/guests/presentation/guests_provider.dart';
 import 'members_provider.dart';
 
 class MembersScreen extends ConsumerStatefulWidget {
@@ -39,12 +40,14 @@ class _MembersScreenState extends ConsumerState<MembersScreen> {
         SliverToBoxAdapter(
           child: widget.isAdminContext && currentFilter.type == AdminMemberFilter.role
               ? const SizedBox.shrink()
-              : ModernUnderlinedFilterBar<AdminMemberFilter>(
+              : BoxyArtTabBar<AdminMemberFilter>(
                   selectedValue: currentFilter.type,
                   tabs: [
-                    ModernFilterTab(label: 'Active', value: AdminMemberFilter.current, icon: Icons.person_rounded),
-                    ModernFilterTab(label: 'Committee', value: AdminMemberFilter.committee, icon: Icons.verified_user_rounded),
-                    ModernFilterTab(label: 'Other', value: AdminMemberFilter.other, icon: Icons.more_vert_rounded),
+                    const ModernFilterTab(label: 'Active', value: AdminMemberFilter.current),
+                    const ModernFilterTab(label: 'Committee', value: AdminMemberFilter.committee),
+                    const ModernFilterTab(label: 'Other', value: AdminMemberFilter.other),
+                    if (widget.isAdminContext)
+                      const ModernFilterTab(label: 'Guests', value: AdminMemberFilter.guests),
                   ],
                   onTabSelected: (filter) {
                     if (widget.isAdminContext) {
@@ -54,11 +57,15 @@ class _MembersScreenState extends ConsumerState<MembersScreen> {
                     }
                   },
                   padding: const EdgeInsets.symmetric(horizontal: AppSpacing.standard),
-                  isExpanded: false,
                 ),
         ),
 
+        // Guest list tab (admin only)
+        if (widget.isAdminContext && currentFilter.type == AdminMemberFilter.guests)
+          ..._buildGuestList(context),
+
         // Body Content (Unified Async Handling)
+        if (currentFilter.type != AdminMemberFilter.guests)
         ...membersAsync.when(
           data: (members) {
             // Calculate filtered list ONCE
@@ -150,6 +157,94 @@ class _MembersScreenState extends ConsumerState<MembersScreen> {
         ),
       ],
     );
+  }
+
+  List<Widget> _buildGuestList(BuildContext context) {
+    final guestsAsync = ref.watch(filteredGuestsProvider);
+    final query = ref.watch(guestSearchQueryProvider);
+    final spacing = Theme.of(context).extension<AppSpacingTokens>();
+
+    return [
+      SliverToBoxAdapter(
+        child: BoxyArtSectionTitle(
+          title: 'Search Guests',
+          count: guestsAsync.value?.length,
+          isPeeking: false,
+          horizontalPadding: AppSpacing.xl,
+        ),
+      ),
+      SliverToBoxAdapter(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+          child: BoxyArtSearchInput(
+            hintText: 'Search by name or email...',
+            initialValue: query,
+            onChanged: (val) => ref.read(guestSearchQueryProvider.notifier).update(val),
+          ),
+        ),
+      ),
+      SliverPadding(
+        padding: EdgeInsets.symmetric(
+          horizontal: AppSpacing.xl,
+          vertical: spacing?.cardToCard ?? AppSpacing.cardToCard,
+        ),
+        sliver: guestsAsync.when(
+          data: (guests) => guests.isEmpty
+              ? const SliverToBoxAdapter(
+                  child: BoxyArtEmptyCard(
+                    title: 'No Guests Yet',
+                    message: 'Guests are created when a member registers a guest for an event.',
+                    icon: Icons.person_add_rounded,
+                  ),
+                )
+              : SliverList(
+                  delegate: SliverChildBuilderDelegate(
+                    (context, index) {
+                      final g = guests[index];
+                      return Padding(
+                        padding: EdgeInsets.only(bottom: spacing?.cardToCard ?? AppSpacing.cardToCard),
+                        child: BoxyArtCard(
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(g.name, style: AppTypography.body.copyWith(fontWeight: AppTypography.weightBold)),
+                                    const SizedBox(height: 2),
+                                    Text(g.email, style: AppTypography.micro.copyWith(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: AppColors.opacityHigh))),
+                                  ],
+                                ),
+                              ),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                children: [
+                                  BoxyArtIndicator.hc(label: _formatHcp(g.handicap), hasHorizontalMargin: false),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    'Events ${g.eventCount}',
+                                    style: AppTypography.micro.copyWith(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: AppColors.opacitySecondary)),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                    childCount: guests.length,
+                  ),
+                ),
+          loading: () => const SliverToBoxAdapter(child: BoxyArtLoadingCard(title: 'Loading guests...', isCompact: true)),
+          error: (e, _) => SliverToBoxAdapter(child: BoxyArtEmptyCard(title: 'Error', message: '$e', icon: Icons.error_outline_rounded)),
+        ),
+      ),
+    ];
+  }
+
+  String _formatHcp(double hcp) {
+    if (hcp == hcp.toInt()) return hcp.toInt().toString();
+    return hcp.toStringAsFixed(1);
   }
 
   Widget _buildGroupedList(

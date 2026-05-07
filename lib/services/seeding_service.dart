@@ -26,6 +26,8 @@ import 'seeding/survey_seeder.dart';
 import 'seeding/event_seeder.dart';
 import 'seeding/match_play_seeder.dart';
 import 'seeding/scenario_seeder.dart';
+import 'seeding/data_constants.dart';
+import 'package:golf_society/features/guests/data/guest_repository.dart';
 
 final seedingServiceProvider = Provider((ref) => SeedingService(ref));
 
@@ -273,23 +275,38 @@ class SeedingService {
   /// Incremental Hardening: Seed/Refresh members only.
   Future<void> seedMembersOnly() async {
     try {
-      if (kDebugMode) debugPrint('--- REFRESHING MEMBER ROSTER ONLY ---');
+      if (kDebugMode) debugPrint('--- REFRESHING MEMBER ROSTER + GUESTS ---');
       final firestore = FirebaseFirestore.instance;
-      
-      // Wipe only members
-      final snapshot = await firestore.collection('members').get();
-      var batch = firestore.batch();
-      for (var doc in snapshot.docs) {
-        batch.delete(doc.reference);
+
+      // Wipe members and guests
+      for (final col in ['members', 'guests']) {
+        final snapshot = await firestore.collection(col).get();
+        var batch = firestore.batch();
+        for (var doc in snapshot.docs) { batch.delete(doc.reference); }
+        await batch.commit();
       }
-      await batch.commit();
-      
-      // Re-seed
+
+      // Re-seed members
       await MemberSeeder(ref, _random).seed();
-      if (kDebugMode) debugPrint('--- MEMBER ROSTER REFRESHED ---');
+
+      // Seed fixed guest pool so admin Guests tab has data
+      await _seedGuestPool();
+
+      if (kDebugMode) debugPrint('--- MEMBER ROSTER + GUESTS REFRESHED ---');
     } catch (e) {
       if (kDebugMode) debugPrint('MEMBER SEEDER FAILURE: $e');
       rethrow;
+    }
+  }
+
+  Future<void> _seedGuestPool() async {
+    final guestRepo = ref.read(guestRepositoryProvider);
+    for (final g in SeedingData.seedGuests) {
+      await guestRepo.findOrCreate(
+        email: g['email'] as String,
+        name: g['name'] as String,
+        handicap: g['handicap'] as double,
+      );
     }
   }
 
@@ -299,7 +316,7 @@ class SeedingService {
     // We explicitly EXCLUDE 'templates', 'courses', and 'society_config'
     // to preserve the scaffolding work (Branding & Rules)
     final collections = [
-      'scorecards', 'events', 'competitions', 'seasons', 'members',
+      'scorecards', 'events', 'competitions', 'seasons', 'members', 'guests',
       'notifications', 'campaigns', 'global_expenses', 'surveys', 'activities', 'courses',
     ];
 

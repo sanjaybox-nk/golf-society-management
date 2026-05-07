@@ -100,6 +100,8 @@ class ThemeController extends Notifier<SocietyConfig> {
   Future<void> setInputRadius(double radius) => _updateConfig(state.copyWith(inputRadius: radius));
   Future<void> setAccentRadius(double radius) => _updateConfig(state.copyWith(accentRadius: radius));
   Future<void> setAccentOpacity(double opacity) => _updateConfig(state.copyWith(accentOpacity: opacity));
+  Future<void> setNavBarRadius(double radius) => _updateConfig(state.copyWith(navBarRadius: radius));
+  Future<void> setTabIndicatorRadius(double radius) => _updateConfig(state.copyWith(tabIndicatorRadius: radius));
   Future<void> setShadowSpread(double spread) => _updateConfig(state.copyWith(shadowSpread: spread));
   Future<void> setShadowOpacity(double opacity) => _updateConfig(state.copyWith(shadowOpacity: opacity));
 

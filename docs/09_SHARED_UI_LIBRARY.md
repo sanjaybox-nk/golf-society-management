@@ -334,17 +334,48 @@ final result = await showBoxyArtDialog<bool>(
 
 ## 13. Navigation & Tabs (`navigation.dart`)
 
-### `ModernUnderlinedFilterBar<T>`
-A horizontally scrolling, underlined filter bar used as a sleek alternative to pill chips.
-- **`ModernFilterTab<T>`**: Represents a single tab with `label`, `value`, and optional `icon`.
-- **`isExpanded: true`**: Evenly distributes tabs across the full width (ideal for 2-3 tabs).
-- **Icon Support**: Supports optional iconography for improved visual scanability.
+### `BoxyArtTabBar<T>` ← **Current Standard**
+Fixed-width pill indicator tab bar. Replaces `ModernUnderlinedFilterBar` everywhere except `TabController`-driven layouts.
+- **Selected state**: Subtle primary-tinted filled pill behind the label (`opacityLow` background).
+- **Radius**: Uses `shapes?.tabIndicator` — **independent** of `buttonRadius`.
+- **Labels**: No icons — text only, uppercase. Works cleanly at 2–4 options.
+- **API**: Drop-in replacement — same `tabs`, `selectedValue`, `onTabSelected`, `padding` params.
+```dart
+BoxyArtTabBar<int>(
+  selectedValue: _tab,
+  onTabSelected: (v) => setState(() => _tab = v),
+  tabs: const [
+    ModernFilterTab(label: 'Scoring', value: 0),
+    ModernFilterTab(label: 'Scorecard', value: 1),
+  ],
+)
+```
+
+### `BoxyArtChipBar<T>`
+Horizontally scrollable pill chips for "pick one from N" navigation with unknown/dynamic count.
+- Used for the card switcher in the Scorecard tab (My Card / player names).
+- Reuses `BoxyOption<T>` from `BoxyArtSegmentedControl`.
+- Gap between chips uses `spacing?.cardToCard` token.
+
+### `BoxyArtBottomNavBar`
+The app-level bottom navigation bar. Redesigned with:
+- **Top corner rounding** via `shapes?.navBar` (`navBarRadius` token).
+- **Layered upward shadow** — two shadow passes, shadow-aware via `AppShadows`.
+- **Selected item pill** — subtle primary-tinted background behind the icon only.
+- Animated via `AppAnimations.fast` on both the pill fill and label weight.
+
+### `ModernFilterTab<T>`
+Data class shared by `BoxyArtTabBar`, `ModernUnderlinedFilterBar`, and the component preview.
+```dart
+const ModernFilterTab(label: 'Groups', value: 0)  // icon is optional, omit for BoxyArtTabBar
+```
+
+### `ModernUnderlinedFilterBar<T>` ← DEPRECATED for new screens
+Legacy underlined tab bar. Retained for `SliverPersistentHeader` / `TabController` patterns only.
+Replace with `BoxyArtTabBar` for all value-based navigation.
 
 ### `ModernUnderlinedTabBar`
-A standard Material `TabController` driven underlined tab bar.
-- **`tabLabels`**: List of strings for the tab titles.
-- **`icons`**: Optional list of `IconData` to display alongside labels.
-- **Usage**: Use with `DefaultTabController` or a custom `TabController`.
+`TabController`-driven underlined tab bar. Retained for Material tab patterns only.
 
 ---
 
@@ -354,6 +385,9 @@ A standard Material `TabController` driven underlined tab bar.
 |---|---|
 | `Switch(activeColor: ...)` | `Switch(activeTrackColor: ..., activeThumbColor: ...)` |
 | `TextFormField(initialValue: ...)` with `value:` | Use `initialValue:` parameter |
+| `ModernUnderlinedFilterBar<T>` (value-based) | `BoxyArtTabBar<T>` |
+| `BoxyArtEmptyState` | `BoxyArtEmptyCard` |
+| `BrandingSettingsScreen` | `DesignLabScreen` (route: `admin-settings-branding`) |
 ## 13. Branding & Identity
 
 Specialized components for managing society profile data and visual "atmosphere."

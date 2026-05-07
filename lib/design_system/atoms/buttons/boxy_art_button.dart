@@ -13,9 +13,11 @@ class BoxyArtButton extends ConsumerWidget {
   final bool isLoading;
   final bool fullWidth;
   final bool isSmall;
+  final double? verticalPadding;
   final Color? backgroundColor;
   final Color? textColor;
   final bool isDangerous;
+  final VoidCallback? onLongPress;
 
   const BoxyArtButton({
     super.key,
@@ -29,9 +31,11 @@ class BoxyArtButton extends ConsumerWidget {
     this.icon,
     this.isLoading = false,
     this.fullWidth = false,
+    this.verticalPadding,
     this.backgroundColor,
     this.textColor,
     this.isDangerous = false,
+    this.onLongPress,
   });
 
   @override
@@ -50,7 +54,7 @@ class BoxyArtButton extends ConsumerWidget {
         foregroundColor: theme.colorScheme.onError,
         elevation: 0,
         textStyle: isSmall ? AppTypography.micro.copyWith(fontWeight: AppTypography.weightBold) : AppTypography.label.copyWith(fontWeight: AppTypography.weightBold),
-        padding: EdgeInsets.symmetric(horizontal: config.buttonHorizontalPadding, vertical: isSmall ? 6 : 10),
+        padding: EdgeInsets.symmetric(horizontal: config.buttonHorizontalPadding, vertical: verticalPadding ?? (isSmall ? 6 : 11)),
         minimumSize: Size(0, isSmall ? config.buttonSmallHeight : config.buttonHeight),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(isSmall ? config.accentRadius : config.buttonRadius)),
       );
@@ -64,7 +68,7 @@ class BoxyArtButton extends ConsumerWidget {
               )
             : BorderSide.none,
         textStyle: isSmall ? AppTypography.micro : AppTypography.label,
-        padding: EdgeInsets.symmetric(horizontal: config.buttonHorizontalPadding, vertical: isSmall ? 6 : 10),
+        padding: EdgeInsets.symmetric(horizontal: config.buttonHorizontalPadding, vertical: verticalPadding ?? (isSmall ? 6 : 11)),
         minimumSize: Size(0, isSmall ? config.buttonSmallHeight : config.buttonHeight),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(isSmall ? config.accentRadius : config.buttonRadius)),
       );
@@ -78,7 +82,7 @@ class BoxyArtButton extends ConsumerWidget {
               )
             : BorderSide.none,
         textStyle: isSmall ? AppTypography.micro : AppTypography.label,
-        padding: EdgeInsets.symmetric(horizontal: config.buttonHorizontalPadding, vertical: isSmall ? 6 : 10),
+        padding: EdgeInsets.symmetric(horizontal: config.buttonHorizontalPadding, vertical: verticalPadding ?? (isSmall ? 6 : 11)),
         minimumSize: Size(0, isSmall ? config.buttonSmallHeight : config.buttonHeight),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(isSmall ? config.accentRadius : config.buttonRadius)),
       );
@@ -91,7 +95,7 @@ class BoxyArtButton extends ConsumerWidget {
         backgroundColor: actionColor,
         foregroundColor: foregroundColor,
         textStyle: AppTypography.label.copyWith(fontWeight: AppTypography.weightBold),
-        padding: EdgeInsets.symmetric(horizontal: config.buttonHorizontalPadding, vertical: isSmall ? 6 : 10),
+        padding: EdgeInsets.symmetric(horizontal: config.buttonHorizontalPadding, vertical: verticalPadding ?? (isSmall ? 6 : 11)),
         minimumSize: Size(0, isSmall ? config.buttonSmallHeight : config.buttonHeight),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(isSmall ? config.accentRadius : config.buttonRadius),
@@ -114,7 +118,7 @@ class BoxyArtButton extends ConsumerWidget {
         backgroundColor: actionColor,
         foregroundColor: foregroundColor,
         textStyle: AppTypography.label.copyWith(fontWeight: AppTypography.weightBold),
-        padding: EdgeInsets.symmetric(horizontal: config.buttonHorizontalPadding, vertical: isSmall ? 6 : 10),
+        padding: EdgeInsets.symmetric(horizontal: config.buttonHorizontalPadding, vertical: verticalPadding ?? (isSmall ? 6 : 11)),
         minimumSize: Size(0, isSmall ? config.buttonSmallHeight : config.buttonHeight),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(isSmall ? config.accentRadius : config.buttonRadius),
@@ -141,7 +145,7 @@ class BoxyArtButton extends ConsumerWidget {
       );
     }
 
-    return SizedBox(
+    final button = SizedBox(
       width: fullWidth ? double.infinity : null,
       child: (isGhost || isSecondary)
             ? OutlinedButton(
@@ -155,6 +159,11 @@ class BoxyArtButton extends ConsumerWidget {
                 child: _buildContent(style.foregroundColor?.resolve({}) ?? AppColors.pureWhite),
               ),
     );
+
+    if (onLongPress != null) {
+      return GestureDetector(onLongPress: onLongPress, child: button);
+    }
+    return button;
   }
 
   Widget _buildContent(Color color) {

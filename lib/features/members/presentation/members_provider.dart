@@ -49,7 +49,7 @@ class AdminMemberFilterState {
   int get hashCode => type.hashCode ^ role.hashCode;
 }
 
-enum AdminMemberFilter { current, committee, other, role }
+enum AdminMemberFilter { current, committee, other, guests, role }
 
 class AdminMemberFilterNotifier extends Notifier<AdminMemberFilterState> {
   @override

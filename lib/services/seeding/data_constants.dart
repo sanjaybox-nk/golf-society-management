@@ -14,11 +14,32 @@ class SeedingData {
   ];
   
   static const lastNames = [
-    'Smith', 'Johnson', 'Williams', 'Jones', 'Brown', 'Davis', 'Miller', 'Wilson', 'Moore', 'Taylor', 
-    'Anderson', 'Thomas', 'Jackson', 'White', 'Harris', 'Martin', 'Thompson', 'Garcia', 'Martinez', 'Robinson', 
+    'Smith', 'Johnson', 'Williams', 'Jones', 'Brown', 'Davis', 'Miller', 'Wilson', 'Moore', 'Taylor',
+    'Anderson', 'Thomas', 'Jackson', 'White', 'Harris', 'Martin', 'Thompson', 'Garcia', 'Martinez', 'Robinson',
     'Clark', 'Rodriguez', 'Lewis', 'Lee', 'Walker', 'Hall', 'Allen', 'Young', 'Hernandez', 'King',
     'Wright', 'Lopez', 'Hill', 'Scott', 'Green', 'Adams', 'Baker', 'Gonzalez', 'Nelson', 'Carter',
     'Mitchell', 'Perez', 'Roberts', 'Turner', 'Phillips', 'Campbell', 'Parker', 'Evans', 'Edwards', 'Collins'
+  ];
+
+  // Fixed guest pool — stable emails ensure findOrCreate deduplication is exercised across events.
+  // ~half are "regulars" who appear in multiple events; the rest are one-offs.
+  static const seedGuests = <Map<String, Object>>[
+    {'name': 'Tom Hargreaves',   'email': 'tom.hargreaves@example.com',   'handicap': 14.0},
+    {'name': 'Liam Fletcher',    'email': 'liam.fletcher@example.com',    'handicap': 22.0},
+    {'name': 'Noah Sutton',      'email': 'noah.sutton@example.com',      'handicap': 18.0},
+    {'name': 'Olivia Brennan',   'email': 'olivia.brennan@example.com',   'handicap': 26.0},
+    {'name': 'Harry Donovan',    'email': 'harry.donovan@example.com',    'handicap': 9.0},
+    {'name': 'Isla Whitmore',    'email': 'isla.whitmore@example.com',    'handicap': 20.0},
+    {'name': 'Oscar Langley',    'email': 'oscar.langley@example.com',    'handicap': 17.0},
+    {'name': 'Freya Caldwell',   'email': 'freya.caldwell@example.com',   'handicap': 28.0},
+    {'name': 'Archie Thornton',  'email': 'archie.thornton@example.com',  'handicap': 12.0},
+    {'name': 'Poppy Sherwood',   'email': 'poppy.sherwood@example.com',   'handicap': 24.0},
+    // One-off guests — lower recurrence
+    {'name': 'Regan Okafor',     'email': 'regan.okafor@example.com',     'handicap': 16.0},
+    {'name': 'Cian Rafferty',    'email': 'cian.rafferty@example.com',    'handicap': 21.0},
+    {'name': 'Sienna Marsh',     'email': 'sienna.marsh@example.com',     'handicap': 19.0},
+    {'name': 'Finn Gallagher',   'email': 'finn.gallagher@example.com',   'handicap': 11.0},
+    {'name': 'Mia Drummond',     'email': 'mia.drummond@example.com',     'handicap': 27.0},
   ];
   
   static final maleAvatarUrls = [

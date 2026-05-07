@@ -317,3 +317,88 @@ class _UnderlinedTabItem extends StatelessWidget {
     );
   }
 }
+
+/// Drop-in replacement for [ModernUnderlinedFilterBar] using a filled-pill
+/// selected indicator. Fixed width (non-scrollable), works for 2–4 options.
+/// Uses [ModernFilterTab] so call sites only need to change the widget name.
+class BoxyArtTabBar<T> extends StatelessWidget {
+  final List<ModernFilterTab<T>> tabs;
+  final T selectedValue;
+  final ValueChanged<T> onTabSelected;
+  final EdgeInsetsGeometry padding;
+
+  const BoxyArtTabBar({
+    super.key,
+    required this.tabs,
+    required this.selectedValue,
+    required this.onTabSelected,
+    this.padding = EdgeInsets.zero,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final shapes = theme.extension<AppShapeTokens>();
+
+    return Padding(
+      padding: padding,
+      child: Row(
+        children: tabs.map((tab) {
+          final isSelected = tab.value == selectedValue;
+          return Expanded(
+            child: GestureDetector(
+              onTap: () => onTabSelected(tab.value),
+              behavior: HitTestBehavior.opaque,
+              child: AnimatedContainer(
+                duration: AppAnimations.fast,
+                height: 40,
+                margin: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
+                decoration: BoxDecoration(
+                  color: isSelected
+                      ? theme.colorScheme.primary.withValues(alpha: AppColors.opacityLow)
+                      : Colors.transparent,
+                  borderRadius: shapes?.tabIndicator ?? BorderRadius.circular(8),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    if (tab.icon != null) ...[
+                      Icon(
+                        tab.icon,
+                        size: AppShapes.iconSm,
+                        color: isSelected
+                            ? theme.colorScheme.primary
+                            : theme.colorScheme.onSurface.withValues(alpha: AppColors.opacitySecondary),
+                      ),
+                      const SizedBox(width: AppSpacing.xs),
+                    ],
+                    Flexible(
+                      child: AnimatedDefaultTextStyle(
+                        duration: AppAnimations.fast,
+                        style: AppTypography.micro.copyWith(
+                          fontSize: 12,
+                          fontWeight: isSelected
+                              ? AppTypography.weightBold
+                              : AppTypography.weightRegular,
+                          color: isSelected
+                              ? theme.colorScheme.primary
+                              : theme.colorScheme.onSurface.withValues(alpha: AppColors.opacitySecondary),
+                          letterSpacing: AppTypography.lsLabel,
+                        ),
+                        child: Text(
+                          tab.label.toUpperCase(),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        }).toList(),
+      ),
+    );
+  }
+}

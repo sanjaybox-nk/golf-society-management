@@ -59,6 +59,8 @@ abstract class SocietyConfig with _$SocietyConfig {
     @Default(0xFFE2E2DC) int dividerColor, // [NEW] Standard divider color
     @Default(28.0) double heroRadius, // [NEW] Granular Hero Radius (Independent)
     @Default(8.0) double accentRadius, // [NEW] Metric & Icon Radius (4.x Default)
+    @Default(20.0) double navBarRadius, // Nav bar top corner radius — 0 = flat, 20 = floaty
+    @Default(8.0) double tabIndicatorRadius, // Selected tab pill radius — independent of button radius
     @Default(0.15) double accentOpacity, // [NEW] Metric & Icon Background Opacity
     @Default(0.0) double shadowSpread, // [NEW] Granular Shadow Spread
     @Default(0.12) double shadowOpacity, // [NEW] Granular Shadow Opacity

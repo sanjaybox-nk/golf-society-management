@@ -126,6 +126,13 @@ class AdminSettingsHubScreen extends ConsumerWidget {
                 child: Column(
                   children: [
                     BoxyArtNavTile(
+                      icon: Icons.palette_rounded,
+                      title: 'Component Preview',
+                      subtitle: 'Compare navigation component variants',
+                      onTap: () => context.pushNamed('admin-settings-design-preview'),
+                    ),
+                    const BoxyArtDivider(),
+                    BoxyArtNavTile(
                       icon: Icons.cleaning_services_rounded,
                       title: 'Clear Activity Data',
                       subtitle: 'Wipe events & members (Keeps branding/templates)',
@@ -197,9 +204,9 @@ class AdminSettingsHubScreen extends ConsumerWidget {
                 child: Column(
                   children: [
                     BoxyArtNavTile(
-                      icon: Icons.terminal_rounded,
-                      title: 'Design Token Lab',
-                      subtitle: 'Granular radii, shadows, and spacing',
+                      icon: Icons.science_rounded,
+                      title: 'Design Lab',
+                      subtitle: 'Colors, shapes, spacing, navigation, and typography',
                       onTap: () => context.pushNamed('admin-settings-branding'),
                     ),
                   ],

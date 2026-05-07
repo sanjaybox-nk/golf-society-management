@@ -68,6 +68,8 @@ class AppTheme {
           iconBadgeOpacity: config.iconBadgeOpacity,
           iconBadgeSize: config.iconBadgeSize,
           iconBadgeIconSize: config.iconBadgeIconSize,
+          navBarRadius: config.navBarRadius,
+          tabIndicatorRadius: config.tabIndicatorRadius,
         ),
         AppShadows(
           useShadows: config.useShadows,
@@ -281,6 +283,8 @@ class AppTheme {
           iconBadgeOpacity: config.iconBadgeOpacity,
           iconBadgeSize: config.iconBadgeSize,
           iconBadgeIconSize: config.iconBadgeIconSize,
+          navBarRadius: config.navBarRadius,
+          tabIndicatorRadius: config.tabIndicatorRadius,
         ),
         AppSpacingTokens(
           labelToCard: config.labelToCardSpacing,

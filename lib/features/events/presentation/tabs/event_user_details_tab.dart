@@ -185,20 +185,11 @@ class _EventDetailsContentState extends ConsumerState<EventDetailsContent> {
         ],
         slivers: [
           SliverToBoxAdapter(
-            child: ModernUnderlinedFilterBar<EventInfoSubTab>(
+            child: BoxyArtTabBar<EventInfoSubTab>(
               padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
-              isExpanded: true,
               tabs: const [
-                ModernFilterTab(
-                  label: 'News updates', 
-                  value: EventInfoSubTab.notifications,
-                  icon: Icons.newspaper_rounded,
-                ),
-                ModernFilterTab(
-                  label: 'Event Info', 
-                  value: EventInfoSubTab.info,
-                  icon: Icons.info_outline_rounded,
-                ),
+                ModernFilterTab(label: 'News', value: EventInfoSubTab.notifications),
+                ModernFilterTab(label: 'Event Info', value: EventInfoSubTab.info),
               ],
               selectedValue: _selectedTab,
               onTabSelected: (tab) => setState(() => _selectedTab = tab),

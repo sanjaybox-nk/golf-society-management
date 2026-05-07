@@ -92,6 +92,7 @@ class _EventStatsContent extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final spacing = Theme.of(context).extension<AppSpacingTokens>();
     final data = ref.watch(eventScoringControllerProvider(event.id));
+    final allScorecards = ref.watch(scorecardsListProvider(event.id)).asData?.value ?? [];
 
     final effectiveUser = ref.watch(effectiveUserProvider);
     final currentUserId = effectiveUser.id;
@@ -364,6 +365,17 @@ class _EventStatsContent extends ConsumerWidget {
             StaggeredEntrance(
               index: 3,
               child: StablefordDistributionChart(bucketCounts: stablefordBuckets),
+            ),
+          ],
+          if (allScorecards.any((s) => s.holeTags.isNotEmpty)) ...[
+            const BoxyArtSectionTitle(
+              followsCard: true,
+              horizontalPadding: 0,
+              title: 'Round Story',
+            ),
+            StaggeredEntrance(
+              index: 3,
+              child: RoundStoryStatsCard(scorecards: allScorecards),
             ),
           ],
           const BoxyArtSectionTitle(

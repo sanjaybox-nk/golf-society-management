@@ -62,17 +62,15 @@ class EventFieldAdminScreen extends ConsumerWidget {
           pinnedBottom: null,
           slivers: [
             SliverToBoxAdapter(
-              child: ModernUnderlinedFilterBar<int>(
+              child: BoxyArtTabBar<int>(
                 padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
                 selectedValue: selectedTab,
-                isExpanded: true,
                 onTabSelected: (val) => ref.read(eventFieldTabProvider.notifier).set(val),
                 tabs: [
-                  const ModernFilterTab(label: 'Entries', value: 0, icon: Icons.people_rounded),
+                  const ModernFilterTab(label: 'Entries', value: 0),
                   ModernFilterTab(
-                    label: isTournamentGrouping ? 'The Draw' : 'Tee Time', 
+                    label: isTournamentGrouping ? 'The Draw' : 'Tee Time',
                     value: 1,
-                    icon: isTournamentGrouping ? Icons.account_tree_rounded : Icons.access_time_rounded,
                   ),
                 ],
               ),

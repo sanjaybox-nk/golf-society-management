@@ -23,6 +23,8 @@ _EventRegistration _$EventRegistrationFromJson(Map<String, dynamic> json) =>
       needsBuggy: json['needsBuggy'] as bool? ?? false,
       dietaryRequirements: json['dietaryRequirements'] as String?,
       specialNeeds: json['specialNeeds'] as String?,
+      guestId: json['guestId'] as String?,
+      guestEmail: json['guestEmail'] as String?,
       guestName: json['guestName'] as String?,
       guestHandicap: json['guestHandicap'] as String?,
       guestAttendingBreakfast:
@@ -77,6 +79,8 @@ Map<String, dynamic> _$EventRegistrationToJson(_EventRegistration instance) =>
       'needsBuggy': instance.needsBuggy,
       'dietaryRequirements': instance.dietaryRequirements,
       'specialNeeds': instance.specialNeeds,
+      'guestId': instance.guestId,
+      'guestEmail': instance.guestEmail,
       'guestName': instance.guestName,
       'guestHandicap': instance.guestHandicap,
       'guestAttendingBreakfast': instance.guestAttendingBreakfast,

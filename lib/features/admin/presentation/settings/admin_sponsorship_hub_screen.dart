@@ -263,7 +263,7 @@ class _AdminSponsorshipHubScreenState extends ConsumerState<AdminSponsorshipHubS
         SliverToBoxAdapter(
           child: Padding(
             padding: const EdgeInsets.only(bottom: AppSpacing.cardToLabel),
-            child: ModernUnderlinedFilterBar<HubTab>(
+            child: BoxyArtTabBar<HubTab>(
               selectedValue: _currentTab,
               onTabSelected: (tab) => setState(() {
                 _currentTab = tab;
@@ -271,10 +271,9 @@ class _AdminSponsorshipHubScreenState extends ConsumerState<AdminSponsorshipHubS
                 _resetForm();
               }),
               padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
-              isExpanded: true,
               tabs: const [
-                ModernFilterTab(label: 'Sponsorships', value: HubTab.sponsorships, icon: Icons.handshake_rounded),
-                ModernFilterTab(label: 'Donations', value: HubTab.donations, icon: Icons.volunteer_activism_rounded),
+                ModernFilterTab(label: 'Sponsorships', value: HubTab.sponsorships),
+                ModernFilterTab(label: 'Donations', value: HubTab.donations),
               ],
             ),
           ),

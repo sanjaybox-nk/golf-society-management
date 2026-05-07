@@ -7,6 +7,7 @@ import 'package:golf_society/domain/models/handicap_system.dart';
 import 'package:golf_society/features/members/presentation/profile_provider.dart';
 import 'package:golf_society/features/members/presentation/members_provider.dart';
 import 'package:golf_society/features/members/presentation/widgets/member_stats_row.dart';
+import 'package:golf_society/features/members/presentation/member_stats_provider.dart';
 import 'package:golf_society/features/members/presentation/widgets/member_cuts_card.dart';
 import 'package:golf_society/features/members/presentation/widgets/handicap_trend_chart.dart';
 import '../../home/presentation/home_providers.dart';
@@ -428,6 +429,56 @@ class LockerScreen extends ConsumerWidget {
                   title: 'Season Standings',
                   icon: Icons.leaderboard_rounded,
                   onTap: () => GoRouter.of(context).push('/locker/standings'),
+                ),
+                const BoxyArtSectionTitle(title: 'Round Story'),
+                Consumer(
+                  builder: (context, ref, _) {
+                    final stats = ref.watch(memberRoundStoryStatsProvider(user.id));
+                    if (stats.isEmpty) return const SizedBox.shrink();
+                    final hasTags = stats.values.any((v) => v > 0);
+                    if (!hasTags) return const SizedBox.shrink();
+                    return BoxyArtCard(
+                      padding: const EdgeInsets.all(AppSpacing.lg),
+                      child: Column(
+                        children: [
+                          _buildHighlightRow(context,
+                            icon: Icons.check_circle_outline_rounded,
+                            color: AppColors.lime500,
+                            label: 'Gimmes',
+                            value: '${stats['gimmes'] ?? 0} total',
+                          ),
+                          const BoxyArtDivider(verticalPadding: AppSpacing.sm),
+                          _buildHighlightRow(context,
+                            icon: Icons.upload_rounded,
+                            color: AppColors.coral500,
+                            label: 'Pick Ups',
+                            value: '${stats['pickUps'] ?? 0} total',
+                          ),
+                          const BoxyArtDivider(verticalPadding: AppSpacing.sm),
+                          _buildHighlightRow(context,
+                            icon: Icons.warning_amber_rounded,
+                            color: AppColors.amber500,
+                            label: '+1 Stroke Penalties',
+                            value: '${stats['penalty1'] ?? 0} total',
+                          ),
+                          const BoxyArtDivider(verticalPadding: AppSpacing.sm),
+                          _buildHighlightRow(context,
+                            icon: Icons.warning_rounded,
+                            color: AppColors.amber500,
+                            label: '+2 Stroke Penalties',
+                            value: '${stats['penalty2'] ?? 0} total',
+                          ),
+                          const BoxyArtDivider(verticalPadding: AppSpacing.sm),
+                          _buildHighlightRow(context,
+                            icon: Icons.add_circle_outline_rounded,
+                            color: AppColors.dark400,
+                            label: 'Total Penalty Strokes',
+                            value: '${stats['totalPenaltyStrokes'] ?? 0}',
+                          ),
+                        ],
+                      ),
+                    );
+                  },
                 ),
                 const BoxyArtSectionTitle(title: 'My Season Activity'),
                 Consumer(

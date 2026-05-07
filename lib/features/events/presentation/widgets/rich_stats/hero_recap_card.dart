@@ -29,38 +29,30 @@ class SocietyHeroRecapCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final config = ref.watch(themeControllerProvider);
-    int eaglesCount = 0;
-    int birdiesCount = 0;
-    int parsCount = 0;
+    final shapes = Theme.of(context).extension<AppShapeTokens>();
+    final spacing = Theme.of(context).extension<AppSpacingTokens>();
+
+    // Derive eclectic round stats
+    int eclecticEagles = 0;
+    int eclecticBirdies = 0;
+    int eclecticPars = 0;
 
     for (int i = 0; i < eclecticScores.length; i++) {
       final score = eclecticScores[i];
       if (score == null) continue;
-      
-      // Safe par lookup with fallback
       int par = 4;
       if (i < holes.length) {
         final h = holes[i];
         if (h is Map) {
           par = (h['par'] as num?)?.toInt() ?? 4;
         } else if (h != null) {
-          // Dynamic access to CourseHole object
-          try {
-            par = h.par as int;
-          } catch (_) {
-            par = 4;
-          }
+          try { par = h.par as int; } catch (_) {}
         }
       }
-
       final diff = score - par;
-      if (diff <= -2) {
-        eaglesCount++;
-      } else if (diff == -1) {
-        birdiesCount++;
-      } else if (diff == 0) {
-        parsCount++;
-      }
+      if (diff <= -2) eclecticEagles++;
+      else if (diff == -1) eclecticBirdies++;
+      else if (diff == 0) eclecticPars++;
     }
 
     final totalStrokes = eclecticScores.whereType<int>().fold(0, (sum, s) => sum + s);
@@ -74,6 +66,22 @@ class SocietyHeroRecapCard extends ConsumerWidget {
       return sum + p;
     });
     final vsPar = totalStrokes - parTotal;
+    final vsParLabel = vsPar == 0 ? 'E' : (vsPar > 0 ? '+$vsPar' : '$vsPar');
+
+    final heroColor = Color(config.heroTextColor);
+    final heroStrong = heroColor.withValues(alpha: AppColors.opacityStrong);
+    final heroMuted = heroColor.withValues(alpha: AppColors.opacitySecondary);
+    final heroBg = heroColor.withValues(alpha: AppColors.opacityLow);
+    final heroBorder = heroColor.withValues(alpha: 0.08);
+
+    // Field metrics — exclude birdies (shown in eclectic row), exclude holes count
+    final fieldStats = <_HeroStat>[
+      _HeroStat(label: 'PLAYERS', value: '$totalPlayers', icon: Icons.people_rounded),
+      if (fieldAvgNet != 0.0)
+        _HeroStat(label: 'AVG NET', value: fieldAvgNet.toStringAsFixed(1), icon: Icons.analytics_rounded)
+      else
+        _HeroStat(label: 'FIELD BIRDIES', value: '$totalBirdies', icon: Icons.gps_fixed_rounded),
+    ];
 
     return BoxyArtCard(
       padding: EdgeInsets.zero,
@@ -86,62 +94,65 @@ class SocietyHeroRecapCard extends ConsumerWidget {
           Color(config.heroGradientColorSecondary).withValues(alpha: config.heroGradientOpacity),
         ],
       ),
-      child: Column(
-        children: [
-          // 1. Premium 4.x Amber Header (Achievement Focus)
-          Container(
-            padding: const EdgeInsets.symmetric(vertical: AppSpacing.x2l, horizontal: AppSpacing.x2l),
-            width: double.infinity,
-            decoration: const BoxDecoration(
-              // Background is now handled by the card's gradient for a smoother "graduated" feel
-              borderRadius: BorderRadius.vertical(top: Radius.circular(AppShapes.rLg)),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      child: Padding(
+        padding: EdgeInsets.all(spacing?.cardHorizontalPadding ?? AppSpacing.standard),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // 1. Header row
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'SOCIETY\'S BEST ROUND',
-                      style: AppTypography.label.copyWith(
-                        color: Color(config.heroTextColor).withValues(alpha: AppColors.opacityStrong),
-                        fontWeight: AppTypography.weightHeavy,
-                        letterSpacing: 1.5,
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'SOCIETY\'S BEST ROUND',
+                        style: AppTypography.micro.copyWith(
+                          color: heroStrong,
+                          fontWeight: AppTypography.weightHeavy,
+                          letterSpacing: AppTypography.lsLabel,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'FIELD ECLECTIC',
-                      style: AppTypography.displaySubPage.copyWith(
-                        color: Color(config.heroTextColor),
-                        fontWeight: AppTypography.weightBlack,
+                      const SizedBox(height: AppSpacing.atomic / 2),
+                      Text(
+                        'FIELD ECLECTIC',
+                        style: AppTypography.headline.copyWith(
+                          color: heroColor,
+                          fontWeight: AppTypography.weightBlack,
+                          letterSpacing: -0.3,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
+                // Eclectic score badge
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.standard,
+                    vertical: AppSpacing.atomic,
+                  ),
                   decoration: BoxDecoration(
-                    color: Color(config.heroTextColor).withValues(alpha: 0.1),
-                    borderRadius: AppShapes.lg,
+                    color: heroBg,
+                    borderRadius: shapes?.button,
+                    border: Border.all(color: heroBorder),
                   ),
                   child: Column(
                     children: [
                       Text(
-                        totalStrokes.toString(),
-                        style: AppTypography.displayHeading.copyWith(
-                          fontSize: 24,
-                          color: Color(config.heroTextColor),
+                        '$totalStrokes',
+                        style: AppTypography.display.copyWith(
+                          color: heroColor,
                           fontWeight: AppTypography.weightBlack,
                           height: 1.0,
                         ),
                       ),
                       Text(
-                        vsPar == 0 ? 'PAR' : (vsPar > 0 ? '+$vsPar' : '$vsPar'),
+                        vsParLabel,
                         style: AppTypography.micro.copyWith(
+                          color: heroStrong,
                           fontWeight: AppTypography.weightBold,
-                          color: Color(config.heroTextColor),
                         ),
                       ),
                     ],
@@ -149,128 +160,93 @@ class SocietyHeroRecapCard extends ConsumerWidget {
                 ),
               ],
             ),
-          ),
 
-          // 2. Content Section
-          Padding(
-            padding: const EdgeInsets.all(AppSpacing.x2l),
-            child: Column(
+            SizedBox(height: spacing?.cardVerticalPadding ?? AppSpacing.standard),
+
+            // 2. Eclectic round breakdown — Eagles / Birdies / Pars
+            Row(
               children: [
-                // a. Eclectic Highlights
-                Row(
-                  children: [
-                    _buildCompactStat(context, config, 'EAGLES', eaglesCount.toString(), Icons.stars_rounded, Color(config.heroTextColor)),
-                    const SizedBox(width: AppSpacing.md),
-                    _buildCompactStat(context, config, 'BIRDIES', birdiesCount.toString(), Icons.gps_fixed, Colors.blueGrey),
-                    const SizedBox(width: AppSpacing.md),
-                    _buildCompactStat(context, config, 'PARS', parsCount.toString(), Icons.shield_rounded, AppColors.lime500),
-                  ],
-                ),
-
-                const SizedBox(height: AppSpacing.x2l),
-                
-                // b. Subtle Divider with Section Title
-                Row(
-                  children: [
-                    Expanded(child: Container(height: 1, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.05))),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
-                      child: Text(
-                        'EVENT RECAP'.toUpperCase(),
-                        style: AppTypography.micro.copyWith(
-                          color: Color(config.heroTextColor).withValues(alpha: AppColors.opacityStrong),
-                          fontWeight: AppTypography.weightExtraBold,
-                          letterSpacing: 1.0,
-                        ),
-                      ),
-                    ),
-                    Expanded(child: Container(height: 1, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.05))),
-                  ],
-                ),
-
-                const SizedBox(height: AppSpacing.x2l),
-
-                // c. Recap Metrics (2x2 Grid)
-                Row(
-                  children: [
-                    Expanded(child: _buildRecapStat(context, config, 'PLAYERS', totalPlayers.toString())),
-                    Expanded(child: _buildRecapStat(context, config, 'HOLES', totalHolesPlayed.toString())),
-                  ],
-                ),
-                const SizedBox(height: AppSpacing.x2l),
-                Row(
-                  children: [
-                    Expanded(child: _buildRecapStat(context, config, 'BIRDIES', totalBirdies.toString())),
-                    Expanded(child: _buildRecapStat(context, config, 'AVG NET', fieldAvgNet.toStringAsFixed(1))),
-                  ],
-                ),
-
-                const SizedBox(height: AppSpacing.x2l),
-
-                // d. Toughest Test Chip
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: 14),
-                  decoration: BoxDecoration(
-                    color: Color(config.heroTextColor).withValues(alpha: 0.03),
-                    borderRadius: AppShapes.pill,
-                    border: Border.all(color: Color(config.heroTextColor).withValues(alpha: 0.05)),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        'TOUGHEST TEST: '.toUpperCase(),
-                        style: AppTypography.micro.copyWith(
-                          color: Color(config.heroTextColor).withValues(alpha: AppColors.opacityStrong),
-                          fontWeight: AppTypography.weightBold,
-                        ),
-                      ),
-                      Text(
-                        '$topHoleName (+${topHoleDiff.toStringAsFixed(1)})',
-                        style: AppTypography.label.copyWith(
-                          color: Color(config.heroTextColor),
-                          fontWeight: AppTypography.weightHeavy,
-                          letterSpacing: -0.2,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+                _buildEclecticStat(context, shapes, 'EAGLES', '$eclecticEagles',
+                    Icons.stars_rounded, heroColor, heroStrong, heroMuted,
+                    heroBg, heroBorder, dim: eclecticEagles == 0),
+                SizedBox(width: spacing?.fieldToField ?? AppSpacing.atomic),
+                _buildEclecticStat(context, shapes, 'BIRDIES', '$eclecticBirdies',
+                    Icons.gps_fixed_rounded, heroColor, heroStrong, heroMuted,
+                    heroBg, heroBorder),
+                SizedBox(width: spacing?.fieldToField ?? AppSpacing.atomic),
+                _buildEclecticStat(context, shapes, 'PARS', '$eclecticPars',
+                    Icons.shield_rounded, heroColor, heroStrong, heroMuted,
+                    heroBg, heroBorder),
               ],
             ),
-          ),
-        ],
-      ),
-    );
-  }
 
-  Widget _buildCompactStat(BuildContext context, SocietyConfig config, String label, String value, IconData icon, Color color) {
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.02),
-          borderRadius: AppShapes.lg,
-          border: Border.all(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.04)),
-        ),
-        child: Column(
-          children: [
-            Icon(icon, color: color.withValues(alpha: 0.8), size: 16),
-            const SizedBox(height: 4),
-            Text(
-              value,
-              style: AppTypography.headline.copyWith(
-                fontWeight: AppTypography.weightBlack,
-                color: Color(config.heroTextColor),
-                fontSize: 24,
-              ),
+            SizedBox(height: spacing?.cardVerticalPadding ?? AppSpacing.standard),
+
+            // Divider with label
+            Row(
+              children: [
+                Expanded(child: Container(height: 1, color: heroBorder)),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+                  child: Text(
+                    'FIELD SUMMARY',
+                    style: AppTypography.micro.copyWith(
+                      color: heroMuted,
+                      fontWeight: AppTypography.weightBold,
+                      letterSpacing: AppTypography.lsLabel,
+                    ),
+                  ),
+                ),
+                Expanded(child: Container(height: 1, color: heroBorder)),
+              ],
             ),
-            Text(
-              label,
-              style: AppTypography.micro.copyWith(
-                fontSize: 8,
-                color: Color(config.heroTextColor).withValues(alpha: AppColors.opacitySecondary),
-                fontWeight: AppTypography.weightBold,
+
+            SizedBox(height: spacing?.cardVerticalPadding ?? AppSpacing.standard),
+
+            // 3. Field metrics — 1×2 row
+            Row(
+              children: [
+                _buildStat(context, config, shapes, fieldStats[0], heroColor, heroStrong, heroMuted, heroBg, heroBorder),
+                SizedBox(width: spacing?.fieldToField ?? AppSpacing.atomic),
+                _buildStat(context, config, shapes, fieldStats[1], heroColor, heroStrong, heroMuted, heroBg, heroBorder),
+              ],
+            ),
+
+            SizedBox(height: spacing?.cardVerticalPadding ?? AppSpacing.standard),
+
+            // 3. Toughest hole footer pill
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.standard,
+                vertical: AppSpacing.atomic,
+              ),
+              decoration: BoxDecoration(
+                color: heroColor.withValues(alpha: 0.04),
+                borderRadius: shapes?.pill,
+                border: Border.all(color: heroBorder),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.terrain_rounded, size: 13, color: heroMuted),
+                  const SizedBox(width: AppSpacing.atomic),
+                  Text(
+                    'TOUGHEST TEST  ',
+                    style: AppTypography.micro.copyWith(
+                      color: heroMuted,
+                      fontWeight: AppTypography.weightBold,
+                      letterSpacing: AppTypography.lsLabel,
+                    ),
+                  ),
+                  Text(
+                    '$topHoleName (+${topHoleDiff.toStringAsFixed(1)})',
+                    style: AppTypography.label.copyWith(
+                      color: heroColor,
+                      fontWeight: AppTypography.weightHeavy,
+                    ),
+                  ),
+                ],
               ),
             ),
           ],
@@ -279,30 +255,115 @@ class SocietyHeroRecapCard extends ConsumerWidget {
     );
   }
 
-  Widget _buildRecapStat(BuildContext context, SocietyConfig config, String label, String value) {
-    return Column(
-      children: [
-        Text(
-          value,
-          style: AppTypography.displaySubPage.copyWith(
-            fontSize: 28,
-            fontWeight: AppTypography.weightHeavy,
-            color: Color(config.heroTextColor),
-            height: 1.0,
-            letterSpacing: -0.5,
-          ),
+  Widget _buildEclecticStat(
+    BuildContext context,
+    AppShapeTokens? shapes,
+    String label,
+    String value,
+    IconData icon,
+    Color heroColor,
+    Color heroStrong,
+    Color heroMuted,
+    Color heroBg,
+    Color heroBorder, {
+    bool dim = false,
+  }) {
+    final effectiveColor = dim ? heroMuted : heroColor;
+    final effectiveBg = dim ? heroColor.withValues(alpha: 0.03) : heroBg;
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.symmetric(
+          vertical: AppSpacing.standard,
+          horizontal: AppSpacing.atomic,
         ),
-        const SizedBox(height: 4),
-        Text(
-          label,
-          style: AppTypography.micro.copyWith(
-            color: Color(config.heroTextColor).withValues(alpha: AppColors.opacityStrong),
-            fontWeight: AppTypography.weightExtraBold,
-            letterSpacing: 1.0,
-            fontSize: 9,
-          ),
+        decoration: BoxDecoration(
+          color: effectiveBg,
+          borderRadius: shapes?.button,
+          border: Border.all(color: heroBorder),
         ),
-      ],
+        child: Column(
+          children: [
+            Icon(icon, size: 14, color: dim ? heroMuted : heroStrong),
+            const SizedBox(height: 2),
+            Text(
+              value,
+              style: AppTypography.headline.copyWith(
+                color: effectiveColor,
+                fontWeight: AppTypography.weightBlack,
+                height: 1.0,
+              ),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              label,
+              textAlign: TextAlign.center,
+              style: AppTypography.micro.copyWith(
+                color: dim ? heroMuted : heroStrong,
+                fontWeight: AppTypography.weightBold,
+                letterSpacing: AppTypography.lsLabel,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
+
+  Widget _buildStat(
+    BuildContext context,
+    SocietyConfig config,
+    AppShapeTokens? shapes,
+    _HeroStat stat,
+    Color heroColor,
+    Color heroStrong,
+    Color heroMuted,
+    Color heroBg,
+    Color heroBorder,
+  ) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.symmetric(
+          vertical: AppSpacing.standard,
+          horizontal: AppSpacing.atomic,
+        ),
+        decoration: BoxDecoration(
+          color: heroBg,
+          borderRadius: shapes?.button,
+          border: Border.all(color: heroBorder),
+        ),
+        child: Column(
+          children: [
+            Icon(stat.icon, size: 14, color: heroMuted),
+            const SizedBox(height: AppSpacing.atomic / 2),
+            Text(
+              stat.value,
+              style: AppTypography.headline.copyWith(
+                color: heroColor,
+                fontWeight: AppTypography.weightBlack,
+                height: 1.0,
+              ),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              stat.label,
+              textAlign: TextAlign.center,
+              style: AppTypography.micro.copyWith(
+                color: heroStrong,
+                fontWeight: AppTypography.weightBold,
+                letterSpacing: AppTypography.lsLabel,
+                fontSize: AppTypography.sizeMicro,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _HeroStat {
+  final String label;
+  final String value;
+  final IconData icon;
+  const _HeroStat({required this.label, required this.value, required this.icon});
 }

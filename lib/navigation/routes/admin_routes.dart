@@ -40,7 +40,7 @@ List<StatefulShellBranch> _buildAdminBranches() => [
                         path: 'branding',
                         name: 'admin-settings-branding',
                         pageBuilder: (context, state) => boxyPage(state: state,
-                          child: const BrandingSettingsScreen(),
+                          child: const DesignLabScreen(),
                         ),
                       ),
                       GoRoute(
@@ -202,6 +202,13 @@ List<StatefulShellBranch> _buildAdminBranches() => [
                         name: 'admin-settings-roles',
                         pageBuilder: (context, state) => boxyPage(state: state,
                           child: const RolesScreen(),
+                        ),
+                      ),
+                      GoRoute(
+                        path: 'design-preview',
+                        name: 'admin-settings-design-preview',
+                        pageBuilder: (context, state) => boxyPage(state: state,
+                          child: const DesignPreviewScreen(),
                         ),
                       ),
                     ],

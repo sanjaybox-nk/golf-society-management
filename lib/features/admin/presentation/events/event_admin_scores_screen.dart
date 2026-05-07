@@ -67,21 +67,20 @@ class _EventAdminScoresScreenState extends ConsumerState<EventAdminScoresScreen>
             SliverPadding(
               padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
               sliver: SliverToBoxAdapter(
-                child: ModernUnderlinedFilterBar<int>(
+                child: BoxyArtTabBar<int>(
                   selectedValue: _selectedTab,
-                  isExpanded: true,
                   onTabSelected: (val) => setState(() => _selectedTab = val),
                   tabs: isTournamentStyle
-                    ? [
-                        const ModernFilterTab(label: 'Groups', value: 3, icon: Icons.groups_rounded),
-                        const ModernFilterTab(label: 'Standings', value: 0, icon: Icons.leaderboard_rounded),
-                        const ModernFilterTab(label: 'Bracket', value: 2, icon: Icons.account_tree_rounded),
-                        const ModernFilterTab(label: 'Verify', value: 1, icon: Icons.verified_user_rounded),
+                    ? const [
+                        ModernFilterTab(label: 'Groups', value: 3),
+                        ModernFilterTab(label: 'Standings', value: 0),
+                        ModernFilterTab(label: 'Bracket', value: 2),
+                        ModernFilterTab(label: 'Verify', value: 1),
                       ]
-                    : [
-                        const ModernFilterTab(label: 'Groups', value: 3, icon: Icons.groups_rounded),
-                        const ModernFilterTab(label: 'Standings', value: 0, icon: Icons.leaderboard_rounded),
-                        const ModernFilterTab(label: 'Verify', value: 1, icon: Icons.verified_user_rounded),
+                    : const [
+                        ModernFilterTab(label: 'Groups', value: 3),
+                        ModernFilterTab(label: 'Standings', value: 0),
+                        ModernFilterTab(label: 'Verify', value: 1),
                       ],
                 ),
               ),

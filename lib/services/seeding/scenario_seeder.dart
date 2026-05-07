@@ -19,6 +19,8 @@ import 'package:collection/collection.dart';
 import 'event_seeder.dart';
 import 'course_seeder.dart';
 import 'member_seeder.dart';
+import 'data_constants.dart';
+import 'package:golf_society/features/guests/data/guest_repository.dart';
 
 class ScenarioSeeder {
   final Ref ref;
@@ -214,6 +216,7 @@ class ScenarioSeeder {
           status: isGroupSubmitted ? ScorecardStatus.submitted : ScorecardStatus.draft,
           holeScores: holeScores,
           playerVerifierScores: markerScores,
+          holeTags: _generateHoleTags(holeScores),
           submittedAt: isGroupSubmitted ? DateTime.now().subtract(Duration(minutes: (groups.length - i) * 10)) : null,
         ));
       }
@@ -309,14 +312,27 @@ class ScenarioSeeder {
       ));
     }
 
-    // 2. Add Guests (if any)
-    for (int i = 0; i < guestCount; i++) {
+    // 2. Add Guests from the real guest pool
+    final guestRepo = ref.read(guestRepositoryProvider);
+    final guestPool = SeedingData.seedGuests.take(guestCount).toList();
+    for (final seedGuest in guestPool) {
+      final profile = await guestRepo.findOrCreate(
+        email: seedGuest['email'] as String,
+        name: seedGuest['name'] as String,
+        handicap: seedGuest['handicap'] as double,
+      );
+      // Host: first member in the list sponsors this guest
+      final hostMember = matchPlayers.isNotEmpty ? matchPlayers.first : members.first;
       registrations.add(EventRegistration(
-        memberId: 'guest_$i',
-        memberName: 'Guest User ${i + 1}',
+        memberId: '${hostMember.id}_guest',
+        memberName: profile.name,
         attendingGolf: true,
         isConfirmed: true,
-        handicap: 18.0,
+        handicap: profile.handicap,
+        guestId: profile.id,
+        guestEmail: profile.email,
+        guestName: profile.name,
+        guestHandicap: profile.handicap.toStringAsFixed(1),
         registeredAt: date.subtract(const Duration(days: 5)),
         cost: 60,
       ));
@@ -367,7 +383,7 @@ class ScenarioSeeder {
           name: reg.memberName,
           handicapIndex: reg.handicap ?? 0.0,
           playingHandicap: (reg.handicap ?? 0.0).round().toDouble(),
-          isGuest: reg.memberId.startsWith('guest_'),
+          isGuest: reg.memberId.endsWith('_guest'),
           needsBuggy: false,
         ));
       }
@@ -563,6 +579,25 @@ class ScenarioSeeder {
 
     return eventId;
   }
+  /// Generates realistic hole tags for a scorecard based on scores.
+  /// ~20% gimme chance on par or better holes, ~10% pick-up on blow-up holes,
+  /// ~8% chance of a 1-stroke penalty, ~3% chance of a 2-stroke penalty.
+  Map<int, List<String>> _generateHoleTags(List<int?> scores) {
+    final tags = <int, List<String>>{};
+    for (int i = 0; i < scores.length; i++) {
+      final score = scores[i];
+      if (score == null) continue;
+      final holeTags = <String>[];
+      final ts = DateTime.now().millisecondsSinceEpoch + i * 13;
+      if (score <= 4 && random.nextDouble() < 0.20) holeTags.add('GIMME');
+      if (score >= 7 && random.nextDouble() < 0.10) holeTags.add('PICK_UP');
+      if (random.nextDouble() < 0.08) holeTags.add('PENALTY_1_$ts');
+      if (random.nextDouble() < 0.03) holeTags.add('PENALTY_2_${ts + 1}');
+      if (holeTags.isNotEmpty) tags[i + 1] = holeTags;
+    }
+    return tags;
+  }
+
   Future<String> seedHandshakeVerificationScenario() async {
     final membersRepo = ref.read(membersRepositoryProvider);
     var members = await membersRepo.getMembers();
@@ -661,6 +696,7 @@ class ScenarioSeeder {
           markerId: allMarkers[entryId],
           holeScores: holeScores,
           playerVerifierScores: markerScores,
+          holeTags: _generateHoleTags(holeScores),
           submittedAt: isGroupSubmitted ? DateTime.now().subtract(Duration(minutes: (groups.length - i) * 10)) : null,
         ));
       }

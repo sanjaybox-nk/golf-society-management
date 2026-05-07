@@ -85,17 +85,16 @@ class EventsScreen extends ConsumerWidget {
       slivers: [
         // Filter Bar
         SliverToBoxAdapter(
-          child: ModernUnderlinedFilterBar<EventFilter>(
+          child: BoxyArtTabBar<EventFilter>(
             tabs: const [
-              ModernFilterTab(label: 'Golf Events', value: EventFilter.season, icon: Icons.sports_golf_rounded),
-              ModernFilterTab(label: 'Social', value: EventFilter.social, icon: Icons.groups_rounded),
+              ModernFilterTab(label: 'Golf Events', value: EventFilter.season),
+              ModernFilterTab(label: 'Social', value: EventFilter.social),
             ],
             selectedValue: filter,
             onTabSelected: (val) => isAdminContext
                 ? ref.read(adminEventFilterProvider.notifier).update(val)
                 : ref.read(eventFilterProvider.notifier).update(val),
             padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
-            isExpanded: true,
           ),
         ),
 

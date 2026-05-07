@@ -9,22 +9,42 @@ The Demo Seeding system is a high-fidelity administrative tool used to populate 
 
 ---
 
-## 02 · The 3-Tier Infrastructure Hierarchy
+## 02 · UAT Testing Pipeline (Active Workflow)
 
-As of the April 2026 consolidation, administrative infrastructure controls are streamlined into three high-fidelity actions:
+The recommended seeding sequence for UI/UAT testing is a three-step pipeline run in order:
+
+```
+1. Clear Activity Data      → wipes all data including guests collection
+2. Harden Members Only      → seeds 31 members + 15 guest pool profiles
+3. Handshake & Rhythm UAT   → seeds Medal (stroke) + Stableford events with conflict states
+```
+
+Additional game-type UAT seeds will be added one at a time as each format is verified.
+
+---
+
+## 03 · The Seeding Actions
 
 ### 1. Initialize Demo Season (The "Master Seed")
-The primary tool for environment generation. It performs a surgical wipe and then orchestrates a full multi-module population.
-- **Stableford Foundation**: Seeds 75 members and a full 12-month calendar (March 2025 - March 2026).
-- **Match Play Progression**: Automatically instantiates a 36-player Match Play tournament, including the "Season Opener" hybrid event, guest exclusion logic, and automated bracket progression.
-- **Financial State**: Seeds central debt ledger entries, vouchers, and charitable contributions.
-- **Communications**: Populates the Note Studio and Survey Hub with realistic participation data.
+Full wipe + orchestrated season population.
+- Seeds 75 members, 12-month calendar, Match Play bracket progression, financials, comms.
 
 ### 2. Clear Activity Data (The "Surgical Wipe")
-Wipes all dynamic "Activity" while preserving the "Society Foundation."
-- **Wiped**: Events, registrations, results, member roster, financial entries, and surveys.
-- **Preserved**: Society name/logo (Branding), Course Libraries, and Competition Templates.
-- **Usage**: Use this when you want to start a new season from scratch using existing rules and branding.
+Wipes all dynamic data while preserving the Society Foundation.
+- **Wiped**: Events, registrations, results, member roster, guests, financial entries, surveys.
+- **Preserved**: Branding, Course Libraries, Competition Templates.
+
+### 3. Harden Members Only
+Refreshes member roster + seeds the guest pool.
+- **Members**: Wipes and re-seeds 31 members with full profiles.
+- **Guests**: Wipes `guests` collection and seeds 15 fixed guest profiles from `SeedingData.seedGuests`.
+- Each guest has a stable email address (e.g. `tom.hargreaves@example.com`) so `findOrCreate` deduplication is exercised when events are subsequently seeded.
+
+### 4. Handshake & Rhythm UAT
+Seeds two events for conflict/verification testing:
+- **Medal Play Verification** (stroke play, singles) — specific conflict states seeded per hole
+- **Rhythm Stableford** (stableford, singles) — progressive scoring states
+- Guests in these events use real guest pool IDs (not placeholder `guest_0` IDs).
 
 ### 3. Competition Template Gallery
 The master seed populates the administrative template library with authoritative, modular blueprints:
@@ -51,7 +71,33 @@ A total, unrecoverable deletion of all data in the current society context. This
 
 ---
 
-## 03 · Match Play Progression Scenario
+## 04 · Guest System
+
+Guests are persistent records in the `guests/{uuid}` Firestore collection.
+
+### Data Model
+```
+guests/{uuid}
+  name: string
+  email: string        ← unique index, deduplication key
+  handicap: double
+  firstPlayedAt: timestamp
+  lastPlayedAt: timestamp
+  eventCount: int
+```
+
+### `GuestRepository.findOrCreate(email, name, handicap)`
+The core method. Looks up by email — updates if found, creates if not. Called automatically on event registration save. Email is mandatory.
+
+### Seed Guest Pool (`SeedingData.seedGuests`)
+15 fixed guests with stable emails. Used by both `seedMembersOnly` and `ScenarioSeeder` so deduplication is exercised: a guest appearing in 3 seeded events will have `eventCount: 3`.
+
+### Admin Guest List
+Admin Settings → Members → **Guests** tab. Searchable by name or email. Shows HC and event count.
+
+---
+
+## 05 · Match Play Progression Scenario
 The Match Play engine is now fully integrated into the **Master Seed** to ensure tournament integrity.
 
 - **Hybrid Season Opener**: The first event is seeded as a Stableford game with a Match Play overlay.

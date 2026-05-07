@@ -75,18 +75,38 @@ The standard for navigation and settings icons.
 
 ---
 
-## 05 · Branding Tokens (Whitelabel Control)
+## 05 · Shape Tokens (`AppShapeTokens` ThemeExtension)
 
-Societies can customize their visual identity via the Branding Console. These tokens are stored in `SocietyConfig` and managed by the `ThemeController`.
+Access via `Theme.of(context).extension<AppShapeTokens>()`. All radii are `double` values stored in `SocietyConfig` and interpolated via `lerp`.
+
+| Token field | Default | Getter | Usage |
+|---|---|---|---|
+| `cardRadius` | `18.0` | `shapes?.card` | All `BoxyArtCard` containers |
+| `buttonRadius` | `16.0` | `shapes?.button` | `BoxyArtButton`, action buttons |
+| `inputRadius` | `12.0` | `shapes?.input` | Text fields, dropdowns |
+| `pillRadius` | `30.0` | `shapes?.pill` | Status badges, filter chips |
+| `heroRadius` | `28.0` | `shapes?.hero` | Home screen hero cards |
+| `accentRadius` | `8.0` | `shapes?.accent` | Icon badges, stat containers |
+| `navBarRadius` | `20.0` | `shapes?.navBar` | **Top-only** corner rounding of `BoxyArtBottomNavBar` (topLeft + topRight only) |
+| `tabIndicatorRadius` | `8.0` | `shapes?.tabIndicator` | Selected tab pill in `BoxyArtTabBar` — **independent** of `buttonRadius` |
+
+> **Rule**: `navBarRadius` and `tabIndicatorRadius` are intentionally separate tokens. The nav bar is a structural container; the tab indicator is a navigation affordance. They should not share a radius value.
+
+---
+
+## 06 · Branding Tokens (Whitelabel Control)
+
+Tokens are stored in `SocietyConfig` and managed by `ThemeController`. Configured via the Design Lab (Admin Settings → Design Lab).
 
 | Token | Default | Usage |
 |-------|---------|-------|
-| `primaryColor` | `0xFFF7D354` | Main brand color (Yellow) |
-| `pointsColor` | `0xFF4ADE80` | Accent for Stableford points emphasis (Use `effectivePointsColor` fallback) |
+| `primaryColor` | `0xFFF7D354` | Main brand color |
+| `pointsColor` | `0xFF4ADE80` | Stableford points accent |
 | `teamAColor` | `0xFF1E40AF` | Team A Identity (Blue) |
 | `teamBColor` | `0xFF166534` | Team B Identity (Dark Green) |
-| `iconBadgeTextColor` | `0xFF1A1A1A` | [NEW] Independent color for labels inside badges/icons |
-| `effectivePointsColor` | `pointsColor ?? primaryColor` | Guaranteed color for Branded Scoring metrics |
+| `navBarRadius` | `20.0` | Bottom nav bar top corner radius |
+| `tabIndicatorRadius` | `8.0` | Inner tab selected pill radius |
+| `effectivePointsColor` | `pointsColor ?? primaryColor` | Guaranteed scoring metric color |
 
 ---
 

@@ -27,6 +27,8 @@ abstract class EventRegistration with _$EventRegistration {
     String? dietaryRequirements,
     String? specialNeeds,
     // Guest details (for registrations that include a guest)
+    String? guestId,
+    String? guestEmail,
     String? guestName,
     String? guestHandicap,
     @Default(false) bool guestAttendingBreakfast,

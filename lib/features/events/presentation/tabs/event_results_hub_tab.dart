@@ -173,14 +173,13 @@ class _ScoresHubToggle extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final selectedTab = ref.watch(eventScoresHubTabProvider);
 
-    final tabs = <ModernFilterTab<int>>[
-      const ModernFilterTab(label: 'Groups', value: 1, icon: Icons.groups_rounded),
-      const ModernFilterTab(label: 'Standings', value: 2, icon: Icons.leaderboard_rounded),
+    const tabs = <ModernFilterTab<int>>[
+      ModernFilterTab(label: 'Groups', value: 1),
+      ModernFilterTab(label: 'Standings', value: 2),
     ];
 
-    return ModernUnderlinedFilterBar<int>(
+    return BoxyArtTabBar<int>(
       selectedValue: (selectedTab == 1 || selectedTab == 2) ? selectedTab : 1,
-      isExpanded: true,
       onTabSelected: (val) => ref.read(eventScoresHubTabProvider.notifier).set(val),
       tabs: tabs,
     );
