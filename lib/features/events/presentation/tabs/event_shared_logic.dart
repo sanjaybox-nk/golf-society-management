@@ -26,6 +26,7 @@ class SharedTournamentLogic {
     required Map<String, String> teeOverrides,
     bool isAdmin = false,
     Function(TeeGroupParticipant p, TeeGroup g)? onTapParticipant,
+    Function(String entryId, String markerEntryId, String playerName, String markerName)? onUnlockCard,
     bool followsCard = true,
   }) {
     final membersAsync = ref.watch(allMembersProvider);
@@ -49,6 +50,7 @@ class SharedTournamentLogic {
           teeOverrides: teeOverrides,
           isAdmin: isAdmin,
           onTapParticipant: onTapParticipant,
+          onUnlockCard: onUnlockCard,
           followsCard: followsCard,
         );
       },
@@ -145,6 +147,7 @@ class GroupScoresView extends ConsumerStatefulWidget {
   final Map<String, String> teeOverrides;
   final bool isAdmin;
   final Function(TeeGroupParticipant p, TeeGroup g)? onTapParticipant;
+  final Function(String entryId, String markerEntryId, String playerName, String markerName)? onUnlockCard;
   final bool followsCard;
  
   const GroupScoresView({
@@ -158,6 +161,7 @@ class GroupScoresView extends ConsumerStatefulWidget {
     required this.teeOverrides,
     this.isAdmin = false,
     this.onTapParticipant,
+    this.onUnlockCard,
     this.followsCard = true,
   });
 
@@ -274,6 +278,7 @@ class _GroupScoresViewState extends ConsumerState<GroupScoresView> {
                 computedGroupResults: { for (var g in data.groupRankings) g.groupIndex : g },
                 isEventClosed: widget.event.isClosed,
                 onTapParticipant: widget.onTapParticipant,
+                onUnlockCard: widget.onUnlockCard,
               );
             },
         ),

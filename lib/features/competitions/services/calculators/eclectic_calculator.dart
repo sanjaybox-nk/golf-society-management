@@ -24,7 +24,8 @@ class EclecticCalculator implements LeaderboardCalculator {
       if (processedData == null) continue;
 
       for (var player in processedData.individualScores) {
-        if (player.isGuest) continue; // Skip guests in Season Eclectic
+        if (player.isGuest) continue;
+        if (player.scoringStatus == ScoringStatus.dq) continue; // DQ rounds excluded from eclectic
 
         final memberId = player.playerId;
         if (!playerHoleScores.containsKey(memberId)) {

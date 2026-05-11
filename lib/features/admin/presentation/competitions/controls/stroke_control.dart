@@ -19,6 +19,9 @@ class _StrokePlayControlState extends BaseCompetitionControlState<StrokePlayCont
   bool _applyCapToIndex = true;
   int _teamBestXCount = 2;
   bool _useMixedTeeAdjustment = false;
+  PickUpBehaviour _pickUpBehaviour = PickUpBehaviour.maxScore;
+  MaxScoreType _maxScoreType = MaxScoreType.netDoubleBogey;
+  int _maxScoreValue = 2;
 
   @override
   CompetitionFormat get format => CompetitionFormat.stroke;
@@ -37,6 +40,9 @@ class _StrokePlayControlState extends BaseCompetitionControlState<StrokePlayCont
       _applyCapToIndex = widget.competition!.rules.applyCapToIndex;
       _teamBestXCount = widget.competition!.rules.teamBestXCount;
       _useMixedTeeAdjustment = widget.competition!.rules.useMixedTeeAdjustment;
+      _pickUpBehaviour = widget.competition!.rules.pickUpBehaviour;
+      _maxScoreType = widget.competition!.rules.maxScoreConfig?.type ?? MaxScoreType.netDoubleBogey;
+      _maxScoreValue = widget.competition!.rules.maxScoreConfig?.value ?? 2;
     }
   }
 
@@ -142,6 +148,54 @@ class _StrokePlayControlState extends BaseCompetitionControlState<StrokePlayCont
           ),
         ),
         
+        // ── PICK UP RULE ──────────────────────────────────────
+        const BoxyArtSectionTitle(title: 'PICK UP RULE'),
+        BoxyArtCard(
+          padding: const EdgeInsets.all(AppSpacing.xl),
+          child: Column(
+            children: [
+              BoxyArtDropdownField<PickUpBehaviour>(
+                label: 'When a player picks up',
+                value: _pickUpBehaviour,
+                items: const [
+                  DropdownMenuItem(value: PickUpBehaviour.maxScore, child: Text('Apply Max Score (round continues)')),
+                  DropdownMenuItem(value: PickUpBehaviour.disqualify, child: Text('Disqualify (strict rules)')),
+                ],
+                onChanged: (val) { if (val != null) setState(() => _pickUpBehaviour = val); },
+              ),
+              if (_pickUpBehaviour == PickUpBehaviour.maxScore) ...[
+                const BoxyArtDivider(),
+                BoxyArtDropdownField<MaxScoreType>(
+                  label: 'Max Score Method',
+                  value: _maxScoreType,
+                  items: const [
+                    DropdownMenuItem(value: MaxScoreType.netDoubleBogey, child: Text('Net Double Bogey (WHS standard)')),
+                    DropdownMenuItem(value: MaxScoreType.parPlusX, child: Text('Par + X strokes')),
+                  ],
+                  onChanged: (val) { if (val != null) setState(() => _maxScoreType = val); },
+                ),
+                if (_maxScoreType == MaxScoreType.parPlusX) ...[
+                  const BoxyArtDivider(),
+                  buildSliderField(
+                    label: 'Strokes over par',
+                    valueLabel: '$_maxScoreValue',
+                    value: _maxScoreValue.toDouble(),
+                    min: 1, max: 10, divisions: 9,
+                    onChanged: (val) => setState(() => _maxScoreValue = val.round()),
+                  ),
+                ],
+                buildInfoBubble(
+                  _maxScoreType == MaxScoreType.netDoubleBogey
+                      ? 'Net Double Bogey = Par + 2 + handicap strokes on that hole. WHS recommended default.'
+                      : 'Player receives Par + $_maxScoreValue on any picked-up hole.',
+                ),
+              ] else ...[
+                buildInfoBubble('Picking up on any hole disqualifies the player from this competition. Remaining holes will be locked.'),
+              ],
+            ],
+          ),
+        ),
+
         // ── OVERLAYS ──────────────────────────────────────────
         buildOverlaySection(),
       ],
@@ -162,6 +216,10 @@ class _StrokePlayControlState extends BaseCompetitionControlState<StrokePlayCont
       teamBestXCount: _teamBestXCount,
       useMixedTeeAdjustment: _useMixedTeeAdjustment,
       hasMatchPlayOverlay: hasMatchPlayOverlay,
+      pickUpBehaviour: _pickUpBehaviour,
+      maxScoreConfig: _pickUpBehaviour == PickUpBehaviour.maxScore
+          ? MaxScoreConfig(type: _maxScoreType, value: _maxScoreValue)
+          : null,
     );
   }
 }

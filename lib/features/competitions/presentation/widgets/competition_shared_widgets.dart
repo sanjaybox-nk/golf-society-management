@@ -63,15 +63,34 @@ class CompetitionBadgeRow extends StatelessWidget {
       ),
     );
 
-    if (rules.applyCapToIndex && 
-        rules.handicapCap < 54 && 
-        rules.format != CompetitionFormat.scramble && 
-        rules.subtype != CompetitionSubtype.foursomes && 
+    if (rules.applyCapToIndex &&
+        rules.handicapCap < 54 &&
+        rules.format != CompetitionFormat.scramble &&
+        rules.subtype != CompetitionSubtype.foursomes &&
         rules.subtype != CompetitionSubtype.fourball) {
       pills.add(
         BoxyArtPill.status(
           label: 'Capped @ ${rules.handicapCap.toInt()} HCP',
           color: AppColors.coral400,
+          isLegend: true,
+        ),
+      );
+    }
+
+    if (rules.format == CompetitionFormat.stroke || rules.format == CompetitionFormat.maxScore) {
+      final pickUpLabel = rules.pickUpBehaviour == PickUpBehaviour.disqualify
+          ? 'DQ on Pick Up'
+          : switch (rules.maxScoreConfig?.type ?? MaxScoreType.netDoubleBogey) {
+              MaxScoreType.netDoubleBogey => 'Max: Net Dbl Bogey',
+              MaxScoreType.parPlusX      => 'Max: Par +${rules.maxScoreConfig?.value ?? 2}',
+              MaxScoreType.fixed         => 'Max: ${rules.maxScoreConfig?.value ?? 5} Strokes',
+            };
+      pills.add(
+        BoxyArtPill.status(
+          label: pickUpLabel,
+          color: rules.pickUpBehaviour == PickUpBehaviour.disqualify
+              ? AppColors.coral500
+              : AppColors.amber500,
           isLegend: true,
         ),
       );
@@ -307,24 +326,29 @@ class CompetitionRulesCard extends ConsumerWidget {
                       children: [
                         const Divider(),
                         const SizedBox(height: AppSpacing.x2l),
-                        Wrap(
-                          alignment: WrapAlignment.center,
-                          spacing: AppSpacing.md,
-                          runSpacing: AppSpacing.md,
+                        Row(
                           children: [
                             if (onCustomize != null)
-                              BoxyArtButton(
-                                title: (customizeLabel ?? 'CUSTOMIZE').toUpperCase(),
-                                icon: Icons.tune_rounded,
-                                onTap: onCustomize!,
+                              Expanded(
+                                child: BoxyArtButton(
+                                  title: (customizeLabel ?? 'CUSTOMIZE').toUpperCase(),
+                                  icon: Icons.tune_rounded,
+                                  fullWidth: true,
+                                  onTap: onCustomize!,
+                                ),
                               ),
+                            if (onCustomize != null && onRemove != null)
+                              const SizedBox(width: AppSpacing.sm),
                             if (onRemove != null)
-                              BoxyArtButton(
-                                title: "REMOVE",
-                                isGhost: true,
-                                icon: Icons.delete_outline,
-                                textColor: isDark ? AppColors.coral400 : AppColors.coral500,
-                                onTap: onRemove!,
+                              Expanded(
+                                child: BoxyArtButton(
+                                  title: "REMOVE",
+                                  isGhost: true,
+                                  fullWidth: true,
+                                  icon: Icons.delete_outline,
+                                  textColor: isDark ? AppColors.coral400 : AppColors.coral500,
+                                  onTap: onRemove!,
+                                ),
                               ),
                           ],
                         ),

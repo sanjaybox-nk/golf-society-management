@@ -140,13 +140,6 @@ class AdminSettingsHubScreen extends ConsumerWidget {
                     ),
                     const BoxyArtDivider(),
                     BoxyArtNavTile(
-                      icon: Icons.auto_fix_high_rounded,
-                      title: 'Initialize Demo Season',
-                      subtitle: 'Master Seed (Stableford + Match Play Progression)',
-                      onTap: () => _showSeedConfirmation(context, ref),
-                    ),
-                    const BoxyArtDivider(),
-                    BoxyArtNavTile(
                       icon: Icons.handshake_outlined,
                       title: 'Handshake & Rhythm UAT',
                       subtitle: 'Consolidated: Medal + Stableford + Conflicts',
@@ -295,28 +288,6 @@ class AdminSettingsHubScreen extends ConsumerWidget {
     }
   }
 
-  void _showSeedConfirmation(BuildContext context, WidgetRef ref) async {
-    final confirm = await showBoxyArtDialog<bool>(
-      context: context,
-      title: 'Initialize Demo?',
-      message: 'This will WIPE all current data and seed a full professional 2025-26 season. Continue?',
-      confirmText: 'INITIALIZE',
-      onConfirm: () => Navigator.of(context, rootNavigator: true).pop(true),
-      onCancel: () => Navigator.of(context, rootNavigator: true).pop(false),
-    );
-
-    if (confirm == true && context.mounted) {
-      final messenger = ScaffoldMessenger.of(context);
-      messenger.showSnackBar(const SnackBar(content: Text('Initializing Demo Season...')));
-      
-      try {
-        await ref.read(seedingServiceProvider).seedFullDemoData();
-        messenger.showSnackBar(const SnackBar(content: Text('✅ Demo Season Initialized Successfully')));
-      } catch (e) {
-        messenger.showSnackBar(SnackBar(content: Text('Error: $e')));
-      }
-    }
-  }
 
   void _showSystemResetDialog(BuildContext context, WidgetRef ref) async {
     final confirm = await showBoxyArtDialog<bool>(

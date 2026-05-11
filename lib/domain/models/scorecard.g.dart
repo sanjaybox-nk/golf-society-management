@@ -62,6 +62,7 @@ _Scorecard _$ScorecardFromJson(Map<String, dynamic> json) => _Scorecard(
   adminOverridePublish: json['adminOverridePublish'] as bool? ?? false,
   verifiedByPlayer: json['verifiedByPlayer'] as bool? ?? false,
   verifiedByMarker: json['verifiedByMarker'] as bool? ?? false,
+  markerReassignmentOpen: json['markerReassignmentOpen'] as bool? ?? false,
   playerVerifiedAt: const OptionalTimestampConverter().fromJson(
     json['playerVerifiedAt'],
   ),
@@ -106,6 +107,7 @@ Map<String, dynamic> _$ScorecardToJson(_Scorecard instance) =>
       'adminOverridePublish': instance.adminOverridePublish,
       'verifiedByPlayer': instance.verifiedByPlayer,
       'verifiedByMarker': instance.verifiedByMarker,
+      'markerReassignmentOpen': instance.markerReassignmentOpen,
       'playerVerifiedAt': const OptionalTimestampConverter().toJson(
         instance.playerVerifiedAt,
       ),

@@ -46,8 +46,9 @@ class FirestoreNotificationsRepository implements NotificationsRepository {
   @override
   Future<void> sendNotification(AppNotification notification) async {
     final data = notification.toJson();
-    if (data['id'] != null) {
-      await _firestore.collection('notifications').doc(data['id']).set(data);
+    final id = data['id'];
+    if (id != null && id.toString().isNotEmpty) {
+      await _firestore.collection('notifications').doc(id.toString()).set(data);
     } else {
       await _firestore.collection('notifications').add(data);
     }

@@ -208,14 +208,22 @@ class EventSeeder {
         if (regs.any((r) => r.memberId == m.id)) continue;
         
         bool isWithdrawn = random.nextDouble() < 0.05;
-        bool isConfirmed = !isWithdrawn && regs.length < (isSocial ? 60 : 40);
-        
+        final int capacity = isSocial ? 60 : 40;
+        final int confirmedSoFar = regs.where((r) => r.isConfirmed).length +
+            regs.where((r) => r.isConfirmed && r.guestName != null).length;
+        bool isConfirmed = !isWithdrawn && confirmedSoFar < capacity;
+
         final attendsBreakfast = hasBreakfast && random.nextDouble() < 0.85;
-        final attendsLunch = hasLunch && random.nextDouble() < 0.95; 
+        final attendsLunch = hasLunch && random.nextDouble() < 0.95;
         final attendsDinner = hasDinner && random.nextDouble() < 0.90;
         final needsBuggy = !isSocial && random.nextDouble() < 0.15;
 
-        bool hasGuest = !isWithdrawn && random.nextDouble() < (isSocial ? 0.3 : 0.15);
+        // Only allow a guest if there's still room in the capacity for them
+        final confirmedWithGuest = regs.where((r) => r.isConfirmed).length +
+            regs.where((r) => r.isConfirmed && r.guestName != null).length;
+        bool hasGuest = !isWithdrawn && isConfirmed &&
+            (confirmedWithGuest + 1) < capacity &&
+            random.nextDouble() < (isSocial ? 0.3 : 0.15);
         String? guestName;
         String? guestEmail;
         String? guestId;
@@ -316,7 +324,9 @@ class EventSeeder {
     final List<EventAward> awards = [];
 
     if (isLiveOrPast) {
-      final items = RegistrationLogic.getSortedItems(updatedEvent, includeWithdrawn: true);
+      final items = RegistrationLogic.getSortedItems(updatedEvent)
+          .where((item) => item.isConfirmed)
+          .toList();
       final Map<String, double> memberHandicaps = {for (var m in members) m.id: m.handicap};
       final groups = GroupingService.generateInitialGrouping(
         event: updatedEvent, participants: items, previousEventsInSeason: [],
@@ -360,17 +370,14 @@ class EventSeeder {
           int grossTotal = 0;
           int pointsTotal = 0;
 
-          int holesPassed = 18;
-          if (status == EventStatus.inPlay) {
-            final now = DateTime.now();
-            final groupTime = group.teeTime;
-            if (now.isAfter(groupTime)) {
-              final minsSince = now.difference(groupTime).inMinutes;
-              holesPassed = (minsSince / 12).floor().clamp(0, 18);
-            } else {
-              holesPassed = 0;
-            }
-          }
+          // For inPlay: declare a deterministic snapshot by group index.
+          // Groups 0-2 → done (18 holes, ready for approval).
+          // Groups 3-5 → back 9 in progress (15 holes).
+          // Groups 6+  → front 9 in progress (9 holes).
+          // All other statuses → full 18 holes.
+          final int holesPassed = status == EventStatus.inPlay
+              ? (group.index < 3 ? 18 : group.index < 6 ? 15 : 9)
+              : 18;
 
           for (int h = 0; h < 18; h++) {
             if (h >= holesPassed) { holeScores.add(null); continue; }
@@ -386,23 +393,30 @@ class EventSeeder {
             pointsTotal += (par - netScore + 2).clamp(0, 10).toInt();
           }
 
+          final bool inPlayFinished = status == EventStatus.inPlay && holesPassed == 18;
+          final ScorecardStatus resolvedStatus = status == EventStatus.inPlay
+              ? (inPlayFinished ? ScorecardStatus.submitted : ScorecardStatus.draft)
+              : cardStatus;
+
           final newScorecard = Scorecard(
-            id: 'seed_${updatedEvent.id}_$entryId', 
+            id: 'seed_${updatedEvent.id}_$entryId',
             competitionId: updatedEvent.id,
             roundId: ScorecardConstants.defaultRoundId,
-            entryId: entryId, 
+            entryId: entryId,
             submittedByUserId: 'system_seed',
-            status: status == EventStatus.inPlay ? ScorecardStatus.draft : cardStatus, 
+            status: resolvedStatus,
             markerId: markerId,
-            holeScores: holeScores, 
+            holeScores: holeScores,
             points: isStableford ? pointsTotal : null,
-            handicapIndex: index, 
+            handicapIndex: index,
             playingHandicap: phc,
             netTotal: grossTotal - (phc * (holesPassed / 18)).round(),
-            submittedAt: (cardStatus == ScorecardStatus.submitted || cardStatus == ScorecardStatus.finalScore) && status != EventStatus.inPlay
-                ? date.copyWith(hour: 14, minute: random.nextInt(60)) 
+            verifiedByMarker: status != EventStatus.inPlay || inPlayFinished,
+            verifiedByPlayer: status != EventStatus.inPlay || inPlayFinished,
+            submittedAt: resolvedStatus != ScorecardStatus.draft
+                ? date.copyWith(hour: 14, minute: random.nextInt(60))
                 : null,
-            createdAt: DateTime.now(), 
+            createdAt: DateTime.now(),
             updatedAt: DateTime.now(),
           );
           await scoreRepo.addScorecard(newScorecard);

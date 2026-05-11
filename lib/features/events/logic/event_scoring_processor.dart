@@ -575,7 +575,10 @@ class EventScoringProcessor {
     for (var group in groups) {
        final groupIndividualResults = group.players.map((p) {
          final pid = p.isGuest ? '${p.registrationMemberId}_guest' : p.registrationMemberId;
-         return individualScores.firstWhereOrNull((s) => s.playerId == pid)?.result;
+         final entry = individualScores.firstWhereOrNull((s) => s.playerId == pid);
+         // Exclude DQ'd players from group totals
+         if (entry?.scoringStatus == ScoringStatus.dq) return null;
+         return entry?.result;
        }).whereType<ScoringResult>().toList();
 
         if (groupIndividualResults.isNotEmpty) {

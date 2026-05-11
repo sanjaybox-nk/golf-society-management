@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:golf_society/design_system/design_system.dart';
@@ -53,7 +54,8 @@ class GroupingCard extends ConsumerWidget {
   final bool showScoring; // [NEW] Master toggle for hiding all scores/winners in organization views
   final Map<String, ProcessedLeaderboardEntry>? computedEntries; // [NEW] Centralized results lookup
   final Map<int, ProcessedGroupResult>? computedGroupResults; // [NEW] Centralized group results lookup
-  final bool isEventClosed; // [NEW]
+  final bool isEventClosed;
+  final Function(String entryId, String markerEntryId, String playerName, String markerName)? onUnlockCard;
 
   const GroupingCard({
     super.key,
@@ -89,6 +91,7 @@ class GroupingCard extends ConsumerWidget {
     this.computedEntries,
     this.computedGroupResults,
     this.isEventClosed = false,
+    this.onUnlockCard,
   });
 
   @override
@@ -230,14 +233,54 @@ class GroupingCard extends ConsumerWidget {
                 style: AppTypography.displaySection.copyWith(
                   color: isDark ? AppColors.pureWhite : AppColors.dark900,
                   fontWeight: AppTypography.weightExtraBold,
-                  fontSize: AppTypography.sizeHeadline, // Increased from sizeLargeBody (18) to 22
+                  fontSize: AppTypography.sizeHeadline,
                 ),
               ),
-              BoxyArtPill(
-                label: _formatTime(context, group.teeTime),
-                icon: Icons.access_time_filled_rounded,
-                isAction: true,
-                hasHorizontalMargin: false,
+              Row(
+                children: [
+                  // Ready for approval count — admin only
+                  if (isAdmin && scorecardMap != null) ...() {
+                    final readyCount = group.players.where((p) {
+                      final id = p.isGuest ? '${p.registrationMemberId}_guest' : p.registrationMemberId;
+                      final sc = scorecardMap![id];
+                      return sc != null && sc.status == ScorecardStatus.submitted && sc.verifiedByPlayer && sc.verifiedByMarker;
+                    }).length;
+                    if (readyCount == 0) return [];
+                    return [
+                      BoxyArtPill(
+                        label: '$readyCount ready',
+                        icon: Icons.check_circle_rounded,
+                        color: AppColors.lime500,
+                        hasHorizontalMargin: false,
+                      ),
+                      const SizedBox(width: AppSpacing.sm),
+                    ];
+                  }(),
+                  // Finished but not submitted — admin only
+                  if (isAdmin && scorecardMap != null && isScoreMode) ...() {
+                    final unsubmittedCount = group.players.where((p) {
+                      final id = p.isGuest ? '${p.registrationMemberId}_guest' : p.registrationMemberId;
+                      final sc = scorecardMap![id];
+                      return sc != null && sc.status == ScorecardStatus.draft && thruMap?[id] == 'F';
+                    }).length;
+                    if (unsubmittedCount == 0) return [];
+                    return [
+                      BoxyArtPill(
+                        label: '$unsubmittedCount not submitted',
+                        icon: Icons.pending_rounded,
+                        color: AppColors.amber500,
+                        hasHorizontalMargin: false,
+                      ),
+                      const SizedBox(width: AppSpacing.sm),
+                    ];
+                  }(),
+                  BoxyArtPill(
+                    label: _formatTime(context, group.teeTime),
+                    icon: Icons.access_time_filled_rounded,
+                    isAction: true,
+                    hasHorizontalMargin: false,
+                  ),
+                ],
               ),
             ],
           ),
@@ -261,10 +304,18 @@ class GroupingCard extends ConsumerWidget {
                 ...() {
             Widget buildParticipantTile(TeeGroupParticipant p, String id, String? side, {bool useCard = true}) {
               final bool hasGuestInGroupP = !p.isGuest && group.players.any((other) => other.isGuest && other.registrationMemberId == p.registrationMemberId);
-              return GroupingPlayerTile(
+              final sc = scorecardMap?[id];
+              final bool readyForApproval = isAdmin &&
+                  sc != null &&
+                  sc.status == ScorecardStatus.submitted &&
+                  sc.verifiedByPlayer &&
+                  sc.verifiedByMarker;
+              final tile = GroupingPlayerTile(
                 player: p,
                 group: group,
-                member: memberMap[p.registrationMemberId],
+                member: p.isGuest
+                    ? memberMap[p.registrationMemberId]?.copyWith(avatarUrl: null)
+                    : memberMap[p.registrationMemberId],
                 history: history,
                 totalGroups: totalGroups,
                 rules: rules,
@@ -292,6 +343,89 @@ class GroupingCard extends ConsumerWidget {
                     ? displayTotalHandicap.toInt()
                     : (isScoreMode ? relativePhcMap[id] : null),
                 isEventClosed: isEventClosed,
+              );
+              final bool isCardLocked = isAdmin && sc != null &&
+                  (sc.status == ScorecardStatus.submitted || sc.status == ScorecardStatus.finalScore);
+
+              if (!readyForApproval && !isCardLocked) return tile;
+
+              final markerName = isCardLocked && sc != null
+                  ? group.players.firstWhereOrNull((mp) {
+                      final mId = mp.isGuest ? '${mp.registrationMemberId}_guest' : mp.registrationMemberId;
+                      return mId == sc.markerId;
+                    })?.name ?? sc.markerId
+                  : null;
+
+              final isDqTile = (statusMap?[id] ?? ScoringStatus.ok) == ScoringStatus.dq;
+
+              return Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  tile,
+                  if (isDqTile)
+                    Positioned(
+                      top: -4,
+                      right: -4,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 5),
+                        height: 16,
+                        alignment: Alignment.center,
+                        decoration: BoxDecoration(
+                          color: AppColors.coral500,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text('DQ', style: AppTypography.micro.copyWith(
+                          color: AppColors.pureWhite,
+                          fontWeight: AppTypography.weightHeavy,
+                          fontSize: 8,
+                          height: 1.0,
+                        )),
+                      ),
+                    ),
+                  if (readyForApproval)
+                    Positioned(
+                      bottom: -4,
+                      right: -4,
+                      child: _TileBadge(
+                        label: 'Ready',
+                        icon: Icons.check_rounded,
+                        color: AppColors.lime500,
+                      ),
+                    ),
+                  if (isCardLocked && onUnlockCard != null)
+                    Positioned(
+                      top: -6,
+                      right: -4,
+                      child: GestureDetector(
+                        onTap: () => onUnlockCard!(id, sc!.markerId ?? '', p.name, markerName ?? ''),
+                        child: Container(
+                          width: 22,
+                          height: 22,
+                          decoration: const BoxDecoration(
+                            color: AppColors.dark500,
+                            shape: BoxShape.circle,
+                          ),
+                          alignment: Alignment.center,
+                          child: const Icon(Icons.lock_rounded, size: 11, color: AppColors.pureWhite),
+                        ),
+                      ),
+                    ),
+                  if (!isCardLocked && isAdmin && sc != null && sc.status == ScorecardStatus.draft && thruMap?[id] == 'F')
+                    Positioned(
+                      bottom: -4,
+                      right: -4,
+                      child: Container(
+                        width: 22,
+                        height: 22,
+                        decoration: const BoxDecoration(
+                          color: AppColors.amber500,
+                          shape: BoxShape.circle,
+                        ),
+                        alignment: Alignment.center,
+                        child: const Icon(Icons.pending_rounded, size: 11, color: AppColors.pureWhite),
+                      ),
+                    ),
+                ],
               );
             }
 
@@ -561,7 +695,9 @@ class GroupingCard extends ConsumerWidget {
             borderRadius: AppShapes.x2l,
             child: GroupingPlayerAvatar(
               player: p,
-              member: memberMap[p.registrationMemberId],
+              member: p.isGuest
+                  ? memberMap[p.registrationMemberId]?.copyWith(avatarUrl: null)
+                  : memberMap[p.registrationMemberId],
               size: AppShapes.iconHero,
               groupIndex: group.index,
               totalGroups: totalGroups,
@@ -590,5 +726,41 @@ class GroupingCard extends ConsumerWidget {
     );
   }
 
+}
+
+class _TileBadge extends StatelessWidget {
+  final String label;
+  final IconData icon;
+  final Color color;
+
+  const _TileBadge({required this.label, required this.icon, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    final shapes = Theme.of(context).extension<AppShapeTokens>();
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: 3),
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: shapes?.pill ?? BorderRadius.circular(20),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 10, color: AppColors.pureWhite),
+          const SizedBox(width: 3),
+          Text(
+            label.toUpperCase(),
+            style: AppTypography.micro.copyWith(
+              color: AppColors.pureWhite,
+              fontWeight: AppTypography.weightBold,
+              fontSize: AppTypography.sizeMicro,
+              height: 1.0,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
 

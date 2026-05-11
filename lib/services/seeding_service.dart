@@ -47,8 +47,7 @@ class SeedingService {
   Future<void> seedFullDemoData() async {
     try {
       if (kDebugMode) debugPrint('--- STARTING UNIFIED WIPE AND SEED ---');
-      
-      // Ensure we have the LATEST config from the stream, not a potentially stale/default controller state
+
       final currentConfig = await ref.read(societyConfigStreamProvider.future);
       if (kDebugMode) debugPrint('Backing up society branding: ${currentConfig.societyName}');
 
@@ -257,7 +256,8 @@ class SeedingService {
       
       // 2. Seed Members (Hardening equivalent)
       await MemberSeeder(ref, _random).seed();
-      
+      await _seedGuestPool();
+
       // 3. Seed Medal Scenario
       await ScenarioSeeder(ref, _random).seedMedalVerificationScenario();
       
@@ -313,11 +313,12 @@ class SeedingService {
   Future<void> clearActivityData() async {
     final firestore = FirebaseFirestore.instance;
     
-    // We explicitly EXCLUDE 'templates', 'courses', and 'society_config'
-    // to preserve the scaffolding work (Branding & Rules)
+    // Preserves: 'templates', 'leaderboard_templates', 'distribution_lists', 'society_config', 'members', 'guests'
+    // Members/guests are managed separately via Harden Members
     final collections = [
-      'scorecards', 'events', 'competitions', 'seasons', 'members', 'guests',
+      'scorecards', 'events', 'competitions', 'seasons',
       'notifications', 'campaigns', 'global_expenses', 'surveys', 'activities', 'courses',
+      'match_play_tournaments', 'leaderboards', 'standings',
     ];
 
     for (var collection in collections) {
@@ -500,6 +501,7 @@ class SeedingService {
   Future<void> _seedDemoSeason() async {
     final seasonId = await _seedSeason();
     await MemberSeeder(ref, _random).seed();
+    await _seedGuestPool();
     final members = await ref.read(membersRepositoryProvider).getMembers();
     final courses = await CourseSeeder(ref, _random).seed();
     

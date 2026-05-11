@@ -54,6 +54,9 @@ _CompetitionRules _$CompetitionRulesFromJson(
   maxScoreConfig: json['maxScoreConfig'] == null
       ? null
       : MaxScoreConfig.fromJson(json['maxScoreConfig'] as Map<String, dynamic>),
+  pickUpBehaviour:
+      $enumDecodeNullable(_$PickUpBehaviourEnumMap, json['pickUpBehaviour']) ??
+      PickUpBehaviour.maxScore,
   roundsCount: (json['roundsCount'] as num?)?.toInt() ?? 1,
   aggregation:
       $enumDecodeNullable(_$AggregationMethodEnumMap, json['aggregation']) ??
@@ -111,6 +114,7 @@ Map<String, dynamic> _$CompetitionRulesToJson(
   'underlyingFormat': _$CompetitionFormatEnumMap[instance.underlyingFormat]!,
   'useCourseAllowance': instance.useCourseAllowance,
   'maxScoreConfig': instance.maxScoreConfig?.toJson(),
+  'pickUpBehaviour': _$PickUpBehaviourEnumMap[instance.pickUpBehaviour]!,
   'roundsCount': instance.roundsCount,
   'aggregation': _$AggregationMethodEnumMap[instance.aggregation]!,
   'tieBreak': _$TieBreakMethodEnumMap[instance.tieBreak]!,
@@ -161,6 +165,11 @@ const _$HandicapModeEnumMap = {
   HandicapMode.whs: 'whs',
   HandicapMode.local: 'local',
   HandicapMode.none: 'none',
+};
+
+const _$PickUpBehaviourEnumMap = {
+  PickUpBehaviour.maxScore: 'maxScore',
+  PickUpBehaviour.disqualify: 'disqualify',
 };
 
 const _$AggregationMethodEnumMap = {

@@ -82,15 +82,28 @@ abstract class BaseCompetitionControlState<T extends BaseCompetitionControl> ext
           // ── SPECIFIC FIELDS (IMPLEMENTATIONS) ─────────────────
           buildSpecificFields(context),
 
-          BoxyArtButton(
-            title: widget.isTemplate
-              ? (widget.competition == null ? 'Create template' : 'Save template')
-              : (widget.competition == null ? 'Create competition' : 'Save changes'),
-            onTap: _isSaving ? null : _save,
-            isLoading: _isSaving,
-            fullWidth: true,
-            backgroundColor: Theme.of(context).primaryColor,
-            textColor: AppColors.pureWhite,
+          Row(
+            children: [
+              Expanded(
+                child: BoxyArtButton(
+                  title: 'Cancel',
+                  isSecondary: true,
+                  onTap: _isSaving ? null : () => context.pop(),
+                  fullWidth: true,
+                ),
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(
+                child: BoxyArtButton(
+                  title: widget.competition == null ? 'Create' : 'Save',
+                  onTap: _isSaving ? null : _save,
+                  isLoading: _isSaving,
+                  fullWidth: true,
+                  backgroundColor: Theme.of(context).primaryColor,
+                  textColor: AppColors.pureWhite,
+                ),
+              ),
+            ],
           ),
         ],
       ),

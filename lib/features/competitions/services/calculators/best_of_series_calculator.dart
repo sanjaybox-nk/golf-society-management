@@ -25,6 +25,8 @@ class BestOfSeriesCalculator implements LeaderboardCalculator {
       if (processedData == null) continue;
 
       for (var entry in processedData.leaderboard) {
+        if (entry.scoringStatus == ScoringStatus.dq) continue;
+
         double score = 0;
         
         if (seriesConfig.scoringType == ScoringType.position || seriesConfig.metric == BestOfMetric.position) {

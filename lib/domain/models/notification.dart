@@ -9,12 +9,14 @@ abstract class AppNotification with _$AppNotification {
   
   const factory AppNotification({
     required String id,
+    required String recipientId,
     required String title,
     required String message,
     required DateTime timestamp,
     @Default('Info') String category,
     @Default(false) bool isRead,
     String? actionUrl,
+    String? eventId,
   }) = _AppNotification;
 
   factory AppNotification.fromJson(Map<String, dynamic> json) => 

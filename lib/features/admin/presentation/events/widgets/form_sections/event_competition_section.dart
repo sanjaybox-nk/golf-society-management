@@ -166,7 +166,11 @@ class EventCompetitionSection extends ConsumerWidget {
       final currentEventId = ref.read(eventFormNotifierProvider).value?.eventId;
       if (currentEventId != null) {
         final path = isSecondary ? "secondary-game-builder" : "game-builder";
-        context.push("/admin/events/manage/$currentEventId/$path");
+        await context.push("/admin/events/manage/$currentEventId/$path");
+        // Refresh the notifier so the form reflects any customizations saved in the game-builder
+        if (context.mounted) {
+          await ref.read(eventFormNotifierProvider.notifier).refreshCompetition(isSecondary: isSecondary);
+        }
       }
     }
   }

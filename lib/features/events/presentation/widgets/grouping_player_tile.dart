@@ -104,7 +104,8 @@ class GroupingPlayerTile extends ConsumerWidget {
 
     // Score Text Formatting (v4.0 standardized)
     final bool isScramble = rules?.format == CompetitionFormat.scramble;
-    final bool hasScore = isScoreMode && (scoreDisplay != null && scoreDisplay != '-') && !isScramble;
+    final bool isDq = scoringStatus == ScoringStatus.dq;
+    final bool hasScore = isScoreMode && (scoreDisplay != null && scoreDisplay != '-') && !isScramble && !isDq;
 
     final teeColor = AppColors.getTeeColor(player.teeName, courseConfig?.tees);
 
@@ -122,10 +123,10 @@ class GroupingPlayerTile extends ConsumerWidget {
       matchSide: config.showMatchPlayOverlay ? matchSide : null,
       varietyPillarColor: varietyColor,
       hasSocietyCut: hasSocietyCut,
-      thruLabel: thruLabel,
-      score: hasScore ? scoreDisplay : null,
+      thruLabel: isDq ? thruLabel : thruLabel,
+      score: isDq ? 'DQ' : (hasScore ? scoreDisplay : null),
       isStableford: isStableford,
-      scoreColor: null,
+      scoreColor: isDq ? AppColors.coral500 : null,
       tieBreakLabel: isEventClosed ? tieBreakLabel : null,
       teeName: player.teeName,
       teeColor: teeColor,
@@ -204,77 +205,15 @@ class GroupingPlayerTile extends ConsumerWidget {
   }
 
   Widget _buildAvatarStack(BuildContext context, bool isScoreMode, Color? varietyColor, bool hasGuestInGroup) {
-    
-    return Stack(
-      alignment: Alignment.center,
-      clipBehavior: Clip.none,
-      children: [
-        BoxyArtAvatar(
-          url: member?.avatarUrl,
-          initials: extractInitials(player.name),
-          radius: 38, // Standardized 76px diameter for premium cards
-          isCircle: true,
-          borderColor: Colors.transparent, // Removed thin distinguisher borders
-          borderWidth: 0,
-        ),
-        // Host Badge Overlay (Bottom Left)
-        if (hasGuestInGroup)
-          Positioned(
-            bottom: 0,
-            left: 0,
-            child: BoxyArtIconBadge(
-              icon: Icons.person_add_rounded,
-              color: Theme.of(context).colorScheme.primary,
-              size: 24,
-              iconSize: 14,
-              useCircle: true,
-            ),
-          ),
-        // Captain Badge Overlay (Bottom)
-        if (player.isCaptain && !player.isGuest)
-          Positioned(
-            bottom: -2,
-            right: -2,
-            child: BoxyArtIconBadge(
-              icon: Icons.shield_rounded,
-              color: AppColors.amber500,
-              size: 24,
-              iconSize: 14,
-              useCircle: true,
-            ),
-          ),
-        // Guest Icon Overlay (Bottom Left)
-        if (player.isGuest)
-          Positioned(
-            bottom: 0,
-            left: 0,
-            child: Container(
-              width: 24,
-              height: 24,
-              decoration: BoxDecoration(
-                color: AppColors.amber500,
-                shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.15),
-                    blurRadius: 4,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              alignment: Alignment.center,
-              child: const Text(
-                'G',
-                style: TextStyle(
-                  color: AppColors.dark900,
-                  fontSize: 12,
-                  fontWeight: AppTypography.weightExtraBold,
-                ),
-              ),
-            ),
-          ),
-      ],
+    return BoxyArtAvatar(
+      url: member?.avatarUrl,
+      initials: extractInitials(player.name),
+      radius: 38,
+      isCircle: true,
+      borderColor: Colors.transparent,
+      borderWidth: 0,
     );
   }
 }
+
 

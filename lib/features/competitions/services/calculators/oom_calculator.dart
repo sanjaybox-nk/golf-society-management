@@ -31,6 +31,9 @@ class OOMCalculator implements LeaderboardCalculator {
       // For now, we assume 1 event = 1 leaderboard result.
 
       for (var entry in processedData.leaderboard) {
+        // DQ'd players earn 0 OOM points — exclude entirely
+        if (entry.scoringStatus == ScoringStatus.dq) continue;
+
         final position = entry.position;
 
         // Calculate Points

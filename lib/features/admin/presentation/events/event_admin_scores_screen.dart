@@ -15,6 +15,8 @@ import '../../../events/presentation/widgets/scorecard_modal.dart';
 import '../../../matchplay/presentation/widgets/match_play_bracket_hub.dart';
 import '../../../events/domain/registration_logic.dart';
 import '../../../events/presentation/tabs/event_shared_logic.dart';
+import 'package:golf_society/domain/models/notification.dart';
+import 'package:golf_society/features/home/presentation/home_providers.dart';
 
 class EventAdminScoresScreen extends ConsumerStatefulWidget {
   final String eventId;
@@ -48,22 +50,31 @@ class _EventAdminScoresScreenState extends ConsumerState<EventAdminScoresScreen>
         final bool isTournamentStyle = compAsync.value?.rules.isTournamentStyleGrouping ?? false;
 
         final spacing = Theme.of(context).extension<AppSpacingTokens>();
-    
+        final scoringData = ref.watch(eventScoringControllerProvider(event.id));
+
+        final bool isClosed = event.status == EventStatus.completed;
+        final bool isLocked = event.isScoringLocked;
+        final bool isPublished = event.isStatsReleased;
+        final statusLabel = isClosed ? 'Closed' : isPublished ? 'Published' : isLocked ? 'Locked' : 'Live';
+        final statusColor = isClosed ? AppColors.dark400 : isPublished ? AppColors.lime600 : isLocked ? AppColors.dark700 : AppColors.amber500;
+
         return HeadlessScaffold(
           title: 'Event Scores',
           subtitle: event.title,
           topPill: BoxyArtPill.committee(label: 'ADMIN'),
           showBack: true,
-          slivers: [
-            // Status & Quick Actions Card
-            SliverPadding(
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
-              sliver: SliverToBoxAdapter(
-                child: _buildStatusCard(context, ref, event),
+          actions: [
+            GestureDetector(
+              onTap: () => _toggleClose(context, ref, event),
+              child: BoxyArtPill.status(
+                label: statusLabel,
+                color: statusColor,
+                hasHorizontalMargin: false,
+                isLegend: true,
               ),
             ),
-            SliverToBoxAdapter(child: SizedBox(height: spacing?.cardToCard ?? AppSpacing.cardToCard)),
-
+          ],
+          slivers: [
             SliverPadding(
               padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
               sliver: SliverToBoxAdapter(
@@ -93,13 +104,21 @@ class _EventAdminScoresScreenState extends ConsumerState<EventAdminScoresScreen>
               ..._buildGroupsSlivers(context, event, compAsync.value, scorecardsAsync, membersAsync)
             else if (_selectedTab == 2)
               ..._buildBracketSlivers(context, event)
-            else
+            else ...[
+              SliverPadding(
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+                sliver: SliverToBoxAdapter(
+                  child: _buildStatusCard(context, ref, event),
+                ),
+              ),
+              SliverToBoxAdapter(child: SizedBox(height: spacing?.cardToCard ?? AppSpacing.cardToCard)),
               SliverPadding(
                 padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
                 sliver: SliverToBoxAdapter(
                   child: _buildVerificationSliver(context, ref, event, scorecardsAsync),
                 ),
               ),
+            ],
             const SliverToBoxAdapter(child: SizedBox(height: 100)),
           ],
         );
@@ -192,6 +211,8 @@ class _EventAdminScoresScreenState extends ConsumerState<EventAdminScoresScreen>
             playerHoleLimits: const {},
             teeOverrides: const {}, // Admin views typically don't need personal tee overrides
             isAdmin: true,
+            onUnlockCard: (entryId, markerEntryId, playerName, markerName) =>
+                _confirmUnlock(context, ref, event, entryId, markerEntryId, playerName, markerName),
             onTapParticipant: (p, g) {
               final scoringData = ref.read(eventScoringControllerProvider(event.id));
               final entryId = p.isGuest ? '${p.registrationMemberId}_guest' : p.registrationMemberId;
@@ -247,38 +268,56 @@ class _EventAdminScoresScreenState extends ConsumerState<EventAdminScoresScreen>
     final membersAsync = ref.read(allMembersProvider);
     return scorecardsAsync.when(
       data: (scorecards) {
-        final totalGolfers = RegistrationLogic.getSortedItems(event).length;
+        final totalGolfers = RegistrationLogic.getSortedItems(event).where((item) => item.isConfirmed).length;
         
         final submitted = scorecards.where((s) => s.status == ScorecardStatus.submitted).toList();
         final reviewed = scorecards.where((s) => s.status == ScorecardStatus.reviewed || s.status == ScorecardStatus.finalScore).toList();
-        final incomplete = scorecards.where((s) => 
-          s.scoringStatus == ScoringStatus.incomplete || 
+        final incomplete = scorecards.where((s) =>
+          s.scoringStatus == ScoringStatus.incomplete ||
           (s.holeScores.contains(null) && s.scoringStatus == ScoringStatus.ok)
         ).toList();
-        final outliers = scorecards.where((s) => s.scoringStatus != ScoringStatus.ok).toList();
+        final outliers = scorecards.where((s) => s.scoringStatus != ScoringStatus.ok && s.scoringStatus != ScoringStatus.dq).toList();
+        final needsReassignment = scorecards.where((s) => s.markerReassignmentOpen).toList();
 
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const BoxyArtSectionTitle(title: 'Summary'),
-            Row(
-              children: [
-                Expanded(child: _buildStatMiniCard('Pending', '${submitted.length}', Theme.of(context).colorScheme.onSurface)),
-                const SizedBox(width: AppSpacing.md),
-                Expanded(child: _buildStatMiniCard('Incomplete', '${incomplete.length}', Theme.of(context).colorScheme.onSurface)),
-                const SizedBox(width: AppSpacing.md),
-                Expanded(
-                  child: _buildStatMiniCard(
-                    'Reviewed', 
-                    '${reviewed.length} / $totalGolfers', 
-                    Theme.of(context).colorScheme.onSurface,
-                  )
-                ),
-              ],
-            ),
-            const SizedBox(height: AppSpacing.xl),
             
+            if (needsReassignment.isNotEmpty) ...[
+              const BoxyArtSectionTitle(title: 'Marker Reassignment Required'),
+              ...needsReassignment.map((s) {
+                final reg = event.registrations.firstWhereOrNull((r) => r.memberId == s.entryId || '${r.memberId}_guest' == s.entryId);
+                final markerReg = event.registrations.firstWhereOrNull((r) => r.memberId == s.markerId || '${r.memberId}_guest' == s.markerId);
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: AppSpacing.md),
+                  child: BoxyArtNavTile(
+                    title: reg?.memberName ?? s.entryId,
+                    subtitle: 'Needs new marker — ${markerReg?.memberName ?? 'previous marker'} left the round',
+                    icon: Icons.person_search_rounded,
+                    iconColor: AppColors.amber500,
+                    onTap: () async {
+                      final confirmed = await showDialog<bool>(
+                        context: context,
+                        builder: (_) => BoxyArtConfirmDialog(
+                          title: 'Reassign Marker?',
+                          message: 'This will open marker reassignment for ${reg?.memberName ?? s.entryId}. Use the marker sheet to assign a new marker from the group.',
+                          confirmLabel: 'Open Marker Sheet',
+                          cancelLabel: 'Cancel',
+                        ),
+                      );
+                      if (confirmed == true) {
+                        await ref.read(scorecardRepositoryProvider).updateScorecard(
+                          s.copyWith(markerReassignmentOpen: false),
+                        );
+                      }
+                    },
+                  ),
+                );
+              }),
+              const SizedBox(height: AppSpacing.xl),
+            ],
+
             if (submitted.isNotEmpty) ...[
               BoxyArtButton(
                 title: 'Review All Submitted',
@@ -346,163 +385,64 @@ class _EventAdminScoresScreenState extends ConsumerState<EventAdminScoresScreen>
     );
   }
 
-  Widget _buildStatMiniCard(String label, String value, Color color, {String? subtitle}) {
-    return BoxyArtCard(
-      padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg, horizontal: AppSpacing.md),
-      child: Column(
-        children: [
-          Text(
-            label.toUpperCase(),
-            style: AppTypography.micro.copyWith(
-              color: AppColors.dark400,
-              fontWeight: AppTypography.weightBold,
-              letterSpacing: 1.2,
-            ),
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          Text(
-            value,
-            style: AppTypography.headline.copyWith(
-              color: color,
-              fontWeight: AppTypography.weightBlack,
-              height: 1.0,
-            ),
-          ),
-          if (subtitle != null) ...[
-            const SizedBox(height: AppSpacing.xs),
-            Text(
-              subtitle,
-              style: AppTypography.caption.copyWith(
-                color: AppColors.dark300,
-                fontSize: 8,
-                fontStyle: FontStyle.italic,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-}
 
   Widget _buildStatusCard(BuildContext context, WidgetRef ref, GolfEvent event) {
-    final scoringData = ref.watch(eventScoringControllerProvider(event.id));
-    
-    final int submitted = scoringData.submittedCount;
-    final int total = scoringData.totalParticipants;
-    final double progress = total > 0 ? (submitted / total) : 0.0;
-    
+    final scorecardsAsync = ref.watch(scorecardsListProvider(event.id));
+    final scorecards = scorecardsAsync.value ?? [];
+
+    final int readyCount = scorecards.where((s) =>
+        s.status == ScorecardStatus.submitted && s.verifiedByPlayer && s.verifiedByMarker).length;
+    final int awaitingCount = scorecards.where((s) =>
+        s.status == ScorecardStatus.submitted && !(s.verifiedByPlayer && s.verifiedByMarker)).length;
+    final int outstandingCount = scorecards.where((s) =>
+        s.status == ScorecardStatus.draft).length;
+
     final bool isLocked = event.isScoringLocked;
     final bool isPublished = event.isStatsReleased;
 
     return BoxyArtCard(
-      padding: const EdgeInsets.all(AppSpacing.lg),
+      padding: const EdgeInsets.all(AppSpacing.standard),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'SUBMISSION PROGRESS',
-                      style: AppTypography.micro.copyWith(
-                        color: AppColors.dark400,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 1.2,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      '$submitted of $total Scorecards',
-                      style: AppTypography.headline.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              if (isLocked)
-                BoxyArtPill(
-                  label: 'LOCKED',
-                  color: AppColors.dark900,
-                  textColor: Colors.white,
-                  icon: Icons.lock_rounded,
-                )
-              else if (isPublished)
-                BoxyArtPill(
-                  label: 'PUBLISHED',
-                  color: AppColors.lime600,
-                  textColor: Colors.white,
-                  icon: Icons.check_circle_rounded,
-                )
-              else
-                BoxyArtPill(
-                  label: 'LIVE',
-                  color: AppColors.amber500,
-                  textColor: Colors.white,
-                  icon: Icons.sensors_rounded,
-                ),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.md),
-          // Progress Bar
-          ClipRRect(
-            borderRadius: BorderRadius.circular(4),
-            child: Container(
-              height: 8,
-              width: double.infinity,
-              color: AppColors.dark500,
-              child: FractionallySizedBox(
-                alignment: Alignment.centerLeft,
-                widthFactor: progress.clamp(0.0, 1.0),
-                child: Container(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [AppColors.lime500, AppColors.lime600],
-                    ),
-                  ),
-                ),
-              ),
+          IntrinsicHeight(
+            child: Row(
+              children: [
+                Expanded(child: _ScoreMetric(label: 'Ready', value: '$readyCount')),
+                const VerticalDivider(width: 1, thickness: 1),
+                Expanded(child: _ScoreMetric(label: 'Awaiting', value: '$awaitingCount')),
+                const VerticalDivider(width: 1, thickness: 1),
+                Expanded(child: _ScoreMetric(label: 'Outstanding', value: '$outstandingCount')),
+              ],
             ),
           ),
           const SizedBox(height: AppSpacing.lg),
           const Divider(height: 1),
           const SizedBox(height: AppSpacing.md),
-          Row(
-            children: [
-              Expanded(
-                child: BoxyArtButton(
-                  title: isPublished ? 'Unpublish' : 'Publish Results',
-                  icon: isPublished ? Icons.visibility_off_rounded : Icons.campaign_rounded,
-                  isPrimary: !isPublished,
-                  onTap: () => _togglePublish(ref, event),
-                ),
-              ),
-              const SizedBox(width: AppSpacing.md),
-              Expanded(
-                child: BoxyArtButton(
-                  title: isLocked ? 'Unlock' : 'Lock Scores',
-                  icon: isLocked ? Icons.lock_open_rounded : Icons.lock_rounded,
-                  isPrimary: false,
-                  onTap: () => _toggleLock(ref, event),
-                ),
-              ),
-              const SizedBox(width: AppSpacing.md),
-              SizedBox(
-                width: 48,
-                height: 48,
-                child: BoxyArtCircularIconBtn(
-                  icon: Icons.notifications_active_rounded,
-                  onTap: () => _sendReminders(context, ref, event),
-                  backgroundColor: AppColors.amber500,
-                  iconColor: Colors.white,
-                ),
-              ),
-            ],
+          _AdminAction(
+            icon: isPublished ? Icons.visibility_off_rounded : Icons.campaign_rounded,
+            title: isPublished ? 'Unpublish Results' : 'Publish Results',
+            subtitle: isPublished
+                ? 'Hide standings from members'
+                : 'Make final standings visible to all members',
+            onTap: () => _togglePublish(ref, event),
+          ),
+          const SizedBox(height: AppSpacing.md),
+          _AdminAction(
+            icon: isLocked ? Icons.lock_open_rounded : Icons.lock_rounded,
+            title: isLocked ? 'Unlock Scores' : 'Lock Scores',
+            subtitle: isLocked
+                ? 'Re-open scores for editing'
+                : 'Finalise all scorecards — no further changes allowed',
+            onTap: () => _toggleLock(ref, event),
+          ),
+          const SizedBox(height: AppSpacing.md),
+          _AdminAction(
+            icon: Icons.notifications_active_rounded,
+            title: 'Send Reminders',
+            subtitle: 'Notify members who have not yet submitted their scorecard',
+            iconColor: AppColors.amber500,
+            onTap: () => _sendReminders(context, ref, event),
           ),
         ],
       ),
@@ -514,9 +454,131 @@ class _EventAdminScoresScreenState extends ConsumerState<EventAdminScoresScreen>
     await repo.updateEvent(event.copyWith(isStatsReleased: !event.isStatsReleased));
   }
 
+  Future<void> _toggleClose(BuildContext context, WidgetRef ref, GolfEvent event) async {
+    final isClosed = event.status == EventStatus.completed;
+    if (!isClosed) {
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (_) => const BoxyArtConfirmDialog(
+          title: 'Close Event?',
+          message: 'This will archive the event and move it to Past Events for all members. Scores will be locked automatically if not already.',
+          confirmLabel: 'Close Event',
+          cancelLabel: 'Cancel',
+          isDestructive: false,
+        ),
+      );
+      if (confirmed != true) return;
+    }
+    final repo = ref.read(eventsRepositoryProvider);
+    await repo.updateEvent(event.copyWith(
+      status: isClosed ? EventStatus.inPlay : EventStatus.completed,
+      isScoringLocked: isClosed ? event.isScoringLocked : true,
+    ));
+  }
+
   Future<void> _toggleLock(WidgetRef ref, GolfEvent event) async {
     final repo = ref.read(eventsRepositoryProvider);
     await repo.updateEvent(event.copyWith(isScoringLocked: !event.isScoringLocked));
+  }
+
+  Future<void> _confirmUnlock(
+    BuildContext context,
+    WidgetRef ref,
+    GolfEvent event,
+    String entryId,
+    String markerEntryId,
+    String playerName,
+    String markerName,
+  ) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (_) => BoxyArtConfirmDialog(
+        title: 'Unlock Scorecard?',
+        message: 'This will reset verification for $playerName and their marker'
+            '${markerName.isNotEmpty ? ' ($markerName)' : ''}. '
+            'Both will need to re-verify before the card can be locked again.',
+        confirmLabel: 'Unlock',
+        cancelLabel: 'Cancel',
+        isDestructive: true,
+      ),
+    );
+    if (confirmed != true) return;
+    await _unlockCard(ref, event.id, entryId, markerEntryId, playerName, markerName);
+  }
+
+  Future<void> _unlockCard(
+    WidgetRef ref,
+    String eventId,
+    String entryId,
+    String markerEntryId,
+    String playerName,
+    String markerName,
+  ) async {
+    final repo = ref.read(scorecardRepositoryProvider);
+    final scorecards = ref.read(scorecardsListProvider(eventId)).value ?? [];
+
+    final playerCard = scorecards.firstWhereOrNull((s) => s.entryId == entryId);
+    final markerCard = scorecards.firstWhereOrNull((s) => s.entryId == markerEntryId);
+
+    if (playerCard != null) {
+      await repo.updateScorecard(playerCard.copyWith(
+        status: ScorecardStatus.draft,
+        verifiedByPlayer: false,
+        verifiedByMarker: false,
+        updatedAt: DateTime.now(),
+      ));
+    }
+
+    if (markerCard != null) {
+      await repo.updateScorecard(markerCard.copyWith(
+        status: ScorecardStatus.draft,
+        verifiedByPlayer: false,
+        verifiedByMarker: false,
+        updatedAt: DateTime.now(),
+      ));
+    }
+
+    _sendUnlockNotifications(ref, eventId, entryId, markerEntryId, playerName, markerName);
+  }
+
+  void _sendUnlockNotifications(
+    WidgetRef ref,
+    String eventId,
+    String entryId,
+    String markerEntryId,
+    String playerName,
+    String markerName,
+  ) {
+    try {
+      final repo = ref.read(notificationsRepositoryProvider);
+      final playerMemberId = entryId.replaceAll('_guest', '');
+      final markerMemberId = markerEntryId.replaceAll('_guest', '');
+      final now = DateTime.now();
+
+      repo.sendNotification(AppNotification(
+        id: '',
+        recipientId: playerMemberId,
+        title: 'Scorecard Unlocked',
+        message: 'An admin has unlocked your scorecard. Please review your scores and re-verify.',
+        timestamp: now,
+        category: 'Scoring',
+        eventId: eventId,
+      ));
+
+      if (markerMemberId != playerMemberId) {
+        repo.sendNotification(AppNotification(
+          id: '',
+          recipientId: markerMemberId,
+          title: 'Scorecard Unlocked',
+          message: 'An admin has unlocked $playerName\'s scorecard. Please re-verify their scores.',
+          timestamp: now,
+          category: 'Scoring',
+          eventId: eventId,
+        ));
+      }
+    } catch (_) {
+      // Best-effort — don't block the unlock
+    }
   }
 
   void _sendReminders(BuildContext context, WidgetRef ref, GolfEvent event) {
@@ -525,3 +587,103 @@ class _EventAdminScoresScreenState extends ConsumerState<EventAdminScoresScreen>
       const SnackBar(content: Text('Reminders sent to players with incomplete scorecards.')),
     );
   }
+}
+
+class _ScoreMetric extends StatelessWidget {
+  final String label;
+  final String value;
+
+  const _ScoreMetric({required this.label, required this.value});
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            label.toUpperCase(),
+            style: AppTypography.micro.copyWith(
+              color: AppColors.dark400,
+              fontWeight: AppTypography.weightBold,
+              letterSpacing: AppTypography.lsLabel,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.xs),
+          Text(
+            value,
+            style: AppTypography.displaySection.copyWith(
+              color: isDark ? AppColors.pureWhite : AppColors.dark900,
+              fontWeight: AppTypography.weightBold,
+              height: 1.0,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _AdminAction extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final Color? iconColor;
+  final VoidCallback onTap;
+
+  const _AdminAction({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    this.iconColor,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final shapes = Theme.of(context).extension<AppShapeTokens>();
+
+    return InkWell(
+      onTap: onTap,
+      borderRadius: shapes?.button ?? BorderRadius.circular(8),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
+        decoration: BoxDecoration(
+          color: isDark ? AppColors.dark600 : AppColors.dark100,
+          borderRadius: shapes?.button ?? BorderRadius.circular(8),
+        ),
+        child: Row(
+          children: [
+            Icon(icon, size: 20, color: iconColor ?? (isDark ? AppColors.pureWhite : AppColors.dark900)),
+            const SizedBox(width: AppSpacing.md),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: AppTypography.label.copyWith(
+                      fontWeight: AppTypography.weightBold,
+                      color: isDark ? AppColors.pureWhite : AppColors.dark900,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    subtitle,
+                    style: AppTypography.micro.copyWith(
+                      color: isDark ? AppColors.dark200 : AppColors.dark400,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(Icons.chevron_right_rounded, size: 16, color: isDark ? AppColors.dark300 : AppColors.dark400),
+          ],
+        ),
+      ),
+    );
+  }
+}

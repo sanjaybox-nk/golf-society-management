@@ -45,8 +45,9 @@ abstract class Scorecard with _$Scorecard {
     String? assignedTeeName, // [NEW] Snapshotted tee for this specific scorecard
     AdminEditAudit? adminEditAudit,
     @Default(false) bool adminOverridePublish,
-    @Default(false) bool verifiedByPlayer, // [NEW] Player sign-off
-    @Default(false) bool verifiedByMarker, // [NEW] Marker sign-off
+    @Default(false) bool verifiedByPlayer,
+    @Default(false) bool verifiedByMarker,
+    @Default(false) bool markerReassignmentOpen,
     @OptionalTimestampConverter() DateTime? playerVerifiedAt,
     @OptionalTimestampConverter() DateTime? markerVerifiedAt,
     @Default({}) Map<int, List<String>> holeTags, // [NEW] Hole Index -> List of tags (GIMME, WATER_1, etc)

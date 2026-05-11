@@ -34,6 +34,8 @@ enum AggregationMethod { singleBest, totalSum, stablefordSum }
 
 enum MaxScoreType { fixed, parPlusX, netDoubleBogey }
 
+enum PickUpBehaviour { maxScore, disqualify }
+
 enum TeamHandicapMethod { whs, average, sum }
 
 enum TournamentFormat { knockout, divisions }
@@ -66,6 +68,7 @@ abstract class CompetitionRules with _$CompetitionRules {
     @Default(CompetitionFormat.stroke) CompetitionFormat underlyingFormat, // [NEW] For Scramble base logic
     @Default(true) bool useCourseAllowance,
     MaxScoreConfig? maxScoreConfig,
+    @Default(PickUpBehaviour.maxScore) PickUpBehaviour pickUpBehaviour,
     @Default(1) int roundsCount,
     @Default(AggregationMethod.totalSum) AggregationMethod aggregation,
     @Default(TieBreakMethod.back9) TieBreakMethod tieBreak,

@@ -23,6 +23,10 @@ import '../../../members/presentation/profile_provider.dart';
 import '../../../members/presentation/members_provider.dart';
 import '../widgets/vertical_hole_scoring_list.dart';
 import 'package:golf_society/utils/guest_id_helper.dart';
+import 'package:golf_society/features/events/logic/scoring/scoring_utils.dart';
+import 'package:golf_society/features/competitions/data/scorecard_repository.dart';
+import 'package:golf_society/features/home/presentation/home_providers.dart';
+import 'package:golf_society/domain/models/notification.dart';
 
 /// Resolved state needed to decide whether to show the pinned scoring keypad,
 /// and which scorecard to target. Extracted from _buildPinnedScoring to keep
@@ -78,6 +82,29 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
   bool _optimisticIsVerifier = false;
   MarkerTab _selectedMarkerTab = MarkerTab.player;
   String? _switchedCardId;
+  final PageController _holeController = PageController();
+  int _currentHole = 0;
+
+  @override
+  void dispose() {
+    _holeController.dispose();
+    super.dispose();
+  }
+
+  String _resolvePlayerName(GolfEvent event, List<Member> members, String id) {
+    final groups = event.grouping['groups'] as List? ?? [];
+    for (final group in groups) {
+      for (final p in (group['players'] as List? ?? [])) {
+        final map = Map<String, dynamic>.from(p as Map);
+        if (GuestIdHelper.resolveEffectiveId(map) == id) {
+          final n = map['name'] as String?;
+          if (n != null && n.isNotEmpty) return n;
+        }
+      }
+    }
+    final baseId = GuestIdHelper.stripGuestSuffix(id);
+    return members.firstWhereOrNull((m) => m.id == baseId)?.displayName ?? id;
+  }
 
   void _onScoresChanged(Map<int, int> scores, bool isVerifier) {
     setState(() {
@@ -124,6 +151,16 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
                }
             }
 
+            // Check if the current user is an active participant in this event's grouping
+            final groupData = event.grouping['groups'] as List? ?? [];
+            final bool isParticipant = groupData.any((g) =>
+              (g['players'] as List? ?? []).any((p) {
+                final map = Map<String, dynamic>.from(p as Map);
+                return GuestIdHelper.resolveEffectiveId(map) == currentUser.id ||
+                    map['registrationMemberId'] == currentUser.id;
+              }),
+            );
+
             final allScorecards = ref.watch(scorecardsListProvider(widget.eventId)).asData?.value ?? [];
             final userScorecard = allScorecards.firstWhereOrNull((s) => s.entryId == effectiveEntryId);
             
@@ -138,7 +175,11 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
             final isSameDayOrPast = utils.DateUtils.isSameDayOrPastEvent(event);
 
             final bool isScoringActive = !isCompleted && ((effectiveStatus == EventStatus.inPlay) || (isSameDayOrPast && !isLocked));
-            final bool isCardFull = userScorecard?.holeScores.length == 18 && userScorecard!.holeScores.every((s) => s != null && s > 0);
+            // Card is "full" if the player entered all holes OR the marker has — either is enough to trigger verification
+            final bool isCardFull = userScorecard != null && (
+              (userScorecard.holeScores.length == 18 && userScorecard.holeScores.every((s) => s != null && s > 0)) ||
+              (userScorecard.playerVerifierScores.length == 18 && userScorecard.playerVerifierScores.every((s) => s != null && s > 0))
+            );
 
             if (isLocked || (userScorecard?.status == ScorecardStatus.finalScore)) {
               headerBadgeText = "Final Score";
@@ -170,6 +211,7 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
               } else if (userScorecard.status == ScorecardStatus.draft && isCardFull) {
                 headerBadgeText = "Verify Score";
                 headerBadgeColor = AppColors.amber500;
+                headerOnBadgeTap = () => _showVerificationSheet(event, userScorecard);
               } else {
                 if (userScorecard.status == ScorecardStatus.submitted) {
                   headerBadgeText = "Submitted";
@@ -191,43 +233,75 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
             final allTargetIds = markerSelection.targetEntryIds.toList();
             final members = ref.watch(allMembersProvider).value ?? [];
 
-            // Pinned card switcher — only on Scorecard tab when marking others
-            Widget? pinnedSwitcher;
+            // Pinned bottom — hole nav arrows on Scoring tab only (participants only)
+            Widget? pinnedBottom;
+            if (selectedScoringTab == 0 && isParticipant) {
+              Widget arrowBtn(IconData icon, bool enabled, VoidCallback action) {
+                return GestureDetector(
+                  onTap: enabled ? () {
+                    if (_holeController.hasClients) action();
+                  } : null,
+                  behavior: HitTestBehavior.opaque,
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    width: 44, height: 44,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: enabled ? AppColors.dark50 : Colors.transparent,
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: enabled ? AppColors.dark100 : Colors.transparent,
+                        width: 1,
+                      ),
+                      boxShadow: enabled ? [BoxShadow(
+                        color: AppColors.dark950.withValues(alpha: 0.03),
+                        blurRadius: 4, offset: const Offset(0, 2),
+                      )] : null,
+                    ),
+                    child: Icon(icon, size: 16,
+                      color: enabled ? AppColors.dark950 : AppColors.dark200),
+                  ),
+                );
+              }
+              pinnedBottom = Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  arrowBtn(Icons.arrow_back_ios_new_rounded, _currentHole > 0,
+                    () => _holeController.previousPage(duration: const Duration(milliseconds: 300), curve: Curves.easeInOut)),
+                  arrowBtn(Icons.arrow_forward_ios_rounded, _currentHole < 17,
+                    () => _holeController.nextPage(duration: const Duration(milliseconds: 300), curve: Curves.easeInOut)),
+                ],
+              );
+            }
+
+            // Card switcher — pinned above nav bar on Scorecard tab
+            Widget? personPicker;
             if (selectedScoringTab == 1 && allTargetIds.isNotEmpty) {
-              final shadows = Theme.of(context).extension<AppShadows>();
-              pinnedSwitcher = Container(
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.surface,
-                  borderRadius: Theme.of(context).extension<AppShapeTokens>()?.card ?? BorderRadius.circular(12),
-                  boxShadow: shadows?.useShadows == true ? shadows!.floatingAlt : null,
-                ),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.standard,
-                  vertical: AppSpacing.atomic,
-                ),
-                child: BoxyArtChipBar<String>(
-                  value: _switchedCardId ?? currentUser.id,
-                  options: [
-                    BoxyOption(value: currentUser.id, label: 'My Card'),
-                    ...allTargetIds.map((id) {
-                      final baseId = GuestIdHelper.stripGuestSuffix(id);
-                      final member = members.firstWhereOrNull((m) => m.id == baseId);
-                      final firstName = (member?.displayName ?? id).split(' ').first;
-                      return BoxyOption(value: id, label: firstName);
-                    }),
-                  ],
-                  onChanged: (id) => setState(() => _switchedCardId = id),
-                ),
+              final selectedId = _switchedCardId ?? currentUser.id;
+              final pickerEntries = [
+                ModernFilterTab<String>(label: 'Me', value: currentUser.id),
+                ...allTargetIds.map((id) {
+                  final label = _resolvePlayerName(event, members, id).split(' ').first;
+                  return ModernFilterTab<String>(label: label, value: id);
+                }),
+              ];
+              personPicker = BoxyArtTabBar<String>(
+                tabs: pickerEntries,
+                selectedValue: selectedId,
+                onTabSelected: (id) => setState(() => _switchedCardId = id),
+              );
+              pinnedBottom = BoxyArtCard(
+                padding: const EdgeInsets.all(AppSpacing.atomic),
+                child: personPicker,
               );
             }
 
             return HeadlessScaffold(
-              title: event.title,
-              subtitle: effectiveRules.isUnifiedTeamFormat ? 'Team Scorecard' : 'My Event Card',
+              title: effectiveRules.isUnifiedTeamFormat ? 'Team Scorecard' : 'My Card',
+              subtitle: event.title,
               showAdminShortcut: false,
               showBack: true,
               onBack: () => context.go('/events'),
-
               actions: [
                 if (event.matches.isNotEmpty)
                   BoxyArtGlassIconButton(
@@ -259,16 +333,28 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
                   ),
                 ),
               ],
-              pinnedBottom: pinnedSwitcher,
+              pinnedBottom: pinnedBottom,
               pinnedBottomPadding: AppSpacing.section,
               slivers: [
-                // 1. Sticky Tab Switcher (Design 4.x Tokened Style)
-                SliverPersistentHeader(
-                  pinned: true,
-                  delegate: _StickyTabDelegate(
-                    child: Container(
-                      color: Theme.of(context).scaffoldBackgroundColor,
-                      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+                if (!isParticipant) ...[
+                  // Non-participant observer — scoring not available
+                  SliverPadding(
+                    padding: const EdgeInsets.fromLTRB(AppSpacing.xl, AppSpacing.section, AppSpacing.xl, 0),
+                    sliver: SliverToBoxAdapter(
+                      child: BoxyArtEmptyCard(
+                        icon: Icons.golf_course_rounded,
+                        title: 'Not registered',
+                        message: 'You are not entered in this event. You can follow live scores in the Scores and Stats tabs.',
+                      ),
+                    ),
+                  ),
+                ] else ...[
+                  // Tab bar pinned below the header
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(
+                        AppSpacing.xl, AppSpacing.atomic, AppSpacing.xl, AppSpacing.standard,
+                      ),
                       child: BoxyArtTabBar<int>(
                         tabs: const [
                           ModernFilterTab(label: 'Scoring', value: 0),
@@ -279,25 +365,29 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
                       ),
                     ),
                   ),
-                ),
 
-                // 2. Main Content
-                SliverPadding(
-                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.lg),
-                  sliver: SliverToBoxAdapter(
-                     child: selectedScoringTab == 0
-                        ? VerticalHoleScoringList(
-                            key: ValueKey('scoring_${event.id}_${currentUser.id}'),
-                            event: event,
-                            scoringData: scoringData,
-                            onMarkerSelectionTap: () => MarkerSelectionSheet.show(context: context, event: event),
-                            onVerifyTap: (userScorecard != null && userScorecard.status == ScorecardStatus.draft && isCardFull)
-                                ? () => _showVerificationSheet(event, userScorecard)
-                                : null,
-                          )
-                        : _buildScoringContent(event, comp, effectiveRules, scoringData, _switchedCardId),
+                  // Content
+                  SliverPadding(
+                    padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+                    sliver: SliverToBoxAdapter(
+                      child: selectedScoringTab == 0
+                          ? VerticalHoleScoringList(
+                              key: ValueKey('scoring_${event.id}_${currentUser.id}'),
+                              event: event,
+                              scoringData: scoringData,
+                              pageController: _holeController,
+                              onHoleChanged: (page) => setState(() => _currentHole = page),
+                              onMarkerSelectionTap: () => MarkerSelectionSheet.show(context: context, event: event),
+                              onVerifyTap: (userScorecard != null && userScorecard.status == ScorecardStatus.draft && isCardFull)
+                                  ? () => _showVerificationSheet(event, userScorecard)
+                                  : null,
+                            )
+                          : _buildScoringContent(event, comp, effectiveRules, scoringData, _switchedCardId),
+                    ),
                   ),
-                ),
+                ],
+
+                const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.pageBottom)),
               ],
             );
           },
@@ -393,31 +483,177 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
   void _showVerificationSheet(GolfEvent event, Scorecard userScorecard) {
     final currentUser = ref.read(effectiveUserProvider);
     final allScorecards = ref.read(scorecardsListProvider(event.id)).asData?.value ?? [];
+
+    // Build sign-off tasks for all cards the current user is responsible for
+
+    // 1. My own card — sign as PLAYER
     final myCard = allScorecards.firstWhereOrNull((s) => s.entryId == currentUser.id);
+    final tasks = <SignOffTask>[];
+
+    if (myCard != null) {
+      // Resolve marker's name for the player confirmation context
+      String? markerName;
+      if (myCard.markerId != null && myCard.markerId != currentUser.id) {
+        markerName = _resolveFirstName(myCard.markerId!, event, full: true);
+      }
+      tasks.add(SignOffTask(
+        entryId: currentUser.id,
+        playerName: currentUser.displayName,
+        isPlayerRole: true,
+        markerName: markerName,
+      ));
+    }
+
+    // 2. Cards where I am the marker — sign as MARKER for each
+    final myMarkeeCards = allScorecards
+        .where((s) => s.markerId == currentUser.id && s.entryId != currentUser.id)
+        .toList();
+
+    for (final card in myMarkeeCards) {
+      final name = _resolveFirstName(card.entryId, event, full: true);
+      tasks.add(SignOffTask(
+        entryId: card.entryId,
+        playerName: name,
+        isPlayerRole: false,
+      ));
+    }
+
+    if (tasks.isEmpty) return;
 
     BoxyArtBottomSheet.show(
       context: context,
       title: 'Verify Scorecard',
+      initialChildSize: tasks.length > 2 ? 0.75 : 0.55,
       child: ScoringVerificationView(
         event: event,
-        targetEntryId: userScorecard.entryId,
-        activeScorecard: userScorecard,
-        verifierScorecard: myCard,
-        isAdmin: widget.isAdminMode,
-        onSignOff: (isPlayer) async {
-          // Handled via state update in HoleByHoleScoringWidget or here
-          // For now, we reuse the verification logic from the view itself
-          // which updates the scorecard in the repository.
-          // After sign-off, we check if we should close the sheet.
-          final updatedAllCards = ref.read(scorecardsListProvider(event.id)).asData?.value ?? [];
-          final freshUserCard = updatedAllCards.firstWhereOrNull((s) => s.id == userScorecard.id);
-          
-          if (freshUserCard?.status == ScorecardStatus.submitted) {
-            Navigator.of(context).pop();
+        tasks: tasks,
+        onSignOff: (entryId, isPlayerRole) async {
+          try {
+            final repo = ref.read(scorecardRepositoryProvider);
+            final allCards = ref.read(scorecardsListProvider(event.id)).asData?.value ?? [];
+            final targetCard = allCards.firstWhereOrNull((s) => s.entryId == entryId);
+            if (targetCard == null) {
+              if (mounted) ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Scorecard not found — try again')),
+              );
+              return;
+            }
+
+            final now = DateTime.now();
+            final flagged = isPlayerRole
+                ? targetCard.copyWith(verifiedByPlayer: true, playerVerifiedAt: now, updatedAt: now)
+                : targetCard.copyWith(verifiedByMarker: true, markerVerifiedAt: now, updatedAt: now);
+            await repo.updateScorecard(flagged);
+
+            // Notify the counterpart that it's their turn
+            final currentUser = ref.read(effectiveUserProvider);
+            final counterpartId = isPlayerRole
+                ? targetCard.markerId  // player signed → notify their marker
+                : entryId;             // marker signed → notify the player
+            if (counterpartId != null && counterpartId != currentUser.id) {
+              final counterpartName = isPlayerRole
+                  ? currentUser.displayName
+                  : _resolveFirstName(currentUser.id, event, full: true);
+              await _sendVerificationNotification(
+                recipientId: counterpartId,
+                title: 'Scorecard Verification',
+                message: isPlayerRole
+                    ? '$counterpartName has confirmed your scores — please sign off'
+                    : '$counterpartName has confirmed the scores you recorded',
+                eventId: event.id,
+              );
+            }
+
+            // Auto-advance to finalScore when both parties have signed off
+            final finalCard = ScoringUtils.validateAndFinalizeHandshake(
+              targetScorecard: flagged,
+              verifierScorecard: flagged,
+            );
+            if (finalCard.status != flagged.status) {
+              await repo.updateScorecard(finalCard);
+
+              // Notify admin that the card is ready for final approval
+              final playerName = _resolveFirstName(entryId, event, full: true);
+              final adminIds = ref.read(allMembersProvider).value
+                  ?.where((m) => m.role == MemberRole.admin || m.role == MemberRole.superAdmin)
+                  .map((m) => m.id) ?? [];
+              for (final adminId in adminIds) {
+                await _sendVerificationNotification(
+                  recipientId: adminId,
+                  title: 'Score Ready for Approval',
+                  message: '$playerName\'s scorecard has been verified by both parties',
+                  eventId: event.id,
+                );
+              }
+
+              if (mounted) ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(isPlayerRole ? 'Your scorecard submitted' : '${_resolveFirstName(entryId, event)}\'s scorecard submitted'),
+                  backgroundColor: AppColors.lime500,
+                ),
+              );
+            }
+
+            // Close sheet only when all tasks are signed
+            final refreshed = ref.read(scorecardsListProvider(event.id)).asData?.value ?? [];
+            final allDone = tasks.every((t) {
+              final c = refreshed.firstWhereOrNull((s) => s.entryId == t.entryId);
+              return t.isPlayerRole ? (c?.verifiedByPlayer ?? false) : (c?.verifiedByMarker ?? false);
+            });
+            if (allDone && mounted) Navigator.of(context).pop();
+          } catch (e) {
+            if (mounted) ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Sign-off failed: $e'), backgroundColor: AppColors.coral500),
+            );
           }
         },
       ),
     );
+  }
+
+  Future<void> _sendVerificationNotification({
+    required String recipientId,
+    required String title,
+    required String message,
+    required String eventId,
+  }) async {
+    try {
+      final repo = ref.read(notificationsRepositoryProvider);
+      await repo.sendNotification(AppNotification(
+        id: '',
+        recipientId: recipientId,
+        title: title,
+        message: message,
+        timestamp: DateTime.now(),
+        category: 'Scoring',
+        eventId: eventId,
+      ));
+    } catch (_) {
+      // Notifications are best-effort — don't block the sign-off flow
+    }
+  }
+
+  bool _cardHasConflict(Scorecard card) {
+    for (int i = 0; i < 18; i++) {
+      final p = card.holeScores.elementAtOrNull(i);
+      final m = card.playerVerifierScores.elementAtOrNull(i);
+      if (p != null && m != null && p != m) return true;
+    }
+    return false;
+  }
+
+  String _resolveFirstName(String entryId, GolfEvent event, {bool full = false}) {
+    final groups = event.grouping['groups'] as List? ?? [];
+    for (final group in groups) {
+      for (final p in (group['players'] as List? ?? [])) {
+        final map = Map<String, dynamic>.from(p as Map);
+        if (GuestIdHelper.resolveEffectiveId(map) == entryId) {
+          final name = (map['name'] as String?) ?? entryId;
+          return full ? name : name.split(' ').first;
+        }
+      }
+    }
+    return entryId;
   }
 
   void _showMatchBracket(GolfEvent event) {
@@ -549,21 +785,4 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
       default: return AppColors.amber500;
     }
   }
-}
-class _StickyTabDelegate extends SliverPersistentHeaderDelegate {
-  final Widget child;
-  _StickyTabDelegate({required this.child});
-
-  @override
-  double get minExtent => 48.0;
-  @override
-  double get maxExtent => 48.0;
-
-  @override
-  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
-    return child;
-  }
-
-  @override
-  bool shouldRebuild(_StickyTabDelegate oldDelegate) => true;
 }

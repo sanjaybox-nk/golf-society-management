@@ -170,6 +170,29 @@ class EventFormNotifier extends AsyncNotifier<EventFormState> {
 
   void updateTemplateId(String? v) => state = AsyncData(state.value!.copyWith(selectedTemplateId: v));
   void updateSecondaryTemplateId(String? v) => state = AsyncData(state.value!.copyWith(secondaryTemplateId: v));
+
+  Future<void> refreshCompetition({bool isSecondary = false}) async {
+    final s = state.value;
+    if (s == null || s.eventId == null) return;
+    final compRepo = ref.read(competitionsRepositoryProvider);
+    if (isSecondary) {
+      final updated = await compRepo.getCompetition('${s.eventId}_secondary');
+      if (updated != null) {
+        state = AsyncData(s.copyWith(
+          secondaryCompetition: updated,
+          isSecondaryCustomized: updated.computeVersion != null && updated.computeVersion! > 0,
+        ));
+      }
+    } else {
+      final updated = await compRepo.getCompetition(s.eventId!);
+      if (updated != null) {
+        state = AsyncData(s.copyWith(
+          eventCompetition: updated,
+          isCustomized: updated.computeVersion != null && updated.computeVersion! > 0,
+        ));
+      }
+    }
+  }
   void toggleOomRound(String roundId, bool include) {
     final s = state.value!;
     final List<String> excluded = List.from(s.oomExcludedRoundIds);
@@ -527,10 +550,13 @@ class EventFormNotifier extends AsyncNotifier<EventFormState> {
         await compRepo.addCompetition(newComp);
       }
     } else if (s.eventCompetition != null) {
-      final updatedComp = s.eventCompetition!.copyWith(
+      // Re-read from Firestore so that game-builder customizations are not overwritten
+      // by a stale in-memory copy of the competition.
+      final latestComp = await compRepo.getCompetition(eventId) ?? s.eventCompetition!;
+      final updatedComp = latestComp.copyWith(
         startDate: s.selectedDate,
         endDate: s.isMultiDay && s.endDate != null ? s.endDate! : s.selectedDate,
-        rules: s.eventCompetition!.rules.copyWith(
+        rules: latestComp.rules.copyWith(
           oomExcludedRoundIds: s.oomExcludedRoundIds,
         ),
       );
