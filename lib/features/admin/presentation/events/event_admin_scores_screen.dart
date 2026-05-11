@@ -276,7 +276,22 @@ class _EventAdminScoresScreenState extends ConsumerState<EventAdminScoresScreen>
           s.scoringStatus == ScoringStatus.incomplete ||
           (s.holeScores.contains(null) && s.scoringStatus == ScoringStatus.ok)
         ).toList();
-        final outliers = scorecards.where((s) => s.scoringStatus != ScoringStatus.ok && s.scoringStatus != ScoringStatus.dq).toList();
+        final outliers = scorecards.where((s) =>
+          s.scoringStatus != ScoringStatus.ok && s.scoringStatus != ScoringStatus.dq).toList();
+
+        // Cards where player and marker recorded different scores on any hole
+        final conflicted = scorecards.where((s) {
+          for (int i = 0; i < 18; i++) {
+            final p = s.holeScores.elementAtOrNull(i);
+            final m = s.playerVerifierScores.elementAtOrNull(i);
+            if (p != null && m != null && p != m) return true;
+          }
+          return false;
+        }).toList();
+        // Remove duplicates already captured in outliers/incomplete
+        final conflictOnly = conflicted.where((s) =>
+          !incomplete.contains(s) && !outliers.contains(s)).toList();
+
         final needsReassignment = scorecards.where((s) => s.markerReassignmentOpen).toList();
 
 
@@ -339,36 +354,22 @@ class _EventAdminScoresScreenState extends ConsumerState<EventAdminScoresScreen>
               const SizedBox(height: AppSpacing.xl),
             ],
 
-            if (incomplete.isNotEmpty || outliers.isNotEmpty) ...[
+            if (incomplete.isNotEmpty || outliers.isNotEmpty || conflictOnly.isNotEmpty) ...[
               const BoxyArtSectionTitle(title: 'Issues to resolve'),
-              ...[...incomplete, ...outliers].map((s) {
-                 final reg = event.registrations.firstWhereOrNull((r) => r.memberId == s.entryId);
-                 return Padding(
-                   padding: const EdgeInsets.only(bottom: AppSpacing.md),
-                   child: BoxyArtNavTile(
-                     title: reg?.memberName ?? 'Unknown Player',
-                     subtitle: s.scoringStatus == ScoringStatus.incomplete ? 'Incomplete Card' : s.scoringStatus.name.toUpperCase(),
-                     icon: Icons.warning_amber_rounded,
-                     iconColor: AppColors.coral500,
-                     onTap: () {
-                        // Open scorecard modal for editing
-                        final comp = ref.read(competitionDetailProvider(event.id)).value;
-                        final members = membersAsync.value ?? [];
-                        final entry = LeaderboardEntry(
-                          entryId: s.entryId,
-                          playerName: reg?.memberName ?? 'Unknown',
-                          score: (s.points ?? 0).toInt(),
-                          handicap: s.playingHandicap ?? (s.handicapIndex ?? 0).round(),
-                          handicapIndex: s.handicapIndex ?? 0,
-                          scoringStatus: s.scoringStatus,
-                          mode: comp?.rules.mode ?? CompetitionMode.singles,
-                          avatarUrl: members.firstWhereOrNull((m) => m.id == s.entryId)?.avatarUrl,
-                        );
-                        ScorecardModal.show(context, ref, entry: entry, scorecards: scorecards, event: event, comp: comp, membersList: members, isAdmin: true);
-                     },
-                   ),
-                 );
-              }),
+              ...[
+                for (final s in [...incomplete, ...outliers])
+                  _buildIssueRow(context, ref, s, event, scorecards, membersAsync,
+                    subtitle: s.scoringStatus == ScoringStatus.incomplete
+                        ? 'Incomplete Card'
+                        : s.scoringStatus.name.toUpperCase(),
+                    iconColor: AppColors.coral500,
+                  ),
+                for (final s in conflictOnly)
+                  _buildIssueRow(context, ref, s, event, scorecards, membersAsync,
+                    subtitle: 'Score conflict — player & marker disagree',
+                    iconColor: AppColors.amber500,
+                  ),
+              ],
             ] else ...[
                const BoxyArtEmptyCard(
                  title: 'Verification Complete',
@@ -386,16 +387,60 @@ class _EventAdminScoresScreenState extends ConsumerState<EventAdminScoresScreen>
   }
 
 
+  Widget _buildIssueRow(
+    BuildContext context,
+    WidgetRef ref,
+    Scorecard s,
+    GolfEvent event,
+    List<Scorecard> scorecards,
+    AsyncValue<List<Member>> membersAsync, {
+    required String subtitle,
+    required Color iconColor,
+  }) {
+    final reg = event.registrations.firstWhereOrNull(
+        (r) => r.memberId == s.entryId || '${r.memberId}_guest' == s.entryId);
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppSpacing.md),
+      child: BoxyArtNavTile(
+        title: reg?.memberName ?? s.entryId,
+        subtitle: subtitle,
+        icon: Icons.warning_amber_rounded,
+        iconColor: iconColor,
+        onTap: () {
+          final comp = ref.read(competitionDetailProvider(event.id)).value;
+          final members = membersAsync.value ?? [];
+          final entry = LeaderboardEntry(
+            entryId: s.entryId,
+            playerName: reg?.memberName ?? 'Unknown',
+            score: (s.points ?? 0).toInt(),
+            handicap: s.playingHandicap ?? (s.handicapIndex ?? 0).round(),
+            handicapIndex: s.handicapIndex ?? 0,
+            scoringStatus: s.scoringStatus,
+            mode: comp?.rules.mode ?? CompetitionMode.singles,
+            avatarUrl: members.firstWhereOrNull((m) => m.id == s.entryId)?.avatarUrl,
+          );
+          ScorecardModal.show(context, ref,
+              entry: entry, scorecards: scorecards, event: event, comp: comp, membersList: members, isAdmin: true);
+        },
+      ),
+    );
+  }
+
   Widget _buildStatusCard(BuildContext context, WidgetRef ref, GolfEvent event) {
     final scorecardsAsync = ref.watch(scorecardsListProvider(event.id));
     final scorecards = scorecardsAsync.value ?? [];
 
     final int readyCount = scorecards.where((s) =>
         s.status == ScorecardStatus.submitted && s.verifiedByPlayer && s.verifiedByMarker).length;
+    // Awaiting = one party confirmed but not both
     final int awaitingCount = scorecards.where((s) =>
-        s.status == ScorecardStatus.submitted && !(s.verifiedByPlayer && s.verifiedByMarker)).length;
+        s.status == ScorecardStatus.submitted &&
+        (s.verifiedByPlayer || s.verifiedByMarker) &&
+        !(s.verifiedByPlayer && s.verifiedByMarker)).length;
+    // Outstanding = submitted but neither party has confirmed yet, plus any drafts
     final int outstandingCount = scorecards.where((s) =>
-        s.status == ScorecardStatus.draft).length;
+        s.status == ScorecardStatus.draft ||
+        (s.status == ScorecardStatus.submitted && !s.verifiedByPlayer && !s.verifiedByMarker)).length;
 
     final bool isLocked = event.isScoringLocked;
     final bool isPublished = event.isStatsReleased;
