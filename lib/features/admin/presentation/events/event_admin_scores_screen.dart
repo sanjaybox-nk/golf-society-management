@@ -410,7 +410,7 @@ class _EventAdminScoresScreenState extends ConsumerState<EventAdminScoresScreen>
         icon: Icons.warning_amber_rounded,
         iconColor: iconColor,
         onTap: () => context.push(
-          '/admin/events/manage/${Uri.encodeComponent(event.id)}/event/scores/$editorPlayerId',
+          '/admin/events/manage/${Uri.encodeComponent(event.id)}/scores/$editorPlayerId',
         ),
       ),
     );
