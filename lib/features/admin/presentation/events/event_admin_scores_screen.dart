@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:golf_society/design_system/design_system.dart';
 import 'package:collection/collection.dart';
 import 'package:golf_society/domain/models/golf_event.dart';
@@ -399,6 +400,8 @@ class _EventAdminScoresScreenState extends ConsumerState<EventAdminScoresScreen>
   }) {
     final reg = event.registrations.firstWhereOrNull(
         (r) => r.memberId == s.entryId || '${r.memberId}_guest' == s.entryId);
+    // Strip _guest suffix for the editor route — it uses the base member ID
+    final editorPlayerId = s.entryId.replaceAll('_guest', '');
     return Padding(
       padding: const EdgeInsets.only(bottom: AppSpacing.md),
       child: BoxyArtNavTile(
@@ -406,22 +409,9 @@ class _EventAdminScoresScreenState extends ConsumerState<EventAdminScoresScreen>
         subtitle: subtitle,
         icon: Icons.warning_amber_rounded,
         iconColor: iconColor,
-        onTap: () {
-          final comp = ref.read(competitionDetailProvider(event.id)).value;
-          final members = membersAsync.value ?? [];
-          final entry = LeaderboardEntry(
-            entryId: s.entryId,
-            playerName: reg?.memberName ?? 'Unknown',
-            score: (s.points ?? 0).toInt(),
-            handicap: s.playingHandicap ?? (s.handicapIndex ?? 0).round(),
-            handicapIndex: s.handicapIndex ?? 0,
-            scoringStatus: s.scoringStatus,
-            mode: comp?.rules.mode ?? CompetitionMode.singles,
-            avatarUrl: members.firstWhereOrNull((m) => m.id == s.entryId)?.avatarUrl,
-          );
-          ScorecardModal.show(context, ref,
-              entry: entry, scorecards: scorecards, event: event, comp: comp, membersList: members, isAdmin: true);
-        },
+        onTap: () => context.push(
+          '/admin/events/manage/${Uri.encodeComponent(event.id)}/event/scores/$editorPlayerId',
+        ),
       ),
     );
   }
