@@ -147,6 +147,13 @@ class AdminSettingsHubScreen extends ConsumerWidget {
                     ),
                     const BoxyArtDivider(),
                     BoxyArtNavTile(
+                      icon: Icons.fact_check_rounded,
+                      title: 'Final Verification UAT',
+                      subtitle: 'Medal: all submitted, GIMMEs, pick-ups, conflicts — admin review stage',
+                      onTap: () => _showFinalVerificationSeedConfirmation(context, ref),
+                    ),
+                    const BoxyArtDivider(),
+                    BoxyArtNavTile(
                       icon: Icons.delete_forever_rounded,
                       title: 'System Factory Reset',
                       subtitle: 'Deep wipe (Everything including branding)',
@@ -353,6 +360,28 @@ class AdminSettingsHubScreen extends ConsumerWidget {
       try {
         await ref.read(seedingServiceProvider).seedHandshakeAndRhythmUAT();
         messenger.showSnackBar(const SnackBar(content: Text('✅ UAT Environment Ready')));
+      } catch (e) {
+        messenger.showSnackBar(SnackBar(content: Text('Error: $e')));
+      }
+    }
+  }
+
+  void _showFinalVerificationSeedConfirmation(BuildContext context, WidgetRef ref) async {
+    final confirm = await showBoxyArtDialog<bool>(
+      context: context,
+      title: 'Seed Verification UAT?',
+      message: 'Adds a new full Medal event with all cards submitted and ready for admin final review. Includes GIMMEs, pick-ups (Net Double Bogey), penalties, and deliberate score conflicts. Existing events are not cleared.',
+      confirmText: 'SEED EVENT',
+      onConfirm: () => Navigator.of(context, rootNavigator: true).pop(true),
+      onCancel: () => Navigator.of(context, rootNavigator: true).pop(false),
+    );
+
+    if (confirm == true && context.mounted) {
+      final messenger = ScaffoldMessenger.of(context);
+      messenger.showSnackBar(const SnackBar(content: Text('Seeding Final Verification UAT...')));
+      try {
+        await ref.read(seedingServiceProvider).seedFinalVerificationUAT();
+        messenger.showSnackBar(const SnackBar(content: Text('✅ Verification UAT Event Ready')));
       } catch (e) {
         messenger.showSnackBar(SnackBar(content: Text('Error: $e')));
       }

@@ -21,6 +21,8 @@ import 'course_seeder.dart';
 import 'member_seeder.dart';
 import 'data_constants.dart';
 import 'package:golf_society/features/guests/data/guest_repository.dart';
+import 'package:golf_society/domain/scoring/handicap_calculator.dart';
+import 'package:golf_society/domain/models/course_config.dart' as cfg;
 
 class ScenarioSeeder {
   final Ref ref;
@@ -579,6 +581,213 @@ class ScenarioSeeder {
 
     return eventId;
   }
+  /// Full medal event: all 18 holes complete, all cards submitted, awaiting admin final verification.
+  /// Groups split across Ready / Awaiting / Outstanding states with rich hole tags and deliberate conflicts.
+  Future<String> seedFinalVerificationUAT() async {
+    final membersRepo = ref.read(membersRepositoryProvider);
+    var members = await membersRepo.getMembers();
+    if (members.length < 32) {
+      await MemberSeeder(ref, random).seed();
+      members = await membersRepo.getMembers();
+    }
+
+    final courseRepo = ref.read(courseRepositoryProvider);
+    var courses = await courseRepo.watchCourses().first;
+    if (courses.isEmpty) courses = await CourseSeeder(ref, random).seed();
+    final course = courses.first;
+
+    final compRepo = ref.read(competitionsRepositoryProvider);
+    final templates = await compRepo.getTemplates();
+
+    // Pick the existing medal template (the user updated pick-up to max score / NDB)
+    final medalTemplate = templates.firstWhereOrNull((t) =>
+            t.name?.toLowerCase().contains('medal') == true ||
+            t.rules.format == CompetitionFormat.stroke) ??
+        Competition(
+          id: 'tmpl_medal_solo',
+          name: 'Medal Play',
+          type: CompetitionType.game,
+          rules: const CompetitionRules(
+            format: CompetitionFormat.stroke,
+            mode: CompetitionMode.singles,
+            handicapAllowance: 1.0,
+            pickUpBehaviour: PickUpBehaviour.maxScore,
+          ),
+          startDate: DateTime.now(),
+          endDate: DateTime.now(),
+        );
+
+    final eventSeeder = EventSeeder(ref, random);
+    final date = DateTime.now();
+
+    await eventSeeder.createFullEvent(
+      seasonId: seasonId,
+      course: course,
+      title: 'Medal — Final Verification UAT',
+      date: date,
+      format: CompetitionFormat.stroke,
+      isInvitational: false,
+      isSeasonEvent: true,
+      members: members,
+      appliedCuts: {},
+      status: EventStatus.inPlay,
+      templates: [medalTemplate],
+    );
+
+    final events = await ref.read(eventsRepositoryProvider).getEvents(seasonId: seasonId);
+    final event = events.firstWhere((e) => e.title == 'Medal — Final Verification UAT');
+    final scoreRepo = ref.read(scorecardRepositoryProvider);
+    final scorecards = await scoreRepo.getScorecards(event.id);
+    final rules = medalTemplate.rules;
+
+    final List<TeeGroup> groups =
+        (event.grouping['groups'] as List).map((g) => TeeGroup.fromJson(g)).toList();
+    final int total = groups.length;
+
+    // Tier boundaries (deterministic, not random):
+    //   Groups 0 .. readyCut-1        → Ready  (both verified, clean)
+    //   Groups readyCut .. awaitCut-1 → Awaiting (player verified, marker pending)
+    //   Groups awaitCut .. total-1    → Outstanding (submitted, neither verified)
+    final int readyCut = (total * 0.50).round();
+    final int awaitCut = (total * 0.80).round();
+
+    for (int i = 0; i < groups.length; i++) {
+      final group = groups[i];
+
+      final bool isReady = i < readyCut;
+      final bool isAwaiting = i >= readyCut && i < awaitCut;
+
+      for (int j = 0; j < group.players.length; j++) {
+        final p = group.players[j];
+        final entryId = p.isGuest ? '${p.registrationMemberId}_guest' : p.registrationMemberId;
+        final s = scorecards.firstWhereOrNull((sc) => sc.entryId == entryId);
+        if (s == null) continue;
+
+        final member = members.firstWhereOrNull((m) => m.id == p.registrationMemberId);
+        final index = member?.handicap ?? 18.0;
+        final teeName = (member?.gender == 'Female') ? 'Red' : 'Yellow';
+        final tee = course.tees.firstWhere((t) => t.name == teeName,
+            orElse: () => course.tees.first);
+        final phc = HandicapCalculator.calculatePlayingHandicap(
+          handicapIndex: index,
+          rules: rules,
+          courseConfig: cfg.CourseConfig(
+            rating: tee.rating,
+            slope: tee.slope,
+            par: tee.holePars.fold<int>(0, (a, b) => a + b),
+            holes: tee.holePars.asMap().entries
+                .map((e) => cfg.CourseHole(hole: e.key + 1, par: e.value, si: tee.holeSIs[e.key]))
+                .toList(),
+          ),
+        );
+
+        // Build 18 realistic hole scores
+        final holeScores = <int?>[];
+        for (int h = 0; h < 18; h++) {
+          final par = tee.holePars[h];
+          final si = tee.holeSIs[h];
+          final strokes = (phc / 18).floor() + (phc % 18 >= si ? 1 : 0);
+          final rand = random.nextDouble();
+          final netScore = rand < 0.20
+              ? par - 1        // birdie
+              : rand < 0.75
+                  ? par        // par
+                  : rand < 0.92
+                      ? par + 1 // bogey
+                      : par + 2; // double
+          holeScores.add((netScore + strokes).toInt());
+        }
+
+        // Build rich hole tags — GIMME, PICK_UP (with NDB score), penalties
+        final holeTags = _generateVerificationTags(holeScores, tee.holePars, tee.holeSIs, phc, rules);
+
+        // Apply NDB pick-up score to holeScores where PICK_UP tag was generated
+        for (final entry in holeTags.entries) {
+          final holeNum = entry.key;
+          if (entry.value.contains('PICK_UP')) {
+            final hIdx = holeNum - 1;
+            final par = tee.holePars[hIdx];
+            final si = tee.holeSIs[hIdx];
+            final strokes = (phc / 18).floor() + (phc % 18 >= si ? 1 : 0);
+            holeScores[hIdx] = (par + 2 + strokes).toInt();
+          }
+        }
+
+        // Marker scores — copy then introduce deliberate conflicts on 1 card per Awaiting group
+        final markerScores = List<int?>.from(holeScores);
+        final bool hasConflict = isAwaiting && j == 0 && i == readyCut;
+        if (hasConflict) {
+          // Conflict on holes 7 and 14 — marker recorded one more stroke
+          if (markerScores[6] != null) markerScores[6] = markerScores[6]! + 1;
+          if (markerScores[13] != null) markerScores[13] = markerScores[13]! + 1;
+        }
+
+        final marker = group.players[(j + 1) % group.players.length];
+        final markerId = marker.isGuest
+            ? '${marker.registrationMemberId}_guest'
+            : marker.registrationMemberId;
+
+        await scoreRepo.updateScorecard(s.copyWith(
+          status: ScorecardStatus.submitted,
+          markerId: markerId,
+          holeScores: holeScores,
+          playerVerifierScores: markerScores,
+          holeTags: holeTags,
+          handicapIndex: index,
+          playingHandicap: phc,
+          verifiedByPlayer: isReady || isAwaiting,
+          verifiedByMarker: isReady,
+          submittedAt: date.copyWith(hour: 14, minute: 30 + random.nextInt(60)),
+          updatedAt: DateTime.now(),
+        ));
+      }
+    }
+
+    // Lock scoring — event is done, pending admin final review
+    await ref.read(eventsRepositoryProvider).updateEvent(event.copyWith(
+      isScoringLocked: true,
+    ));
+
+    return event.id;
+  }
+
+  /// Rich hole tags for verification UAT:
+  /// ~25% gimme on par-3 or score ≤ par+1, ~12% pick-up on blow-up holes,
+  /// ~10% 1-stroke penalty, ~4% 2-stroke penalty. Never GIMME + PICK_UP together.
+  Map<int, List<String>> _generateVerificationTags(
+    List<int?> scores,
+    List<int> pars,
+    List<int> sis,
+    int phc,
+    CompetitionRules rules,
+  ) {
+    final tags = <int, List<String>>{};
+    for (int i = 0; i < scores.length; i++) {
+      final score = scores[i];
+      if (score == null) continue;
+      final par = pars[i];
+      final holeTags = <String>[];
+      final ts = DateTime.now().millisecondsSinceEpoch + i * 17;
+
+      final isShortHole = par == 3;
+      final isBigNumber = score >= par + 3;
+
+      if (!isBigNumber && isShortHole && random.nextDouble() < 0.25) {
+        holeTags.add('GIMME');
+      } else if (isBigNumber && random.nextDouble() < 0.12) {
+        holeTags.add('PICK_UP');
+      }
+
+      if (!holeTags.contains('PICK_UP')) {
+        if (random.nextDouble() < 0.10) holeTags.add('PENALTY_1_$ts');
+        if (random.nextDouble() < 0.04) holeTags.add('PENALTY_2_${ts + 1}');
+      }
+
+      if (holeTags.isNotEmpty) tags[i + 1] = holeTags;
+    }
+    return tags;
+  }
+
   /// Generates realistic hole tags for a scorecard based on scores.
   /// ~20% gimme chance on par or better holes, ~10% pick-up on blow-up holes,
   /// ~8% chance of a 1-stroke penalty, ~3% chance of a 2-stroke penalty.

@@ -250,23 +250,37 @@ class SeedingService {
   Future<void> seedHandshakeAndRhythmUAT() async {
     try {
       if (kDebugMode) debugPrint('--- STARTING CONSOLIDATED HANDSHAKE & RHYTHM UAT SEED ---');
-      
+
       // 1. Clear Activity (Preserve branding)
       await clearActivityData();
-      
+
       // 2. Seed Members (Hardening equivalent)
       await MemberSeeder(ref, _random).seed();
       await _seedGuestPool();
 
       // 3. Seed Medal Scenario
       await ScenarioSeeder(ref, _random).seedMedalVerificationScenario();
-      
+
       // 4. Seed Handshake Scenario (Stableford + Conflicts)
       await ScenarioSeeder(ref, _random).seedHandshakeVerificationScenario();
-      
+
       if (kDebugMode) debugPrint('--- CONSOLIDATED UAT SEED COMPLETED ---');
     } catch (e, stack) {
       if (kDebugMode) debugPrint('UAT SEEDER FAILURE: $e');
+      if (kDebugMode) debugPrint(stack.toString());
+      rethrow;
+    }
+  }
+
+  /// Seeds a full medal event with all cards submitted and awaiting admin final verification.
+  /// Includes GIMMEs, PICK_UPs (NDB max score), penalties, and deliberate conflicts.
+  Future<void> seedFinalVerificationUAT() async {
+    try {
+      if (kDebugMode) debugPrint('--- STARTING FINAL VERIFICATION UAT SEED ---');
+      await ScenarioSeeder(ref, _random).seedFinalVerificationUAT();
+      if (kDebugMode) debugPrint('--- FINAL VERIFICATION UAT SEED COMPLETED ---');
+    } catch (e, stack) {
+      if (kDebugMode) debugPrint('FINAL VERIFICATION SEEDER FAILURE: $e');
       if (kDebugMode) debugPrint(stack.toString());
       rethrow;
     }
