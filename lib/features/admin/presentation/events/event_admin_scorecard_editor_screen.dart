@@ -98,7 +98,19 @@ class EventAdminScorecardEditorScreen extends ConsumerWidget {
                     maxScoreConfig: comp?.rules.maxScoreConfig,
                   );
 
+                  // Detect conflicted holes (player ≠ marker)
+                  final markerScores = scorecard?.playerVerifierScores ?? [];
+                  final conflictedHoles = <int>{};
+                  for (int i = 0; i < 18; i++) {
+                    final p = scorecard?.holeScores.elementAtOrNull(i);
+                    final m = markerScores.elementAtOrNull(i);
+                    if (p != null && m != null && p != m) conflictedHoles.add(i + 1);
+                  }
+                  final hasConflicts = conflictedHoles.isNotEmpty;
+                  final markerName = _getMarkerName(event, scorecard?.markerId);
+
                   return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       // Player Info Row
                       Padding(
@@ -109,13 +121,34 @@ class EventAdminScorecardEditorScreen extends ConsumerWidget {
                             const SizedBox(width: AppSpacing.md),
                             BoxyArtIndicator.phc(context: context, label: '$phc'),
                             const Spacer(),
-                            // Tee pill matching design
                             BoxyArtPill.tee(label: playerTeeName, teeColor: _getTeeColor(playerTeeName, playerTeeConfig.tees)),
                           ],
                         ),
                       ),
-                      
-                      // Scorecard Grid
+
+                      // Conflict banner
+                      if (hasConflicts) ...[
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.standard, vertical: AppSpacing.sm),
+                          margin: const EdgeInsets.only(bottom: AppSpacing.standard),
+                          decoration: BoxDecoration(
+                            color: AppColors.amber500.withValues(alpha: AppColors.opacityLow),
+                            borderRadius: AppShapes.md,
+                            border: Border.all(color: AppColors.amber500, width: 1),
+                          ),
+                          child: Row(children: [
+                            const Icon(Icons.warning_amber_rounded, color: AppColors.amber500, size: 16),
+                            const SizedBox(width: AppSpacing.sm),
+                            Expanded(child: Text(
+                              '${conflictedHoles.length} hole${conflictedHoles.length > 1 ? 's' : ''} conflict with marker${markerName != null ? ' ($markerName)' : ''}. Conflicted holes are highlighted below.',
+                              style: AppTypography.micro.copyWith(color: AppColors.amber500, fontWeight: AppTypography.weightBold),
+                            )),
+                          ]),
+                        ),
+                      ],
+
+                      // Scorecard Grid — player row with conflicts highlighted, marker row below
                       CourseInfoCard(
                         courseConfig: playerTeeConfig,
                         selectedTeeName: playerTeeName,
@@ -126,6 +159,14 @@ class EventAdminScorecardEditorScreen extends ConsumerWidget {
                         holePoints: scoringResult.holePoints,
                         format: comp?.rules.format ?? CompetitionFormat.stableford,
                         maxScoreConfig: comp?.rules.maxScoreConfig,
+                        conflictedHoles: conflictedHoles,
+                        additionalRows: hasConflicts ? [
+                          CourseScoreRow(
+                            playerName: markerName != null ? 'Marker: $markerName' : 'Marker',
+                            scores: markerScores,
+                            color: AppColors.amber500,
+                          ),
+                        ] : null,
                       ),
                       
                       SizedBox(height: spacing?.cardToCard ?? AppSpacing.standard),
@@ -217,6 +258,19 @@ class EventAdminScorecardEditorScreen extends ConsumerWidget {
       return reg.displayName;
     } catch (_) {
       return 'Unknown Player';
+    }
+  }
+
+  String? _getMarkerName(GolfEvent event, String? markerId) {
+    if (markerId == null || markerId.isEmpty) return null;
+    try {
+      final baseId = markerId.replaceAll('_guest', '');
+      final reg = event.registrations.firstWhere(
+        (r) => r.memberId == baseId || r.memberId == markerId,
+      );
+      return reg.displayName;
+    } catch (_) {
+      return null;
     }
   }
 
