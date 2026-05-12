@@ -13,7 +13,6 @@ import '../../../competitions/presentation/competitions_provider.dart';
 import '../../logic/event_scoring_controller.dart';
 import '../state/marker_selection_provider.dart';
 import '../widgets/event_scorecard_view.dart';
-import '../widgets/hole_by_hole_scoring_widget.dart';
 import '../widgets/marker_selection_sheet.dart';
 import '../widgets/scoring/scoring_verification_view.dart';
 import '../../../matchplay/presentation/widgets/match_play_bracket_hub.dart';
@@ -24,7 +23,6 @@ import '../../../members/presentation/members_provider.dart';
 import '../widgets/vertical_hole_scoring_list.dart';
 import 'package:golf_society/utils/guest_id_helper.dart';
 import 'package:golf_society/features/events/logic/scoring/scoring_utils.dart';
-import 'package:golf_society/features/competitions/data/scorecard_repository.dart';
 import 'package:golf_society/features/home/presentation/home_providers.dart';
 import 'package:golf_society/domain/models/notification.dart';
 
@@ -106,16 +104,8 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
     return members.firstWhereOrNull((m) => m.id == baseId)?.displayName ?? id;
   }
 
-  void _onScoresChanged(Map<int, int> scores, bool isVerifier) {
-    setState(() {
-      _optimisticScores = scores;
-      _optimisticIsVerifier = isVerifier;
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
-    final spacing = Theme.of(context).extension<AppSpacingTokens>();
     final eventAsync = ref.watch(eventProvider(widget.eventId));
     final compAsync = ref.watch(competitionDetailProvider(widget.eventId));
     final scoringData = ref.watch(eventScoringControllerProvider(widget.eventId));
@@ -443,28 +433,6 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
       ),
     );
   }
-  
-  Widget? _buildPinnedScoring(GolfEvent event, Competition? comp, ProcessedEventData? scoringData, CompetitionRules effectiveRules) {
-    final pinState = ref.watch(pinnedScoringStateProvider((eventId: event.id, event: event)));
-    if (!pinState.shouldShow) return null;
-
-    return HoleByHoleScoringWidget(
-      event: event,
-      targetScorecard: pinState.userScorecard,
-      verifierScorecard: pinState.myCard,
-      targetEntryId: pinState.effectiveEntryId,
-      isSelfMarking: ref.watch(markerSelectionProvider).isSelfMarking,
-      selectedTab: _selectedMarkerTab,
-      onTabChanged: (tab) {
-        setState(() {
-          _selectedMarkerTab = tab;
-          _optimisticScores = null;
-        });
-      },
-      onScoresChanged: _onScoresChanged,
-    );
-  }
-
   Widget _buildScoringContent(GolfEvent event, Competition? comp, CompetitionRules effectiveRules, ProcessedEventData? scoringData, String? switchedCardId) {
     return EventScorecardView(
       event: event,
@@ -585,13 +553,60 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
                   eventId: event.id,
                 );
               }
+            } else if (flagged.verifiedByPlayer && flagged.verifiedByMarker) {
+              // Both signed but conflicts exist — urgent alert to player, marker and admins
+              final conflictHoles = <int>[];
+              for (int i = 0; i < 18; i++) {
+                final p = flagged.holeScores.elementAtOrNull(i);
+                final m = flagged.playerVerifierScores.elementAtOrNull(i);
+                if (p != null && m != null && p != m) conflictHoles.add(i + 1);
+              }
+              if (conflictHoles.isNotEmpty) {
+                final holeList = conflictHoles.map((h) => 'hole $h').join(', ');
+                final playerName = _resolveFirstName(entryId, event, full: true);
 
-              if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(isPlayerRole ? 'Your scorecard submitted' : '${_resolveFirstName(entryId, event)}\'s scorecard submitted'),
-                  backgroundColor: AppColors.lime500,
-                ),
-              );
+                // Alert player
+                await _sendVerificationNotification(
+                  recipientId: entryId.replaceAll('_guest', ''),
+                  title: 'Score Conflict — Action Required',
+                  message: 'Conflict on $holeList — speak to your scorer before leaving the course.',
+                  eventId: event.id,
+                );
+
+                // Alert marker
+                final markerId = targetCard.markerId?.replaceAll('_guest', '');
+                if (markerId != null && markerId.isNotEmpty) {
+                  await _sendVerificationNotification(
+                    recipientId: markerId,
+                    title: 'Score Conflict — Action Required',
+                    message: 'Conflict on $holeList for $playerName — speak to the scorer.',
+                    eventId: event.id,
+                  );
+                }
+
+                // Alert admins
+                final adminIds = ref.read(allMembersProvider).value
+                    ?.where((m) => m.role == MemberRole.admin || m.role == MemberRole.superAdmin)
+                    .map((m) => m.id) ?? [];
+                for (final adminId in adminIds) {
+                  await _sendVerificationNotification(
+                    recipientId: adminId,
+                    title: 'Score Conflict Needs Resolution',
+                    message: '$playerName has conflicts on $holeList — please resolve before the field leaves.',
+                    eventId: event.id,
+                  );
+                }
+
+                if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                  content: Text('Score conflict on $holeList — scorer notified'),
+                  backgroundColor: AppColors.amber500,
+                ));
+              }
+            } else {
+              if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                content: Text(isPlayerRole ? 'Your scorecard submitted' : '${_resolveFirstName(entryId, event)}\'s scorecard submitted'),
+                backgroundColor: AppColors.lime500,
+              ));
             }
 
             // Close sheet only when all tasks are signed
@@ -633,15 +648,6 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
     }
   }
 
-  bool _cardHasConflict(Scorecard card) {
-    for (int i = 0; i < 18; i++) {
-      final p = card.holeScores.elementAtOrNull(i);
-      final m = card.playerVerifierScores.elementAtOrNull(i);
-      if (p != null && m != null && p != m) return true;
-    }
-    return false;
-  }
-
   String _resolveFirstName(String entryId, GolfEvent event, {bool full = false}) {
     final groups = event.grouping['groups'] as List? ?? [];
     for (final group in groups) {
@@ -662,37 +668,6 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
       title: 'Match Bracket',
       child: MatchPlayBracketHub(eventId: event.id),
     );
-  }
-
-  // --- Core Persistence Logic ---
-  
-  Future<void> _submitScorecard(String scorecardId) async {
-    final confirmed = await showBoxyArtDialog<bool>(
-      context: context,
-      title: 'Submit Scorecard?',
-      message: 'Are you sure you want to submit your scorecard? You will not be able to edit it afterwards.',
-      confirmText: 'Submit',
-      onConfirm: () => Navigator.of(context, rootNavigator: true).pop(true),
-      onCancel: () => Navigator.of(context, rootNavigator: true).pop(false),
-    );
-
-    if (confirmed == true && mounted) {
-      try {
-        await ref.read(scorecardRepositoryProvider).updateScorecardStatus(
-          scorecardId, 
-          ScorecardStatus.submitted
-        );
-        if (mounted) {
-           ScaffoldMessenger.of(context).showSnackBar(
-             const SnackBar(content: Text('Scorecard Submitted Successfully!'), backgroundColor: AppColors.lime500),
-           );
-        }
-      } catch (e) {
-        if (mounted) {
-           ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
-        }
-      }
-    }
   }
 
   Future<void> _confirmUnsubmit(String scorecardId) async {

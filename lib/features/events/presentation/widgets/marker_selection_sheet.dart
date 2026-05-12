@@ -5,6 +5,7 @@ import 'package:golf_society/domain/models/golf_event.dart';
 import 'package:golf_society/features/members/presentation/profile_provider.dart';
 import 'package:golf_society/features/members/presentation/members_provider.dart';
 import 'package:golf_society/domain/scoring/scoring_calculator.dart';
+import 'package:golf_society/features/competitions/presentation/competitions_provider.dart';
 import '../state/marker_selection_provider.dart';
 import 'package:golf_society/utils/guest_id_helper.dart';
 
@@ -42,7 +43,7 @@ class MarkerSelectionSheet extends ConsumerStatefulWidget {
     BoxyArtBottomSheet.show(
       context: context,
       title: 'Marker & Tee Selection'.toUpperCase(),
-      initialChildSize: 0.75,
+      initialChildSize: 0.70,
       minChildSize: 0.55,
       maxChildSize: 0.92,
       addNavBarPadding: false,
@@ -63,29 +64,21 @@ class _MarkerSelectionSheetState extends ConsumerState<MarkerSelectionSheet> {
     final members = ref.watch(allMembersProvider).value ?? [];
     final markerSelection = ref.watch(markerSelectionProvider);
     final bool isSelfMarking = markerSelection.isSelfMarking;
-    final isGroupScorer = markerSelection.isGroupScorer;
-    final markerAssignments = markerSelection.markerAssignments;
     final tees = widget.event.courseConfig.tees;
+    final bool isCaptain = ref.watch(isGroupCaptainProvider(widget.event));
+
+    // Derive live marker assignments from scorecards (entryId -> markerId)
+    final allScorecards = ref.watch(scorecardsListProvider(widget.event.id)).asData?.value ?? [];
+    final Map<String, String> markerAssignments = {
+      for (final s in allScorecards)
+        if (s.markerId != null && s.markerId!.isNotEmpty && s.markerId != s.entryId)
+          s.entryId: s.markerId!,
+    };
 
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-          // Group Scorer Toggle
-          BoxyArtCard(
-            backgroundColor: Theme.of(context).colorScheme.primary.withValues(alpha: AppColors.opacityLow),
-            padding: EdgeInsets.zero,
-            child: BoxyArtSwitchTile(
-              icon: Icons.group_rounded,
-              label: 'Mark Entire Group',
-              subtitle: 'Allow score entry for everyone in your group',
-              value: isGroupScorer,
-              onChanged: (val) => ref.read(markerSelectionProvider.notifier).toggleGroupScorer(val),
-            ),
-          ),
-
-          SizedBox(height: spacing?.cardToLabel ?? AppSpacing.standard),
-
           Text(
             'SELECT PLAYER TO MARK',
             style: AppTypography.label.copyWith(
@@ -167,7 +160,8 @@ class _MarkerSelectionSheetState extends ConsumerState<MarkerSelectionSheet> {
                       defaultTeeName: playerDefaultTee,
                       isMyMarker: markerSelection.myMarkerId == id,
                       canBeMyMarker: true,
-                      isTaken: markerAssignments.entries.any((e) => e.key != currentUser.id && e.value == id),
+                      isTaken: !isCaptain && markerAssignments.entries.any((e) => e.key != currentUser.id && e.value == id),
+                      isCaptainOverride: isCaptain && markerAssignments.entries.any((e) => e.key != currentUser.id && e.value == id),
                       showDivider: idx < otherPlayers.length - 1,
                     );
                   }),
@@ -176,7 +170,19 @@ class _MarkerSelectionSheetState extends ConsumerState<MarkerSelectionSheet> {
             ),
           ),
 
-          const SizedBox(height: AppSpacing.standard),
+          const SizedBox(height: AppSpacing.atomic),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.atomic),
+            child: Text(
+              '1. Check the players whose scores you are entering.\n2. Tap the card icon at the end of a row to set that player as your marker — the person entering your score.',
+              style: AppTypography.micro.copyWith(
+                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: AppColors.opacitySecondary),
+                fontWeight: AppTypography.weightRegular,
+                height: 1.6,
+              ),
+            ),
+          ),
+          const SizedBox(height: AppSpacing.section),
         ],
     );
   }
@@ -196,6 +202,7 @@ class _MarkerSelectionSheetState extends ConsumerState<MarkerSelectionSheet> {
     bool isMyMarker = false,
     bool canBeMyMarker = true,
     bool isTaken = false,
+    bool isCaptainOverride = false,
     bool showDivider = true,
   }) {
     final theme = Theme.of(context);
@@ -208,66 +215,77 @@ class _MarkerSelectionSheetState extends ConsumerState<MarkerSelectionSheet> {
           child: Padding(
             padding: const EdgeInsets.symmetric(vertical: AppSpacing.atomic),
             child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                // Checkbox
+                // Box checkbox
+                GestureDetector(
+                  onTap: isTaken ? null : onSelect,
+                  behavior: HitTestBehavior.opaque,
+                  child: Container(
+                    width: AppSpacing.standard,
+                    height: AppSpacing.standard,
+                    decoration: BoxDecoration(
+                      color: isSelected ? theme.colorScheme.primary : Colors.transparent,
+                      borderRadius: shapes?.accent ?? BorderRadius.circular(4),
+                      border: Border.all(
+                        color: isSelected ? theme.colorScheme.primary : AppColors.dark400,
+                        width: isSelected ? AppShapes.borderMedium : AppShapes.borderThin,
+                      ),
+                    ),
+                    child: isSelected
+                        ? Icon(Icons.check, size: AppShapes.iconXs, color: Colors.white)
+                        : null,
+                  ),
+                ),
+
+                const SizedBox(width: AppSpacing.atomic),
+
+                // Name
                 Expanded(
-                  flex: 1,
+                  flex: 4,
                   child: GestureDetector(
-                    onTap: isTaken ? null : onSelect,
+                    onTap: onSelect,
                     behavior: HitTestBehavior.opaque,
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: AppSpacing.atomic),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Container(
-                            width: AppSpacing.standard,
-                            height: AppSpacing.standard,
-                            decoration: BoxDecoration(
+                    child: Row(
+                      children: [
+                        Flexible(
+                          child: Text(
+                            name,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: AppTypography.label.copyWith(
+                              fontWeight: AppTypography.weightBold,
                               color: isSelected
-                                  ? theme.colorScheme.primary
-                                  : Colors.transparent,
-                              borderRadius: shapes?.input,
-                              border: Border.all(
-                                color: isSelected
-                                    ? theme.colorScheme.primary
-                                    : AppColors.dark400,
-                                width: isSelected
-                                    ? AppShapes.borderMedium
-                                    : AppShapes.borderThin,
-                              ),
+                                  ? theme.colorScheme.onSurface
+                                  : theme.colorScheme.onSurface.withValues(alpha: AppColors.opacitySecondary),
                             ),
-                            child: isSelected
-                                ? Icon(Icons.check, size: AppShapes.iconXs, color: Colors.white)
-                                : null,
                           ),
-                          const SizedBox(width: AppSpacing.atomic),
-                          Expanded(
-                            child: Text(
-                              name,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: AppTypography.body.copyWith(
-                                fontWeight: isSelected
-                                    ? AppTypography.weightHeavy
-                                    : AppTypography.weightRegular,
-                                color: isSelected
-                                    ? theme.colorScheme.onSurface
-                                    : theme.colorScheme.onSurface.withValues(alpha: AppColors.opacityHigh),
-                              ),
-                            ),
+                        ),
+                        if (isCaptainOverride) ...[
+                          const SizedBox(width: 4),
+                          Tooltip(
+                            message: 'Already assigned — captain override',
+                            child: Icon(Icons.star_rounded, size: 12, color: AppColors.amber500),
                           ),
                         ],
-                      ),
+                      ],
                     ),
                   ),
                 ),
 
                 const SizedBox(width: AppSpacing.atomic),
 
-                // Marker assignment icon
+                // Tee dropdown
+                Expanded(
+                  flex: 5,
+                  child: _buildTeeDropdown(context, ref, entryId, tees, overrides, defaultTeeName, shapes),
+                ),
+
+                const SizedBox(width: AppSpacing.atomic),
+
+                // My marker indicator — fixed width slot keeps all rows aligned
                 SizedBox(
-                  width: AppSpacing.section,
+                  width: 38,
                   child: canBeMyMarker
                       ? GestureDetector(
                           onTap: isTaken
@@ -275,32 +293,17 @@ class _MarkerSelectionSheetState extends ConsumerState<MarkerSelectionSheet> {
                               : () => ref
                                   .read(markerSelectionProvider.notifier)
                                   .setMyMarker(isMyMarker ? null : entryId),
-                          child: Container(
-                            padding: const EdgeInsets.all(AppSpacing.xs),
-                            decoration: BoxDecoration(
-                              color: isMyMarker
-                                  ? theme.colorScheme.primary.withValues(alpha: AppColors.opacitySubtle)
-                                  : AppColors.dark100.withValues(alpha: AppColors.opacityHalf),
-                              borderRadius: shapes?.input,
-                            ),
-                            child: Icon(
-                              Icons.edit_note_rounded,
-                              size: AppShapes.iconSm,
-                              color: isMyMarker
-                                  ? theme.colorScheme.primary
-                                  : AppColors.dark400,
-                            ),
+                          child: BoxyArtIconBadge(
+                            icon: Icons.edit_note_rounded,
+                            isPrimary: isMyMarker,
+                            isTinted: true,
+                            fillOpacity: isMyMarker ? AppColors.opacitySubtle : AppColors.opacityLow,
+                            iconColor: isMyMarker
+                                ? theme.colorScheme.primary
+                                : AppColors.dark300,
                           ),
                         )
-                      : const SizedBox.shrink(),
-                ),
-
-                const SizedBox(width: AppSpacing.atomic),
-
-                // Tee dropdown
-                Expanded(
-                  flex: 1,
-                  child: _buildTeeDropdown(context, ref, entryId, tees, overrides, defaultTeeName, shapes),
+                      : null,
                 ),
               ],
             ),

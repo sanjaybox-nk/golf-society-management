@@ -171,14 +171,24 @@ class EventAdminScorecardEditorScreen extends ConsumerWidget {
                       
                       SizedBox(height: spacing?.cardToCard ?? AppSpacing.standard),
                       
-                      // Admin Keypad - Wrapped in Card for Design 4.x
+                      // Auto-jump to first conflicted hole
+                      Builder(builder: (ctx) {
+                        if (conflictedHoles.isNotEmpty && currentHole == 1) {
+                          WidgetsBinding.instance.addPostFrameCallback((_) {
+                            ref.read(adminEditorHoleProvider.notifier).state = conflictedHoles.first;
+                          });
+                        }
+                        return const SizedBox.shrink();
+                      }),
+
+                      // Admin Keypad
                       BoxyArtCard(
                         padding: const EdgeInsets.all(AppSpacing.xl),
                         child: AdminScorecardKeypad(
                           currentHole: currentHole,
                           scores: _getHoleScores(scorecard),
                           onHoleChanged: (h) => ref.read(adminEditorHoleProvider.notifier).state = h,
-                          onSetScore: (h, score) => _persistScore(context, ref, h, score, scorecard, event),
+                          onSetScore: (h, score) => _persistScoreWithAudit(context, ref, h, score, scorecard, event, conflictedHoles),
                         ),
                       ),
                     ],
@@ -208,39 +218,111 @@ class EventAdminScorecardEditorScreen extends ConsumerWidget {
     return map;
   }
 
-  Future<void> _persistScore(BuildContext context, WidgetRef ref, int hole, int score, Scorecard? currentCard, GolfEvent event) async {
+  Future<void> _persistScoreWithAudit(
+    BuildContext context,
+    WidgetRef ref,
+    int hole,
+    int score,
+    Scorecard? currentCard,
+    GolfEvent event,
+    Set<int> conflictedHoles,
+  ) async {
+    final isConflictedHole = conflictedHoles.contains(hole);
+    String reason = 'Admin correction';
+
+    // Prompt for reason when overriding a conflicted hole
+    if (isConflictedHole && context.mounted) {
+      final controller = TextEditingController();
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: Text('Resolve Conflict — Hole $hole'),
+          content: TextField(
+            controller: controller,
+            decoration: const InputDecoration(
+              hintText: 'Reason (e.g. "Player confirmed correct")',
+              border: OutlineInputBorder(),
+            ),
+            autofocus: true,
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.of(ctx).pop(false), child: const Text('Cancel')),
+            TextButton(onPressed: () => Navigator.of(ctx).pop(true), child: const Text('Confirm')),
+          ],
+        ),
+      );
+      if (confirmed != true) return;
+      if (controller.text.trim().isNotEmpty) reason = controller.text.trim();
+    }
+
     try {
       final repo = ref.read(scorecardRepositoryProvider);
       final userId = ref.read(currentUserProvider).id;
-      
+
       final List<int?> scores = List<int?>.from(currentCard?.holeScores ?? List.filled(18, null));
       scores[hole - 1] = score;
-      
+
+      // Align playerVerifierScores for this hole so the conflict clears
+      final List<int?> verifierScores = List<int?>.from(
+        currentCard?.playerVerifierScores ?? List.filled(18, null),
+      );
+      while (verifierScores.length <= hole - 1) verifierScores.add(null);
+      if (isConflictedHole) verifierScores[hole - 1] = score;
+
       final grossTotal = scores.whereType<int>().fold<int>(0, (a, b) => a + b);
 
+      // Check if all conflicts are now resolved → advance to reviewed
+      final remainingConflicts = conflictedHoles.where((h) => h != hole).any((h) {
+        final hIdx = h - 1;
+        final p = scores.elementAtOrNull(hIdx);
+        final m = verifierScores.elementAtOrNull(hIdx);
+        return p != null && m != null && p != m;
+      });
+
+      final newStatus = (!remainingConflicts &&
+              (currentCard?.verifiedByPlayer ?? false) &&
+              (currentCard?.verifiedByMarker ?? false))
+          ? ScorecardStatus.reviewed
+          : (currentCard?.status ?? ScorecardStatus.submitted);
+
       if (currentCard == null) {
-        final newCard = Scorecard(
-          id: '', // Repo generates ID
+        await repo.addScorecard(Scorecard(
+          id: '',
           competitionId: eventId,
           roundId: 'round_1',
           entryId: playerId,
           submittedByUserId: userId,
           holeScores: scores,
-          playerVerifierScores: [],
+          playerVerifierScores: verifierScores,
           shotAttributions: {},
           grossTotal: grossTotal,
           status: ScorecardStatus.draft,
           createdAt: DateTime.now(),
           updatedAt: DateTime.now(),
-        );
-        await repo.addScorecard(newCard);
+        ));
       } else {
-        final updatedCard = currentCard.copyWith(
+        await repo.updateScorecard(currentCard.copyWith(
           holeScores: scores,
+          playerVerifierScores: verifierScores,
           grossTotal: grossTotal,
+          status: newStatus,
+          adminEditAudit: isConflictedHole
+              ? AdminEditAudit(
+                  overridden: true,
+                  reason: reason,
+                  editorId: userId,
+                  timestamp: DateTime.now(),
+                )
+              : currentCard.adminEditAudit,
           updatedAt: DateTime.now(),
-        );
-        await repo.updateScorecard(updatedCard);
+        ));
+      }
+
+      if (context.mounted && newStatus == ScorecardStatus.reviewed) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('All conflicts resolved — card marked as reviewed'),
+          backgroundColor: AppColors.lime500,
+        ));
       }
     } catch (e) {
       if (!context.mounted) return;

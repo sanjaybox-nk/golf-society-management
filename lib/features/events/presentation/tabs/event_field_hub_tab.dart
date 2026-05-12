@@ -47,8 +47,8 @@ class EventGroupingUserTab extends ConsumerWidget {
         final isStaff = user.role != MemberRole.member;
 
         return HeadlessScaffold(
-          title: event.title,
-          subtitle: 'Event Field and Tee Times',
+          title: 'Field & Tee Times',
+          subtitle: event.title,
           showAdminShortcut: false, 
           showBack: true,
           onBack: () => context.go('/events'),
@@ -158,12 +158,7 @@ class EventGroupingUserTab extends ConsumerWidget {
                                    computedEntries: computedEntries,
                                    matches: event.matches,
                                    isEventClosed: event.isClosed,
-                                   onTapParticipant: (p, g) => SharedTournamentLogic.handleParticipantTap(
-                                     context: context,
-                                     ref: ref,
-                                     event: event,
-                                     participant: p,
-                                   ),
+                                   onTapParticipant: null,
                                 ),
                             );
                          },

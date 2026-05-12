@@ -10,7 +10,7 @@ import 'package:golf_society/features/members/presentation/members_provider.dart
 import 'package:golf_society/features/members/presentation/profile_provider.dart';
 import 'package:golf_society/features/events/domain/models/processed_event_data.dart';
 import 'package:golf_society/features/events/presentation/state/marker_selection_provider.dart';
-import 'package:golf_society/features/events/presentation/widgets/sliding_course_info_card.dart';
+import 'package:golf_society/features/events/presentation/widgets/course_info_card.dart';
 import 'package:golf_society/features/events/presentation/tabs/event_tabs_state.dart';
 import 'package:golf_society/features/competitions/presentation/competitions_provider.dart';
 import 'package:golf_society/domain/grouping/tee_group.dart';
@@ -145,18 +145,22 @@ class _EventScorecardViewState extends ConsumerState<EventScorecardView> {
           ),
         ),
 
-        SlidingCourseInfoCard(
+        CourseInfoCard(
           courseConfig: playerTeeConfig,
           selectedTeeName: playerTeeName,
           distanceUnit: config.distanceUnit,
           isStableford: widget.effectiveRules.format == CompetitionFormat.stableford,
+          isNet: widget.effectiveRules.handicapAllowance != 0,
+          paged: true,
+          holeScores: gridScores,
           playerHandicap: displayPlayingHcp,
-          scores: gridScores,
+          handicapAllowance: widget.effectiveRules.handicapAllowance,
+          format: widget.effectiveRules.format,
+          maxScoreConfig: widget.effectiveRules.maxScoreConfig,
+          matchPlayResults: null,
           tieBreakLabel: displayScoring?.tieBreakLabel,
-          headerColor: isMeView ? AppColors.amber500.withValues(alpha: AppColors.opacityMuted) : null,
           holeTags: displayCard?.holeTags,
           conflictedHoles: conflictedHoles,
-          handicapAllowance: widget.effectiveRules.handicapAllowance,
         ),
 
         // Conflict strip — below the card for birds-eye summary

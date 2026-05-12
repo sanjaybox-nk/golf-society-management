@@ -70,18 +70,24 @@ class ScoringUtils {
   }) {
     if (verifierScorecard == null) return targetScorecard;
 
-    // 1. Conflict detection: Compare player's holeScores with marker's playerVerifierScores
-    final bool isConflictFree = const ListEquality().equals(
-      targetScorecard.holeScores, 
-      verifierScorecard.playerVerifierScores
-    );
+    // 1. Conflict detection: only flag holes where BOTH sides entered AND disagree.
+    // An empty holeScores (player didn't self-enter) is not a conflict.
+    bool isConflictFree = true;
+    for (int i = 0; i < 18; i++) {
+      final p = targetScorecard.holeScores.elementAtOrNull(i);
+      final m = verifierScorecard.playerVerifierScores.elementAtOrNull(i);
+      if (p != null && m != null && p != m) {
+        isConflictFree = false;
+        break;
+      }
+    }
 
     if (!isConflictFree) return targetScorecard;
 
-    // 2. Transition to finalScore if both parties have signed off
+    // 2. Transition to submitted when both parties have signed off — awaits admin lock
     if (targetScorecard.verifiedByPlayer && targetScorecard.verifiedByMarker) {
       return targetScorecard.copyWith(
-        status: ScorecardStatus.finalScore,
+        status: ScorecardStatus.submitted,
         updatedAt: DateTime.now(),
       );
     }

@@ -28,8 +28,8 @@ class BoxyArtBottomNavBar extends StatelessWidget {
     final shadows = theme.extension<AppShadows>();
 
     final bg = backgroundColor ?? (isDark ? AppColors.dark800 : AppColors.pureWhite);
-    final active = activeColor ?? (isDark ? theme.colorScheme.primary : AppColors.dark950);
-    final inactive = unselectedColor ?? (isDark ? AppColors.dark200 : AppColors.dark400);
+    final active = activeColor ?? theme.colorScheme.primary;
+    final inactive = unselectedColor ?? theme.colorScheme.onSurface.withValues(alpha: AppColors.opacitySecondary);
 
     return Material(
       type: MaterialType.transparency,
@@ -95,7 +95,7 @@ class BoxyArtBottomNavBar extends StatelessWidget {
                           child: Icon(
                             isSelected ? item.activeIcon : item.icon,
                             color: isSelected ? active : inactive,
-                            size: 24,
+                            size: 22,
                           ),
                         ),
                         const SizedBox(height: 2),

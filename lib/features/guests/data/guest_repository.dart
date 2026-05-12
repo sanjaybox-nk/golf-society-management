@@ -19,7 +19,7 @@ class GuestRepository {
       );
 
   Stream<List<GuestProfile>> watchAll() =>
-      _ref.orderBy('lastPlayedAt', descending: true).snapshots().map(
+      _ref.orderBy('name').snapshots().map(
             (s) => s.docs.map((d) => d.data()).toList(),
           );
 

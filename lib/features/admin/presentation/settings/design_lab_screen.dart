@@ -74,9 +74,8 @@ class DesignLabScreen extends ConsumerWidget {
               _LabSection(
                 icon: Icons.navigation_rounded,
                 title: 'Navigation',
-                description: 'Bottom nav bar top corner rounding. '
-                    'Higher values give a "shelf" quality — elevated but grounded. '
-                    'Zero is a flat panel.',
+                description: 'Two independent tokens: the bottom nav bar top corner rounding '
+                    '(shelf vs flat panel) and the selected tab pill radius inside inner tab bars.',
                 preview: _NavPreview(config: config),
                 controls: _NavControls(config: config, controller: controller),
               ),
@@ -505,22 +504,57 @@ class _NavPreview extends StatelessWidget {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final bg = isDark ? AppColors.dark800 : AppColors.pureWhite;
-    final radius = config.navBarRadius;
+    final navRadius = config.navBarRadius;
+    final tabRadius = config.tabIndicatorRadius;
     final items = ['Home', 'Events', 'Members', 'Locker'];
     final icons = [Icons.home_rounded, Icons.calendar_month_rounded, Icons.people_rounded, Icons.lock_rounded];
+    final tabLabels = ['GOLF EVENTS', 'SOCIAL'];
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Bottom Nav  ·  navBarRadius = ${radius.toStringAsFixed(0)}pt',
+        // Tab bar preview
+        Text('Inner Tab Bar  ·  tabIndicatorRadius = ${tabRadius.toStringAsFixed(0)}pt',
+            style: AppTypography.nano.copyWith(fontSize: 9, color: theme.colorScheme.onSurface.withValues(alpha: AppColors.opacitySecondary))),
+        const SizedBox(height: AppSpacing.xs),
+        Row(
+          children: List.generate(tabLabels.length, (i) {
+            final isSelected = i == 0;
+            return Expanded(
+              child: Container(
+                height: 36,
+                margin: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
+                decoration: isSelected ? BoxDecoration(
+                  color: theme.colorScheme.primary.withValues(alpha: AppColors.opacityLow),
+                  borderRadius: BorderRadius.circular(tabRadius),
+                ) : null,
+                alignment: Alignment.center,
+                child: Text(
+                  tabLabels[i],
+                  style: AppTypography.nano.copyWith(
+                    fontSize: 10,
+                    fontWeight: isSelected ? AppTypography.weightBold : AppTypography.weightRegular,
+                    color: isSelected
+                        ? theme.colorScheme.primary
+                        : theme.colorScheme.onSurface.withValues(alpha: AppColors.opacitySecondary),
+                    letterSpacing: AppTypography.lsLabel,
+                  ),
+                ),
+              ),
+            );
+          }),
+        ),
+        const SizedBox(height: AppSpacing.standard),
+        // Bottom nav preview
+        Text('Bottom Nav  ·  navBarRadius = ${navRadius.toStringAsFixed(0)}pt',
             style: AppTypography.nano.copyWith(fontSize: 9, color: theme.colorScheme.onSurface.withValues(alpha: AppColors.opacitySecondary))),
         const SizedBox(height: AppSpacing.xs),
         Container(
           decoration: BoxDecoration(
             color: bg,
             borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(radius),
-              topRight: Radius.circular(radius),
+              topLeft: Radius.circular(navRadius),
+              topRight: Radius.circular(navRadius),
             ),
             boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.08), offset: const Offset(0, -4), blurRadius: 12)],
           ),

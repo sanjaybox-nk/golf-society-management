@@ -378,9 +378,10 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
                   ),
 
                   if (!widget.isNewMember) ...[
+                    SizedBox(height: spacing?.cardToLabel ?? AppSpacing.standard),
                     // 2. Performance Section
                     const BoxyArtSectionTitle(
-                      title: 'Member Performance', 
+                      title: 'Member Performance',
                       isPeeking: true,
                       horizontalPadding: 0,
                     ),

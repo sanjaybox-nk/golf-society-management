@@ -13,6 +13,29 @@ import '../../../../domain/grouping/grouping_service.dart';
 import '../../../matchplay/domain/match_definition.dart';
 import '../../../matchplay/domain/match_play_calculator.dart';
 
+class _CompactBadge extends StatelessWidget {
+  final IconData? icon;
+  final String? label;
+  final Color color;
+  const _CompactBadge({this.icon, this.label, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 16,
+      height: 16,
+      decoration: BoxDecoration(
+        color: color,
+        shape: BoxShape.circle,
+      ),
+      alignment: Alignment.center,
+      child: icon != null
+          ? Icon(icon, size: 9, color: AppColors.pureWhite)
+          : Text(label ?? '', style: const TextStyle(color: AppColors.pureWhite, fontSize: 8, fontWeight: FontWeight.w800)),
+    );
+  }
+}
+
 class GroupingPlayerAvatar extends StatelessWidget {
   final TeeGroupParticipant player;
   final Member? member;
@@ -33,12 +56,19 @@ class GroupingPlayerAvatar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BoxyArtAvatar(
-      url: (member?.avatarUrl != null && !player.isGuest) ? member!.avatarUrl : null,
-      initials: extractInitials(player.name),
-      radius: size / 2,
-      borderColor: player.isCaptain ? AppColors.amber500 : null,
-      borderWidth: player.isCaptain ? 2.0 : null,
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        BoxyArtAvatar(
+          url: (member?.avatarUrl != null && !player.isGuest) ? member!.avatarUrl : null,
+          initials: extractInitials(player.name),
+          radius: size / 2,
+        ),
+        if (player.isCaptain && !player.isGuest)
+          const Positioned(top: 0, left: 0, child: _CompactBadge(icon: Icons.shield_rounded, color: AppColors.amber500)),
+        if (player.isGuest)
+          const Positioned(bottom: 0, right: 0, child: _CompactBadge(label: 'G', color: AppColors.guestPurple)),
+      ],
     );
   }
 }

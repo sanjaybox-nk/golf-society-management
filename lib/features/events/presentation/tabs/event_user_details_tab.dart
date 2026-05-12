@@ -129,8 +129,8 @@ class _EventDetailsContentState extends ConsumerState<EventDetailsContent> {
     final event = widget.event;
 
     return HeadlessScaffold(
-        title: event.title,
-        subtitle: 'Event Info Hub',
+        title: 'Event Details',
+        subtitle: event.title,
         topPill: widget.isAdminMode ? BoxyArtPill.committee(label: 'ADMIN') : null,
         showAdminShortcut: false, // Explicitly removed as requested
   

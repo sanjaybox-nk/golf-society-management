@@ -53,9 +53,9 @@ class EventFieldAdminScreen extends ConsumerWidget {
         final isTournamentGrouping = competitionAsync.value?.rules.isTournamentStyleGrouping ?? false;
 
         return HeadlessScaffold(
-          title: event.title,
+          title: 'Field & Tee Times',
           topPill: BoxyArtPill.committee(label: 'ADMIN'),
-          subtitle: 'Event Field and Tee Time',
+          subtitle: event.title,
           showBack: true,
           onBack: () => context.go('/admin/events'),
 

@@ -201,33 +201,46 @@ class _MembersScreenState extends ConsumerState<MembersScreen> {
                   delegate: SliverChildBuilderDelegate(
                     (context, index) {
                       final g = guests[index];
+                      final isLast = index == guests.length - 1;
+                      final parts = g.name.trim().split(' ').where((p) => p.isNotEmpty).toList();
+                      final initials = parts.length >= 2
+                          ? '${parts.first[0]}${parts[1][0]}'.toUpperCase()
+                          : (parts.isNotEmpty ? parts.first[0].toUpperCase() : '?');
                       return Padding(
-                        padding: EdgeInsets.only(bottom: spacing?.cardToCard ?? AppSpacing.cardToCard),
-                        child: BoxyArtCard(
-                          child: Row(
-                            children: [
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(g.name, style: AppTypography.body.copyWith(fontWeight: AppTypography.weightBold)),
-                                    const SizedBox(height: 2),
-                                    Text(g.email, style: AppTypography.micro.copyWith(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: AppColors.opacityHigh))),
-                                  ],
+                        padding: EdgeInsets.only(bottom: isLast ? 0 : (spacing?.cardToCard ?? AppSpacing.cardToCard)),
+                        child: BoxyArtMemberRow(
+                          name: g.name,
+                          secondaryName: g.email,
+                          initials: initials,
+                          handicapIndex: g.handicap,
+                          isGuest: true,
+                          useCard: true,
+                          showChevron: false,
+                          showVerticalDivider: true,
+                          leading: SizedBox(
+                            width: 64,
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                BoxyArtAvatar(
+                                  initials: initials,
+                                  radius: 32,
+                                  isCircle: true,
+                                  borderColor: Colors.transparent,
+                                  borderWidth: 0,
                                 ),
-                              ),
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.end,
-                                children: [
-                                  BoxyArtIndicator.hc(label: _formatHcp(g.handicap), hasHorizontalMargin: false),
-                                  const SizedBox(height: 2),
-                                  Text(
+                                const SizedBox(height: 4),
+                                FittedBox(
+                                  child: Text(
                                     'Events ${g.eventCount}',
-                                    style: AppTypography.micro.copyWith(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: AppColors.opacitySecondary)),
+                                    style: AppTypography.micro.copyWith(
+                                      fontSize: 10,
+                                      fontWeight: AppTypography.weightRegular,
+                                    ),
                                   ),
-                                ],
-                              ),
-                            ],
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       );

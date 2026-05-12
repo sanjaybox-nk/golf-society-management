@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:golf_society/services/persistence_service.dart';
 import 'package:golf_society/features/members/presentation/profile_provider.dart';
+import 'package:golf_society/domain/models/golf_event.dart';
 
 class MarkerSelection {
   final bool isSelfMarking;
@@ -181,3 +182,18 @@ class MarkerSelectionNotifier extends Notifier<MarkerSelection> {
 }
 
 final markerSelectionProvider = NotifierProvider<MarkerSelectionNotifier, MarkerSelection>(() => MarkerSelectionNotifier());
+
+/// True if the current user is a group captain in the given event.
+/// Derives directly from the grouping snapshot — no elevation possible.
+final isGroupCaptainProvider = Provider.autoDispose.family<bool, GolfEvent>((ref, event) {
+  final currentUser = ref.watch(effectiveUserProvider);
+  final groups = event.grouping['groups'] as List? ?? [];
+  for (final group in groups) {
+    for (final p in (group['players'] as List? ?? [])) {
+      final map = Map<String, dynamic>.from(p as Map);
+      final id = (map['id'] ?? map['registrationMemberId'] ?? '').toString();
+      if (id == currentUser.id && map['isCaptain'] == true) return true;
+    }
+  }
+  return false;
+});

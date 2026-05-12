@@ -36,8 +36,8 @@ class TournamentScoresUserTab extends ConsumerWidget {
             final int activeTab = (currentTab == 1 || currentTab == 2) ? currentTab : 1;
             
             return HeadlessScaffold(
-              title: event.title,
-              subtitle: 'Event Scores',
+              title: 'Scores',
+              subtitle: event.title,
               showBack: true,
               onBack: () => context.go('/events'),
 
@@ -57,24 +57,17 @@ class TournamentScoresUserTab extends ConsumerWidget {
                   ),
                   sliver: SliverToBoxAdapter(
                     child: Builder(builder: (context) {
-                      final scoringData = ref.watch(eventScoringControllerProvider(eventId));
                       return Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          if (scoringData.totalParticipants > 0)
-                            SubmissionProgressBar(
-                              total: scoringData.totalParticipants,
-                              submitted: scoringData.submittedCount,
-                              inProgress: scoringData.inProgressCount,
-                            ),
                           if (activeTab == 1)
                             Builder(builder: (context) {
                               final markerSelection = ref.watch(markerSelectionProvider);
                               return _TournamentGroupScoresView(
-                                event: event, 
-                                rules: effectiveRules, 
+                                event: event,
+                                rules: effectiveRules,
                                 markerSelection: markerSelection,
-                                followsCard: scoringData.totalParticipants > 0,
+                                followsCard: false,
                               );
                             })
                           else
@@ -90,7 +83,7 @@ class TournamentScoresUserTab extends ConsumerWidget {
                                     liveScorecards: scorecards, 
                                     membersList: membersAsync.value ?? [], 
                                     playerHoleLimits: const {},
-                                    followsCard: scoringData.totalParticipants > 0,
+                                    followsCard: false,
                                     onPlayerTap: (entry) => ScorecardModal.show(
                                       context, ref, 
                                       entry: entry, 
@@ -199,8 +192,8 @@ class EventStatsUserTab extends ConsumerWidget {
     return eventAsync.when(
       data: (event) {
         return HeadlessScaffold(
-          title: event.title,
-          subtitle: 'Event Stats',
+          title: 'Stats',
+          subtitle: event.title,
           showAdminShortcut: false, 
           showBack: true,
           onBack: () => context.go('/events'),

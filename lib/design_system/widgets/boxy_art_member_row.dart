@@ -133,65 +133,17 @@ class BoxyArtMemberRow extends ConsumerWidget {
                   ),
                 ),
               
-              // Captain Overlay
+                  // Captain — top left
               if (isCaptain && !isGuest)
-                const Positioned(
-                  bottom: -4,
-                  right: -4,
-                  child: BoxyArtIconBadge(
-                    icon: Icons.shield_rounded,
-                    color: AppColors.amber500,
-                    size: 22,
-                    iconSize: 12,
-                    useCircle: true,
-                  ),
-                ),
-                
-              // Guest Overlay
-              if (isGuest)
-                Positioned(
-                  bottom: -4,
-                  left: -4,
-                  child: Container(
-                    width: 20,
-                    height: 20,
-                    decoration: BoxDecoration(
-                      color: AppColors.amber500,
-                      shape: BoxShape.circle,
-                      border: Border.all(color: AppColors.pureWhite, width: 1.5),
-                    ),
-                    alignment: Alignment.center,
-                    child: const Text('G', style: TextStyle(fontSize: 10, fontWeight: AppTypography.weightHeavy, color: AppColors.dark900)),
-                  ),
-                ),
+                const Positioned(top: -4, left: -4, child: _MemberBadge(icon: Icons.shield_rounded, color: AppColors.amber500)),
 
-              // Host Overlay (Has Guest in group)
+              // Host (brought a guest) — bottom left
               if (hasMemberGuest)
-                Positioned(
-                  bottom: -4,
-                  left: -4,
-                  child: BoxyArtIconBadge(
-                    icon: Icons.person_add_rounded,
-                    color: theme.colorScheme.primary,
-                    size: 22,
-                    iconSize: 12,
-                    useCircle: true,
-                  ),
-                ),
+                const Positioned(bottom: -4, left: -4, child: _MemberBadge(icon: Icons.person_add_rounded, color: AppColors.dark400)),
 
-              // Founder Overlay
-              if (isFoundingMember)
-                const Positioned(
-                  top: -4,
-                  right: -4,
-                  child: BoxyArtIconBadge(
-                    icon: Icons.star_rounded,
-                    color: AppColors.lime500,
-                    size: 22,
-                    iconSize: 14,
-                    useCircle: true,
-                  ),
-                ),
+              // Guest — bottom right
+              if (isGuest)
+                const Positioned(bottom: -4, right: -4, child: _MemberBadge(label: 'G', color: AppColors.guestPurple)),
             ],
           ),
 
@@ -319,11 +271,9 @@ class BoxyArtMemberRow extends ConsumerWidget {
 
   Widget _buildAvatar(BuildContext context) {
     return BoxyArtAvatar(
-      url: (avatarUrl != null && !isGuest) ? avatarUrl : null,
+      url: avatarUrl,
       initials: extractInitials(initials),
       radius: 24,
-      borderColor: isCaptain && !isGuest ? AppColors.amber500 : null,
-      borderWidth: isCaptain && !isGuest ? 2.0 : null,
     );
   }
 
@@ -458,4 +408,27 @@ class BoxyArtMemberRow extends ConsumerWidget {
     );
   }
 
+}
+
+class _MemberBadge extends StatelessWidget {
+  final IconData? icon;
+  final String? label;
+  final Color color;
+  const _MemberBadge({this.icon, this.label, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 18,
+      height: 18,
+      decoration: BoxDecoration(
+        color: color,
+        shape: BoxShape.circle,
+      ),
+      alignment: Alignment.center,
+      child: icon != null
+          ? Icon(icon, size: 10, color: AppColors.pureWhite)
+          : Text(label ?? '', style: const TextStyle(color: AppColors.pureWhite, fontSize: 8, fontWeight: FontWeight.w800)),
+    );
+  }
 }

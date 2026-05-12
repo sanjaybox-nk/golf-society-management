@@ -45,8 +45,8 @@ class EventHomeContent extends ConsumerWidget {
     final spacing = Theme.of(context).extension<AppSpacingTokens>();
 
     return HeadlessScaffold(
-      title: event.title,
-      subtitle: 'Event Dashboard',
+      title: 'Event Info',
+      subtitle: event.title,
       showAdminShortcut: false, // Explicitly removed as requested
       showBack: true,
       actions: null,

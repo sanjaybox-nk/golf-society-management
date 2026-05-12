@@ -43,6 +43,9 @@ class ScorecardModal {
       event: event,
     );
 
+    // Live scorecard for metadata the resolver may not carry (holeTags, sign-off flags)
+    final liveScorecard = scorecards.firstWhereOrNull((s) => s.entryId == entry.entryId);
+
     
     // Respect Lab Mode override
     final currentFormat = comp?.rules.format ?? CompetitionFormat.stableford;
@@ -467,10 +470,10 @@ class ScorecardModal {
                                holeDistances: event.courseConfig.holes.map((h) => h.yardage ?? 0).toList(),
                                mainRowLabel: focusedPlayerId == 'team' ? (isFourball ? 'BEST BALL' : 'TEAM') : 'Strokes',
                                additionalRows: additionalRows, 
-                               holeLimit: holeLimit,
                                overrideTotalPoints: totalPoints,
                                matchPlayResults: matchPlayResults,
                                conclusionHole: conclusionHole,
+                               holeTags: liveScorecard?.holeTags ?? actualScorecard.holeTags,
                              );
                           })(),
                           const SizedBox(height: AppSpacing.x2l),
