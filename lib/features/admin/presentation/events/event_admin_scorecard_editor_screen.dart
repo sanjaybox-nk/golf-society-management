@@ -162,7 +162,7 @@ class EventAdminScorecardEditorScreen extends ConsumerWidget {
                         conflictedHoles: conflictedHoles,
                         additionalRows: hasConflicts ? [
                           CourseScoreRow(
-                            playerName: 'Marker',
+                            playerName: 'MKR',
                             scores: markerScores,
                             color: AppColors.amber500,
                           ),
