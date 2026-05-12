@@ -142,7 +142,7 @@ class EventAdminScorecardEditorScreen extends ConsumerWidget {
                             const SizedBox(width: AppSpacing.sm),
                             Expanded(child: Text(
                               '${conflictedHoles.length} hole${conflictedHoles.length > 1 ? 's' : ''} conflict with marker${markerName != null ? ' ($markerName)' : ''}. Conflicted holes are highlighted below.',
-                              style: AppTypography.micro.copyWith(color: AppColors.amber500, fontWeight: AppTypography.weightBold),
+                              style: AppTypography.micro.copyWith(color: AppColors.dark900, fontWeight: AppTypography.weightBold),
                             )),
                           ]),
                         ),
@@ -162,7 +162,7 @@ class EventAdminScorecardEditorScreen extends ConsumerWidget {
                         conflictedHoles: conflictedHoles,
                         additionalRows: hasConflicts ? [
                           CourseScoreRow(
-                            playerName: markerName != null ? 'Marker: $markerName' : 'Marker',
+                            playerName: 'Marker',
                             scores: markerScores,
                             color: AppColors.amber500,
                           ),
