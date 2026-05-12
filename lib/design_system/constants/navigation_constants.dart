@@ -2,6 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:golf_society/design_system/widgets/boxy_art_nav_bar.dart';
 
 class NavigationConstants {
+  static const List<BoxyArtBottomNavItem> scorerAdminNavItems = [
+    BoxyArtBottomNavItem(
+      icon: Icons.calendar_month_outlined,
+      activeIcon: Icons.calendar_month,
+      label: 'Golf Events',
+    ),
+  ];
+
   static const List<BoxyArtBottomNavItem> adminNavItems = [
     BoxyArtBottomNavItem(
       icon: Icons.dashboard_outlined,

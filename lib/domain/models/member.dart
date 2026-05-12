@@ -5,12 +5,13 @@ import 'package:golf_society/utils/json_converters.dart';
 part 'member.freezed.dart';
 part 'member.g.dart';
 
-enum MemberRole { 
+enum MemberRole {
   superAdmin,
-  admin, 
+  admin,
   restrictedAdmin,
+  scorer,
   viewer,
-  member 
+  member
 }
 
 extension MemberRoleX on MemberRole {
@@ -19,10 +20,14 @@ extension MemberRoleX on MemberRole {
       case MemberRole.superAdmin: return 'Super Admin';
       case MemberRole.admin: return 'Admin';
       case MemberRole.restrictedAdmin: return 'Restricted Admin';
+      case MemberRole.scorer: return 'Scorer';
       case MemberRole.viewer: return 'Viewer';
       case MemberRole.member: return 'Member';
     }
   }
+
+  bool get isScorer => this == MemberRole.scorer;
+  bool get hasAdminAccess => this == MemberRole.superAdmin || this == MemberRole.admin || this == MemberRole.restrictedAdmin;
 }
 enum MemberStatus { 
   member, 

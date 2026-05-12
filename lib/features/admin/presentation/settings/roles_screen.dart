@@ -153,16 +153,18 @@ class _RolesScreenState extends ConsumerState<RolesScreen> {
       case MemberRole.superAdmin: return 'Super Admin';
       case MemberRole.admin: return 'Standard Admin';
       case MemberRole.restrictedAdmin: return 'Event Officer';
+      case MemberRole.scorer: return 'Scorer';
       case MemberRole.viewer: return 'Observer (Read-Only)';
       case MemberRole.member: return 'Society Member';
     }
   }
 
   String _getRoleDescription(MemberRole role) {
-     switch (role) {
+    switch (role) {
       case MemberRole.superAdmin: return 'The highest level of authority. Super Admins manage the collective and its core configuration.';
       case MemberRole.admin: return 'Primary operators who manage the day-to-day running of events and the membership roster.';
       case MemberRole.restrictedAdmin: return 'Field-level support for managing specific event tasks and live scoring without full system access.';
+      case MemberRole.scorer: return 'Assigned for event day scoring — can verify cards, resolve conflicts, and approve scorecards.';
       case MemberRole.viewer: return 'Internal auditors or committee members who need to monitor stats without editing rights.';
       case MemberRole.member: return 'Standard app experience for all society members to participate in the season.';
     }
@@ -173,6 +175,7 @@ class _RolesScreenState extends ConsumerState<RolesScreen> {
       case MemberRole.superAdmin: return Icons.admin_panel_settings_rounded;
       case MemberRole.admin: return Icons.security_rounded;
       case MemberRole.restrictedAdmin: return Icons.build_circle_outlined;
+      case MemberRole.scorer: return Icons.edit_note_rounded;
       case MemberRole.viewer: return Icons.visibility_outlined;
       case MemberRole.member: return Icons.person_outline_rounded;
     }

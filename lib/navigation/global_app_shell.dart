@@ -174,7 +174,7 @@ class _DesktopShell extends StatelessWidget {
 /// A reactive delegate that calculates display logic based on current GoRouter location.
 /// By isolating this calculation to a builder, we ensure that location changes ONLY
 /// rebuild the navbar/padding elements, NOT the entire root Scaffold or Shell.
-class _ShellLayoutDelegate extends StatelessWidget {
+class _ShellLayoutDelegate extends ConsumerWidget {
   final StatefulNavigationShell navigationShell;
   final bool isDeparted;
   final Widget Function(BuildContext context, _ShellProperties props) builder;
@@ -186,19 +186,25 @@ class _ShellLayoutDelegate extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     // This is the ONLY place where we watch the location.
     final location = GoRouterState.of(context).uri.path;
     final bool isAdmin = navigationShell.currentIndex >= 5;
+    final isScorer = ref.watch(effectiveUserProvider).role.isScorer;
 
     // 1. Calculate base items
     List<BoxyArtBottomNavItem> items;
     Map<int, int> branchMap = {};
 
     if (isAdmin) {
-      items = NavigationConstants.adminNavItems;
-      for (int i = 0; i < items.length; i++) {
-        branchMap[i] = i + 5;
+      if (isScorer) {
+        items = NavigationConstants.scorerAdminNavItems;
+        branchMap = {0: 6}; // Only the admin events branch
+      } else {
+        items = NavigationConstants.adminNavItems;
+        for (int i = 0; i < items.length; i++) {
+          branchMap[i] = i + 5;
+        }
       }
     } else if (isDeparted) {
       items = [NavigationConstants.userNavItems[3], NavigationConstants.userNavItems[4]];
@@ -241,13 +247,22 @@ class _ShellLayoutDelegate extends StatelessWidget {
         BoxyArtBottomNavItem(label: 'Stats', icon: Icons.analytics_outlined, activeIcon: Icons.analytics_rounded),
       ];
     } else if (isAdminEventHub) {
-      items = [
-        BoxyArtBottomNavItem(label: 'Info', icon: Icons.info_outline_rounded, activeIcon: Icons.info_rounded),
-        BoxyArtBottomNavItem(label: 'Field', icon: Icons.grid_view_rounded, activeIcon: Icons.grid_view_rounded),
-        BoxyArtBottomNavItem(label: 'Scores', icon: Icons.emoji_events_outlined, activeIcon: Icons.emoji_events_rounded),
-        BoxyArtBottomNavItem(label: 'Stats', icon: Icons.analytics_outlined, activeIcon: Icons.analytics_rounded),
-        BoxyArtBottomNavItem(label: 'Controls', icon: Icons.settings_rounded, activeIcon: Icons.settings_rounded),
-      ];
+      if (isScorer) {
+        items = [
+          BoxyArtBottomNavItem(label: 'Info', icon: Icons.info_outline_rounded, activeIcon: Icons.info_rounded),
+          BoxyArtBottomNavItem(label: 'Field', icon: Icons.grid_view_rounded, activeIcon: Icons.grid_view_rounded),
+          BoxyArtBottomNavItem(label: 'Scores', icon: Icons.emoji_events_outlined, activeIcon: Icons.emoji_events_rounded),
+          BoxyArtBottomNavItem(label: 'Stats', icon: Icons.analytics_outlined, activeIcon: Icons.analytics_rounded),
+        ];
+      } else {
+        items = [
+          BoxyArtBottomNavItem(label: 'Info', icon: Icons.info_outline_rounded, activeIcon: Icons.info_rounded),
+          BoxyArtBottomNavItem(label: 'Field', icon: Icons.grid_view_rounded, activeIcon: Icons.grid_view_rounded),
+          BoxyArtBottomNavItem(label: 'Scores', icon: Icons.emoji_events_outlined, activeIcon: Icons.emoji_events_rounded),
+          BoxyArtBottomNavItem(label: 'Stats', icon: Icons.analytics_outlined, activeIcon: Icons.analytics_rounded),
+          BoxyArtBottomNavItem(label: 'Controls', icon: Icons.settings_rounded, activeIcon: Icons.settings_rounded),
+        ];
+      }
     }
 
     int finalIndex = baseIndex;
@@ -287,6 +302,7 @@ class _ShellLayoutDelegate extends StatelessWidget {
       finalDisplayIndex: finalIndex,
       shouldHideMainNav: false,
       isAdmin: isAdmin,
+      isScorer: isScorer,
       branchMap: branchMap,
       isUserHub: isUserEventHub,
       isAdminHub: isAdminEventHub,
@@ -301,6 +317,7 @@ class _ShellProperties {
   final int finalDisplayIndex;
   final bool shouldHideMainNav;
   final bool isAdmin;
+  final bool isScorer;
   final Map<int, int> branchMap;
   final bool isUserHub;
   final bool isAdminHub;
@@ -312,6 +329,7 @@ class _ShellProperties {
     required this.finalDisplayIndex,
     required this.shouldHideMainNav,
     required this.isAdmin,
+    required this.isScorer,
     required this.branchMap,
     required this.isUserHub,
     required this.isAdminHub,
@@ -322,15 +340,15 @@ class _ShellProperties {
 
 void _onTap(BuildContext context, int index, _ShellProperties props) {
   final segments = props.location.split('/');
-  
+
   if (props.isUserHub) {
     final int eventsIdx = segments.indexOf('events');
     final String id = segments[eventsIdx + 1];
     final List<String> paths = [
-      '/events/$id/details', 
-      '/events/$id/field', 
-      '/events/$id/live', 
-      '/events/$id/scores', 
+      '/events/$id/details',
+      '/events/$id/field',
+      '/events/$id/live',
+      '/events/$id/scores',
       '/events/$id/stats'
     ];
     context.go(paths[index]);
@@ -341,13 +359,9 @@ void _onTap(BuildContext context, int index, _ShellProperties props) {
     final int manageIdx = segments.indexOf('manage');
     final String id = segments[manageIdx + 1];
     final String prefix = '/admin/events/manage/$id';
-    final List<String> paths = [
-      '$prefix/details', 
-      '$prefix/gallery', 
-      '$prefix/scores', 
-      '$prefix/stats', 
-      '$prefix/controls'
-    ];
+    final List<String> paths = props.isScorer
+        ? ['$prefix/details', '$prefix/gallery', '$prefix/scores', '$prefix/stats']
+        : ['$prefix/details', '$prefix/gallery', '$prefix/scores', '$prefix/stats', '$prefix/controls'];
     context.go(paths[index]);
     return;
   }

@@ -104,6 +104,7 @@ class RolesSettingsScreen extends ConsumerWidget {
       case MemberRole.superAdmin: return 'Super Admin';
       case MemberRole.admin: return 'Admin';
       case MemberRole.restrictedAdmin: return 'Restricted Admin';
+      case MemberRole.scorer: return 'Scorer';
       case MemberRole.viewer: return 'Viewer';
       case MemberRole.member: return 'Standard Member';
     }
@@ -114,6 +115,7 @@ class RolesSettingsScreen extends ConsumerWidget {
       case MemberRole.superAdmin: return Icons.admin_panel_settings;
       case MemberRole.admin: return Icons.security;
       case MemberRole.restrictedAdmin: return Icons.build_circle_outlined;
+      case MemberRole.scorer: return Icons.edit_note_rounded;
       case MemberRole.viewer: return Icons.visibility_outlined;
       case MemberRole.member: return Icons.person_outline;
     }

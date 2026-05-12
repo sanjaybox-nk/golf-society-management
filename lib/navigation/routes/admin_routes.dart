@@ -1,12 +1,17 @@
 part of '../app_router.dart';
 
-List<StatefulShellBranch> _buildAdminBranches() => [
+List<StatefulShellBranch> _buildAdminBranches(Ref ref) => [
           StatefulShellBranch(
             navigatorKey: _branchAdminKey,
             routes: [
               GoRoute(
                 path: '/admin',
                 name: 'admin-dashboard',
+                redirect: (context, state) {
+                  final user = ref.read(effectiveUserProvider);
+                  if (user.role.isScorer) return '/admin/events';
+                  return null;
+                },
                 pageBuilder: (context, state) => boxyPage(
                   state: state,
                   child: AdminDashboardScreen(),

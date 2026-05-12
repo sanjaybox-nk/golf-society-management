@@ -102,16 +102,18 @@ class MemberRolePicker extends StatelessWidget {
       case MemberRole.superAdmin: return 'Super Admin';
       case MemberRole.admin: return 'Admin';
       case MemberRole.restrictedAdmin: return 'Restricted Admin';
+      case MemberRole.scorer: return 'Scorer';
       case MemberRole.viewer: return 'Viewer';
       case MemberRole.member: return 'Standard Member';
     }
   }
 
   static String _getRoleDescription(MemberRole role) {
-     switch (role) {
+    switch (role) {
       case MemberRole.superAdmin: return 'Full access to all system features.';
       case MemberRole.admin: return 'Manage members, events, and results.';
       case MemberRole.restrictedAdmin: return 'Limited management rights.';
+      case MemberRole.scorer: return 'Event day scorecard verification only.';
       case MemberRole.viewer: return 'Read-only access to all data.';
       case MemberRole.member: return 'Standard app access.';
     }
@@ -122,6 +124,7 @@ class MemberRolePicker extends StatelessWidget {
       case MemberRole.superAdmin: return Icons.admin_panel_settings;
       case MemberRole.admin: return Icons.security;
       case MemberRole.restrictedAdmin: return Icons.build_circle_outlined;
+      case MemberRole.scorer: return Icons.edit_note_rounded;
       case MemberRole.viewer: return Icons.visibility_outlined;
       case MemberRole.member: return Icons.person_outline;
     }

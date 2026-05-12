@@ -91,6 +91,7 @@ const _$MemberRoleEnumMap = {
   MemberRole.superAdmin: 'superAdmin',
   MemberRole.admin: 'admin',
   MemberRole.restrictedAdmin: 'restrictedAdmin',
+  MemberRole.scorer: 'scorer',
   MemberRole.viewer: 'viewer',
   MemberRole.member: 'member',
 };

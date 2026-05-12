@@ -170,7 +170,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         branches: [
           // 0. Home
           ..._buildMemberBranches(),
-          ..._buildAdminBranches(),
+          ..._buildAdminBranches(ref),
         ],
       ),
     ],

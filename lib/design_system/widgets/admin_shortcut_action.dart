@@ -21,8 +21,9 @@ class AdminShortcutAction extends ConsumerWidget {
     final isPeeking = ref.watch(impersonationProvider) != null;
 
     // Visibility logic: Must be admin/superAdmin, NOT peeking, and NOT already in/previewing admin console
-    final bool isAdmin = (currentUser.role == MemberRole.admin || 
-                          currentUser.role == MemberRole.superAdmin);
+    final bool isAdmin = (currentUser.role == MemberRole.admin ||
+                          currentUser.role == MemberRole.superAdmin ||
+                          currentUser.role == MemberRole.scorer);
     
     bool canSeeAdmin = false;
     try {
@@ -49,8 +50,8 @@ class AdminShortcutAction extends ConsumerWidget {
 
     return BoxyArtGlassIconButton(
       icon: Icons.bolt_rounded,
-      onPressed: () => context.go('/admin'),
-      tooltip: 'Admin Console',
+      onPressed: () => context.go(currentUser.role.isScorer ? '/admin/events' : '/admin'),
+      tooltip: currentUser.role.isScorer ? 'Score Events' : 'Admin Console',
       iconColor: AppColors.dark900,
       iconSize: 24,
     );

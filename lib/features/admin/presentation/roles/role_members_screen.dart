@@ -289,6 +289,7 @@ class _RoleMembersScreenState extends ConsumerState<RoleMembersScreen> {
       case MemberRole.superAdmin: return 'Super Admin';
       case MemberRole.admin: return 'Admin';
       case MemberRole.restrictedAdmin: return 'Restricted Admin';
+      case MemberRole.scorer: return 'Scorer';
       case MemberRole.viewer: return 'Viewer';
       case MemberRole.member: return 'Standard Member';
     }
@@ -299,6 +300,7 @@ class _RoleMembersScreenState extends ConsumerState<RoleMembersScreen> {
       case MemberRole.superAdmin: return 'Members designated as Super Admins.';
       case MemberRole.admin: return 'Members designated as Admins.';
       case MemberRole.restrictedAdmin: return 'Members designated as Restricted Admins.';
+      case MemberRole.scorer: return 'Members designated as Scorers.';
       case MemberRole.viewer: return 'Members with Viewer access.';
       case MemberRole.member: return '';
     }
@@ -309,7 +311,8 @@ class _RoleMembersScreenState extends ConsumerState<RoleMembersScreen> {
       case MemberRole.superAdmin: return Colors.deepPurple;
       case MemberRole.admin: return AppColors.teamA;
       case MemberRole.restrictedAdmin: return AppColors.amber500;
-      case MemberRole.viewer: return AppColors.lime500;
+      case MemberRole.scorer: return AppColors.lime500;
+      case MemberRole.viewer: return AppColors.guestPurple;
       case MemberRole.member: return AppColors.textSecondary;
     }
   }
