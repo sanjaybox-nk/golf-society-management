@@ -6,17 +6,23 @@ part of 'scorecard.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_AdminEditAudit _$AdminEditAuditFromJson(Map<String, dynamic> json) =>
-    _AdminEditAudit(
-      overridden: json['overridden'] as bool,
+_HoleAuditEntry _$HoleAuditEntryFromJson(Map<String, dynamic> json) =>
+    _HoleAuditEntry(
+      hole: (json['hole'] as num).toInt(),
+      playerScore: (json['playerScore'] as num).toInt(),
+      markerScore: (json['markerScore'] as num).toInt(),
+      resolvedTo: (json['resolvedTo'] as num).toInt(),
       reason: json['reason'] as String,
       editorId: json['editorId'] as String,
       timestamp: const TimestampConverter().fromJson(json['timestamp']),
     );
 
-Map<String, dynamic> _$AdminEditAuditToJson(_AdminEditAudit instance) =>
+Map<String, dynamic> _$HoleAuditEntryToJson(_HoleAuditEntry instance) =>
     <String, dynamic>{
-      'overridden': instance.overridden,
+      'hole': instance.hole,
+      'playerScore': instance.playerScore,
+      'markerScore': instance.markerScore,
+      'resolvedTo': instance.resolvedTo,
       'reason': instance.reason,
       'editorId': instance.editorId,
       'timestamp': const TimestampConverter().toJson(instance.timestamp),
@@ -56,9 +62,13 @@ _Scorecard _$ScorecardFromJson(Map<String, dynamic> json) => _Scorecard(
   handicapIndex: (json['handicapIndex'] as num?)?.toDouble(),
   playingHandicap: (json['playingHandicap'] as num?)?.toInt(),
   assignedTeeName: json['assignedTeeName'] as String?,
-  adminEditAudit: json['adminEditAudit'] == null
-      ? null
-      : AdminEditAudit.fromJson(json['adminEditAudit'] as Map<String, dynamic>),
+  holeAuditLog:
+      (json['holeAuditLog'] as List<dynamic>?)
+          ?.map((e) => HoleAuditEntry.fromJson(e as Map<String, dynamic>))
+          .toList() ??
+      const [],
+  approvedBy: json['approvedBy'] as String?,
+  approvedAt: const OptionalTimestampConverter().fromJson(json['approvedAt']),
   adminOverridePublish: json['adminOverridePublish'] as bool? ?? false,
   verifiedByPlayer: json['verifiedByPlayer'] as bool? ?? false,
   verifiedByMarker: json['verifiedByMarker'] as bool? ?? false,
@@ -82,52 +92,56 @@ _Scorecard _$ScorecardFromJson(Map<String, dynamic> json) => _Scorecard(
   updatedAt: const TimestampConverter().fromJson(json['updatedAt']),
 );
 
-Map<String, dynamic> _$ScorecardToJson(_Scorecard instance) =>
-    <String, dynamic>{
-      'id': instance.id,
-      'competitionId': instance.competitionId,
-      'roundId': instance.roundId,
-      'entryId': instance.entryId,
-      'submittedByUserId': instance.submittedByUserId,
-      'status': _$ScorecardStatusEnumMap[instance.status]!,
-      'scoringStatus': _$ScoringStatusEnumMap[instance.scoringStatus]!,
-      'holeScores': instance.holeScores,
-      'playerVerifierScores': instance.playerVerifierScores,
-      'markerId': instance.markerId,
-      'shotAttributions': instance.shotAttributions.map(
-        (k, e) => MapEntry(k.toString(), e),
-      ),
-      'grossTotal': instance.grossTotal,
-      'netTotal': instance.netTotal,
-      'points': instance.points,
-      'handicapIndex': instance.handicapIndex,
-      'playingHandicap': instance.playingHandicap,
-      'assignedTeeName': instance.assignedTeeName,
-      'adminEditAudit': instance.adminEditAudit?.toJson(),
-      'adminOverridePublish': instance.adminOverridePublish,
-      'verifiedByPlayer': instance.verifiedByPlayer,
-      'verifiedByMarker': instance.verifiedByMarker,
-      'markerReassignmentOpen': instance.markerReassignmentOpen,
-      'playerVerifiedAt': const OptionalTimestampConverter().toJson(
-        instance.playerVerifiedAt,
-      ),
-      'markerVerifiedAt': const OptionalTimestampConverter().toJson(
-        instance.markerVerifiedAt,
-      ),
-      'holeTags': instance.holeTags.map((k, e) => MapEntry(k.toString(), e)),
-      'submittedAt': _$JsonConverterToJson<Object?, DateTime>(
-        instance.submittedAt,
-        const TimestampConverter().toJson,
-      ),
-      'createdAt': const TimestampConverter().toJson(instance.createdAt),
-      'updatedAt': const TimestampConverter().toJson(instance.updatedAt),
-    };
+Map<String, dynamic> _$ScorecardToJson(
+  _Scorecard instance,
+) => <String, dynamic>{
+  'id': instance.id,
+  'competitionId': instance.competitionId,
+  'roundId': instance.roundId,
+  'entryId': instance.entryId,
+  'submittedByUserId': instance.submittedByUserId,
+  'status': _$ScorecardStatusEnumMap[instance.status]!,
+  'scoringStatus': _$ScoringStatusEnumMap[instance.scoringStatus]!,
+  'holeScores': instance.holeScores,
+  'playerVerifierScores': instance.playerVerifierScores,
+  'markerId': instance.markerId,
+  'shotAttributions': instance.shotAttributions.map(
+    (k, e) => MapEntry(k.toString(), e),
+  ),
+  'grossTotal': instance.grossTotal,
+  'netTotal': instance.netTotal,
+  'points': instance.points,
+  'handicapIndex': instance.handicapIndex,
+  'playingHandicap': instance.playingHandicap,
+  'assignedTeeName': instance.assignedTeeName,
+  'holeAuditLog': instance.holeAuditLog.map((e) => e.toJson()).toList(),
+  'approvedBy': instance.approvedBy,
+  'approvedAt': const OptionalTimestampConverter().toJson(instance.approvedAt),
+  'adminOverridePublish': instance.adminOverridePublish,
+  'verifiedByPlayer': instance.verifiedByPlayer,
+  'verifiedByMarker': instance.verifiedByMarker,
+  'markerReassignmentOpen': instance.markerReassignmentOpen,
+  'playerVerifiedAt': const OptionalTimestampConverter().toJson(
+    instance.playerVerifiedAt,
+  ),
+  'markerVerifiedAt': const OptionalTimestampConverter().toJson(
+    instance.markerVerifiedAt,
+  ),
+  'holeTags': instance.holeTags.map((k, e) => MapEntry(k.toString(), e)),
+  'submittedAt': _$JsonConverterToJson<Object?, DateTime>(
+    instance.submittedAt,
+    const TimestampConverter().toJson,
+  ),
+  'createdAt': const TimestampConverter().toJson(instance.createdAt),
+  'updatedAt': const TimestampConverter().toJson(instance.updatedAt),
+};
 
 const _$ScorecardStatusEnumMap = {
   ScorecardStatus.draft: 'draft',
   ScorecardStatus.submitted: 'submitted',
   ScorecardStatus.reviewed: 'reviewed',
   ScorecardStatus.finalScore: 'finalScore',
+  ScorecardStatus.approved: 'approved',
 };
 
 const _$ScoringStatusEnumMap = {

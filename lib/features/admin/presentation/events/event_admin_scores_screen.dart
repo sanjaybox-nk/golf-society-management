@@ -267,12 +267,9 @@ class _EventAdminScoresScreenState extends ConsumerState<EventAdminScoresScreen>
 
   Widget _buildVerificationSliver(BuildContext context, WidgetRef ref, GolfEvent event, AsyncValue<List<Scorecard>> scorecardsAsync) {
     final membersAsync = ref.read(allMembersProvider);
+    final members = membersAsync.value ?? [];
     return scorecardsAsync.when(
       data: (scorecards) {
-        final totalGolfers = RegistrationLogic.getSortedItems(event).where((item) => item.isConfirmed).length;
-        
-        final submitted = scorecards.where((s) => s.status == ScorecardStatus.submitted).toList();
-        final reviewed = scorecards.where((s) => s.status == ScorecardStatus.reviewed || s.status == ScorecardStatus.finalScore).toList();
         final incomplete = scorecards.where((s) =>
           s.scoringStatus == ScoringStatus.incomplete ||
           (s.holeScores.contains(null) && s.scoringStatus == ScoringStatus.ok)
@@ -280,7 +277,6 @@ class _EventAdminScoresScreenState extends ConsumerState<EventAdminScoresScreen>
         final outliers = scorecards.where((s) =>
           s.scoringStatus != ScoringStatus.ok && s.scoringStatus != ScoringStatus.dq).toList();
 
-        // Cards where player and marker recorded different scores on any hole
         final conflicted = scorecards.where((s) {
           for (int i = 0; i < 18; i++) {
             final p = s.holeScores.elementAtOrNull(i);
@@ -289,17 +285,26 @@ class _EventAdminScoresScreenState extends ConsumerState<EventAdminScoresScreen>
           }
           return false;
         }).toList();
-        // Remove duplicates already captured in outliers/incomplete
         final conflictOnly = conflicted.where((s) =>
           !incomplete.contains(s) && !outliers.contains(s)).toList();
 
-        final needsReassignment = scorecards.where((s) => s.markerReassignmentOpen).toList();
+        // Ready to review = clean cards awaiting explicit admin approval
+        final readyToReview = scorecards.where((s) =>
+          (s.status == ScorecardStatus.finalScore || s.status == ScorecardStatus.reviewed) &&
+          !conflictOnly.contains(s) &&
+          !incomplete.contains(s) &&
+          !outliers.contains(s)
+        ).toList();
 
+        // Approved = explicitly confirmed by admin/scorer
+        final approved = scorecards.where((s) => s.status == ScorecardStatus.approved).toList();
+
+        final needsReassignment = scorecards.where((s) => s.markerReassignmentOpen).toList();
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            
+
             if (needsReassignment.isNotEmpty) ...[
               const BoxyArtSectionTitle(title: 'Marker Reassignment Required'),
               ...needsReassignment.map((s) {
@@ -334,50 +339,49 @@ class _EventAdminScoresScreenState extends ConsumerState<EventAdminScoresScreen>
               const SizedBox(height: AppSpacing.xl),
             ],
 
-            if (submitted.isNotEmpty) ...[
-              BoxyArtButton(
-                title: 'Review All Submitted',
-                icon: Icons.done_all_rounded,
-                isPrimary: true,
-                fullWidth: true,
-                onTap: () async {
-                  final confirmed = await showBoxyArtDialog<bool>(
-                    context: context,
-                    title: 'Approve Scorecards?',
-                    message: 'This will mark all ${submitted.length} submitted scorecards as Reviewed.',
-                    confirmText: 'Approve',
-                  );
-                  if (confirmed == true) {
-                    await ref.read(scorecardRepositoryProvider).approveAllScorecards(event.id);
-                  }
-                },
+            // Issues
+            if (incomplete.isNotEmpty || outliers.isNotEmpty || conflictOnly.isNotEmpty) ...[
+              const BoxyArtSectionTitle(title: 'Issues to resolve'),
+              for (final s in [...incomplete, ...outliers])
+                _buildIssueRow(context, ref, s, event, scorecards, membersAsync,
+                  subtitle: s.scoringStatus == ScoringStatus.incomplete
+                      ? 'Incomplete Card'
+                      : s.scoringStatus.name.toUpperCase(),
+                  iconColor: AppColors.coral500,
+                ),
+              for (final s in conflictOnly)
+                _buildIssueRow(context, ref, s, event, scorecards, membersAsync,
+                  subtitle: 'Score conflict — player & marker disagree',
+                  iconColor: AppColors.amber500,
+                ),
+              const SizedBox(height: AppSpacing.xl),
+            ],
+
+            // Ready to review
+            if (readyToReview.isNotEmpty) ...[
+              BoxyArtSectionTitle(title: 'Ready to Review (${readyToReview.length})'),
+              for (final s in readyToReview)
+                _buildReviewRow(context, s, event),
+              const SizedBox(height: AppSpacing.xl),
+            ],
+
+            // Nothing outstanding
+            if (incomplete.isEmpty && outliers.isEmpty && conflictOnly.isEmpty && readyToReview.isEmpty) ...[
+              const BoxyArtEmptyCard(
+                title: 'All Cards Approved',
+                message: 'Every scorecard has been reviewed and confirmed. The event is ready to close.',
+                icon: Icons.verified_user_outlined,
               ),
               const SizedBox(height: AppSpacing.xl),
             ],
 
-            if (incomplete.isNotEmpty || outliers.isNotEmpty || conflictOnly.isNotEmpty) ...[
-              const BoxyArtSectionTitle(title: 'Issues to resolve'),
-              ...[
-                for (final s in [...incomplete, ...outliers])
-                  _buildIssueRow(context, ref, s, event, scorecards, membersAsync,
-                    subtitle: s.scoringStatus == ScoringStatus.incomplete
-                        ? 'Incomplete Card'
-                        : s.scoringStatus.name.toUpperCase(),
-                    iconColor: AppColors.coral500,
-                  ),
-                for (final s in conflictOnly)
-                  _buildIssueRow(context, ref, s, event, scorecards, membersAsync,
-                    subtitle: 'Score conflict — player & marker disagree',
-                    iconColor: AppColors.amber500,
-                  ),
-              ],
-            ] else ...[
-               const BoxyArtEmptyCard(
-                 title: 'Verification Complete',
-                 message: 'No score discrepancies or incomplete cards found. The field is ready for finalization.',
-                 icon: Icons.verified_user_outlined,
-               ),
+            // Verified
+            if (approved.isNotEmpty) ...[
+              BoxyArtSectionTitle(title: 'Verified (${approved.length})'),
+              for (final s in approved)
+                _buildVerifiedRow(context, s, event, members),
             ],
+
             const SizedBox(height: AppSpacing.hero),
           ],
         );
@@ -387,6 +391,50 @@ class _EventAdminScoresScreenState extends ConsumerState<EventAdminScoresScreen>
     );
   }
 
+
+  Widget _buildReviewRow(BuildContext context, Scorecard s, GolfEvent event) {
+    final reg = event.registrations.firstWhereOrNull(
+        (r) => r.memberId == s.entryId || '${r.memberId}_guest' == s.entryId);
+    final editorPlayerId = s.entryId.replaceAll('_guest', '');
+    final hasAmendments = s.holeAuditLog.isNotEmpty;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppSpacing.md),
+      child: BoxyArtNavTile(
+        title: reg?.memberName ?? s.entryId,
+        subtitle: hasAmendments
+            ? '${s.holeAuditLog.length} hole${s.holeAuditLog.length > 1 ? 's' : ''} amended — tap to review & approve'
+            : 'Clean card — tap to review & approve',
+        icon: hasAmendments ? Icons.edit_note_rounded : Icons.check_circle_outline_rounded,
+        iconColor: hasAmendments ? AppColors.amber500 : AppColors.lime500,
+        onTap: () => context.push(
+          '/admin/events/manage/${Uri.encodeComponent(event.id)}/scores/$editorPlayerId',
+        ),
+      ),
+    );
+  }
+
+  Widget _buildVerifiedRow(BuildContext context, Scorecard s, GolfEvent event, List<Member> members) {
+    final reg = event.registrations.firstWhereOrNull(
+        (r) => r.memberId == s.entryId || '${r.memberId}_guest' == s.entryId);
+    final editorPlayerId = s.entryId.replaceAll('_guest', '');
+    final approver = members.firstWhereOrNull((m) => m.id == s.approvedBy);
+    final approverName = approver != null ? '${approver.firstName} ${approver.lastName}' : 'Admin';
+    final hasAmendments = s.holeAuditLog.isNotEmpty;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppSpacing.md),
+      child: BoxyArtNavTile(
+        title: reg?.memberName ?? s.entryId,
+        subtitle: hasAmendments
+            ? '${s.holeAuditLog.length} amendment${s.holeAuditLog.length > 1 ? 's' : ''} · Approved by $approverName'
+            : 'Clean card · Approved by $approverName',
+        icon: Icons.verified_rounded,
+        iconColor: AppColors.lime500,
+        onTap: () => context.push(
+          '/admin/events/manage/${Uri.encodeComponent(event.id)}/scores/$editorPlayerId',
+        ),
+      ),
+    );
+  }
 
   Widget _buildIssueRow(
     BuildContext context,
@@ -420,14 +468,17 @@ class _EventAdminScoresScreenState extends ConsumerState<EventAdminScoresScreen>
     final scorecardsAsync = ref.watch(scorecardsListProvider(event.id));
     final scorecards = scorecardsAsync.value ?? [];
 
+    // Approved = explicitly confirmed by admin/scorer
+    final int approvedCount = scorecards.where((s) => s.status == ScorecardStatus.approved).length;
+    // Ready = clean cards awaiting admin review (finalScore or conflict-resolved reviewed)
     final int readyCount = scorecards.where((s) =>
-        s.status == ScorecardStatus.submitted && s.verifiedByPlayer && s.verifiedByMarker).length;
-    // Awaiting = one party confirmed but not both
+        s.status == ScorecardStatus.finalScore || s.status == ScorecardStatus.reviewed).length;
+    // Awaiting = one party has signed off but not both
     final int awaitingCount = scorecards.where((s) =>
         s.status == ScorecardStatus.submitted &&
         (s.verifiedByPlayer || s.verifiedByMarker) &&
         !(s.verifiedByPlayer && s.verifiedByMarker)).length;
-    // Outstanding = submitted but neither party has confirmed yet, plus any drafts
+    // Outstanding = draft or neither party signed
     final int outstandingCount = scorecards.where((s) =>
         s.status == ScorecardStatus.draft ||
         (s.status == ScorecardStatus.submitted && !s.verifiedByPlayer && !s.verifiedByMarker)).length;
@@ -443,7 +494,9 @@ class _EventAdminScoresScreenState extends ConsumerState<EventAdminScoresScreen>
           IntrinsicHeight(
             child: Row(
               children: [
-                Expanded(child: _ScoreMetric(label: 'Ready', value: '$readyCount')),
+                Expanded(child: _ScoreMetric(label: 'Approved', value: '$approvedCount', highlight: true)),
+                const VerticalDivider(width: 1, thickness: 1),
+                Expanded(child: _ScoreMetric(label: 'To Review', value: '$readyCount')),
                 const VerticalDivider(width: 1, thickness: 1),
                 Expanded(child: _ScoreMetric(label: 'Awaiting', value: '$awaitingCount')),
                 const VerticalDivider(width: 1, thickness: 1),
@@ -627,12 +680,14 @@ class _EventAdminScoresScreenState extends ConsumerState<EventAdminScoresScreen>
 class _ScoreMetric extends StatelessWidget {
   final String label;
   final String value;
+  final bool highlight;
 
-  const _ScoreMetric({required this.label, required this.value});
+  const _ScoreMetric({required this.label, required this.value, this.highlight = false});
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final valueColor = highlight && value != '0' ? AppColors.lime500 : (isDark ? AppColors.pureWhite : AppColors.dark900);
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
       child: Column(
@@ -641,7 +696,7 @@ class _ScoreMetric extends StatelessWidget {
           Text(
             label.toUpperCase(),
             style: AppTypography.micro.copyWith(
-              color: AppColors.dark400,
+              color: highlight && value != '0' ? AppColors.lime500 : AppColors.dark400,
               fontWeight: AppTypography.weightBold,
               letterSpacing: AppTypography.lsLabel,
             ),
@@ -650,7 +705,7 @@ class _ScoreMetric extends StatelessWidget {
           Text(
             value,
             style: AppTypography.displaySection.copyWith(
-              color: isDark ? AppColors.pureWhite : AppColors.dark900,
+              color: valueColor,
               fontWeight: AppTypography.weightBold,
               height: 1.0,
             ),

@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:collection/collection.dart';
 import 'package:golf_society/domain/models/event_registration.dart';
 import 'package:golf_society/domain/models/scorecard.dart';
+import 'package:golf_society/domain/models/member.dart';
 import 'package:golf_society/design_system/design_system.dart';
 import 'package:golf_society/domain/models/golf_event.dart';
 import 'package:golf_society/domain/models/competition.dart';
@@ -43,7 +44,7 @@ class EventAdminScorecardEditorScreen extends ConsumerWidget {
     final config = ref.watch(themeControllerProvider);
     final compAsync = ref.watch(competitionDetailProvider(eventId));
     final membersAsync = ref.watch(allMembersProvider);
-    final members = membersAsync.value ?? [];
+    final List<Member> members = membersAsync.value ?? [];
     
     final currentHole = ref.watch(adminEditorHoleProvider);
     final spacing = Theme.of(context).extension<AppSpacingTokens>();
@@ -108,6 +109,10 @@ class EventAdminScorecardEditorScreen extends ConsumerWidget {
                   }
                   final hasConflicts = conflictedHoles.isNotEmpty;
                   final markerName = _getMarkerName(event, scorecard?.markerId);
+                  final isApproved = scorecard?.status == ScorecardStatus.approved;
+                  final isApprovable = !hasConflicts && scorecard != null &&
+                      (scorecard.status == ScorecardStatus.finalScore ||
+                       scorecard.status == ScorecardStatus.reviewed);
 
                   return Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -181,16 +186,51 @@ class EventAdminScorecardEditorScreen extends ConsumerWidget {
                         return const SizedBox.shrink();
                       }),
 
-                      // Admin Keypad
-                      BoxyArtCard(
-                        padding: const EdgeInsets.all(AppSpacing.xl),
-                        child: AdminScorecardKeypad(
-                          currentHole: currentHole,
-                          scores: _getHoleScores(scorecard),
-                          onHoleChanged: (h) => ref.read(adminEditorHoleProvider.notifier).state = h,
-                          onSetScore: (h, score) => _persistScoreWithAudit(context, ref, h, score, scorecard, event, conflictedHoles),
+                      // Approved banner
+                      if (isApproved) ...[
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.standard, vertical: AppSpacing.sm),
+                          margin: const EdgeInsets.only(bottom: AppSpacing.standard),
+                          decoration: BoxDecoration(
+                            color: AppColors.lime500.withValues(alpha: AppColors.opacityLow),
+                            borderRadius: AppShapes.md,
+                            border: Border.all(color: AppColors.lime500, width: 1),
+                          ),
+                          child: Row(children: [
+                            const Icon(Icons.verified_rounded, color: AppColors.lime500, size: 16),
+                            const SizedBox(width: AppSpacing.sm),
+                            Expanded(child: Text(
+                              'Card approved${scorecard!.approvedAt != null ? ' · ${_formatTimestamp(scorecard.approvedAt!)}' : ''}',
+                              style: AppTypography.micro.copyWith(color: AppColors.dark900, fontWeight: AppTypography.weightBold),
+                            )),
+                          ]),
                         ),
-                      ),
+                        if (scorecard!.holeAuditLog.isNotEmpty) _buildAuditLog(context, scorecard.holeAuditLog, members),
+                      ],
+
+                      // Admin Keypad (hidden when approved)
+                      if (!isApproved) ...[
+                        BoxyArtCard(
+                          padding: const EdgeInsets.all(AppSpacing.xl),
+                          child: AdminScorecardKeypad(
+                            currentHole: currentHole,
+                            scores: _getHoleScores(scorecard),
+                            onHoleChanged: (h) => ref.read(adminEditorHoleProvider.notifier).state = h,
+                            onSetScore: (h, score) => _persistScoreWithAudit(context, ref, h, score, scorecard, event, conflictedHoles),
+                          ),
+                        ),
+                        if (isApprovable) ...[
+                          SizedBox(height: spacing?.cardToCard ?? AppSpacing.standard),
+                          BoxyArtButton(
+                            title: 'Approve Card',
+                            icon: Icons.verified_rounded,
+                            isPrimary: true,
+                            fullWidth: true,
+                            onTap: () => _approveCard(context, ref, scorecard!, event),
+                          ),
+                        ],
+                      ],
                     ],
                   );
                 },
@@ -301,19 +341,27 @@ class EventAdminScorecardEditorScreen extends ConsumerWidget {
           updatedAt: DateTime.now(),
         ));
       } else {
+        final updatedAuditLog = isConflictedHole
+            ? [
+                ...currentCard.holeAuditLog,
+                HoleAuditEntry(
+                  hole: hole,
+                  playerScore: currentCard.holeScores.elementAtOrNull(hole - 1) ?? score,
+                  markerScore: currentCard.playerVerifierScores.elementAtOrNull(hole - 1) ?? score,
+                  resolvedTo: score,
+                  reason: reason,
+                  editorId: userId,
+                  timestamp: DateTime.now(),
+                ),
+              ]
+            : currentCard.holeAuditLog;
+
         await repo.updateScorecard(currentCard.copyWith(
           holeScores: scores,
           playerVerifierScores: verifierScores,
           grossTotal: grossTotal,
           status: newStatus,
-          adminEditAudit: isConflictedHole
-              ? AdminEditAudit(
-                  overridden: true,
-                  reason: reason,
-                  editorId: userId,
-                  timestamp: DateTime.now(),
-                )
-              : currentCard.adminEditAudit,
+          holeAuditLog: updatedAuditLog,
           updatedAt: DateTime.now(),
         ));
       }
@@ -330,6 +378,91 @@ class EventAdminScorecardEditorScreen extends ConsumerWidget {
         SnackBar(content: Text('Error saving score: $e'), backgroundColor: AppColors.coral500),
       );
     }
+  }
+
+  Future<void> _approveCard(BuildContext context, WidgetRef ref, Scorecard card, GolfEvent event) async {
+    try {
+      final userId = ref.read(currentUserProvider).id;
+      await ref.read(scorecardRepositoryProvider).updateScorecard(card.copyWith(
+        status: ScorecardStatus.approved,
+        approvedBy: userId,
+        approvedAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+      ));
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('Card approved'),
+          backgroundColor: AppColors.lime500,
+        ));
+        Navigator.of(context).pop();
+      }
+    } catch (e) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error approving card: $e'), backgroundColor: AppColors.coral500),
+      );
+    }
+  }
+
+  Widget _buildAuditLog(BuildContext context, List<HoleAuditEntry> log, List<Member> members) {
+    return BoxyArtCard(
+      padding: const EdgeInsets.all(AppSpacing.standard),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Score Amendments', style: AppTypography.labelStrong.copyWith(
+            fontWeight: AppTypography.weightBold,
+            letterSpacing: AppTypography.lsLabel,
+          )),
+          const SizedBox(height: AppSpacing.md),
+          ...log.map((entry) {
+            final editor = members.firstWhereOrNull((m) => m.id == entry.editorId);
+            final editorName = editor != null ? '${editor.firstName} ${editor.lastName}' : 'Admin';
+            return Padding(
+              padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    width: 28, height: 28,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: AppColors.amber500.withValues(alpha: AppColors.opacityLow),
+                      borderRadius: AppShapes.sm,
+                    ),
+                    child: Text('${entry.hole}', style: AppTypography.micro.copyWith(
+                      fontWeight: AppTypography.weightBold, color: AppColors.amber500,
+                    )),
+                  ),
+                  const SizedBox(width: AppSpacing.sm),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Player ${entry.playerScore} · Marker ${entry.markerScore} → resolved to ${entry.resolvedTo}',
+                          style: AppTypography.micro.copyWith(fontWeight: AppTypography.weightBold),
+                        ),
+                        Text(
+                          '"${entry.reason}" · $editorName · ${_formatTimestamp(entry.timestamp)}',
+                          style: AppTypography.micro.copyWith(color: AppColors.dark300),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }),
+        ],
+      ),
+    );
+  }
+
+  String _formatTimestamp(DateTime dt) {
+    final h = dt.hour.toString().padLeft(2, '0');
+    final m = dt.minute.toString().padLeft(2, '0');
+    return '${dt.day}/${dt.month} $h:$m';
   }
 
   String _getDisplayName(GolfEvent event, String id) {
