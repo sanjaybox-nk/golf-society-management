@@ -505,36 +505,22 @@ class _EventAdminScoresScreenState extends ConsumerState<EventAdminScoresScreen>
           const SizedBox(height: AppSpacing.lg),
           const Divider(height: 1),
           const SizedBox(height: AppSpacing.md),
-          Row(
-            children: [
-              Expanded(
-                child: _QuickAction(
-                  icon: isPublished ? Icons.visibility_off_rounded : Icons.campaign_rounded,
-                  label: isPublished ? 'Unpublish' : 'Publish',
-                  subtitle: isPublished ? 'Hide standings from members' : 'Make results visible to all',
-                  onTap: () => _togglePublish(ref, event),
-                ),
-              ),
-              const SizedBox(width: AppSpacing.sm),
-              Expanded(
-                child: _QuickAction(
-                  icon: isLocked ? Icons.lock_open_rounded : Icons.lock_rounded,
-                  label: isLocked ? 'Unlock' : 'Lock',
-                  subtitle: isLocked ? 'Re-open scores for editing' : 'Finalise all scorecards',
-                  onTap: () => _toggleLock(ref, event),
-                ),
-              ),
-              const SizedBox(width: AppSpacing.sm),
-              Expanded(
-                child: _QuickAction(
-                  icon: Icons.notifications_active_rounded,
-                  label: 'Remind',
-                  subtitle: 'Notify members with incomplete cards',
-                  iconColor: AppColors.amber500,
-                  onTap: () => _sendReminders(context, ref, event),
-                ),
-              ),
-            ],
+          _QuickAction(
+            label: isPublished ? 'Unpublish' : 'Publish',
+            subtitle: isPublished ? 'Hide standings from members' : 'Make final standings visible to all members',
+            onTap: () => _togglePublish(ref, event),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          _QuickAction(
+            label: isLocked ? 'Unlock' : 'Lock',
+            subtitle: isLocked ? 'Re-open scores for editing' : 'Finalise all scorecards — no further changes allowed',
+            onTap: () => _toggleLock(ref, event),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          _QuickAction(
+            label: 'Remind',
+            subtitle: 'Notify members who have not yet submitted their scorecard',
+            onTap: () => _sendReminders(context, ref, event),
           ),
         ],
       ),
@@ -721,17 +707,13 @@ class _ScoreMetric extends StatelessWidget {
 }
 
 class _QuickAction extends StatelessWidget {
-  final IconData icon;
   final String label;
   final String subtitle;
-  final Color? iconColor;
   final VoidCallback onTap;
 
   const _QuickAction({
-    required this.icon,
     required this.label,
     required this.subtitle,
-    this.iconColor,
     required this.onTap,
   });
 
@@ -739,45 +721,39 @@ class _QuickAction extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final shapes = Theme.of(context).extension<AppShapeTokens>();
-    final color = iconColor ?? (isDark ? AppColors.dark150 : AppColors.dark700);
 
-    return InkWell(
-      onTap: onTap,
-      borderRadius: shapes?.button ?? BorderRadius.circular(8),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.md),
-        decoration: BoxDecoration(
-          border: Border.all(
-            color: isDark ? AppColors.dark500 : AppColors.dark200,
-            width: 1,
-          ),
-          borderRadius: shapes?.button ?? BorderRadius.circular(8),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, size: 20, color: color),
-            const SizedBox(height: AppSpacing.xs),
-            Text(
-              label,
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        GestureDetector(
+          onTap: onTap,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
+            decoration: BoxDecoration(
+              color: isDark ? AppColors.dark600 : AppColors.dark100,
+              borderRadius: shapes?.button ?? BorderRadius.circular(8),
+            ),
+            child: Text(
+              label.toUpperCase(),
               style: AppTypography.micro.copyWith(
                 fontWeight: AppTypography.weightBold,
-                color: color,
+                color: isDark ? AppColors.dark150 : AppColors.dark700,
                 letterSpacing: AppTypography.lsLabel,
               ),
             ),
-            const SizedBox(height: 2),
-            Text(
-              subtitle,
-              textAlign: TextAlign.center,
-              style: AppTypography.micro.copyWith(
-                color: isDark ? AppColors.dark300 : AppColors.dark400,
-                height: 1.3,
-              ),
-            ),
-          ],
+          ),
         ),
-      ),
+        const SizedBox(width: AppSpacing.md),
+        Expanded(
+          child: Text(
+            subtitle,
+            style: AppTypography.micro.copyWith(
+              color: isDark ? AppColors.dark300 : AppColors.dark400,
+              height: 1.4,
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
