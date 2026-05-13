@@ -505,35 +505,25 @@ class _EventAdminScoresScreenState extends ConsumerState<EventAdminScoresScreen>
           const SizedBox(height: AppSpacing.lg),
           const Divider(height: 1),
           const SizedBox(height: AppSpacing.md),
-          Row(
-            children: [
-              Expanded(
-                child: BoxyArtButton(
-                  title: isPublished ? 'Unpublish' : 'Publish',
-                  isSecondary: true,
-                  fullWidth: true,
-                  onTap: () => _togglePublish(ref, event),
-                ),
-              ),
-              const SizedBox(width: AppSpacing.sm),
-              Expanded(
-                child: BoxyArtButton(
-                  title: isLocked ? 'Unlock' : 'Lock',
-                  isSecondary: true,
-                  fullWidth: true,
-                  onTap: () => _toggleLock(ref, event),
-                ),
-              ),
-              const SizedBox(width: AppSpacing.sm),
-              Expanded(
-                child: BoxyArtButton(
-                  title: 'Remind',
-                  isSecondary: true,
-                  fullWidth: true,
-                  onTap: () => _sendReminders(context, ref, event),
-                ),
-              ),
-            ],
+          BoxyArtButton(
+            title: isPublished ? 'Unpublish Results' : 'Publish Results',
+            isSecondary: true,
+            fullWidth: true,
+            onTap: () => _togglePublish(ref, event),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          BoxyArtButton(
+            title: isLocked ? 'Unlock Scores' : 'Lock Scores',
+            isSecondary: true,
+            fullWidth: true,
+            onTap: () => _toggleLock(ref, event),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          BoxyArtButton(
+            title: 'Send Reminders',
+            isSecondary: true,
+            fullWidth: true,
+            onTap: () => _sendReminders(context, ref, event),
           ),
         ],
       ),
