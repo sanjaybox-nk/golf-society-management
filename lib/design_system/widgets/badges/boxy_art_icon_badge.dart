@@ -59,23 +59,27 @@ class BoxyArtIconBadge extends ConsumerWidget {
     
     final double effectiveOpacity = fillOpacity ?? shapeTokens?.iconBadgeOpacity ?? config.iconBadgeOpacity;
     
-    final Color effectiveFill = showFill 
-      ? (isTertiary 
-          ? Theme.of(context).colorScheme.tertiary.withValues(alpha: effectiveOpacity)
-          : (isPrimary
-              ? Color(config.primaryColor).withValues(alpha: effectiveOpacity)
-              : (isSecondary
-                  ? Color(config.secondaryColor).withValues(alpha: effectiveOpacity)
-                  : (shapeTokens?.iconBadgeFill ?? Color(config.iconBadgeFillColor)).withValues(alpha: effectiveOpacity))))
-      : Colors.transparent;
-      
-    final Color effectiveIconColor = iconColor ?? (isTertiary 
-      ? Theme.of(context).colorScheme.tertiary
-      : (isPrimary
-          ? Color(config.primaryColor)
-          : (isSecondary
-              ? Color(config.secondaryColor)
-              : (shapeTokens?.iconBadgeIcon ?? (color != Colors.transparent ? color : Color(config.iconBadgeIconColor))))));
+    final Color effectiveFill = !showFill
+        ? Colors.transparent
+        : (color != Colors.transparent
+            ? color.withValues(alpha: effectiveOpacity)
+            : (isTertiary
+                ? Theme.of(context).colorScheme.tertiary.withValues(alpha: effectiveOpacity)
+                : (isPrimary
+                    ? Color(config.primaryColor).withValues(alpha: effectiveOpacity)
+                    : (isSecondary
+                        ? Color(config.secondaryColor).withValues(alpha: effectiveOpacity)
+                        : (shapeTokens?.iconBadgeFill ?? Color(config.iconBadgeFillColor)).withValues(alpha: effectiveOpacity)))));
+
+    final Color effectiveIconColor = iconColor ?? (color != Colors.transparent
+        ? color
+        : (isTertiary
+            ? Theme.of(context).colorScheme.tertiary
+            : (isPrimary
+                ? Color(config.primaryColor)
+                : (isSecondary
+                    ? Color(config.secondaryColor)
+                    : (shapeTokens?.iconBadgeIcon ?? Color(config.iconBadgeIconColor))))));
 
     final Widget content = Container(
       width: effectiveSize,

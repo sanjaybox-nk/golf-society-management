@@ -36,7 +36,7 @@ class BoxyArtNavTile extends ConsumerWidget {
             // Boxed Icon (Standard 4.x via BoxyArtIconBadge)
             BoxyArtIconBadge(
               icon: icon,
-              iconColor: iconColor ?? badgeColor,
+              iconColor: iconColor,
               color: badgeColor ?? Colors.transparent,
               size: 44,
               iconSize: 22,
