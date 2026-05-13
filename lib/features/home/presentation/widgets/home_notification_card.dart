@@ -64,7 +64,9 @@ class _HomeNotificationCardState extends ConsumerState<HomeNotificationCard> {
         child: BoxyArtCard(
           padding: const EdgeInsets.all(AppSpacing.lg),
           child: InkWell(
-            onTap: widget.onTap ?? () => setState(() => _isExpanded = !_isExpanded),
+            onTap: widget.onTap ?? (widget.notification.actionUrl != null
+                ? () => context.push(widget.notification.actionUrl!)
+                : () => setState(() => _isExpanded = !_isExpanded)),
             borderRadius: AppShapes.xl,
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
