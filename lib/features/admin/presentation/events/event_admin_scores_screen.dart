@@ -511,6 +511,7 @@ class _EventAdminScoresScreenState extends ConsumerState<EventAdminScoresScreen>
                 child: _QuickAction(
                   icon: isPublished ? Icons.visibility_off_rounded : Icons.campaign_rounded,
                   label: isPublished ? 'Unpublish' : 'Publish',
+                  subtitle: isPublished ? 'Hide standings from members' : 'Make results visible to all',
                   onTap: () => _togglePublish(ref, event),
                 ),
               ),
@@ -519,6 +520,7 @@ class _EventAdminScoresScreenState extends ConsumerState<EventAdminScoresScreen>
                 child: _QuickAction(
                   icon: isLocked ? Icons.lock_open_rounded : Icons.lock_rounded,
                   label: isLocked ? 'Unlock' : 'Lock',
+                  subtitle: isLocked ? 'Re-open scores for editing' : 'Finalise all scorecards',
                   onTap: () => _toggleLock(ref, event),
                 ),
               ),
@@ -527,6 +529,7 @@ class _EventAdminScoresScreenState extends ConsumerState<EventAdminScoresScreen>
                 child: _QuickAction(
                   icon: Icons.notifications_active_rounded,
                   label: 'Remind',
+                  subtitle: 'Notify members with incomplete cards',
                   iconColor: AppColors.amber500,
                   onTap: () => _sendReminders(context, ref, event),
                 ),
@@ -720,12 +723,14 @@ class _ScoreMetric extends StatelessWidget {
 class _QuickAction extends StatelessWidget {
   final IconData icon;
   final String label;
+  final String subtitle;
   final Color? iconColor;
   final VoidCallback onTap;
 
   const _QuickAction({
     required this.icon,
     required this.label,
+    required this.subtitle,
     this.iconColor,
     required this.onTap,
   });
@@ -740,7 +745,7 @@ class _QuickAction extends StatelessWidget {
       onTap: onTap,
       borderRadius: shapes?.button ?? BorderRadius.circular(8),
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.md),
         decoration: BoxDecoration(
           border: Border.all(
             color: isDark ? AppColors.dark500 : AppColors.dark200,
@@ -759,6 +764,15 @@ class _QuickAction extends StatelessWidget {
                 fontWeight: AppTypography.weightBold,
                 color: color,
                 letterSpacing: AppTypography.lsLabel,
+              ),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              subtitle,
+              textAlign: TextAlign.center,
+              style: AppTypography.micro.copyWith(
+                color: isDark ? AppColors.dark300 : AppColors.dark400,
+                height: 1.3,
               ),
             ),
           ],
