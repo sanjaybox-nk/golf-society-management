@@ -247,9 +247,11 @@ class EventScoringProcessor {
     }
 
     final List<ProcessedPlayerScore> refinedIndividualScores = syncedIndividualScores.map((p) {
-      return p.copyWith(
-        tieBreakLabel: ScoringUtils.calculateTieBreakLabel(p.result, scoreToMetricsMap[p.result.score]),
-      );
+      // Countback labels only apply to Stableford — medal/stroke ties are joint positions
+      final label = rules.format == CompetitionFormat.stroke
+          ? null
+          : ScoringUtils.calculateTieBreakLabel(p.result, scoreToMetricsMap[p.result.score]);
+      return p.copyWith(tieBreakLabel: label);
     }).toList();
 
     // 2. [NEW] Pre-calculate Match Play results
@@ -338,13 +340,14 @@ class EventScoringProcessor {
         
         if (scoreCompare != 0) return scoreCompare;
 
-        // 3. Tie-break (Countback)
-        final aMetrics = ScoringUtils.calculateTieBreakMetrics(a.result);
-        final bMetrics = ScoringUtils.calculateTieBreakMetrics(b.result);
-        
-        for (int i = 0; i < aMetrics.length; i++) {
-          final mCompare = strategy.compareScores(aMetrics[i], bMetrics[i]);
-          if (mCompare != 0) return mCompare;
+        // 3. Tie-break (Countback) — Stableford only; medal/stroke ties are left equal
+        if (currentFormat != CompetitionFormat.stroke) {
+          final aMetrics = ScoringUtils.calculateTieBreakMetrics(a.result);
+          final bMetrics = ScoringUtils.calculateTieBreakMetrics(b.result);
+          for (int i = 0; i < aMetrics.length; i++) {
+            final mCompare = strategy.compareScores(aMetrics[i], bMetrics[i]);
+            if (mCompare != 0) return mCompare;
+          }
         }
 
         return 0;
@@ -366,15 +369,18 @@ class EventScoringProcessor {
 
         int pos = i + 1;
         
-        // Only share position if everything matches (including tie-breaks)
+        // Share position on equal score.
+        // Stableford: also requires tiebreak metrics to match (countback already split them in sort).
+        // Stroke/medal: equal score = equal position — no countback splitting.
         if (i > 0) {
           final prev = sortedIndividual[i - 1];
-          final aMetrics = ScoringUtils.calculateTieBreakMetrics(p.result);
-          final bMetrics = ScoringUtils.calculateTieBreakMetrics(prev.result);
-          bool metricsMatch = const ListEquality().equals(aMetrics, bMetrics);
-          
-          if (p.result.score == prev.result.score && metricsMatch) {
-            pos = leaderboard.last.position;
+          if (p.result.score == prev.result.score) {
+            final sharePosition = currentFormat == CompetitionFormat.stroke ||
+                const ListEquality().equals(
+                  ScoringUtils.calculateTieBreakMetrics(p.result),
+                  ScoringUtils.calculateTieBreakMetrics(prev.result),
+                );
+            if (sharePosition) pos = leaderboard.last.position;
           }
         }
 
