@@ -505,22 +505,35 @@ class _EventAdminScoresScreenState extends ConsumerState<EventAdminScoresScreen>
           const SizedBox(height: AppSpacing.lg),
           const Divider(height: 1),
           const SizedBox(height: AppSpacing.md),
-          _QuickAction(
-            label: isPublished ? 'Unpublish' : 'Publish',
-            subtitle: isPublished ? 'Hide standings from members' : 'Make final standings visible to all members',
-            onTap: () => _togglePublish(ref, event),
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          _QuickAction(
-            label: isLocked ? 'Unlock' : 'Lock',
-            subtitle: isLocked ? 'Re-open scores for editing' : 'Finalise all scorecards — no further changes allowed',
-            onTap: () => _toggleLock(ref, event),
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          _QuickAction(
-            label: 'Remind',
-            subtitle: 'Notify members who have not yet submitted their scorecard',
-            onTap: () => _sendReminders(context, ref, event),
+          Row(
+            children: [
+              Expanded(
+                child: BoxyArtButton(
+                  title: isPublished ? 'Unpublish' : 'Publish',
+                  isSecondary: true,
+                  fullWidth: true,
+                  onTap: () => _togglePublish(ref, event),
+                ),
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(
+                child: BoxyArtButton(
+                  title: isLocked ? 'Unlock' : 'Lock',
+                  isSecondary: true,
+                  fullWidth: true,
+                  onTap: () => _toggleLock(ref, event),
+                ),
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(
+                child: BoxyArtButton(
+                  title: 'Remind',
+                  isSecondary: true,
+                  fullWidth: true,
+                  onTap: () => _sendReminders(context, ref, event),
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -706,54 +719,3 @@ class _ScoreMetric extends StatelessWidget {
   }
 }
 
-class _QuickAction extends StatelessWidget {
-  final String label;
-  final String subtitle;
-  final VoidCallback onTap;
-
-  const _QuickAction({
-    required this.label,
-    required this.subtitle,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final shapes = Theme.of(context).extension<AppShapeTokens>();
-
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        GestureDetector(
-          onTap: onTap,
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
-            decoration: BoxDecoration(
-              color: isDark ? AppColors.dark600 : AppColors.dark100,
-              borderRadius: shapes?.button ?? BorderRadius.circular(8),
-            ),
-            child: Text(
-              label.toUpperCase(),
-              style: AppTypography.micro.copyWith(
-                fontWeight: AppTypography.weightBold,
-                color: isDark ? AppColors.dark150 : AppColors.dark700,
-                letterSpacing: AppTypography.lsLabel,
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(width: AppSpacing.md),
-        Expanded(
-          child: Text(
-            subtitle,
-            style: AppTypography.micro.copyWith(
-              color: isDark ? AppColors.dark300 : AppColors.dark400,
-              height: 1.4,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-}
