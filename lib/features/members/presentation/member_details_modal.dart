@@ -197,8 +197,15 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
       final hcp = double.tryParse(_handicapController.text) ?? 54.0;
       final phone = '${_countryCodeController.text}${_phoneController.text.trim()}';
 
-      final memberData = Member(
-        id: widget.member?.id ?? '', 
+      // Use copyWith to preserve all existing fields (renewalStatus, handicapHistory,
+      // accountCredit, nudgeCount, etc.) — only update what the form edited.
+      final existing = widget.member ?? const Member(
+        id: '',
+        firstName: '',
+        lastName: '',
+        email: '',
+      );
+      final memberData = existing.copyWith(
         firstName: _firstController.text.trim(),
         lastName: _lastController.text.trim(),
         nickname: _nicknameController.text.trim(),
@@ -214,10 +221,10 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
         role: _role,
         societyRole: _societyRole,
         joinedDate: _joinedDate,
-        membershipEndDate: _membershipEndDate, // [NEW]
-        gender: _gender, // [NEW]
-        allowSocialEventsOnly: _allowSocialEventsOnly, // [NEW]
-        isFoundingMember: _isFoundingMember, // [NEW]
+        membershipEndDate: _membershipEndDate,
+        gender: _gender,
+        allowSocialEventsOnly: _allowSocialEventsOnly,
+        isFoundingMember: _isFoundingMember,
       );
 
       if (widget.isNewMember) {
