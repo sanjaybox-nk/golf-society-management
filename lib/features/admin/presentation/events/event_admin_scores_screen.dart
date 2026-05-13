@@ -14,7 +14,6 @@ import '../../../events/logic/event_scoring_controller.dart';
 import '../../../events/presentation/widgets/event_leaderboard.dart';
 import '../../../events/presentation/widgets/scorecard_modal.dart';
 import '../../../matchplay/presentation/widgets/match_play_bracket_hub.dart';
-import '../../../events/domain/registration_logic.dart';
 import '../../../events/presentation/tabs/event_shared_logic.dart';
 import 'package:golf_society/domain/models/notification.dart';
 import 'package:golf_society/features/home/presentation/home_providers.dart';
@@ -51,7 +50,6 @@ class _EventAdminScoresScreenState extends ConsumerState<EventAdminScoresScreen>
         final bool isTournamentStyle = compAsync.value?.rules.isTournamentStyleGrouping ?? false;
 
         final spacing = Theme.of(context).extension<AppSpacingTokens>();
-        final scoringData = ref.watch(eventScoringControllerProvider(event.id));
 
         final bool isClosed = event.status == EventStatus.completed;
         final bool isLocked = event.isScoringLocked;
@@ -500,37 +498,40 @@ class _EventAdminScoresScreenState extends ConsumerState<EventAdminScoresScreen>
                 const VerticalDivider(width: 1, thickness: 1),
                 Expanded(child: _ScoreMetric(label: 'Awaiting', value: '$awaitingCount')),
                 const VerticalDivider(width: 1, thickness: 1),
-                Expanded(child: _ScoreMetric(label: 'Outstanding', value: '$outstandingCount')),
+                Expanded(child: _ScoreMetric(label: 'Pending', value: '$outstandingCount')),
               ],
             ),
           ),
           const SizedBox(height: AppSpacing.lg),
           const Divider(height: 1),
           const SizedBox(height: AppSpacing.md),
-          _AdminAction(
-            icon: isPublished ? Icons.visibility_off_rounded : Icons.campaign_rounded,
-            title: isPublished ? 'Unpublish Results' : 'Publish Results',
-            subtitle: isPublished
-                ? 'Hide standings from members'
-                : 'Make final standings visible to all members',
-            onTap: () => _togglePublish(ref, event),
-          ),
-          const SizedBox(height: AppSpacing.md),
-          _AdminAction(
-            icon: isLocked ? Icons.lock_open_rounded : Icons.lock_rounded,
-            title: isLocked ? 'Unlock Scores' : 'Lock Scores',
-            subtitle: isLocked
-                ? 'Re-open scores for editing'
-                : 'Finalise all scorecards — no further changes allowed',
-            onTap: () => _toggleLock(ref, event),
-          ),
-          const SizedBox(height: AppSpacing.md),
-          _AdminAction(
-            icon: Icons.notifications_active_rounded,
-            title: 'Send Reminders',
-            subtitle: 'Notify members who have not yet submitted their scorecard',
-            iconColor: AppColors.amber500,
-            onTap: () => _sendReminders(context, ref, event),
+          Row(
+            children: [
+              Expanded(
+                child: _QuickAction(
+                  icon: isPublished ? Icons.visibility_off_rounded : Icons.campaign_rounded,
+                  label: isPublished ? 'Unpublish' : 'Publish',
+                  onTap: () => _togglePublish(ref, event),
+                ),
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(
+                child: _QuickAction(
+                  icon: isLocked ? Icons.lock_open_rounded : Icons.lock_rounded,
+                  label: isLocked ? 'Unlock' : 'Lock',
+                  onTap: () => _toggleLock(ref, event),
+                ),
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(
+                child: _QuickAction(
+                  icon: Icons.notifications_active_rounded,
+                  label: 'Remind',
+                  iconColor: AppColors.amber500,
+                  onTap: () => _sendReminders(context, ref, event),
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -716,17 +717,15 @@ class _ScoreMetric extends StatelessWidget {
   }
 }
 
-class _AdminAction extends StatelessWidget {
+class _QuickAction extends StatelessWidget {
   final IconData icon;
-  final String title;
-  final String subtitle;
+  final String label;
   final Color? iconColor;
   final VoidCallback onTap;
 
-  const _AdminAction({
+  const _QuickAction({
     required this.icon,
-    required this.title,
-    required this.subtitle,
+    required this.label,
     this.iconColor,
     required this.onTap,
   });
@@ -735,42 +734,33 @@ class _AdminAction extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final shapes = Theme.of(context).extension<AppShapeTokens>();
+    final color = iconColor ?? (isDark ? AppColors.dark150 : AppColors.dark700);
 
     return InkWell(
       onTap: onTap,
       borderRadius: shapes?.button ?? BorderRadius.circular(8),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
+        padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
         decoration: BoxDecoration(
-          color: isDark ? AppColors.dark600 : AppColors.dark100,
+          border: Border.all(
+            color: isDark ? AppColors.dark500 : AppColors.dark200,
+            width: 1,
+          ),
           borderRadius: shapes?.button ?? BorderRadius.circular(8),
         ),
-        child: Row(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 20, color: iconColor ?? (isDark ? AppColors.pureWhite : AppColors.dark900)),
-            const SizedBox(width: AppSpacing.md),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: AppTypography.label.copyWith(
-                      fontWeight: AppTypography.weightBold,
-                      color: isDark ? AppColors.pureWhite : AppColors.dark900,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    subtitle,
-                    style: AppTypography.micro.copyWith(
-                      color: isDark ? AppColors.dark200 : AppColors.dark400,
-                    ),
-                  ),
-                ],
+            Icon(icon, size: 20, color: color),
+            const SizedBox(height: AppSpacing.xs),
+            Text(
+              label,
+              style: AppTypography.micro.copyWith(
+                fontWeight: AppTypography.weightBold,
+                color: color,
+                letterSpacing: AppTypography.lsLabel,
               ),
             ),
-            Icon(Icons.chevron_right_rounded, size: 16, color: isDark ? AppColors.dark300 : AppColors.dark400),
           ],
         ),
       ),
