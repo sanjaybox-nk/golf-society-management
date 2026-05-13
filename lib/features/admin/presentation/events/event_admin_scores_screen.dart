@@ -505,25 +505,38 @@ class _EventAdminScoresScreenState extends ConsumerState<EventAdminScoresScreen>
           const SizedBox(height: AppSpacing.lg),
           const Divider(height: 1),
           const SizedBox(height: AppSpacing.md),
-          BoxyArtButton(
-            title: isPublished ? 'Unpublish Results' : 'Publish Results',
-            isSecondary: true,
-            fullWidth: true,
-            onTap: () => _togglePublish(ref, event),
+          _ActionRow(
+            button: BoxyArtButton(
+              title: isPublished ? 'Unpublish' : 'Publish',
+              isSecondary: true,
+              fullWidth: true,
+              onTap: () => _togglePublish(ref, event),
+            ),
+            description: isPublished
+                ? 'Hide standings from members'
+                : 'Make final standings visible to all members',
           ),
           const SizedBox(height: AppSpacing.sm),
-          BoxyArtButton(
-            title: isLocked ? 'Unlock Scores' : 'Lock Scores',
-            isSecondary: true,
-            fullWidth: true,
-            onTap: () => _toggleLock(ref, event),
+          _ActionRow(
+            button: BoxyArtButton(
+              title: isLocked ? 'Unlock' : 'Lock',
+              isSecondary: true,
+              fullWidth: true,
+              onTap: () => _toggleLock(ref, event),
+            ),
+            description: isLocked
+                ? 'Re-open scores for editing'
+                : 'Finalise all scorecards — no further changes allowed',
           ),
           const SizedBox(height: AppSpacing.sm),
-          BoxyArtButton(
-            title: 'Send Reminders',
-            isSecondary: true,
-            fullWidth: true,
-            onTap: () => _sendReminders(context, ref, event),
+          _ActionRow(
+            button: BoxyArtButton(
+              title: 'Remind',
+              isSecondary: true,
+              fullWidth: true,
+              onTap: () => _sendReminders(context, ref, event),
+            ),
+            description: 'Notify members who have not yet submitted their scorecard',
           ),
         ],
       ),
@@ -705,6 +718,34 @@ class _ScoreMetric extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _ActionRow extends StatelessWidget {
+  final Widget button;
+  final String description;
+
+  const _ActionRow({required this.button, required this.description});
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        SizedBox(width: 120, child: button),
+        const SizedBox(width: AppSpacing.md),
+        Expanded(
+          child: Text(
+            description,
+            style: AppTypography.micro.copyWith(
+              color: isDark ? AppColors.dark300 : AppColors.dark400,
+              height: 1.4,
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
