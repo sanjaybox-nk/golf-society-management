@@ -395,45 +395,57 @@ class EventAdminScorecardEditorScreen extends ConsumerWidget {
             letterSpacing: AppTypography.lsLabel,
           )),
           const SizedBox(height: AppSpacing.md),
-          ...log.map((entry) {
-            final editor = members.firstWhereOrNull((m) => m.id == entry.editorId);
-            final editorName = editor != null ? '${editor.firstName} ${editor.lastName}' : 'Admin';
-            return Padding(
-              padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-              child: Row(
+          for (int i = 0; i < log.length; i++) ...[
+            if (i > 0) ...[
+              const Divider(height: AppSpacing.xl, thickness: 0.5),
+            ],
+            Builder(builder: (ctx) {
+              final entry = log[i];
+              final editor = members.firstWhereOrNull((m) => m.id == entry.editorId);
+              final editorName = editor != null ? '${editor.firstName} ${editor.lastName}' : 'Admin';
+              return Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Container(
-                    width: 28, height: 28,
+                    width: 32, height: 32,
                     alignment: Alignment.center,
                     decoration: BoxDecoration(
                       color: AppColors.amber500.withValues(alpha: AppColors.opacityLow),
                       borderRadius: shapes?.accent ?? BorderRadius.circular(6),
                     ),
-                    child: Text('${entry.hole}', style: AppTypography.micro.copyWith(
+                    child: Text('${entry.hole}', style: AppTypography.label.copyWith(
                       fontWeight: AppTypography.weightBold, color: AppColors.amber500,
                     )),
                   ),
-                  const SizedBox(width: AppSpacing.sm),
+                  const SizedBox(width: AppSpacing.md),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
                           'Player ${entry.playerScore} · Marker ${entry.markerScore} → resolved to ${entry.resolvedTo}',
-                          style: AppTypography.micro.copyWith(fontWeight: AppTypography.weightBold),
+                          style: AppTypography.bodySmall.copyWith(fontWeight: AppTypography.weightBold),
                         ),
+                        const SizedBox(height: AppSpacing.xs),
                         Text(
-                          '"${entry.reason}" · $editorName · ${_formatTimestamp(entry.timestamp)}',
-                          style: AppTypography.micro.copyWith(color: AppColors.dark300),
+                          '"${entry.reason}"',
+                          style: AppTypography.micro.copyWith(color: AppColors.dark400),
+                        ),
+                        const SizedBox(height: AppSpacing.xs),
+                        Text(
+                          'Resolved by $editorName · ${_formatTimestamp(entry.timestamp)}',
+                          style: AppTypography.micro.copyWith(
+                            color: AppColors.dark300,
+                            fontStyle: FontStyle.italic,
+                          ),
                         ),
                       ],
                     ),
                   ),
                 ],
-              ),
-            );
-          }),
+              );
+            }),
+          ],
         ],
       ),
     );
