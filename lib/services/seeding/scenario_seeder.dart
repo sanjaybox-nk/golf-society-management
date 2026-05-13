@@ -644,18 +644,30 @@ class ScenarioSeeder {
         (event.grouping['groups'] as List).map((g) => TeeGroup.fromJson(g)).toList();
     final int total = groups.length;
 
-    // Tier boundaries (deterministic, not random):
-    //   Groups 0 .. readyCut-1        → Ready  (both verified, clean)
-    //   Groups readyCut .. awaitCut-1 → Awaiting (player verified, marker pending)
-    //   Groups awaitCut .. total-1    → Outstanding (submitted, neither verified)
-    final int readyCut = (total * 0.50).round();
-    final int awaitCut = (total * 0.80).round();
+    // Deterministic admin ID for audit log entries
+    final adminId = members.firstWhereOrNull(
+      (m) => m.role == MemberRole.admin || m.role == MemberRole.superAdmin,
+    )?.id ?? 'admin_seed';
+
+    // Tier boundaries — 5 distinct states:
+    //   0 .. verifiedCut-1       → Verified (approved, some with audit log)
+    //   verifiedCut .. reviewCut-1  → Ready to Review (finalScore clean + reviewed with audit log)
+    //   reviewCut .. conflictCut-1  → Issues (submitted, unresolved conflicts)
+    //   conflictCut .. awaitCut-1   → Awaiting (player signed, marker pending)
+    //   awaitCut .. total-1         → Outstanding (draft / neither signed)
+    final int verifiedCut  = (total * 0.20).round().clamp(1, total);
+    final int reviewCut    = (total * 0.40).round().clamp(verifiedCut, total);
+    final int conflictCut  = (total * 0.55).round().clamp(reviewCut, total);
+    final int awaitCut     = (total * 0.75).round().clamp(conflictCut, total);
 
     for (int i = 0; i < groups.length; i++) {
       final group = groups[i];
 
-      final bool isReady = i < readyCut;
-      final bool isAwaiting = i >= readyCut && i < awaitCut;
+      final bool isVerified    = i < verifiedCut;
+      final bool isReadyReview = i >= verifiedCut && i < reviewCut;
+      final bool isIssue       = i >= reviewCut && i < conflictCut;
+      final bool isAwaiting    = i >= conflictCut && i < awaitCut;
+      // else outstanding
 
       for (int j = 0; j < group.players.length; j++) {
         final p = group.players[j];
@@ -688,24 +700,14 @@ class ScenarioSeeder {
           final si = tee.holeSIs[h];
           final strokes = (phc / 18).floor() + (phc % 18 >= si ? 1 : 0);
           final rand = random.nextDouble();
-          final netScore = rand < 0.20
-              ? par - 1        // birdie
-              : rand < 0.75
-                  ? par        // par
-                  : rand < 0.92
-                      ? par + 1 // bogey
-                      : par + 2; // double
+          final netScore = rand < 0.20 ? par - 1 : rand < 0.75 ? par : rand < 0.92 ? par + 1 : par + 2;
           holeScores.add((netScore + strokes).toInt());
         }
 
-        // Build rich hole tags — GIMME, PICK_UP (with NDB score), penalties
         final holeTags = _generateVerificationTags(holeScores, tee.holePars, tee.holeSIs, phc, rules);
-
-        // Apply NDB pick-up score to holeScores where PICK_UP tag was generated
         for (final entry in holeTags.entries) {
-          final holeNum = entry.key;
           if (entry.value.contains('PICK_UP')) {
-            final hIdx = holeNum - 1;
+            final hIdx = entry.key - 1;
             final par = tee.holePars[hIdx];
             final si = tee.holeSIs[hIdx];
             final strokes = (phc / 18).floor() + (phc % 18 >= si ? 1 : 0);
@@ -713,31 +715,110 @@ class ScenarioSeeder {
           }
         }
 
-        // Marker scores — copy then introduce deliberate conflicts on 1 card per Awaiting group
-        final markerScores = List<int?>.from(holeScores);
-        final bool hasConflict = isAwaiting && j == 0 && i == readyCut;
-        if (hasConflict) {
-          // Conflict on holes 7 and 14 — marker recorded one more stroke
-          if (markerScores[6] != null) markerScores[6] = markerScores[6]! + 1;
-          if (markerScores[13] != null) markerScores[13] = markerScores[13]! + 1;
-        }
-
         final marker = group.players[(j + 1) % group.players.length];
         final markerId = marker.isGuest
             ? '${marker.registrationMemberId}_guest'
             : marker.registrationMemberId;
 
+        final submittedTime = date.copyWith(hour: 14, minute: 30 + random.nextInt(60));
+
+        // --- Conflict helpers ---
+        // Odd-indexed players in conflict/verified-with-audit groups get a conflict on holes 7 & 14
+        final bool seedConflict = (isIssue || isVerified || isReadyReview) && j.isOdd;
+
+        final markerScores = List<int?>.from(holeScores);
+        if (seedConflict) {
+          if (markerScores[6] != null) markerScores[6] = markerScores[6]! + 1;
+          if (markerScores[13] != null) markerScores[13] = markerScores[13]! + 1;
+        }
+
+        // Audit log for resolved conflict cards (verified + reviewable odd-j)
+        final List<HoleAuditEntry> auditLog = [];
+        if (seedConflict && !isIssue) {
+          // Conflict was resolved — restore markerScores to match holeScores
+          markerScores[6] = holeScores[6];
+          markerScores[13] = holeScores[13];
+          auditLog.addAll([
+            HoleAuditEntry(
+              hole: 7,
+              playerScore: holeScores[6]!,
+              markerScore: holeScores[6]! + 1,
+              resolvedTo: holeScores[6]!,
+              reason: 'Player confirmed correct score on debrief',
+              editorId: adminId,
+              timestamp: submittedTime.add(const Duration(minutes: 20)),
+            ),
+            HoleAuditEntry(
+              hole: 14,
+              playerScore: holeScores[13]!,
+              markerScore: holeScores[13]! + 1,
+              resolvedTo: holeScores[13]!,
+              reason: 'Marker acknowledged counting error',
+              editorId: adminId,
+              timestamp: submittedTime.add(const Duration(minutes: 22)),
+            ),
+          ]);
+        }
+
+        final grossTotal = holeScores.whereType<int>().fold<int>(0, (a, b) => a + b);
+        final approvedTime = submittedTime.add(const Duration(minutes: 45));
+
+        ScorecardStatus status;
+        bool verifiedByPlayer;
+        bool verifiedByMarker;
+        String? approvedBy;
+        DateTime? approvedAt;
+
+        if (isVerified) {
+          status = ScorecardStatus.approved;
+          verifiedByPlayer = true;
+          verifiedByMarker = true;
+          approvedBy = adminId;
+          approvedAt = approvedTime;
+        } else if (isReadyReview) {
+          // Odd-j: resolved conflict → reviewed; even-j: clean → finalScore
+          status = j.isOdd ? ScorecardStatus.reviewed : ScorecardStatus.finalScore;
+          verifiedByPlayer = true;
+          verifiedByMarker = true;
+          approvedBy = null;
+          approvedAt = null;
+        } else if (isIssue) {
+          // Odd-j: active conflict; even-j: clean submitted
+          status = ScorecardStatus.submitted;
+          verifiedByPlayer = true;
+          verifiedByMarker = true;
+          approvedBy = null;
+          approvedAt = null;
+        } else if (isAwaiting) {
+          status = ScorecardStatus.submitted;
+          verifiedByPlayer = true;
+          verifiedByMarker = false;
+          approvedBy = null;
+          approvedAt = null;
+        } else {
+          // Outstanding
+          status = j.isEven ? ScorecardStatus.draft : ScorecardStatus.submitted;
+          verifiedByPlayer = false;
+          verifiedByMarker = false;
+          approvedBy = null;
+          approvedAt = null;
+        }
+
         await scoreRepo.updateScorecard(s.copyWith(
-          status: ScorecardStatus.submitted,
+          status: status,
           markerId: markerId,
           holeScores: holeScores,
           playerVerifierScores: markerScores,
           holeTags: holeTags,
+          holeAuditLog: auditLog,
           handicapIndex: index,
           playingHandicap: phc,
-          verifiedByPlayer: isReady || isAwaiting,
-          verifiedByMarker: isReady,
-          submittedAt: date.copyWith(hour: 14, minute: 30 + random.nextInt(60)),
+          grossTotal: grossTotal,
+          verifiedByPlayer: verifiedByPlayer,
+          verifiedByMarker: verifiedByMarker,
+          approvedBy: approvedBy,
+          approvedAt: approvedAt,
+          submittedAt: submittedTime,
           updatedAt: DateTime.now(),
         ));
       }
