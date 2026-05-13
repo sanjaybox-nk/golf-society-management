@@ -159,9 +159,10 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
             VoidCallback? headerOnBadgeTap;
             
             final effectiveStatus = event.status;
-            final bool isLocked = event.isScoringLocked == true;
+            final bool isLocked = event.isScoringLocked == true ||
+                userScorecard?.status == ScorecardStatus.approved;
             final bool isCompleted = effectiveStatus == EventStatus.completed;
-            
+
             final isSameDayOrPast = utils.DateUtils.isSameDayOrPastEvent(event);
 
             final bool isScoringActive = !isCompleted && ((effectiveStatus == EventStatus.inPlay) || (isSameDayOrPast && !isLocked));
