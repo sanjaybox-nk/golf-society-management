@@ -443,17 +443,7 @@ class EventAdminScorecardEditorScreen extends ConsumerWidget {
               return Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Container(
-                    width: 32, height: 32,
-                    alignment: Alignment.center,
-                    decoration: BoxDecoration(
-                      color: AppColors.amber500.withValues(alpha: AppColors.opacityLow),
-                      borderRadius: shapes?.accent ?? BorderRadius.circular(6),
-                    ),
-                    child: Text('${entry.hole}', style: AppTypography.label.copyWith(
-                      fontWeight: AppTypography.weightBold, color: AppColors.amber500,
-                    )),
-                  ),
+                  BoxyArtNumberBadge(number: entry.hole, size: 32, isRanking: false),
                   const SizedBox(width: AppSpacing.md),
                   Expanded(
                     child: Column(

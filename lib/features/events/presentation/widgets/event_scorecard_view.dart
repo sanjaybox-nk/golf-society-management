@@ -310,18 +310,7 @@ class _EventScorecardViewState extends ConsumerState<EventScorecardView> {
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(
-                  width: 32, height: 32,
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    color: AppColors.amber500.withValues(alpha: AppColors.opacityLow),
-                    borderRadius: shapes?.accent ?? BorderRadius.circular(6),
-                  ),
-                  child: Text('${log[i].hole}', style: AppTypography.label.copyWith(
-                    fontWeight: AppTypography.weightBold,
-                    color: Theme.of(context).colorScheme.onSurface,
-                  )),
-                ),
+                BoxyArtNumberBadge(number: log[i].hole, size: 32, isRanking: false),
                 const SizedBox(width: AppSpacing.md),
                 Expanded(
                   child: Column(
