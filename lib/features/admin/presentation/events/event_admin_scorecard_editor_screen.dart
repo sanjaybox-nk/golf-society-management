@@ -48,6 +48,7 @@ class EventAdminScorecardEditorScreen extends ConsumerWidget {
     
     final currentHole = ref.watch(adminEditorHoleProvider);
     final spacing = Theme.of(context).extension<AppSpacingTokens>();
+    final shapes = Theme.of(context).extension<AppShapeTokens>();
 
     return eventAsync.when(
       data: (event) => HeadlessScaffold(
@@ -133,23 +134,11 @@ class EventAdminScorecardEditorScreen extends ConsumerWidget {
 
                       // Conflict banner
                       if (hasConflicts) ...[
-                        Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.standard, vertical: AppSpacing.sm),
-                          margin: const EdgeInsets.only(bottom: AppSpacing.standard),
-                          decoration: BoxDecoration(
-                            color: AppColors.amber500.withValues(alpha: AppColors.opacityLow),
-                            borderRadius: AppShapes.md,
-                            border: Border.all(color: AppColors.amber500, width: 1),
-                          ),
-                          child: Row(children: [
-                            const Icon(Icons.warning_amber_rounded, color: AppColors.amber500, size: 16),
-                            const SizedBox(width: AppSpacing.sm),
-                            Expanded(child: Text(
-                              '${conflictedHoles.length} hole${conflictedHoles.length > 1 ? 's' : ''} conflict with marker${markerName != null ? ' ($markerName)' : ''}. Conflicted holes are highlighted below.',
-                              style: AppTypography.micro.copyWith(color: AppColors.dark900, fontWeight: AppTypography.weightBold),
-                            )),
-                          ]),
+                        _StatusBanner(
+                          color: AppColors.amber500,
+                          icon: Icons.warning_amber_rounded,
+                          message: '${conflictedHoles.length} hole${conflictedHoles.length > 1 ? 's' : ''} conflict with marker${markerName != null ? ' ($markerName)' : ''}. Conflicted holes are highlighted below.',
+                          shapes: shapes,
                         ),
                       ],
 
@@ -188,25 +177,16 @@ class EventAdminScorecardEditorScreen extends ConsumerWidget {
 
                       // Approved banner
                       if (isApproved) ...[
-                        Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.standard, vertical: AppSpacing.sm),
-                          margin: const EdgeInsets.only(bottom: AppSpacing.standard),
-                          decoration: BoxDecoration(
-                            color: AppColors.lime500.withValues(alpha: AppColors.opacityLow),
-                            borderRadius: AppShapes.md,
-                            border: Border.all(color: AppColors.lime500, width: 1),
-                          ),
-                          child: Row(children: [
-                            const Icon(Icons.verified_rounded, color: AppColors.lime500, size: 16),
-                            const SizedBox(width: AppSpacing.sm),
-                            Expanded(child: Text(
-                              'Card approved${scorecard!.approvedAt != null ? ' · ${_formatTimestamp(scorecard.approvedAt!)}' : ''}',
-                              style: AppTypography.micro.copyWith(color: AppColors.dark900, fontWeight: AppTypography.weightBold),
-                            )),
-                          ]),
+                        _StatusBanner(
+                          color: AppColors.lime500,
+                          icon: Icons.verified_rounded,
+                          message: 'Card approved${scorecard!.approvedAt != null ? ' · ${_formatTimestamp(scorecard.approvedAt!)}' : ''}',
+                          shapes: shapes,
                         ),
-                        if (scorecard!.holeAuditLog.isNotEmpty) _buildAuditLog(context, scorecard.holeAuditLog, members),
+                        if (scorecard!.holeAuditLog.isNotEmpty) ...[
+                          SizedBox(height: spacing?.cardToCard ?? AppSpacing.standard),
+                          _buildAuditLog(context, scorecard.holeAuditLog, members, shapes),
+                        ],
                       ],
 
                       // Admin Keypad (hidden when approved)
@@ -404,7 +384,7 @@ class EventAdminScorecardEditorScreen extends ConsumerWidget {
     }
   }
 
-  Widget _buildAuditLog(BuildContext context, List<HoleAuditEntry> log, List<Member> members) {
+  Widget _buildAuditLog(BuildContext context, List<HoleAuditEntry> log, List<Member> members, AppShapeTokens? shapes) {
     return BoxyArtCard(
       padding: const EdgeInsets.all(AppSpacing.standard),
       child: Column(
@@ -428,7 +408,7 @@ class EventAdminScorecardEditorScreen extends ConsumerWidget {
                     alignment: Alignment.center,
                     decoration: BoxDecoration(
                       color: AppColors.amber500.withValues(alpha: AppColors.opacityLow),
-                      borderRadius: AppShapes.sm,
+                      borderRadius: shapes?.accent ?? BorderRadius.circular(6),
                     ),
                     child: Text('${entry.hole}', style: AppTypography.micro.copyWith(
                       fontWeight: AppTypography.weightBold, color: AppColors.amber500,
@@ -498,4 +478,50 @@ class EventAdminScorecardEditorScreen extends ConsumerWidget {
   }
 
   // _resolvePlayerCourseConfig removed as we now use ScoringCalculator
+}
+
+class _StatusBanner extends StatelessWidget {
+  final Color color;
+  final IconData icon;
+  final String message;
+  final AppShapeTokens? shapes;
+
+  const _StatusBanner({
+    required this.color,
+    required this.icon,
+    required this.message,
+    required this.shapes,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final spacing = Theme.of(context).extension<AppSpacingTokens>();
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Container(
+      width: double.infinity,
+      margin: EdgeInsets.only(bottom: spacing?.cardToCard ?? AppSpacing.standard),
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.standard, vertical: AppSpacing.sm),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: AppColors.opacityLow),
+        borderRadius: shapes?.card ?? BorderRadius.circular(12),
+        border: Border.all(color: color.withValues(alpha: AppColors.opacitySubtle), width: 1),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, color: color, size: 16),
+          const SizedBox(width: AppSpacing.sm),
+          Expanded(
+            child: Text(
+              message,
+              style: AppTypography.micro.copyWith(
+                color: isDark ? AppColors.pureWhite : AppColors.dark900,
+                fontWeight: AppTypography.weightBold,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
