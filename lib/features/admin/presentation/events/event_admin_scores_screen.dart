@@ -506,37 +506,25 @@ class _EventAdminScoresScreenState extends ConsumerState<EventAdminScoresScreen>
           const Divider(height: 1),
           const SizedBox(height: AppSpacing.md),
           _ActionRow(
-            button: BoxyArtButton(
-              title: isPublished ? 'Unpublish' : 'Publish',
-              isSecondary: true,
-              fullWidth: true,
-              onTap: () => _togglePublish(ref, event),
-            ),
+            label: isPublished ? 'Unpublish' : 'Publish',
             description: isPublished
                 ? 'Hide standings from members'
                 : 'Make final standings visible to all members',
+            onTap: () => _togglePublish(ref, event),
           ),
           const SizedBox(height: AppSpacing.sm),
           _ActionRow(
-            button: BoxyArtButton(
-              title: isLocked ? 'Unlock' : 'Lock',
-              isSecondary: true,
-              fullWidth: true,
-              onTap: () => _toggleLock(ref, event),
-            ),
+            label: isLocked ? 'Unlock' : 'Lock',
             description: isLocked
                 ? 'Re-open scores for editing'
                 : 'Finalise all scorecards — no further changes allowed',
+            onTap: () => _toggleLock(ref, event),
           ),
           const SizedBox(height: AppSpacing.sm),
           _ActionRow(
-            button: BoxyArtButton(
-              title: 'Remind',
-              isSecondary: true,
-              fullWidth: true,
-              onTap: () => _sendReminders(context, ref, event),
-            ),
+            label: 'Remind',
             description: 'Notify members who have not yet submitted their scorecard',
+            onTap: () => _sendReminders(context, ref, event),
           ),
         ],
       ),
@@ -723,18 +711,53 @@ class _ScoreMetric extends StatelessWidget {
 }
 
 class _ActionRow extends StatelessWidget {
-  final Widget button;
+  final String label;
   final String description;
+  final VoidCallback onTap;
 
-  const _ActionRow({required this.button, required this.description});
+  const _ActionRow({
+    required this.label,
+    required this.description,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final shapes = Theme.of(context).extension<AppShapeTokens>();
+    final baseColor = isDark ? AppColors.dark600 : AppColors.dark100;
+    final pressColor = isDark ? AppColors.dark500 : AppColors.dark200;
+    final radius = shapes?.button ?? BorderRadius.circular(8);
+
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        SizedBox(width: 120, child: button),
+        SizedBox(
+          width: 160,
+          child: Material(
+            color: baseColor,
+            borderRadius: radius,
+            child: InkWell(
+              onTap: onTap,
+              borderRadius: radius,
+              highlightColor: pressColor,
+              splashColor: pressColor,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
+                child: Center(
+                  child: Text(
+                    label.toUpperCase(),
+                    style: AppTypography.label.copyWith(
+                      fontWeight: AppTypography.weightBold,
+                      color: isDark ? AppColors.dark150 : AppColors.dark700,
+                      letterSpacing: AppTypography.lsLabel,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
         const SizedBox(width: AppSpacing.md),
         Expanded(
           child: Text(
