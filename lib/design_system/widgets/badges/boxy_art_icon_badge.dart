@@ -59,10 +59,14 @@ class BoxyArtIconBadge extends ConsumerWidget {
     
     final double effectiveOpacity = fillOpacity ?? shapeTokens?.iconBadgeOpacity ?? config.iconBadgeOpacity;
     
+    // When an explicit color is provided, use it as a low-opacity tint fill
+    // with the full-saturation color as the icon — matching the banner pattern.
+    const double tintOpacity = 0.15;
+
     final Color effectiveFill = !showFill
         ? Colors.transparent
         : (color != Colors.transparent
-            ? color.withValues(alpha: effectiveOpacity)
+            ? color.withValues(alpha: tintOpacity)
             : (isTertiary
                 ? Theme.of(context).colorScheme.tertiary.withValues(alpha: effectiveOpacity)
                 : (isPrimary
