@@ -376,6 +376,9 @@ class _EventAdminScoresScreenState extends ConsumerState<EventAdminScoresScreen>
                           : allIssues[i].scoringStatus == ScoringStatus.incomplete
                               ? 'Incomplete card'
                               : allIssues[i].scoringStatus.name.toUpperCase(),
+                      icon: conflictOnly.contains(allIssues[i])
+                          ? Icons.warning_rounded
+                          : Icons.error_rounded,
                       iconColor: conflictOnly.contains(allIssues[i]) ? AppColors.amber500 : AppColors.coral500,
                     ),
                   ],
@@ -441,7 +444,7 @@ class _EventAdminScoresScreenState extends ConsumerState<EventAdminScoresScreen>
                       return BoxyArtNavTile(
                         title: reg?.memberName ?? s.entryId,
                         subtitle: s.status == ScorecardStatus.draft ? 'Scoring in progress' : 'Submitted — not yet signed off',
-                        icon: Icons.pending_outlined,
+                        icon: s.status == ScorecardStatus.draft ? Icons.edit_rounded : Icons.schedule_rounded,
                         iconColor: AppColors.dark300,
                         onTap: () => context.push('/admin/events/manage/${Uri.encodeComponent(event.id)}/scores/$editorPlayerId'),
                       );
@@ -486,13 +489,13 @@ class _EventAdminScoresScreenState extends ConsumerState<EventAdminScoresScreen>
   }
 
 
-  Widget _buildIssueTile(BuildContext context, WidgetRef ref, Scorecard s, GolfEvent event, {required String subtitle, required Color iconColor}) {
+  Widget _buildIssueTile(BuildContext context, WidgetRef ref, Scorecard s, GolfEvent event, {required String subtitle, required IconData icon, required Color iconColor}) {
     final reg = event.registrations.firstWhereOrNull((r) => r.memberId == s.entryId || '${r.memberId}_guest' == s.entryId);
     final editorPlayerId = s.entryId.replaceAll('_guest', '');
     return BoxyArtNavTile(
       title: reg?.memberName ?? s.entryId,
       subtitle: subtitle,
-      icon: Icons.warning_amber_rounded,
+      icon: icon,
       iconColor: iconColor,
       onTap: () => context.push('/admin/events/manage/${Uri.encodeComponent(event.id)}/scores/$editorPlayerId'),
     );
@@ -507,7 +510,7 @@ class _EventAdminScoresScreenState extends ConsumerState<EventAdminScoresScreen>
       subtitle: hasAmendments
           ? '${s.holeAuditLog.length} hole${s.holeAuditLog.length > 1 ? 's' : ''} amended — tap to review & approve'
           : 'Clean card — tap to review & approve',
-      icon: hasAmendments ? Icons.edit_note_rounded : Icons.check_circle_outline_rounded,
+      icon: hasAmendments ? Icons.edit_note_rounded : Icons.task_alt_rounded,
       iconColor: hasAmendments ? AppColors.amber500 : AppColors.lime500,
       onTap: () => context.push('/admin/events/manage/${Uri.encodeComponent(event.id)}/scores/$editorPlayerId'),
     );
