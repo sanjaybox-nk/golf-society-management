@@ -403,6 +403,7 @@ class EventAdminScorecardEditorScreen extends ConsumerWidget {
           timestamp: DateTime.now(),
           category: 'Scoring',
           eventId: event.id,
+          actionUrl: '/events/${event.id}/live',
         ));
       } catch (_) {}
 
