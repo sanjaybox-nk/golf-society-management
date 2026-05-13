@@ -170,6 +170,14 @@ class _EventScorecardViewState extends ConsumerState<EventScorecardView> {
             child: _buildConflictStrip(context, conflictedHoles, displayCard),
           ),
 
+        // Score amendments — visible to member when card is approved and has audit entries
+        if (displayCard?.status == ScorecardStatus.approved &&
+            (displayCard?.holeAuditLog.isNotEmpty ?? false))
+          Padding(
+            padding: const EdgeInsets.only(top: AppSpacing.standard),
+            child: _buildMemberAuditLog(context, displayCard!.holeAuditLog),
+          ),
+
       ],
     );
   }
@@ -277,5 +285,68 @@ class _EventScorecardViewState extends ConsumerState<EventScorecardView> {
   String _formatHcp(double hcp) {
     if (hcp == hcp.toInt()) return hcp.toInt().toString();
     return hcp.toStringAsFixed(1);
+  }
+
+  Widget _buildMemberAuditLog(BuildContext context, List<HoleAuditEntry> log) {
+    final shapes = Theme.of(context).extension<AppShapeTokens>();
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return BoxyArtCard(
+      padding: const EdgeInsets.all(AppSpacing.standard),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(children: [
+            const Icon(Icons.edit_note_rounded, size: 16, color: AppColors.amber500),
+            const SizedBox(width: AppSpacing.xs),
+            Text('Score Amendments', style: AppTypography.labelStrong.copyWith(
+              fontWeight: AppTypography.weightBold,
+              letterSpacing: AppTypography.lsLabel,
+            )),
+          ]),
+          const SizedBox(height: AppSpacing.md),
+          for (int i = 0; i < log.length; i++) ...[
+            if (i > 0) const Divider(height: AppSpacing.xl, thickness: 0.5),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  width: 32, height: 32,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: AppColors.amber500.withValues(alpha: AppColors.opacityLow),
+                    borderRadius: shapes?.accent ?? BorderRadius.circular(6),
+                  ),
+                  child: Text('${log[i].hole}', style: AppTypography.label.copyWith(
+                    fontWeight: AppTypography.weightBold, color: AppColors.amber500,
+                  )),
+                ),
+                const SizedBox(width: AppSpacing.md),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Hole ${log[i].hole} score corrected to ${log[i].resolvedTo}',
+                        style: AppTypography.bodySmall.copyWith(fontWeight: AppTypography.weightBold),
+                      ),
+                      if (log[i].reason.isNotEmpty) ...[
+                        const SizedBox(height: AppSpacing.xs),
+                        Text(
+                          '"${log[i].reason}"',
+                          style: AppTypography.micro.copyWith(
+                            color: isDark ? AppColors.dark300 : AppColors.dark400,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ],
+      ),
+    );
   }
 }

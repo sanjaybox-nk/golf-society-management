@@ -171,7 +171,10 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
               (userScorecard.playerVerifierScores.length == 18 && userScorecard.playerVerifierScores.every((s) => s != null && s > 0))
             );
 
-            if (isLocked || (userScorecard?.status == ScorecardStatus.finalScore)) {
+            if (userScorecard?.status == ScorecardStatus.approved) {
+              headerBadgeText = "Verified";
+              headerBadgeColor = AppColors.lime500;
+            } else if (isLocked || (userScorecard?.status == ScorecardStatus.finalScore)) {
               headerBadgeText = "Final Score";
               headerBadgeColor = AppColors.lime600;
             } else if (isCompleted) {
@@ -754,6 +757,7 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
 
   Color _getStatusColor(ScorecardStatus status) {
     switch (status) {
+      case ScorecardStatus.approved: return AppColors.lime500;
       case ScorecardStatus.submitted: return AppColors.teamA;
       case ScorecardStatus.reviewed: return AppColors.lime600;
       case ScorecardStatus.finalScore: return AppColors.lime500;

@@ -14,6 +14,8 @@ import '../../../../domain/scoring/handicap_calculator.dart';
 import '../../../members/presentation/members_provider.dart';
 import '../../../members/presentation/profile_provider.dart';
 import '../../../competitions/presentation/competitions_provider.dart';
+import 'package:golf_society/domain/models/notification.dart';
+import 'package:golf_society/features/home/presentation/home_providers.dart';
 import 'widgets/admin_scorecard_keypad.dart';
 import 'package:golf_society/domain/scoring/scoring_calculator.dart';
 
@@ -257,13 +259,29 @@ class EventAdminScorecardEditorScreen extends ConsumerWidget {
         context: context,
         builder: (ctx) => AlertDialog(
           title: Text('Resolve Conflict — Hole $hole'),
-          content: TextField(
-            controller: controller,
-            decoration: const InputDecoration(
-              hintText: 'Reason (e.g. "Player confirmed correct")',
-              border: OutlineInputBorder(),
-            ),
-            autofocus: true,
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Note for member (optional)',
+                style: AppTypography.micro.copyWith(fontWeight: AppTypography.weightBold),
+              ),
+              const SizedBox(height: AppSpacing.xs),
+              Text(
+                'This note will be visible to the player on their scorecard.',
+                style: AppTypography.micro.copyWith(color: AppColors.dark400),
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              TextField(
+                controller: controller,
+                decoration: const InputDecoration(
+                  hintText: 'e.g. "Score confirmed on course"',
+                  border: OutlineInputBorder(),
+                ),
+                autofocus: true,
+              ),
+            ],
           ),
           actions: [
             TextButton(onPressed: () => Navigator.of(ctx).pop(false), child: const Text('Cancel')),
@@ -369,9 +387,28 @@ class EventAdminScorecardEditorScreen extends ConsumerWidget {
         approvedAt: DateTime.now(),
         updatedAt: DateTime.now(),
       ));
+
+      // Notify the player — best effort
+      try {
+        final playerId = card.entryId.replaceAll('_guest', '');
+        final hasAmendments = card.holeAuditLog.isNotEmpty;
+        final amendmentNote = hasAmendments
+            ? ' ${card.holeAuditLog.length} score amendment${card.holeAuditLog.length > 1 ? 's were' : ' was'} made — tap to view your card.'
+            : '';
+        await ref.read(notificationsRepositoryProvider).sendNotification(AppNotification(
+          id: '',
+          recipientId: playerId,
+          title: 'Scorecard Verified',
+          message: 'Your scorecard for ${event.title} has been verified.$amendmentNote',
+          timestamp: DateTime.now(),
+          category: 'Scoring',
+          eventId: event.id,
+        ));
+      } catch (_) {}
+
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text('Card approved'),
+          content: Text('Card approved — player notified'),
           backgroundColor: AppColors.lime500,
         ));
         Navigator.of(context).pop();
