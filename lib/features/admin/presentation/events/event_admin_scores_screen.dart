@@ -337,7 +337,7 @@ class _EventAdminScoresScreenState extends ConsumerState<EventAdminScoresScreen>
                         title: reg?.memberName ?? s.entryId,
                         subtitle: 'Needs new marker — ${markerReg?.memberName ?? 'previous marker'} left the round',
                         icon: Icons.person_search_rounded,
-                        iconColor: AppColors.amber500,
+                        badgeColor: AppColors.amber500,
                         onTap: () async {
                           final confirmed = await showDialog<bool>(
                             context: context,
@@ -419,7 +419,7 @@ class _EventAdminScoresScreenState extends ConsumerState<EventAdminScoresScreen>
                         title: reg?.memberName ?? s.entryId,
                         subtitle: waitingFor,
                         icon: Icons.hourglass_top_rounded,
-                        iconColor: AppColors.amber500,
+                        badgeColor: AppColors.amber500,
                         onTap: () => context.push('/admin/events/manage/${Uri.encodeComponent(event.id)}/scores/$editorPlayerId'),
                       );
                     }),
@@ -445,7 +445,7 @@ class _EventAdminScoresScreenState extends ConsumerState<EventAdminScoresScreen>
                         title: reg?.memberName ?? s.entryId,
                         subtitle: s.status == ScorecardStatus.draft ? 'Scoring in progress' : 'Submitted — not yet signed off',
                         icon: s.status == ScorecardStatus.draft ? Icons.edit_rounded : Icons.schedule_rounded,
-                        iconColor: AppColors.dark300,
+                        badgeColor: AppColors.dark400,
                         onTap: () => context.push('/admin/events/manage/${Uri.encodeComponent(event.id)}/scores/$editorPlayerId'),
                       );
                     }),
@@ -496,7 +496,7 @@ class _EventAdminScoresScreenState extends ConsumerState<EventAdminScoresScreen>
       title: reg?.memberName ?? s.entryId,
       subtitle: subtitle,
       icon: icon,
-      iconColor: iconColor,
+      badgeColor: iconColor,
       onTap: () => context.push('/admin/events/manage/${Uri.encodeComponent(event.id)}/scores/$editorPlayerId'),
     );
   }
@@ -511,7 +511,7 @@ class _EventAdminScoresScreenState extends ConsumerState<EventAdminScoresScreen>
           ? '${s.holeAuditLog.length} hole${s.holeAuditLog.length > 1 ? 's' : ''} amended — tap to review & approve'
           : 'Clean card — tap to review & approve',
       icon: hasAmendments ? Icons.edit_note_rounded : Icons.task_alt_rounded,
-      iconColor: hasAmendments ? AppColors.amber500 : AppColors.lime500,
+      badgeColor: hasAmendments ? AppColors.amber500 : AppColors.lime500,
       onTap: () => context.push('/admin/events/manage/${Uri.encodeComponent(event.id)}/scores/$editorPlayerId'),
     );
   }
@@ -528,7 +528,7 @@ class _EventAdminScoresScreenState extends ConsumerState<EventAdminScoresScreen>
           ? '${s.holeAuditLog.length} amendment${s.holeAuditLog.length > 1 ? 's' : ''} · Approved by $approverName'
           : 'Clean card · Approved by $approverName',
       icon: Icons.verified_rounded,
-      iconColor: AppColors.lime500,
+      badgeColor: AppColors.lime500,
       onTap: () => context.push('/admin/events/manage/${Uri.encodeComponent(event.id)}/scores/$editorPlayerId'),
     );
   }

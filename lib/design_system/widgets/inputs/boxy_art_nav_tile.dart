@@ -8,6 +8,7 @@ class BoxyArtNavTile extends ConsumerWidget {
   final String title;
   final String subtitle;
   final Color? iconColor;
+  final Color? badgeColor;
   final VoidCallback onTap;
 
   const BoxyArtNavTile({
@@ -16,6 +17,7 @@ class BoxyArtNavTile extends ConsumerWidget {
     required this.title,
     required this.subtitle,
     this.iconColor,
+    this.badgeColor,
     required this.onTap,
   });
 
@@ -34,7 +36,8 @@ class BoxyArtNavTile extends ConsumerWidget {
             // Boxed Icon (Standard 4.x via BoxyArtIconBadge)
             BoxyArtIconBadge(
               icon: icon,
-              iconColor: iconColor,
+              iconColor: iconColor ?? badgeColor,
+              color: badgeColor ?? Colors.transparent,
               size: 44,
               iconSize: 22,
             ),
