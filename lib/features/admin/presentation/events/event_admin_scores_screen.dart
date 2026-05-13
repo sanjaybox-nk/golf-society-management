@@ -725,8 +725,10 @@ class _ActionRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final shapes = Theme.of(context).extension<AppShapeTokens>();
-    final baseColor = isDark ? AppColors.dark600 : AppColors.dark100;
-    final pressColor = isDark ? AppColors.dark500 : AppColors.dark200;
+    final theme = Theme.of(context);
+    final primary = theme.colorScheme.primary;
+    final baseColor = primary.withValues(alpha: AppColors.opacityLow);
+    final pressColor = primary.withValues(alpha: AppColors.opacitySubtle);
     final radius = shapes?.button ?? BorderRadius.circular(8);
 
     return Row(
@@ -749,7 +751,7 @@ class _ActionRow extends StatelessWidget {
                     label.toUpperCase(),
                     style: AppTypography.label.copyWith(
                       fontWeight: AppTypography.weightBold,
-                      color: isDark ? AppColors.dark150 : AppColors.dark700,
+                      color: primary,
                       letterSpacing: AppTypography.lsLabel,
                     ),
                   ),
