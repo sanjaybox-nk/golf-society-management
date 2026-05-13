@@ -318,7 +318,8 @@ class _EventScorecardViewState extends ConsumerState<EventScorecardView> {
                     borderRadius: shapes?.accent ?? BorderRadius.circular(6),
                   ),
                   child: Text('${log[i].hole}', style: AppTypography.label.copyWith(
-                    fontWeight: AppTypography.weightBold, color: AppColors.amber500,
+                    fontWeight: AppTypography.weightBold,
+                    color: Theme.of(context).colorScheme.onSurface,
                   )),
                 ),
                 const SizedBox(width: AppSpacing.md),
