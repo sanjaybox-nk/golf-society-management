@@ -299,72 +299,161 @@ class _EventAdminScoresScreenState extends ConsumerState<EventAdminScoresScreen>
 
         final needsReassignment = scorecards.where((s) => s.markerReassignmentOpen).toList();
 
+        // Awaiting = submitted, one party signed
+        final awaiting = scorecards.where((s) =>
+          s.status == ScorecardStatus.submitted &&
+          (s.verifiedByPlayer || s.verifiedByMarker) &&
+          !(s.verifiedByPlayer && s.verifiedByMarker) &&
+          !conflictOnly.contains(s)
+        ).toList();
+
+        // Outstanding = not scored or neither party signed
+        final outstanding = scorecards.where((s) =>
+          s.status == ScorecardStatus.draft ||
+          (s.status == ScorecardStatus.submitted &&
+           !s.verifiedByPlayer && !s.verifiedByMarker &&
+           !conflictOnly.contains(s))
+        ).toList();
+
+        final allIssues = [...incomplete, ...outliers, ...conflictOnly];
+
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
 
+            // Marker reassignment
             if (needsReassignment.isNotEmpty) ...[
-              const BoxyArtSectionTitle(title: 'Marker Reassignment Required'),
-              ...needsReassignment.map((s) {
-                final reg = event.registrations.firstWhereOrNull((r) => r.memberId == s.entryId || '${r.memberId}_guest' == s.entryId);
-                final markerReg = event.registrations.firstWhereOrNull((r) => r.memberId == s.markerId || '${r.memberId}_guest' == s.markerId);
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: AppSpacing.md),
-                  child: BoxyArtNavTile(
-                    title: reg?.memberName ?? s.entryId,
-                    subtitle: 'Needs new marker — ${markerReg?.memberName ?? 'previous marker'} left the round',
-                    icon: Icons.person_search_rounded,
-                    iconColor: AppColors.amber500,
-                    onTap: () async {
-                      final confirmed = await showDialog<bool>(
-                        context: context,
-                        builder: (_) => BoxyArtConfirmDialog(
-                          title: 'Reassign Marker?',
-                          message: 'This will open marker reassignment for ${reg?.memberName ?? s.entryId}. Use the marker sheet to assign a new marker from the group.',
-                          confirmLabel: 'Open Marker Sheet',
-                          cancelLabel: 'Cancel',
-                        ),
+              const BoxyArtSectionTitle(title: 'Marker Reassignment Required', isPeeking: true),
+              BoxyArtCard(
+                padding: EdgeInsets.zero,
+                child: Column(children: [
+                  for (int i = 0; i < needsReassignment.length; i++) ...[
+                    if (i > 0) const BoxyArtDivider(),
+                    Builder(builder: (ctx) {
+                      final s = needsReassignment[i];
+                      final reg = event.registrations.firstWhereOrNull((r) => r.memberId == s.entryId || '${r.memberId}_guest' == s.entryId);
+                      final markerReg = event.registrations.firstWhereOrNull((r) => r.memberId == s.markerId || '${r.memberId}_guest' == s.markerId);
+                      return BoxyArtNavTile(
+                        title: reg?.memberName ?? s.entryId,
+                        subtitle: 'Needs new marker — ${markerReg?.memberName ?? 'previous marker'} left the round',
+                        icon: Icons.person_search_rounded,
+                        iconColor: AppColors.amber500,
+                        onTap: () async {
+                          final confirmed = await showDialog<bool>(
+                            context: context,
+                            builder: (_) => BoxyArtConfirmDialog(
+                              title: 'Reassign Marker?',
+                              message: 'This will open marker reassignment for ${reg?.memberName ?? s.entryId}.',
+                              confirmLabel: 'Open Marker Sheet',
+                              cancelLabel: 'Cancel',
+                            ),
+                          );
+                          if (confirmed == true) {
+                            await ref.read(scorecardRepositoryProvider).updateScorecard(
+                              s.copyWith(markerReassignmentOpen: false),
+                            );
+                          }
+                        },
                       );
-                      if (confirmed == true) {
-                        await ref.read(scorecardRepositoryProvider).updateScorecard(
-                          s.copyWith(markerReassignmentOpen: false),
-                        );
-                      }
-                    },
-                  ),
-                );
-              }),
+                    }),
+                  ],
+                ]),
+              ),
               const SizedBox(height: AppSpacing.xl),
             ],
 
             // Issues
-            if (incomplete.isNotEmpty || outliers.isNotEmpty || conflictOnly.isNotEmpty) ...[
-              const BoxyArtSectionTitle(title: 'Issues to resolve'),
-              for (final s in [...incomplete, ...outliers])
-                _buildIssueRow(context, ref, s, event, scorecards, membersAsync,
-                  subtitle: s.scoringStatus == ScoringStatus.incomplete
-                      ? 'Incomplete Card'
-                      : s.scoringStatus.name.toUpperCase(),
-                  iconColor: AppColors.coral500,
-                ),
-              for (final s in conflictOnly)
-                _buildIssueRow(context, ref, s, event, scorecards, membersAsync,
-                  subtitle: 'Score conflict — player & marker disagree',
-                  iconColor: AppColors.amber500,
-                ),
+            if (allIssues.isNotEmpty) ...[
+              BoxyArtSectionTitle(title: 'Issues (${allIssues.length})', isPeeking: true),
+              BoxyArtCard(
+                padding: EdgeInsets.zero,
+                child: Column(children: [
+                  for (int i = 0; i < allIssues.length; i++) ...[
+                    if (i > 0) const BoxyArtDivider(),
+                    _buildIssueTile(context, ref, allIssues[i], event,
+                      subtitle: conflictOnly.contains(allIssues[i])
+                          ? 'Score conflict — player & marker disagree'
+                          : allIssues[i].scoringStatus == ScoringStatus.incomplete
+                              ? 'Incomplete card'
+                              : allIssues[i].scoringStatus.name.toUpperCase(),
+                      iconColor: conflictOnly.contains(allIssues[i]) ? AppColors.amber500 : AppColors.coral500,
+                    ),
+                  ],
+                ]),
+              ),
               const SizedBox(height: AppSpacing.xl),
             ],
 
             // Ready to review
             if (readyToReview.isNotEmpty) ...[
-              BoxyArtSectionTitle(title: 'Ready to Review (${readyToReview.length})'),
-              for (final s in readyToReview)
-                _buildReviewRow(context, s, event),
+              BoxyArtSectionTitle(title: 'Ready to Review (${readyToReview.length})', isPeeking: true),
+              BoxyArtCard(
+                padding: EdgeInsets.zero,
+                child: Column(children: [
+                  for (int i = 0; i < readyToReview.length; i++) ...[
+                    if (i > 0) const BoxyArtDivider(),
+                    _buildReviewTile(context, readyToReview[i], event),
+                  ],
+                ]),
+              ),
               const SizedBox(height: AppSpacing.xl),
             ],
 
-            // Nothing outstanding
-            if (incomplete.isEmpty && outliers.isEmpty && conflictOnly.isEmpty && readyToReview.isEmpty) ...[
+            // Awaiting sign-off
+            if (awaiting.isNotEmpty) ...[
+              BoxyArtSectionTitle(title: 'Awaiting Sign-off (${awaiting.length})', isPeeking: true),
+              BoxyArtCard(
+                padding: EdgeInsets.zero,
+                child: Column(children: [
+                  for (int i = 0; i < awaiting.length; i++) ...[
+                    if (i > 0) const BoxyArtDivider(),
+                    Builder(builder: (ctx) {
+                      final s = awaiting[i];
+                      final reg = event.registrations.firstWhereOrNull((r) => r.memberId == s.entryId || '${r.memberId}_guest' == s.entryId);
+                      final editorPlayerId = s.entryId.replaceAll('_guest', '');
+                      final waitingFor = s.verifiedByPlayer ? 'Waiting for marker to sign off' : 'Waiting for player to sign off';
+                      return BoxyArtNavTile(
+                        title: reg?.memberName ?? s.entryId,
+                        subtitle: waitingFor,
+                        icon: Icons.hourglass_top_rounded,
+                        iconColor: AppColors.amber500,
+                        onTap: () => context.push('/admin/events/manage/${Uri.encodeComponent(event.id)}/scores/$editorPlayerId'),
+                      );
+                    }),
+                  ],
+                ]),
+              ),
+              const SizedBox(height: AppSpacing.xl),
+            ],
+
+            // Outstanding
+            if (outstanding.isNotEmpty) ...[
+              BoxyArtSectionTitle(title: 'Outstanding (${outstanding.length})', isPeeking: true),
+              BoxyArtCard(
+                padding: EdgeInsets.zero,
+                child: Column(children: [
+                  for (int i = 0; i < outstanding.length; i++) ...[
+                    if (i > 0) const BoxyArtDivider(),
+                    Builder(builder: (ctx) {
+                      final s = outstanding[i];
+                      final reg = event.registrations.firstWhereOrNull((r) => r.memberId == s.entryId || '${r.memberId}_guest' == s.entryId);
+                      final editorPlayerId = s.entryId.replaceAll('_guest', '');
+                      return BoxyArtNavTile(
+                        title: reg?.memberName ?? s.entryId,
+                        subtitle: s.status == ScorecardStatus.draft ? 'Scoring in progress' : 'Submitted — not yet signed off',
+                        icon: Icons.pending_outlined,
+                        iconColor: AppColors.dark300,
+                        onTap: () => context.push('/admin/events/manage/${Uri.encodeComponent(event.id)}/scores/$editorPlayerId'),
+                      );
+                    }),
+                  ],
+                ]),
+              ),
+              const SizedBox(height: AppSpacing.xl),
+            ],
+
+            // All done
+            if (allIssues.isEmpty && readyToReview.isEmpty && awaiting.isEmpty && outstanding.isEmpty) ...[
               const BoxyArtEmptyCard(
                 title: 'All Cards Approved',
                 message: 'Every scorecard has been reviewed and confirmed. The event is ready to close.',
@@ -375,9 +464,16 @@ class _EventAdminScoresScreenState extends ConsumerState<EventAdminScoresScreen>
 
             // Verified
             if (approved.isNotEmpty) ...[
-              BoxyArtSectionTitle(title: 'Verified (${approved.length})'),
-              for (final s in approved)
-                _buildVerifiedRow(context, s, event, members),
+              BoxyArtSectionTitle(title: 'Verified (${approved.length})', isPeeking: true),
+              BoxyArtCard(
+                padding: EdgeInsets.zero,
+                child: Column(children: [
+                  for (int i = 0; i < approved.length; i++) ...[
+                    if (i > 0) const BoxyArtDivider(),
+                    _buildVerifiedTile(context, approved[i], event, members),
+                  ],
+                ]),
+              ),
             ],
 
             const SizedBox(height: AppSpacing.hero),
@@ -390,75 +486,47 @@ class _EventAdminScoresScreenState extends ConsumerState<EventAdminScoresScreen>
   }
 
 
-  Widget _buildReviewRow(BuildContext context, Scorecard s, GolfEvent event) {
-    final reg = event.registrations.firstWhereOrNull(
-        (r) => r.memberId == s.entryId || '${r.memberId}_guest' == s.entryId);
+  Widget _buildIssueTile(BuildContext context, WidgetRef ref, Scorecard s, GolfEvent event, {required String subtitle, required Color iconColor}) {
+    final reg = event.registrations.firstWhereOrNull((r) => r.memberId == s.entryId || '${r.memberId}_guest' == s.entryId);
     final editorPlayerId = s.entryId.replaceAll('_guest', '');
-    final hasAmendments = s.holeAuditLog.isNotEmpty;
-    return Padding(
-      padding: const EdgeInsets.only(bottom: AppSpacing.md),
-      child: BoxyArtNavTile(
-        title: reg?.memberName ?? s.entryId,
-        subtitle: hasAmendments
-            ? '${s.holeAuditLog.length} hole${s.holeAuditLog.length > 1 ? 's' : ''} amended — tap to review & approve'
-            : 'Clean card — tap to review & approve',
-        icon: hasAmendments ? Icons.edit_note_rounded : Icons.check_circle_outline_rounded,
-        iconColor: hasAmendments ? AppColors.amber500 : AppColors.lime500,
-        onTap: () => context.push(
-          '/admin/events/manage/${Uri.encodeComponent(event.id)}/scores/$editorPlayerId',
-        ),
-      ),
+    return BoxyArtNavTile(
+      title: reg?.memberName ?? s.entryId,
+      subtitle: subtitle,
+      icon: Icons.warning_amber_rounded,
+      iconColor: iconColor,
+      onTap: () => context.push('/admin/events/manage/${Uri.encodeComponent(event.id)}/scores/$editorPlayerId'),
     );
   }
 
-  Widget _buildVerifiedRow(BuildContext context, Scorecard s, GolfEvent event, List<Member> members) {
-    final reg = event.registrations.firstWhereOrNull(
-        (r) => r.memberId == s.entryId || '${r.memberId}_guest' == s.entryId);
+  Widget _buildReviewTile(BuildContext context, Scorecard s, GolfEvent event) {
+    final reg = event.registrations.firstWhereOrNull((r) => r.memberId == s.entryId || '${r.memberId}_guest' == s.entryId);
+    final editorPlayerId = s.entryId.replaceAll('_guest', '');
+    final hasAmendments = s.holeAuditLog.isNotEmpty;
+    return BoxyArtNavTile(
+      title: reg?.memberName ?? s.entryId,
+      subtitle: hasAmendments
+          ? '${s.holeAuditLog.length} hole${s.holeAuditLog.length > 1 ? 's' : ''} amended — tap to review & approve'
+          : 'Clean card — tap to review & approve',
+      icon: hasAmendments ? Icons.edit_note_rounded : Icons.check_circle_outline_rounded,
+      iconColor: hasAmendments ? AppColors.amber500 : AppColors.lime500,
+      onTap: () => context.push('/admin/events/manage/${Uri.encodeComponent(event.id)}/scores/$editorPlayerId'),
+    );
+  }
+
+  Widget _buildVerifiedTile(BuildContext context, Scorecard s, GolfEvent event, List<Member> members) {
+    final reg = event.registrations.firstWhereOrNull((r) => r.memberId == s.entryId || '${r.memberId}_guest' == s.entryId);
     final editorPlayerId = s.entryId.replaceAll('_guest', '');
     final approver = members.firstWhereOrNull((m) => m.id == s.approvedBy);
     final approverName = approver != null ? '${approver.firstName} ${approver.lastName}' : 'Admin';
     final hasAmendments = s.holeAuditLog.isNotEmpty;
-    return Padding(
-      padding: const EdgeInsets.only(bottom: AppSpacing.md),
-      child: BoxyArtNavTile(
-        title: reg?.memberName ?? s.entryId,
-        subtitle: hasAmendments
-            ? '${s.holeAuditLog.length} amendment${s.holeAuditLog.length > 1 ? 's' : ''} · Approved by $approverName'
-            : 'Clean card · Approved by $approverName',
-        icon: Icons.verified_rounded,
-        iconColor: AppColors.lime500,
-        onTap: () => context.push(
-          '/admin/events/manage/${Uri.encodeComponent(event.id)}/scores/$editorPlayerId',
-        ),
-      ),
-    );
-  }
-
-  Widget _buildIssueRow(
-    BuildContext context,
-    WidgetRef ref,
-    Scorecard s,
-    GolfEvent event,
-    List<Scorecard> scorecards,
-    AsyncValue<List<Member>> membersAsync, {
-    required String subtitle,
-    required Color iconColor,
-  }) {
-    final reg = event.registrations.firstWhereOrNull(
-        (r) => r.memberId == s.entryId || '${r.memberId}_guest' == s.entryId);
-    // Strip _guest suffix for the editor route — it uses the base member ID
-    final editorPlayerId = s.entryId.replaceAll('_guest', '');
-    return Padding(
-      padding: const EdgeInsets.only(bottom: AppSpacing.md),
-      child: BoxyArtNavTile(
-        title: reg?.memberName ?? s.entryId,
-        subtitle: subtitle,
-        icon: Icons.warning_amber_rounded,
-        iconColor: iconColor,
-        onTap: () => context.push(
-          '/admin/events/manage/${Uri.encodeComponent(event.id)}/scores/$editorPlayerId',
-        ),
-      ),
+    return BoxyArtNavTile(
+      title: reg?.memberName ?? s.entryId,
+      subtitle: hasAmendments
+          ? '${s.holeAuditLog.length} amendment${s.holeAuditLog.length > 1 ? 's' : ''} · Approved by $approverName'
+          : 'Clean card · Approved by $approverName',
+      icon: Icons.verified_rounded,
+      iconColor: AppColors.lime500,
+      onTap: () => context.push('/admin/events/manage/${Uri.encodeComponent(event.id)}/scores/$editorPlayerId'),
     );
   }
 
