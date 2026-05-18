@@ -5,10 +5,8 @@ import 'package:golf_society/domain/models/golf_event.dart';
 import 'package:golf_society/domain/models/competition.dart';
 import 'package:golf_society/domain/models/scorecard.dart';
 import 'package:golf_society/domain/scoring/scoring_calculator.dart';
-import 'package:golf_society/features/events/logic/event_scoring_processor.dart';
 import 'package:golf_society/features/events/logic/event_scoring_controller.dart';
 import 'package:golf_society/features/events/presentation/widgets/scoring/scoring_entry_view.dart';
-import 'package:golf_society/features/events/presentation/widgets/scoring/scoring_verification_view.dart';
 import 'package:golf_society/features/events/presentation/state/marker_selection_provider.dart';
 import 'package:golf_society/features/events/presentation/tabs/event_tabs_state.dart';
 import 'package:golf_society/features/members/presentation/profile_provider.dart';
@@ -401,54 +399,6 @@ class _HoleByHoleScoringWidgetState extends ConsumerState<HoleByHoleScoringWidge
     _persistScores();
   }
 
-  Future<void> _handleSignOff(bool isPlayer) async {
-    if (_activeScorecard == null) return;
-
-    // 1. Mark as verified locally based on the role (Player vs Marker)
-    Scorecard updatedTarget;
-    if (isPlayer) {
-      updatedTarget = _activeScorecard!.copyWith(
-        verifiedByPlayer: true,
-        playerVerifiedAt: DateTime.now(),
-      );
-    } else {
-      updatedTarget = _activeScorecard!.copyWith(
-        verifiedByMarker: true,
-        markerVerifiedAt: DateTime.now(),
-      );
-    }
-    
-    // 2. Process handshake logic (checks scores and transitions status if both parties signed)
-    final finalizedCard = EventScoringProcessor.validateAndFinalizeHandshake(
-      targetScorecard: updatedTarget,
-      verifierScorecard: _localVerifierCard,
-    );
-    
-    // 3. Persist changes to the target scorecard
-    try {
-      await ref.read(scorecardRepositoryProvider).updateScorecard(finalizedCard);
-      
-      setState(() {
-        _activeScorecard = finalizedCard;
-      });
-
-      if (mounted) {
-        final String role = isPlayer ? 'Player' : 'Marker';
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('$role verification completed successfully'),
-            backgroundColor: AppColors.lime600,
-          ),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error finalizing sign-off: ${e.toString()}')),
-        );
-      }
-    }
-  }
 
   Widget _buildTab(BuildContext context, String label, IconData? icon, bool active, VoidCallback onTap, {Color? activeColor}) {
     final theme = Theme.of(context);

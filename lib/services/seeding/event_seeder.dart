@@ -199,6 +199,7 @@ class EventSeeder {
     }
 
     int processedIndex = 0;
+    final usedGuestEmails = <String>{};
     while (regs.length < targetRegCount && processedIndex < members.length * 2) {
         final memberIdx = (eventIndex * 5 + processedIndex) % members.length;
         processedIndex++;
@@ -206,6 +207,13 @@ class EventSeeder {
         final m = members[memberIdx];
         if (m.id == 'demo_hero_sanjay') continue;
         if (regs.any((r) => r.memberId == m.id)) continue;
+        // Ineligible members must not appear in event registrations
+        if (m.status == MemberStatus.suspended ||
+            m.status == MemberStatus.left ||
+            m.status == MemberStatus.archived ||
+            m.status == MemberStatus.expired) {
+          continue;
+        }
         
         bool isWithdrawn = random.nextDouble() < 0.05;
         final int capacity = isSocial ? 60 : 40;
@@ -229,9 +237,16 @@ class EventSeeder {
         String? guestId;
         double? guestHcp;
         if (hasGuest) {
-          final seedGuest = SeedingData.seedGuests[random.nextInt(SeedingData.seedGuests.length)];
+          final availableGuests = SeedingData.seedGuests
+              .where((g) => !usedGuestEmails.contains(g['email'] as String))
+              .toList();
+          if (availableGuests.isEmpty) { hasGuest = false; }
+          final seedGuest = availableGuests.isNotEmpty
+              ? availableGuests[random.nextInt(availableGuests.length)]
+              : SeedingData.seedGuests[random.nextInt(SeedingData.seedGuests.length)];
           guestName = seedGuest['name'] as String;
           guestEmail = seedGuest['email'] as String;
+          usedGuestEmails.add(guestEmail);
           guestHcp = seedGuest['handicap'] as double;
           try {
             final guestRepo = ref.read(guestRepositoryProvider);

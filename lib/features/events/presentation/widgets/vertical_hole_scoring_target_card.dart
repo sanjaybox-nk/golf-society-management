@@ -28,16 +28,23 @@ extension _TargetCardMethods on _VerticalHoleScoringListState {
       manualTeeName: ref.read(markerSelectionProvider).teeOverrides[tId],
     );
 
-    final markerId = scorecard?.markerId;
-    final markerName = markerId == currentUser.id ? 'ME' : (markerId != null ? _getDisplayName(members, markerId) : null);
+    // Find who this target player is officially marking (the scorecard they are marking).
+    final targetMarkingCard = allCards.firstWhereOrNull((s) => s.markerId == tId && s.entryId != tId);
+    final markerName = targetMarkingCard == null
+        ? null
+        : _getDisplayName(members, targetMarkingCard.entryId);
 
-    final targetConflicts = _computeConflictedHoles(scorecard);
+    final targetConflicts = scorecard?.conflictedHoles.toSet() ?? const <int>{};
     final holeTagsForIndex = scorecard?.holeTags[index + 1] ?? [];
 
     // Lock holes sealed by a DQ pick-up — preserves the original marker audit.
     final isTargetDq = scorecard?.scoringStatus == ScoringStatus.dq;
     final isDqSealedHole = isTargetDq && holeTagsForIndex.contains('PICK_UP') && dScore == null;
-    final effectiveLock = isLocked || isDqSealedHole;
+    // Marker-signed lock only applies to clean cards. If conflicts are unresolved
+    // the marker must still be able to edit to reach agreement before confirming.
+    final isMarkerSigned = scorecard?.verifiedByMarker == true && targetConflicts.isEmpty;
+    final effectiveLock = isLocked || isDqSealedHole || isMarkerSigned;
+
 
     return _PlayerScoringCard(
       label: '',
@@ -57,6 +64,7 @@ extension _TargetCardMethods on _VerticalHoleScoringListState {
       isStableford: isStableford,
       isLocked: effectiveLock,
       isMe: false,
+      isGuest: tId.endsWith('_guest'),
       markerName: markerName,
       holeTags: holeTagsForIndex,
       onStoryTap: effectiveLock ? null : () => _showStorySheet(context, tId, index + 1, holes: holes, rules: rules, isStableford: isStableford),
@@ -71,6 +79,7 @@ extension _TargetCardMethods on _VerticalHoleScoringListState {
     try {
       if (scorecard != null) {
         if (entryId == currentUser.id) {
+          // Own card — write to holeScores
           final List<int?> updatedScores = List<int?>.from(scorecard.holeScores);
           if (updatedScores.length < 18) {
             updatedScores.addAll(List.generate(18 - updatedScores.length, (i) => null));
@@ -78,18 +87,32 @@ extension _TargetCardMethods on _VerticalHoleScoringListState {
           updatedScores[holeIndex] = score;
           await ref.read(scorecardRepositoryProvider).updateScorecard(scorecard.copyWith(
             holeScores: updatedScores,
+            conflictedHoles: Scorecard.computeConflicts(updatedScores, scorecard.playerVerifierScores),
             updatedAt: DateTime.now(),
           ));
         } else {
+          // Marking a member — write to playerVerifierScores
           final List<int?> updatedVerifierScores = List<int?>.from(scorecard.playerVerifierScores);
           if (updatedVerifierScores.length < 18) {
             updatedVerifierScores.addAll(List.generate(18 - updatedVerifierScores.length, (i) => null));
           }
           updatedVerifierScores[holeIndex] = score;
+          final updatedConflicts = Scorecard.computeConflicts(scorecard.holeScores, updatedVerifierScores);
+          final now = DateTime.now();
+          // For guest-marked cards: auto-confirm when all 18 proxy scores are filled
+          // (the guest can't tap "Confirm" themselves, so completion implies confirmation)
+          final isGuestMarkedCard = scorecard.markerId?.endsWith('_guest') == true;
+          final allFilled = updatedVerifierScores.length == 18 &&
+              updatedVerifierScores.every((s) => s != null && s > 0);
+          final autoConfirm = isGuestMarkedCard && allFilled && updatedConflicts.isEmpty;
           await ref.read(scorecardRepositoryProvider).updateScorecard(scorecard.copyWith(
             playerVerifierScores: updatedVerifierScores,
-            markerId: currentUser.id,
-            updatedAt: DateTime.now(),
+            conflictedHoles: updatedConflicts,
+            // Preserve the actual marker (the guest) — don't overwrite with proxy assignee
+            markerId: (scorecard.markerId?.isNotEmpty == true) ? scorecard.markerId! : currentUser.id,
+            verifiedByMarker: autoConfirm ? true : scorecard.verifiedByMarker,
+            markerVerifiedAt: autoConfirm ? now : scorecard.markerVerifiedAt,
+            updatedAt: now,
           ));
         }
         HapticFeedback.lightImpact();
@@ -121,6 +144,53 @@ extension _TargetCardMethods on _VerticalHoleScoringListState {
     }
   }
 
+  // Called when the user scrolls to hole 18. For any proxy marking card (markerId
+  // ends with _guest) that hasn't been confirmed yet, auto-fills holes the user
+  // didn't explicitly change with the player's own holeScores (implicit agreement),
+  // then sets verifiedByMarker. Scrolling to hole 18 is the confirmation action —
+  // no explicit button needed.
+  Future<void> _confirmProxyRecordsOnHole18() async {
+    final currentUser = ref.read(effectiveUserProvider);
+    final allScorecards = ref.read(scorecardsListProvider(widget.event.id)).asData?.value ?? [];
+    final markerSelection = ref.read(markerSelectionProvider);
+
+    final targets = <String>{...markerSelection.targetEntryIds};
+    final officialTarget = allScorecards.firstWhereOrNull((s) => s.markerId == currentUser.id);
+    if (officialTarget != null) targets.add(officialTarget.entryId);
+
+    bool anyConfirmed = false;
+    for (final tId in targets) {
+      final card = allScorecards.firstWhereOrNull((s) => s.entryId == tId);
+      if (card?.markerId?.endsWith('_guest') != true) continue;
+      if (card!.verifiedByMarker) continue;
+
+      // Fill untouched holes from the player's own holeScores (implicit agreement)
+      final pvs = List<int?>.from(card.playerVerifierScores);
+      if (pvs.length < 18) pvs.addAll(List<int?>.filled(18 - pvs.length, null));
+      for (int i = 0; i < 18; i++) {
+        if (pvs[i] == null) {
+          pvs[i] = i < card.holeScores.length ? card.holeScores[i] : null;
+        }
+      }
+      if (pvs.any((s) => s == null || s == 0)) continue; // missing scores — skip
+
+      final conflicts = Scorecard.computeConflicts(card.holeScores, pvs);
+      final now = DateTime.now();
+      await ref.read(scorecardRepositoryProvider).updateScorecard(card.copyWith(
+        playerVerifierScores: pvs,
+        conflictedHoles: conflicts,
+        verifiedByMarker: conflicts.isEmpty,
+        markerVerifiedAt: conflicts.isEmpty ? now : null,
+        updatedAt: now,
+      ));
+      anyConfirmed = true;
+    }
+
+    if (anyConfirmed && mounted) {
+      widget.onProxyRecordComplete?.call();
+    }
+  }
+
   String _getDisplayName(List<Member> members, String id) {
     final groups = widget.event.grouping['groups'] as List? ?? [];
     for (final group in groups) {
@@ -136,16 +206,4 @@ extension _TargetCardMethods on _VerticalHoleScoringListState {
     return members.firstWhereOrNull((m) => m.id == baseId)?.displayName ?? 'Player';
   }
 
-  Set<int> _computeConflictedHoles(Scorecard? scorecard) {
-    if (scorecard == null) return const {};
-    final conflicts = <int>{};
-    for (int i = 0; i < 18; i++) {
-      final pScore = scorecard.holeScores.elementAtOrNull(i);
-      final mScore = scorecard.playerVerifierScores.elementAtOrNull(i);
-      if (pScore != null && mScore != null && pScore != mScore) {
-        conflicts.add(i + 1);
-      }
-    }
-    return conflicts;
-  }
 }

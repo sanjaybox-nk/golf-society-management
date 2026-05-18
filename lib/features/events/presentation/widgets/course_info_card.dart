@@ -37,6 +37,9 @@ class CourseInfoCard extends ConsumerStatefulWidget {
   final Map<int, List<String>>? holeTags;
   final List<CourseScoreRow>? additionalRows;
   final Widget? personPicker;
+  final bool markerVerified;
+  final List<int?>? verifierScores;
+  final bool showYardage;
 
   const CourseInfoCard({
     super.key,
@@ -65,6 +68,9 @@ class CourseInfoCard extends ConsumerStatefulWidget {
     this.holeTags,
     this.additionalRows,
     this.personPicker,
+    this.markerVerified = false,
+    this.verifierScores,
+    this.showYardage = false,
   });
 
   @override
@@ -176,10 +182,13 @@ class _CourseInfoCardState extends ConsumerState<CourseInfoCard> {
 
     Widget body;
     if (widget.paged) {
+      final hasVerifierRow = widget.verifierScores != null &&
+          widget.verifierScores!.any((s) => s != null && s > 0);
       final rowCount = 5 +
           (showNet ? 1 : 0) +
           (widget.isStableford ? 1 : 0) +
-          (widget.matchPlayResults != null ? 1 : 0);
+          (widget.matchPlayResults != null ? 1 : 0) +
+          (hasVerifierRow ? 1 : 0);
       final gridH = rowCount * _cellH + (rowCount - 1).toDouble();
 
       body = Column(children: [
@@ -326,17 +335,19 @@ class _CourseInfoCardState extends ConsumerState<CourseInfoCard> {
         _total(context, isDark, outLabel, isHeader: true),
       ]),
       const Divider(height: 1),
-      // Distances
-      _row([
-        _label(context, distLabel),
-        for (int i = 0; i < 9; i++)
-          Expanded(child: _cell(context, isDark,
-              dists[i] > 0 ? '${dists[i]}' : '-',
-              isDimmed: true, fontSize: 12, fontWeight: FontWeight.w300)),
-        _total(context, isDark, nineTotal > 0 ? '$nineTotal' : '-',
-            isDimmed: true, fontSize: 12, fontWeight: FontWeight.w300),
-      ]),
-      const Divider(height: 1),
+      // Distances — only shown in active scoring view
+      if (widget.showYardage) ...[
+        _row([
+          _label(context, distLabel),
+          for (int i = 0; i < 9; i++)
+            Expanded(child: _cell(context, isDark,
+                dists[i] > 0 ? '${dists[i]}' : '-',
+                isDimmed: true, fontSize: 12, fontWeight: FontWeight.w300)),
+          _total(context, isDark, nineTotal > 0 ? '$nineTotal' : '-',
+              isDimmed: true, fontSize: 12, fontWeight: FontWeight.w300),
+        ]),
+        const Divider(height: 1),
+      ],
       // Par row (tee-coloured)
       Container(
         color: teeColor,
@@ -382,6 +393,32 @@ class _CourseInfoCardState extends ConsumerState<CourseInfoCard> {
         _total(context, isDark,
             _nineSum(widget.holeScores, startHole, 9) ?? '-', isBold: true),
       ]),
+      // Marker comparison row — only when card is full and verifier scores exist
+      if (widget.verifierScores != null &&
+          widget.verifierScores!.any((s) => s != null && s > 0)) ...[
+        const Divider(height: 1),
+        _row([
+          _label(context, 'MKR', color: AppColors.dark400),
+          for (int i = 0; i < 9; i++) (() {
+            final holeNum = startHole + i;
+            final idx = holeNum - 1;
+            final mv = idx < widget.verifierScores!.length ? widget.verifierScores![idx] : null;
+            final pv = (widget.holeScores != null && idx < widget.holeScores!.length)
+                ? widget.holeScores![idx]
+                : null;
+            final differs = mv != null && pv != null && mv != pv;
+            return Expanded(
+              child: differs
+                  ? _scoreCell(context, isDark, mv, pars[i], hasConflict: true)
+                  : _cell(context, isDark, mv != null ? '$mv' : '-',
+                      isDimmed: true, fontSize: 12),
+            );
+          })(),
+          _total(context, isDark,
+              _nineSum(widget.verifierScores, startHole, 9)?.toString() ?? '-',
+              isBold: false),
+        ]),
+      ],
       // Additional partner rows (non-paged only)
       if (widget.additionalRows != null)
         for (final row in widget.additionalRows!)
@@ -524,15 +561,21 @@ class _CourseInfoCardState extends ConsumerState<CourseInfoCard> {
                     Theme.of(context).dividerColor.withValues(alpha: 0.1))),
       ),
       child: Row(children: [
-        _tagChip(Icons.warning_amber_rounded, 'PENALTIES: $penalties',
-            AppColors.amber500),
-        const SizedBox(width: AppSpacing.md),
-        _tagChip(Icons.check_circle_outline_rounded, 'GIMMES: $gimmes',
-            AppColors.lime500),
-        if (notPlayed > 0) ...[
+        if (penalties > 0) ...[
+          _tagChip(Icons.warning_amber_rounded, 'PENALTIES: $penalties', AppColors.amber500),
           const SizedBox(width: AppSpacing.md),
-          _tagChip(Icons.remove_circle_outline_rounded, 'NP: $notPlayed',
-              AppColors.dark400),
+        ],
+        if (gimmes > 0) ...[
+          _tagChip(Icons.check_circle_outline_rounded, 'GIMMES: $gimmes', AppColors.lime500),
+          const SizedBox(width: AppSpacing.md),
+        ],
+        if (notPlayed > 0) ...[
+          _tagChip(Icons.remove_circle_outline_rounded, 'NP: $notPlayed', AppColors.dark400),
+          const SizedBox(width: AppSpacing.md),
+        ],
+        if (widget.markerVerified) ...[
+          const Spacer(),
+          _tagChip(Icons.verified_rounded, 'MARKER SIGNED', AppColors.lime500),
         ],
       ]),
     );

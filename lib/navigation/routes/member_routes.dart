@@ -75,7 +75,10 @@ List<StatefulShellBranch> _buildMemberBranches() => [
                     pageBuilder: (context, state) => boxyPage(
                       state: state,
                       hubId: state.pathParameters['id']!,
-                      child: EventScoresUserTab(eventId: state.pathParameters['id']!),
+                      child: EventScoresUserTab(
+                        eventId: state.pathParameters['id']!,
+                        initialTab: int.tryParse(state.uri.queryParameters['tab'] ?? '0') ?? 0,
+                      ),
                     ),
                   ),
                   GoRoute(

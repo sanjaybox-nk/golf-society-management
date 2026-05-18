@@ -51,6 +51,7 @@ _Scorecard _$ScorecardFromJson(Map<String, dynamic> json) => _Scorecard(
           .toList() ??
       const [],
   markerId: json['markerId'] as String?,
+  guestInputAssigneeId: json['guestInputAssigneeId'] as String?,
   shotAttributions:
       (json['shotAttributions'] as Map<String, dynamic>?)?.map(
         (k, e) => MapEntry(int.parse(k), e as String?),
@@ -87,6 +88,13 @@ _Scorecard _$ScorecardFromJson(Map<String, dynamic> json) => _Scorecard(
         ),
       ) ??
       const {},
+  conflictedHoles:
+      (json['conflictedHoles'] as List<dynamic>?)
+          ?.map((e) => (e as num).toInt())
+          .toList() ??
+      const [],
+  committeeAdjustment: (json['committeeAdjustment'] as num?)?.toInt() ?? 0,
+  committeeNote: json['committeeNote'] as String?,
   submittedAt: const TimestampConverter().fromJson(json['submittedAt']),
   createdAt: const TimestampConverter().fromJson(json['createdAt']),
   updatedAt: const TimestampConverter().fromJson(json['updatedAt']),
@@ -105,6 +113,7 @@ Map<String, dynamic> _$ScorecardToJson(
   'holeScores': instance.holeScores,
   'playerVerifierScores': instance.playerVerifierScores,
   'markerId': instance.markerId,
+  'guestInputAssigneeId': instance.guestInputAssigneeId,
   'shotAttributions': instance.shotAttributions.map(
     (k, e) => MapEntry(k.toString(), e),
   ),
@@ -128,6 +137,9 @@ Map<String, dynamic> _$ScorecardToJson(
     instance.markerVerifiedAt,
   ),
   'holeTags': instance.holeTags.map((k, e) => MapEntry(k.toString(), e)),
+  'conflictedHoles': instance.conflictedHoles,
+  'committeeAdjustment': instance.committeeAdjustment,
+  'committeeNote': instance.committeeNote,
   'submittedAt': _$JsonConverterToJson<Object?, DateTime>(
     instance.submittedAt,
     const TimestampConverter().toJson,

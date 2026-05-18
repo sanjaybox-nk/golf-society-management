@@ -27,6 +27,27 @@ class ScoringResult {
     required this.holeScores,
   });
 
+  /// Applies a committee adjustment to the final score.
+  /// For stroke play: positive adjustment adds penalty strokes (score goes up = worse).
+  /// For stableford: positive adjustment deducts points (score goes down = worse).
+  ScoringResult withCommitteeAdjustment(int adjustment, CompetitionFormat format) {
+    if (adjustment == 0) return this;
+    final adjusted = format == CompetitionFormat.stableford
+        ? score - adjustment
+        : score + adjustment;
+    return ScoringResult(
+      score: adjusted,
+      label: label,
+      holesPlayed: holesPlayed,
+      adjustedGrossScore: adjustedGrossScore,
+      holeNetScores: holeNetScores,
+      holePoints: holePoints,
+      absoluteScore: absoluteScore,
+      absoluteScoreLabel: absoluteScoreLabel,
+      holeScores: holeScores,
+    );
+  }
+
   factory ScoringResult.fromJson(Map<String, dynamic> json) => ScoringResult(
         score: json['score'] as int,
         label: json['label'] as String,

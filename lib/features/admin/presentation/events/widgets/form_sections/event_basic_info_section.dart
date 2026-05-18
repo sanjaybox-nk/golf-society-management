@@ -2,7 +2,6 @@ import 'dart:io';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:golf_society/design_system/design_system.dart';
 import 'package:golf_society/features/admin/presentation/events/event_form_notifier.dart';
-import 'package:golf_society/design_system/widgets/boxy_art_rich_form_field.dart';
 
 class EventBasicInfoSection extends ConsumerWidget {
   

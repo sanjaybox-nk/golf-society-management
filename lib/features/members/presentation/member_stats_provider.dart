@@ -93,7 +93,7 @@ final memberRoundStoryStatsProvider = Provider.autoDispose.family<Map<String, in
             if (tag.startsWith('PENALTY_1_') ||
                 (tag.startsWith('PENALTY_') &&
                     !tag.startsWith('PENALTY_1_') &&
-                    !tag.startsWith('PENALTY_2_'))) penalty1++;
+                    !tag.startsWith('PENALTY_2_'))) { penalty1++; }
             if (tag.startsWith('PENALTY_2_')) penalty2++;
           }
         }
@@ -107,6 +107,6 @@ final memberRoundStoryStatsProvider = Provider.autoDispose.family<Map<String, in
       };
     },
     loading: () => {},
-    error: (_, __) => {},
+    error: (e, st) => {},
   );
 });

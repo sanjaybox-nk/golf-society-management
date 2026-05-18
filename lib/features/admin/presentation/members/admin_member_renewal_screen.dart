@@ -21,8 +21,6 @@ class _AdminMemberRenewalScreenState extends ConsumerState<AdminMemberRenewalScr
     BoxyArtBottomSheet.show(
       context: context,
       title: 'Renewal Settings',
-      initialChildSize: 0.55,
-      maxChildSize: 0.75,
       child: const RenewalSettingsContent(),
     );
   }

@@ -12,8 +12,6 @@ import '../state/marker_selection_provider.dart';
 import 'event_tabs_state.dart';
 import 'event_shared_logic.dart';
 import 'event_stats_tab.dart';
-import '../../logic/event_scoring_controller.dart';
-import '../widgets/submission_progress_bar.dart';
 
 class TournamentScoresUserTab extends ConsumerWidget {
   final String eventId;

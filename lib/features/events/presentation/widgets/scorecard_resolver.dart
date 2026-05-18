@@ -1,26 +1,10 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/foundation.dart';
-import 'package:golf_society/utils/string_utils.dart';
 import 'package:collection/collection.dart';
-import 'package:go_router/go_router.dart';
 import 'package:golf_society/domain/models/scorecard.dart';
 import 'package:golf_society/domain/scoring/scorecard_factory.dart';
 import 'package:golf_society/utils/firestore_normalizer.dart';
 import 'package:golf_society/domain/models/golf_event.dart';
-import 'package:golf_society/design_system/design_system.dart';
-import 'package:golf_society/domain/models/competition.dart';
-import 'package:golf_society/domain/models/member.dart';
 import '../../../competitions/presentation/widgets/leaderboard_widget.dart';
-import '../../../../domain/scoring/scoring_calculator.dart';
-import '../../../../domain/models/course_config.dart';
-import '../../../matchplay/domain/match_play_calculator.dart';
-import '../../../matchplay/domain/match_definition.dart';
-import 'course_info_card.dart';
-import '../../../competitions/presentation/competitions_provider.dart';
-import '../../../members/presentation/profile_provider.dart';
-import '../../../courses/presentation/courses_provider.dart';
-import 'package:golf_society/domain/models/event_registration.dart';
-import '../events_provider.dart';
 
 
 

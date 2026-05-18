@@ -127,12 +127,11 @@ class AdminScorecardList extends ConsumerWidget {
       event: event, 
       membersList: membersList,
     );
-    final baseRating = event.courseConfig.rating;
-    final phc = HandicapCalculator.calculatePlayingHandicap(
+    final phc = scorecard?.playingHandicap ?? HandicapCalculator.calculatePlayingHandicap(
       handicapIndex: baseHcp,
       rules: comp?.rules ?? const CompetitionRules(),
       courseConfig: playerTeeConfig,
-      baseRating: baseRating,
+      baseRating: event.courseConfig.rating,
     );
 
     final holesPlayed = scorecard?.holeScores.where((s) => s != null).length ?? 0;
@@ -294,13 +293,11 @@ class AdminScorecardList extends ConsumerWidget {
       event: event, 
       membersList: membersList,
     );
-    final baseRating = event.courseConfig.rating;
-
-    final phc = HandicapCalculator.calculatePlayingHandicap(
+    final phc = card?.playingHandicap ?? HandicapCalculator.calculatePlayingHandicap(
       handicapIndex: baseHcp,
       rules: comp?.rules ?? const CompetitionRules(),
       courseConfig: playerTeeConfig,
-      baseRating: baseRating,
+      baseRating: event.courseConfig.rating,
     );
 
     ScorecardModal.show(
@@ -351,8 +348,8 @@ class AdminScorecardList extends ConsumerWidget {
       membersList: membersList,
     );
     
-    final phc = HandicapCalculator.calculatePlayingHandicap(
-      handicapIndex: card.entryId.contains('_guest') 
+    final phc = card.playingHandicap ?? HandicapCalculator.calculatePlayingHandicap(
+      handicapIndex: card.entryId.contains('_guest')
           ? (double.tryParse(event.registrations.firstWhereOrNull((r) => '${r.memberId}_guest' == card.entryId)?.guestHandicap ?? '18.0') ?? 18.0)
           : (membersList.firstWhereOrNull((m) => m.id == card.entryId)?.handicap ?? 18.0),
       rules: rules,
@@ -361,9 +358,9 @@ class AdminScorecardList extends ConsumerWidget {
     );
 
     final result = ScoringCalculator.calculate(
-      holeScores: card.holeScores, 
-      holes: playerTeeConfig.holes, 
-      playingHandicap: phc.toDouble(), 
+      holeScores: card.holeScores,
+      holes: playerTeeConfig.holes,
+      playingHandicap: phc.toDouble(),
       format: rules.format,
       maxScoreConfig: rules.maxScoreConfig,
     );

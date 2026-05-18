@@ -98,34 +98,3 @@ class _StoryButton extends StatelessWidget {
   }
 }
 
-class _NavigationArrow extends StatelessWidget {
-  final IconData icon;
-  final VoidCallback? onTap;
-  const _NavigationArrow({required this.icon, this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    final bool isDisabled = onTap == null;
-    return GestureDetector(
-      onTap: onTap,
-      behavior: HitTestBehavior.opaque,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        width: 44, height: 44,
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: isDisabled ? Colors.transparent : AppColors.dark50,
-          shape: BoxShape.circle,
-          border: Border.all(
-            color: isDisabled ? Colors.transparent : AppColors.dark100,
-            width: 1,
-          ),
-          boxShadow: isDisabled ? null : [
-            BoxShadow(color: AppColors.dark950.withValues(alpha: 0.03), blurRadius: 4, offset: const Offset(0, 2)),
-          ],
-        ),
-        child: Icon(icon, size: 16, color: isDisabled ? AppColors.dark200 : AppColors.dark950),
-      ),
-    );
-  }
-}

@@ -102,6 +102,10 @@ class _MarkerSelectionSheetState extends ConsumerState<MarkerSelectionSheet> {
                   return id != currentUser.id;
                 }).toList();
 
+                // Circular marking is only valid in a 2-ball (players mark each other).
+                // In 3/4-ball: if I'm marking A, A cannot also be my marker.
+                final isTwoball = widget.groupPlayers.length <= 2;
+
                 final String currentUserDefaultTee = ScoringCalculator.resolvePlayerTee(
                   memberId: currentUser.id,
                   event: widget.event,
@@ -162,6 +166,8 @@ class _MarkerSelectionSheetState extends ConsumerState<MarkerSelectionSheet> {
                       canBeMyMarker: true,
                       isTaken: !isCaptain && markerAssignments.entries.any((e) => e.key != currentUser.id && e.value == id),
                       isCaptainOverride: isCaptain && markerAssignments.entries.any((e) => e.key != currentUser.id && e.value == id),
+                      isCircularAsTarget: !isTwoball && markerSelection.myMarkerId == id,
+                      isCircularAsMarker: !isTwoball && markerSelection.targetEntryIds.contains(id),
                       showDivider: idx < otherPlayers.length - 1,
                     );
                   }),
@@ -203,10 +209,14 @@ class _MarkerSelectionSheetState extends ConsumerState<MarkerSelectionSheet> {
     bool canBeMyMarker = true,
     bool isTaken = false,
     bool isCaptainOverride = false,
+    bool isCircularAsTarget = false,
+    bool isCircularAsMarker = false,
     bool showDivider = true,
   }) {
     final theme = Theme.of(context);
-    final opacity = isTaken ? AppColors.opacitySecondary : 1.0;
+    final bool checkboxBlocked = isTaken || isCircularAsTarget;
+    final bool markerButtonBlocked = isTaken || isCircularAsMarker;
+    final opacity = checkboxBlocked ? AppColors.opacitySecondary : 1.0;
 
     return Column(
       children: [
@@ -219,7 +229,7 @@ class _MarkerSelectionSheetState extends ConsumerState<MarkerSelectionSheet> {
               children: [
                 // Box checkbox
                 GestureDetector(
-                  onTap: isTaken ? null : onSelect,
+                  onTap: checkboxBlocked ? null : onSelect,
                   behavior: HitTestBehavior.opaque,
                   child: Container(
                     width: AppSpacing.standard,
@@ -287,20 +297,27 @@ class _MarkerSelectionSheetState extends ConsumerState<MarkerSelectionSheet> {
                 SizedBox(
                   width: 38,
                   child: canBeMyMarker
-                      ? GestureDetector(
-                          onTap: isTaken
-                              ? null
-                              : () => ref
-                                  .read(markerSelectionProvider.notifier)
-                                  .setMyMarker(isMyMarker ? null : entryId),
-                          child: BoxyArtIconBadge(
-                            icon: Icons.edit_note_rounded,
-                            isPrimary: isMyMarker,
-                            isTinted: true,
-                            fillOpacity: isMyMarker ? AppColors.opacitySubtle : AppColors.opacityLow,
-                            iconColor: isMyMarker
-                                ? theme.colorScheme.primary
-                                : AppColors.dark300,
+                      ? Tooltip(
+                          message: isCircularAsMarker ? 'Circular marking — not allowed in 3+ ball' : '',
+                          child: GestureDetector(
+                            onTap: markerButtonBlocked
+                                ? null
+                                : () => ref
+                                    .read(markerSelectionProvider.notifier)
+                                    .setMyMarker(isMyMarker ? null : entryId),
+                            child: BoxyArtIconBadge(
+                              icon: isCircularAsMarker
+                                  ? Icons.block_rounded
+                                  : Icons.edit_note_rounded,
+                              isPrimary: isMyMarker,
+                              isTinted: true,
+                              fillOpacity: markerButtonBlocked
+                                  ? AppColors.opacityLow
+                                  : (isMyMarker ? AppColors.opacitySubtle : AppColors.opacityLow),
+                              iconColor: isCircularAsMarker
+                                  ? AppColors.amber500
+                                  : (isMyMarker ? theme.colorScheme.primary : AppColors.dark300),
+                            ),
                           ),
                         )
                       : null,
@@ -380,7 +397,7 @@ class _MarkerSelectionSheetState extends ConsumerState<MarkerSelectionSheet> {
                   ),
                   const SizedBox(width: AppSpacing.atomic),
                   Text(
-                    'Auto ($defaultTeeName)',
+                    defaultTeeName,
                     style: AppTypography.micro,
                   ),
                 ],

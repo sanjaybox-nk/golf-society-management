@@ -63,12 +63,10 @@ class _HomeNotificationCardState extends ConsumerState<HomeNotificationCard> {
         ),
         child: BoxyArtCard(
           padding: const EdgeInsets.all(AppSpacing.lg),
-          child: InkWell(
-            onTap: widget.onTap ?? (widget.notification.actionUrl != null
-                ? () => context.push(widget.notification.actionUrl!)
-                : () => setState(() => _isExpanded = !_isExpanded)),
-            borderRadius: AppShapes.xl,
-            child: Row(
+          onTap: widget.onTap ?? (widget.notification.actionUrl != null
+              ? () => context.push(widget.notification.actionUrl!)
+              : () => setState(() => _isExpanded = !_isExpanded)),
+          child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Left: Squircle Icon with Glow
@@ -151,7 +149,6 @@ class _HomeNotificationCardState extends ConsumerState<HomeNotificationCard> {
             ),
           ),
         ),
-      ),
     );
   }
 

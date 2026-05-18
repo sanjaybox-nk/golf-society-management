@@ -18,11 +18,12 @@ import 'package:uuid/uuid.dart';
 import 'package:collection/collection.dart';
 import 'event_seeder.dart';
 import 'course_seeder.dart';
-import 'member_seeder.dart';
 import 'data_constants.dart';
 import 'package:golf_society/features/guests/data/guest_repository.dart';
 import 'package:golf_society/domain/scoring/handicap_calculator.dart';
 import 'package:golf_society/domain/models/course_config.dart' as cfg;
+import 'package:golf_society/domain/models/notification.dart';
+import 'package:golf_society/features/home/presentation/home_providers.dart';
 
 class ScenarioSeeder {
   final Ref ref;
@@ -33,11 +34,7 @@ class ScenarioSeeder {
 
   Future<String> seedVerificationScenario() async {
     final membersRepo = ref.read(membersRepositoryProvider);
-    var members = await membersRepo.getMembers();
-    if (members.length < 32) {
-      await MemberSeeder(ref, random).seed();
-      members = await membersRepo.getMembers();
-    }
+    final members = await membersRepo.getMembers();
 
     final courseRepo = ref.read(courseRepositoryProvider);
     var courses = await courseRepo.watchCourses().first;
@@ -102,8 +99,9 @@ class ScenarioSeeder {
         await scoreRepo.updateScorecard(s.copyWith(
           status: isGroupSubmitted ? ScorecardStatus.submitted : ScorecardStatus.draft,
           holeScores: scores,
-          submittedAt: isGroupSubmitted 
-              ? DateTime.now().subtract(Duration(minutes: (groups.length - i) * 10)) 
+          conflictedHoles: Scorecard.computeConflicts(scores, s.playerVerifierScores),
+          submittedAt: isGroupSubmitted
+              ? DateTime.now().subtract(Duration(minutes: (groups.length - i) * 10))
               : null,
         ));
       }
@@ -114,11 +112,7 @@ class ScenarioSeeder {
 
   Future<String> seedMedalVerificationScenario() async {
     final membersRepo = ref.read(membersRepositoryProvider);
-    var members = await membersRepo.getMembers();
-    if (members.length < 32) {
-      await MemberSeeder(ref, random).seed();
-      members = await membersRepo.getMembers();
-    }
+    final members = await membersRepo.getMembers();
 
     final courseRepo = ref.read(courseRepositoryProvider);
     var courses = await courseRepo.watchCourses().first;
@@ -218,6 +212,7 @@ class ScenarioSeeder {
           status: isGroupSubmitted ? ScorecardStatus.submitted : ScorecardStatus.draft,
           holeScores: holeScores,
           playerVerifierScores: markerScores,
+          conflictedHoles: Scorecard.computeConflicts(holeScores, markerScores),
           holeTags: _generateHoleTags(holeScores),
           submittedAt: isGroupSubmitted ? DateTime.now().subtract(Duration(minutes: (groups.length - i) * 10)) : null,
         ));
@@ -229,11 +224,7 @@ class ScenarioSeeder {
 
   Future<void> seedMatchPlayProgression() async {
     final membersRepo = ref.read(membersRepositoryProvider);
-    var members = await membersRepo.getMembers();
-    if (members.length < 33) {
-      await MemberSeeder(ref, random).seed();
-      members = await membersRepo.getMembers();
-    }
+    final members = await membersRepo.getMembers();
 
     final courseRepo = ref.read(courseRepositoryProvider);
     var courses = await courseRepo.watchCourses().first;
@@ -585,11 +576,7 @@ class ScenarioSeeder {
   /// Groups split across Ready / Awaiting / Outstanding states with rich hole tags and deliberate conflicts.
   Future<String> seedFinalVerificationUAT() async {
     final membersRepo = ref.read(membersRepositoryProvider);
-    var members = await membersRepo.getMembers();
-    if (members.length < 32) {
-      await MemberSeeder(ref, random).seed();
-      members = await membersRepo.getMembers();
-    }
+    final members = await membersRepo.getMembers();
 
     final courseRepo = ref.read(courseRepositoryProvider);
     var courses = await courseRepo.watchCourses().first;
@@ -636,6 +623,14 @@ class ScenarioSeeder {
 
     final events = await ref.read(eventsRepositoryProvider).getEvents(seasonId: seasonId);
     final event = events.firstWhere((e) => e.title == 'Medal — Final Verification UAT');
+
+    // Reset event-level flags that may have been toggled during UAT testing
+    if (event.isScoringLocked == true) {
+      await ref.read(eventsRepositoryProvider).updateEvent(
+        event.copyWith(isScoringLocked: false),
+      );
+    }
+
     final scoreRepo = ref.read(scorecardRepositoryProvider);
     final scorecards = await scoreRepo.getScorecards(event.id);
     final rules = medalTemplate.rules;
@@ -669,8 +664,26 @@ class ScenarioSeeder {
       final bool isAwaiting    = i >= conflictCut && i < awaitCut;
       // else outstanding
 
-      for (int j = 0; j < group.players.length; j++) {
-        final p = group.players[j];
+      // Deduplicate and reorder: interleave members and guests so the circular
+      // (j+1)%n assignment never produces guest-marks-guest pairs.
+      final seenKeys = <String>{};
+      final deduped = group.players
+          .where((p) => seenKeys.add('${p.registrationMemberId}_${p.isGuest}'))
+          .toList();
+      final groupMembers = deduped.where((p) => !p.isGuest).toList();
+      final groupGuests  = deduped.where((p) => p.isGuest).toList();
+      final players = <TeeGroupParticipant>[];
+      final pairCount = groupMembers.length < groupGuests.length
+          ? groupMembers.length : groupGuests.length;
+      for (int k = 0; k < pairCount; k++) {
+        players.add(groupMembers[k]);
+        players.add(groupGuests[k]);
+      }
+      for (int k = pairCount; k < groupMembers.length; k++) { players.add(groupMembers[k]); }
+      for (int k = pairCount; k < groupGuests.length; k++) { players.add(groupGuests[k]); }
+
+      for (int j = 0; j < players.length; j++) {
+        final p = players[j];
         final entryId = p.isGuest ? '${p.registrationMemberId}_guest' : p.registrationMemberId;
         final s = scorecards.firstWhereOrNull((sc) => sc.entryId == entryId);
         if (s == null) continue;
@@ -715,17 +728,30 @@ class ScenarioSeeder {
           }
         }
 
-        final marker = group.players[(j + 1) % group.players.length];
+        final marker = players[(j + 1) % players.length];
         final markerId = marker.isGuest
             ? '${marker.registrationMemberId}_guest'
             : marker.registrationMemberId;
 
         final submittedTime = date.copyWith(hour: 14, minute: 30 + random.nextInt(60));
 
-        // --- Conflict helpers ---
-        // Odd-indexed players in conflict/verified-with-audit groups get a conflict on holes 7 & 14
-        final bool seedConflict = (isIssue || isVerified || isReadyReview) && j.isOdd;
+        final bool playerIsGuest = p.isGuest;
+        final bool markerIsGuest = marker.isGuest;
 
+        // For guest players: the in-app marker already has the paper card.
+        // They confirm their own entries and enter the guest's marking record.
+        // No captain involvement needed.
+        final String? guestInputAssigneeId = playerIsGuest
+            ? (markerIsGuest ? null : markerId)
+            : null;
+
+        // --- Conflict helpers ---
+        // Guests can't enter their own scores — no independent player entry means
+        // no conflict is possible. Only members can be seeded with conflicts.
+        final bool seedConflict = !playerIsGuest && (isIssue || isVerified || isReadyReview) && j.isOdd;
+
+        // For guests: the generated scores ARE the marker's entry (playerVerifierScores).
+        // holeScores stays null-filled since the guest cannot self-enter.
         final markerScores = List<int?>.from(holeScores);
         if (seedConflict) {
           if (markerScores[6] != null) markerScores[6] = markerScores[6]! + 1;
@@ -771,32 +797,34 @@ class ScenarioSeeder {
 
         if (isVerified) {
           status = ScorecardStatus.approved;
-          verifiedByPlayer = true;
-          verifiedByMarker = true;
+          // Guests can't sign off in-app — marker confirmation is sufficient (Option B)
+          verifiedByPlayer = !playerIsGuest;
+          verifiedByMarker = !markerIsGuest;
           approvedBy = adminId;
           approvedAt = approvedTime;
         } else if (isReadyReview) {
           // Odd-j: resolved conflict → reviewed; even-j: clean → finalScore
           status = j.isOdd ? ScorecardStatus.reviewed : ScorecardStatus.finalScore;
-          verifiedByPlayer = true;
-          verifiedByMarker = true;
+          verifiedByPlayer = !playerIsGuest;
+          verifiedByMarker = !markerIsGuest;
           approvedBy = null;
           approvedAt = null;
         } else if (isIssue) {
-          // Odd-j: active conflict; even-j: clean submitted
-          status = ScorecardStatus.submitted;
-          verifiedByPlayer = true;
-          verifiedByMarker = true;
+          status = ScorecardStatus.draft;
+          verifiedByPlayer = false;
+          verifiedByMarker = false;
           approvedBy = null;
           approvedAt = null;
         } else if (isAwaiting) {
           status = ScorecardStatus.submitted;
-          verifiedByPlayer = true;
-          verifiedByMarker = false;
+          // Alternate sign-off directions, clamped by guest rules:
+          // guests can't self-sign; guest markers can't confirm in-app.
+          verifiedByPlayer = i.isOdd && !playerIsGuest;
+          verifiedByMarker = i.isEven && !markerIsGuest;
           approvedBy = null;
           approvedAt = null;
         } else {
-          // Outstanding
+          // Outstanding — card is in progress, no sign-offs yet
           status = j.isEven ? ScorecardStatus.draft : ScorecardStatus.submitted;
           verifiedByPlayer = false;
           verifiedByMarker = false;
@@ -804,11 +832,18 @@ class ScenarioSeeder {
           approvedAt = null;
         }
 
+        // Guest player: holeScores stays empty — only the marker's entry exists.
+        // Guest marker: playerVerifierScores stays empty — guest can't enter in-app.
+        final storedHoleScores = playerIsGuest ? List<int?>.filled(18, null) : holeScores;
+        final storedMarkerScores = markerIsGuest ? <int?>[] : markerScores;
+
         await scoreRepo.updateScorecard(s.copyWith(
           status: status,
           markerId: markerId,
-          holeScores: holeScores,
-          playerVerifierScores: markerScores,
+          guestInputAssigneeId: guestInputAssigneeId,
+          holeScores: storedHoleScores,
+          playerVerifierScores: storedMarkerScores,
+          conflictedHoles: Scorecard.computeConflicts(storedHoleScores, storedMarkerScores),
           holeTags: holeTags,
           holeAuditLog: auditLog,
           handicapIndex: index,
@@ -821,6 +856,26 @@ class ScenarioSeeder {
           submittedAt: submittedTime,
           updatedAt: DateTime.now(),
         ));
+
+        if (isVerified) {
+          final playerId = entryId.replaceAll('_guest', '');
+          final hasAmendments = auditLog.isNotEmpty;
+          final amendmentNote = hasAmendments
+              ? ' ${auditLog.length} score amendment${auditLog.length > 1 ? 's were' : ' was'} made — tap to view your card.'
+              : ' Tap to view your card.';
+          try {
+            await ref.read(notificationsRepositoryProvider).sendNotification(AppNotification(
+              id: '',
+              recipientId: playerId,
+              title: 'Scorecard Verified',
+              message: 'Your scorecard for Medal — Final Verification UAT has been verified.$amendmentNote',
+              timestamp: approvedTime,
+              category: 'Scoring',
+              eventId: event.id,
+              actionUrl: '/events/${event.id}/live?tab=1',
+            ));
+          } catch (_) {}
+        }
       }
     }
 
@@ -890,11 +945,7 @@ class ScenarioSeeder {
 
   Future<String> seedHandshakeVerificationScenario() async {
     final membersRepo = ref.read(membersRepositoryProvider);
-    var members = await membersRepo.getMembers();
-    if (members.length < 32) {
-      await MemberSeeder(ref, random).seed();
-      members = await membersRepo.getMembers();
-    }
+    final members = await membersRepo.getMembers();
 
     final courseRepo = ref.read(courseRepositoryProvider);
     var courses = await courseRepo.watchCourses().first;
@@ -934,10 +985,14 @@ class ScenarioSeeder {
     for (int i = 0; i < groups.length; i++) {
       final group = groups[i];
       
-      // Assign Markers (Circular)
-      for (int j = 0; j < group.players.length; j++) {
-        final p = group.players[j];
-        final marker = group.players[(j + 1) % group.players.length];
+      // Assign Markers (Circular) — deduplicate first to prevent self-marking
+      final seenMarkerKeys = <String>{};
+      final markerPlayers = group.players
+          .where((p) => seenMarkerKeys.add('${p.registrationMemberId}_${p.isGuest}'))
+          .toList();
+      for (int j = 0; j < markerPlayers.length; j++) {
+        final p = markerPlayers[j];
+        final marker = markerPlayers[(j + 1) % markerPlayers.length];
         final pId = p.isGuest ? '${p.registrationMemberId}_guest' : p.registrationMemberId;
         final markerId = marker.isGuest ? '${marker.registrationMemberId}_guest' : marker.registrationMemberId;
         allMarkers[pId] = markerId;
@@ -961,8 +1016,8 @@ class ScenarioSeeder {
       final bool isThirdLast = (i == groups.length - 3);
       final bool isGroupSubmitted = (i < groups.length - 3);
 
-      for (int j = 0; j < group.players.length; j++) {
-        final p = group.players[j];
+      for (int j = 0; j < markerPlayers.length; j++) {
+        final p = markerPlayers[j];
         final entryId = p.isGuest ? '${p.registrationMemberId}_guest' : p.registrationMemberId;
         final s = scorecards.firstWhereOrNull((sc) => sc.entryId == entryId);
         if (s == null) continue;
@@ -986,6 +1041,7 @@ class ScenarioSeeder {
           markerId: allMarkers[entryId],
           holeScores: holeScores,
           playerVerifierScores: markerScores,
+          conflictedHoles: Scorecard.computeConflicts(holeScores, markerScores),
           holeTags: _generateHoleTags(holeScores),
           submittedAt: isGroupSubmitted ? DateTime.now().subtract(Duration(minutes: (groups.length - i) * 10)) : null,
         ));

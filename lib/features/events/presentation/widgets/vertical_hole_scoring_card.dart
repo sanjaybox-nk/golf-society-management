@@ -22,6 +22,7 @@ class _PlayerScoringCard extends ConsumerStatefulWidget {
   final List<String> holeTags;
   final VoidCallback? onStoryTap;
   final bool hasConflict;
+  final bool isGuest;
 
   const _PlayerScoringCard({
     required this.label,
@@ -45,6 +46,7 @@ class _PlayerScoringCard extends ConsumerStatefulWidget {
     this.holeTags = const [],
     this.onStoryTap,
     this.hasConflict = false,
+    this.isGuest = false,
   });
 
   @override
@@ -140,6 +142,10 @@ class _PlayerScoringCardState extends ConsumerState<_PlayerScoringCard> {
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
+                        if (widget.isGuest) ...[
+                          const SizedBox(width: AppSpacing.xs),
+                          const BoxyArtGuestBadge(),
+                        ],
                       ],
                     ),
                     const SizedBox(height: 4),
@@ -149,11 +155,13 @@ class _PlayerScoringCardState extends ConsumerState<_PlayerScoringCard> {
                         BoxyArtIndicator.phc(context: context, label: '${widget.phc}'),
                       ],
                     ),
-                    if (widget.isMe && widget.markerName != null) ...[
+                    if (widget.markerName != null) ...[
                       const Spacer(),
                       const SizedBox(height: 8),
                       Text(
-                        'MARKED BY: ${widget.markerName!.toUpperCase()}',
+                        widget.isMe
+                            ? 'MARKED BY: ${widget.markerName!.toUpperCase()}'
+                            : 'MARKING: ${widget.markerName!.toUpperCase()}',
                         style: AppTypography.micro.copyWith(
                           fontSize: 10,
                           color: AppColors.dark400,
@@ -181,17 +189,17 @@ class _PlayerScoringCardState extends ConsumerState<_PlayerScoringCard> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     ..._buildScoreArea(context, isDark, shapes),
-                    if (!widget.isLocked && widget.onStoryTap != null) ...[
-                      const SizedBox(width: AppSpacing.xs),
-                      GestureDetector(
-                        onTap: widget.onStoryTap,
-                        behavior: HitTestBehavior.opaque,
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
-                          child: Icon(Icons.more_vert_rounded, size: 18, color: AppColors.dark300),
-                        ),
-                      ),
-                    ],
+                    const SizedBox(width: AppSpacing.xs),
+                    (!widget.isLocked && widget.onStoryTap != null)
+                        ? GestureDetector(
+                            onTap: widget.onStoryTap,
+                            behavior: HitTestBehavior.opaque,
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+                              child: Icon(Icons.more_vert_rounded, size: 18, color: AppColors.dark300),
+                            ),
+                          )
+                        : const SizedBox(width: 26),
                   ],
                 ),
               ],

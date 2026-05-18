@@ -7,9 +7,9 @@
 
 A Flutter app for managing a golf society — events, scoring, handicaps, match play, membership, and treasury. Multi-tenant (one app instance per society). Backend is Firebase (Firestore, Auth, Storage, Cloud Functions).
 
-## Current state (as of 2026-05-05)
+## Current state (as of 2026-05-18)
 
-The codebase has just completed a full architectural refactor driven by a May 2026 audit of all 361 source files (~79k LOC). All 6 phases are complete and merged to `main`. The app is feature-complete and heading toward production infrastructure (CI/CD, TestFlight, Play Store).
+Post-refactor UAT and scoring UX work is in progress on `main`. The 6-phase architectural refactor is complete. The app is in active UAT — Medal stroke play and Stableford handshake flows are being tested. Recent additions include the guest proxy scoring flow, admin hub navigation restructure (Verify + Manage tabs), new design system components (`BoxyArtScoreStepper`, `BoxyArtStatusBanner`), and admin scorecard editor hardening. `flutter analyze` is at **0 issues**.
 
 Full audit report: `docs/CODEBASE_AUDIT_REPORT.md`
 
@@ -65,11 +65,39 @@ The `runMigrateMemberIds` function remains deployed and is idempotent — safe t
 - **`isStableford` → `higherIsBetter`** — `TieBreakerLogic` parameter renamed to be format-agnostic
 - **49 new unit tests** — `ScoringStrategy` (26), `TieBreakerLogic` (9), `HandicapCalculator` (14)
 
+## Post-refactor feature work (Phase 82–83, 2026-05-11 to 2026-05-18)
+
+### Guest proxy scoring (captain proxy model)
+Handles the case where a guest is brought by a member (assignee) and a separate marker records their scores. The assignee acts as proxy verifier.
+
+- 3-step sequential card in the Scores hub: (1) Verify Player Scores, (2) Enter Proxy Record, (3) Submit Card.
+- Proxy record cards appear at the bottom of the scoring list; scrolling to hole 18 auto-confirms.
+- `ensureTarget()` on `MarkerSelectionNotifier` — adds without toggling.
+- Key files: `event_scores_hub_tab.dart`, `vertical_hole_scoring_target_card.dart`, `vertical_hole_scoring_list.dart`, `marker_selection_provider.dart`.
+
+### Admin hub navigation restructure
+- **Verify tab** (was Stats): `EventAdminVerifyScreen` — metrics card + Lock/Publish/Remind actions + `AdminVerifyTab`.
+- **Manage tab** (was Controls): `EventAdminManageScreen` — tabbed: Financials (balance, expenses, prizes) and Controls (scoring toggles, visibility, workbench, event config, termination).
+- Lock Scoring + Publish Standings moved from Scores screen into Controls tab within Manage.
+- `manage/:id/stats` redirects to `manage/:id/verify`.
+
+### New design system atoms
+- `BoxyArtScoreStepper` — score stepper with par-relative colour coding. Used in `AdminScorecardKeypad`.
+- `BoxyArtStatusBanner` — branded status/alert banner. Replaces ad-hoc banners in `EventAdminScorecardEditorScreen`.
+- `BoxyArtBottomSheet.show()` — `initialChildSize` nullable; `null` = auto-size to content.
+
+### Admin scorecard editor hardening
+- Override always enabled; updates both player and marker rows.
+- Commit-on-navigation pattern prevents conflict dialog on every stepper tap.
+- `LateInitializationError` on `_savedScores` fixed.
+
 ## What comes next
 
 - **Production infrastructure** — CI/CD (GitHub Actions or Codemagic), TestFlight internal beta, Google Play internal track
-- **Run the Firestore migration** — `runMigrateMemberIds` Cloud Function against production data
-- The refactoring backlog in `docs/06_ROADMAP_TODO.md` § 7 is now fully complete — those checkboxes are stale and can be marked done
+- **Firestore migration** — `runMigrateMemberIds` Cloud Function against production data (already run 2026-05-05, idempotent)
+- **Remaining UAT formats** — Bogey/Max Score → Pairs Betterball → Texas Scramble → Match Play
+- **Parked features** — Guest edit/convert-to-member (post-UAT), Gallery guardrails (per-event cap, moderation), Guest email scorecard delivery, Guest event code login
+- The refactoring backlog in `docs/06_ROADMAP_TODO.md` § 7 is fully complete
 
 ## Key files to know
 
@@ -91,3 +119,7 @@ The `runMigrateMemberIds` function remains deployed and is idempotent — safe t
 | `firebase/functions/src/migrate_member_ids.ts` | Firestore memberId migration |
 | `docs/CODEBASE_AUDIT_REPORT.md` | Full May 2026 audit findings |
 | `CLAUDE.md` | Agent instructions (conventions, tokens, git rules) |
+| `lib/features/admin/presentation/events/event_admin_verify_screen.dart` | Standalone Verify tab — metrics + lock/publish actions + AdminVerifyTab |
+| `lib/features/admin/presentation/events/event_admin_manage_screen.dart` | Tabbed Manage screen — Financials + Controls tabs |
+| `lib/design_system/atoms/indicators/boxy_art_score_stepper.dart` | Score stepper atom with par-relative colour coding |
+| `lib/design_system/atoms/indicators/boxy_art_status_banner.dart` | Branded status/alert banner atom |

@@ -28,8 +28,10 @@ class VerticalHoleScoringList extends ConsumerStatefulWidget {
   final ProcessedEventData? scoringData;
   final VoidCallback? onMarkerSelectionTap;
   final VoidCallback? onVerifyTap;
+  final ValueChanged<String>? onMarkerConfirmTap;
   final PageController? pageController;
   final ValueChanged<int>? onHoleChanged;
+  final VoidCallback? onProxyRecordComplete;
 
   const VerticalHoleScoringList({
     super.key,
@@ -37,8 +39,10 @@ class VerticalHoleScoringList extends ConsumerStatefulWidget {
     this.scoringData,
     this.onMarkerSelectionTap,
     this.onVerifyTap,
+    this.onMarkerConfirmTap,
     this.pageController,
     this.onHoleChanged,
+    this.onProxyRecordComplete,
   });
 
   @override
@@ -76,6 +80,7 @@ class _VerticalHoleScoringListState extends ConsumerState<VerticalHoleScoringLis
 
   @override
   Widget build(BuildContext context) {
+    final spacing = Theme.of(context).extension<AppSpacingTokens>();
     final currentUser = ref.watch(effectiveUserProvider);
     final markerSelection = ref.watch(markerSelectionProvider);
     final allScorecards = ref.watch(scorecardsListProvider(widget.event.id)).asData?.value ?? [];
@@ -83,9 +88,54 @@ class _VerticalHoleScoringListState extends ConsumerState<VerticalHoleScoringLis
     final List<String> targetEntryIds = markerSelection.targetEntryIds.toList();
     final bool isSelfMarking = markerSelection.isSelfMarking;
 
-    final String primaryTargetId = (isSelfMarking || targetEntryIds.isEmpty)
+    // Always include the player the current user is officially marking (the player
+    // whose scorecard has markerId == currentUser.id). This is the reverse of
+    // myScorecard.markerId which is "who marks me" — we want "who I mark".
+    final myScorecard = allScorecards.firstWhereOrNull((s) => s.entryId == currentUser.id);
+    final officialTargetScorecard = allScorecards.firstWhereOrNull(
+      (s) => s.markerId == currentUser.id,
+    );
+    final String? officialTargetEntryId = officialTargetScorecard?.entryId;
+    final List<String> baseTargetIds = [
+      ...targetEntryIds,
+      if (officialTargetEntryId != null &&
+          officialTargetEntryId != currentUser.id &&
+          !targetEntryIds.contains(officialTargetEntryId))
+        officialTargetEntryId,
+    ];
+
+    // Build target list: original cards first, then proxy record cards at the end.
+    // A proxy card is one whose markerId ends with '_guest' — it exists to let the
+    // assignee enter the guest's marking record via the normal scoring layout.
+    final Set<String> proxyIds = {};
+    final List<String> baseWithProxies = List<String>.from(baseTargetIds);
+    for (final id in baseTargetIds) {
+      if (!id.endsWith('_guest')) continue;
+      final guestCard = allScorecards.firstWhereOrNull((s) => s.entryId == id);
+      if (guestCard?.holeScores.any((s) => s != null && s > 0) != true) continue;
+      final markedCard = allScorecards.firstWhereOrNull((s) => s.markerId == id);
+      if (markedCard != null && !baseWithProxies.contains(markedCard.entryId)) {
+        baseWithProxies.add(markedCard.entryId);
+      }
+    }
+    // Detect proxy cards by checking scorecard markerId — covers both auto-added
+    // proxies and cards already in targetEntryIds whose marker happens to be a guest.
+    bool isProxy(String id) {
+      final card = allScorecards.firstWhereOrNull((s) => s.entryId == id);
+      return card?.markerId?.endsWith('_guest') == true;
+    }
+    // Stable sort: originals first, proxies last
+    final List<String> effectiveTargetIds = [
+      ...baseWithProxies.where((id) => !isProxy(id)),
+      ...baseWithProxies.where((id) => isProxy(id)),
+    ];
+    for (final id in effectiveTargetIds) {
+      if (isProxy(id)) proxyIds.add(id);
+    }
+
+    final String primaryTargetId = (isSelfMarking || effectiveTargetIds.isEmpty)
         ? currentUser.id
-        : targetEntryIds.first;
+        : effectiveTargetIds.first;
 
     final members = ref.watch(allMembersProvider).value ?? [];
     final playerTeeConfig = ScoringCalculator.resolvePlayerCourseConfig(
@@ -101,13 +151,24 @@ class _VerticalHoleScoringListState extends ConsumerState<VerticalHoleScoringLis
     final rules = compAsync.asData?.value?.rules ?? CompetitionRules();
     final isStableford = rules.format == CompetitionFormat.stableford;
 
-    final int totalCards = (isSelfMarking ? 1 : 0) + targetEntryIds.length;
+    final int totalCards = (isSelfMarking ? 1 : 0) + effectiveTargetIds.length;
     final double containerHeight = 120.0 + (totalCards * 155.0);
 
-    final bool isLocked = widget.event.status == EventStatus.completed;
-
-    final myScorecard = allScorecards.firstWhereOrNull((s) => s.entryId == currentUser.id);
+    // Event-level lock applies to all cards — scoring is closed for everyone.
+    final bool isEventLocked = widget.event.status == EventStatus.completed ||
+        widget.event.isScoringLocked == true;
+    // Own card: additionally locked once both parties have signed (status = finalScore/reviewed)
+    // or admin has approved. A single signature alone keeps it open.
+    final bool isSelfLocked = isEventLocked ||
+        myScorecard?.status == ScorecardStatus.finalScore ||
+        myScorecard?.status == ScorecardStatus.reviewed ||
+        myScorecard?.status == ScorecardStatus.approved;
+    // Target cards only inherit the event-level lock — the player's own card status
+    // (even if approved) must not prevent them from marking someone else.
+    final bool isLocked = isEventLocked;
     final bool isSelfDq = myScorecard?.scoringStatus == ScoringStatus.dq;
+
+
     final String? myMarkerId = markerSelection.myMarkerId ?? myScorecard?.markerId;
     final String? myMarkerName = myMarkerId == currentUser.id
         ? 'ME'
@@ -127,6 +188,7 @@ class _VerticalHoleScoringListState extends ConsumerState<VerticalHoleScoringLis
               setState(() => _currentPage = page);
               ref.read(markerSelectionProvider.notifier).setLastViewedHole(page);
               widget.onHoleChanged?.call(page);
+              if (page == 17) _confirmProxyRecordsOnHole18();
             },
             itemCount: 18,
             itemBuilder: (context, index) {
@@ -152,12 +214,12 @@ class _VerticalHoleScoringListState extends ConsumerState<VerticalHoleScoringLis
                         final int? seedScore = mySeedCard?.holeScores.elementAtOrNull(index);
                         final int? displayScore = markerScore ?? seedScore ?? myStats?.holeScores.elementAtOrNull(index);
                         final myActiveCard = myMarkerCard ?? mySeedCard;
-                        final myConflicts = _computeConflictedHoles(myActiveCard);
+                        final myConflicts = myActiveCard?.conflictedHoles.toSet() ?? const <int>{};
                         return _PlayerScoringCard(
                           label: '',
                           name: currentUser.displayName,
                           hc: currentUser.handicap.toDouble(),
-                          phc: HandicapCalculator.calculatePlayingHandicap(
+                          phc: myActiveCard?.playingHandicap ?? HandicapCalculator.calculatePlayingHandicap(
                             handicapIndex: currentUser.handicap.toDouble(),
                             rules: widget.event.courseConfig.holes.any((h) => h.par == 0) ? const CompetitionRules() : (ref.watch(competitionDetailProvider(widget.event.id)).value?.rules ?? const CompetitionRules()),
                             courseConfig: myCourseConfig,
@@ -172,21 +234,46 @@ class _VerticalHoleScoringListState extends ConsumerState<VerticalHoleScoringLis
                           thru: myStats?.thruLabel,
                           points: myStats?.result.score,
                           matchStatus: myEntry?.matchStatus,
-                          onChanged: (isLocked || isSelfDq) ? (_) {} : (s) => _updateScore(currentUser.id, index, s, allScorecards),
+                          onChanged: (isSelfLocked || isSelfDq) ? (_) {} : (s) => _updateScore(currentUser.id, index, s, allScorecards),
                           isStableford: isStableford,
-                          isLocked: isLocked || isSelfDq,
+                          isLocked: isSelfLocked || isSelfDq,
                           isMe: true,
                           markerName: myMarkerName,
                           holeTags: myActiveCard?.holeTags[index + 1] ?? [],
-                          onStoryTap: (isLocked || isSelfDq) ? null : () => _showStorySheet(context, currentUser.id, index + 1, holes: holes, rules: rules, isStableford: isStableford),
+                          onStoryTap: (isSelfLocked || isSelfDq) ? null : () => _showStorySheet(context, currentUser.id, index + 1, holes: holes, rules: rules, isStableford: isStableford),
                           hasConflict: myConflicts.contains(index + 1),
                         );
                       })(),
-                      if (targetEntryIds.isNotEmpty) const SizedBox(height: AppSpacing.md),
+                      if (effectiveTargetIds.isNotEmpty) const SizedBox(height: AppSpacing.cardToCard),
                     ],
-                    for (final tId in targetEntryIds) ...[
-                      _buildTargetCard(context, currentUser, tId, index, members, allScorecards, isStableford, isLocked, holes: holes, rules: rules),
-                      const SizedBox(height: AppSpacing.md),
+                    for (final tId in effectiveTargetIds) ...[
+                      () {
+                        final card = allScorecards.firstWhereOrNull((s) => s.entryId == tId);
+                        final isGuestProxy = card?.markerId?.endsWith('_guest') == true;
+                        final guestFirstName = isGuestProxy
+                            ? _getDisplayName(members, card!.markerId!).split(' ').first
+                            : null;
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (isGuestProxy) ...[
+                              SizedBox(height: spacing?.cardToLabel ?? AppSpacing.atomic),
+                              Text(
+                                '${guestFirstName!.toUpperCase()}\'S MARKING RECORD',
+                                style: AppTypography.micro.copyWith(
+                                  fontWeight: AppTypography.weightHeavy,
+                                  letterSpacing: AppTypography.lsLabel,
+                                  color: AppColors.dark400,
+                                ),
+                              ),
+                              SizedBox(height: spacing?.labelToCard ?? AppSpacing.atomic),
+                            ] else
+                              const SizedBox(height: AppSpacing.cardToCard),
+                            _buildTargetCard(context, currentUser, tId, index, members, allScorecards, isStableford, isLocked, holes: holes, rules: rules),
+                          ],
+                        );
+                      }(),
                     ],
                     if (widget.onMarkerSelectionTap != null && !isLocked) ...[
                       const SizedBox(height: AppSpacing.standard),
@@ -209,6 +296,7 @@ class _VerticalHoleScoringListState extends ConsumerState<VerticalHoleScoringLis
       ],
     );
   }
+
 
   Widget _buildMarkerSelector(int holeIndex) {
     return Padding(

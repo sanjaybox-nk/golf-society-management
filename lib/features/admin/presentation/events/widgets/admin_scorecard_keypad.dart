@@ -6,6 +6,9 @@ class AdminScorecardKeypad extends StatelessWidget {
   final ValueChanged<int> onHoleChanged;
   final Function(int hole, int score) onSetScore;
   final int? cap;
+  final Set<int> conflictedHoles;
+  final bool isStableford;
+  final List<dynamic>? holes;
 
   const AdminScorecardKeypad({
     super.key,
@@ -14,141 +17,65 @@ class AdminScorecardKeypad extends StatelessWidget {
     required this.onHoleChanged,
     required this.onSetScore,
     this.cap,
+    this.conflictedHoles = const {},
+    this.isStableford = false,
+    this.holes,
   });
 
   @override
   Widget build(BuildContext context) {
     final int currentScore = scores[currentHole] ?? 4;
+    final canDecrement = currentScore > 1;
+    final canIncrement = cap == null || currentScore < cap!;
+
+    final hole = (holes != null && currentHole - 1 < holes!.length)
+        ? holes![currentHole - 1]
+        : null;
+    final int? par = hole?.par as int?;
+    final int? si = hole?.si as int?;
 
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        // 1. Hole Selector (Ribbon)
         BoxyHoleSelector(
           currentHole: currentHole,
           scores: scores,
           onHoleChanged: onHoleChanged,
+          conflictedHoles: conflictedHoles,
         ),
-        
-        const SizedBox(height: AppSpacing.sm),
-
-        // 2. Number Keypad Row (3, 4, 5, 6, 7+)
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            for (int i = 3; i <= 6; i++)
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
-                  child: _buildNumberButton(context, i, currentScore == i),
+        const SizedBox(height: AppSpacing.atomic),
+        if (par != null || si != null)
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              if (par != null)
+                BoxyArtIndicator(
+                  label: 'P$par',
+                  dotColor: AppColors.dark400,
+                  hasHorizontalMargin: false,
                 ),
-              ),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
-                child: _buildNumberButton(
-                  context, 
-                  7, 
-                  currentScore >= 7, 
-                  label: '7+',
+              if (si != null) ...[
+                const SizedBox(width: AppSpacing.xs),
+                BoxyArtIndicator(
+                  label: 'SI $si',
+                  dotColor: AppColors.dark400,
+                  hasHorizontalMargin: false,
                 ),
-              ),
-            ),
-          ],
-        ),
-
-        const SizedBox(height: AppSpacing.sm),
-
-        // 3. Action Row ([-] [NEXT HOLE] [+])
-        Row(
-          children: [
-            Expanded(
-              flex: 1,
-              child: BoxyArtButton(
-                title: '',
-                icon: Icons.remove,
-                isSecondary: true,
-                isSmall: true,
-                onTap: currentScore > 1 
-                    ? () => onSetScore(currentHole, currentScore - 1) 
-                    : null,
-              ),
-            ),
-            const SizedBox(width: AppSpacing.sm),
-            Expanded(
-              flex: 2,
-              child: BoxyArtButton(
-                title: 'NEXT HOLE',
-                isPrimary: true,
-                isSmall: true,
-                onTap: () {
-                  if (currentHole < 18) {
-                    onHoleChanged(currentHole + 1);
-                  }
-                },
-              ),
-            ),
-            const SizedBox(width: AppSpacing.sm),
-            Expanded(
-              flex: 1,
-              child: BoxyArtButton(
-                title: '',
-                icon: Icons.add,
-                isSecondary: true,
-                isSmall: true,
-                onTap: (cap == null || currentScore < cap!) 
-                    ? () => onSetScore(currentHole, currentScore + 1) 
-                    : null,
-              ),
-            ),
-          ],
+              ],
+            ],
+          ),
+        const SizedBox(height: AppSpacing.atomic),
+        BoxyArtScoreStepper(
+          score: currentScore,
+          par: par,
+          onDecrement: canDecrement
+              ? () => onSetScore(currentHole, currentScore - 1)
+              : null,
+          onIncrement: canIncrement
+              ? () => onSetScore(currentHole, currentScore + 1)
+              : null,
         ),
       ],
-    );
-  }
-
-  Widget _buildNumberButton(BuildContext context, int value, bool isSelected, {String? label}) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-
-    return GestureDetector(
-      onTap: () => onSetScore(currentHole, value),
-      behavior: HitTestBehavior.opaque,
-      child: AnimatedContainer(
-        duration: AppAnimations.fast,
-        height: 46,
-        decoration: BoxDecoration(
-          color: isSelected 
-              ? theme.primaryColor 
-              : (isDark ? AppColors.dark700 : AppColors.dark50),
-          borderRadius: AppShapes.md, // Switched to MD for better proportions at 46px
-          border: Border.all(
-            color: isSelected 
-                ? theme.primaryColor 
-                : (isDark ? AppColors.dark600 : AppColors.dark100),
-            width: AppShapes.borderThin,
-          ),
-          boxShadow: isSelected ? [
-            BoxShadow(
-              color: theme.primaryColor.withValues(alpha: AppColors.opacityMuted),
-              blurRadius: 12,
-              offset: const Offset(0, 4),
-            )
-          ] : null,
-        ),
-        child: Center(
-          child: Text(
-            label ?? '$value',
-            style: AppTypography.displayHeading.copyWith(
-              color: isSelected 
-                  ? AppColors.pureWhite 
-                  : (isDark ? AppColors.dark100 : AppColors.dark800),
-              fontSize: 18, // Reduced from sizeDisplaySubPage
-              fontWeight: AppTypography.weightBlack,
-            ),
-          ),
-        ),
-      ),
     );
   }
 }

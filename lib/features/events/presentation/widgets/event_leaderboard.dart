@@ -97,7 +97,7 @@ class _EventLeaderboardState extends ConsumerState<EventLeaderboard> {
         teamMemberIds: e.teamMemberIds,
         teamMemberNames: e.teamMemberNames,
         position: e.position,
-        thruLabel: e.thruLabel,
+        thruLabel: isCompleted ? null : e.thruLabel,
         tieBreakLabel: isCompleted ? e.tieBreakLabel : null,
         tieBreakDetails: isCompleted ? e.tieBreakLabel : null,
         tieBreakMetrics: e.tieBreakMetrics,

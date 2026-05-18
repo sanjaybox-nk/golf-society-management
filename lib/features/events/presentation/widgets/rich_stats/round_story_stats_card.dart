@@ -25,7 +25,7 @@ class RoundStoryStatsCard extends StatelessWidget {
           if (tag.startsWith('PENALTY_1_') ||
               (tag.startsWith('PENALTY_') &&
                   !tag.startsWith('PENALTY_1_') &&
-                  !tag.startsWith('PENALTY_2_'))) total1Stroke++;
+                  !tag.startsWith('PENALTY_2_'))) { total1Stroke++; }
           if (tag.startsWith('PENALTY_2_')) total2Stroke++;
         }
       }

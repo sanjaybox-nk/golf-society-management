@@ -41,7 +41,6 @@ import '../features/admin/presentation/matchplay/match_play_draw_manager_screen.
 import '../features/admin/presentation/notifications/compose_notification_screen.dart';
 import '../features/events/presentation/event_registration_screen.dart';
 import 'global_app_shell.dart';
-import '../features/admin/presentation/events/event_admin_reports_screen.dart';
 import '../features/admin/presentation/reports/admin_reports_screen.dart';
 import '../features/events/presentation/tabs/event_user_details_tab.dart';
 import '../features/events/presentation/event_feed_detail_screen.dart';
@@ -53,6 +52,8 @@ import '../features/competitions/presentation/season_standings_screen.dart';
 import '../features/competitions/presentation/season_leaderboard_detail_screen.dart';
 import '../features/admin/presentation/events/event_admin_financials_screen.dart';
 import '../features/admin/presentation/events/event_admin_scores_screen.dart';
+import '../features/admin/presentation/events/event_admin_verify_screen.dart';
+import '../features/admin/presentation/events/event_admin_manage_screen.dart';
 import '../features/admin/presentation/events/event_admin_scorecard_editor_screen.dart';
 import 'package:golf_society/features/admin/presentation/events/event_broadcast_screen.dart';
 import 'package:golf_society/features/admin/presentation/events/feed_item_editor_screen.dart';

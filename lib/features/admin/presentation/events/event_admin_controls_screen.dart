@@ -10,7 +10,6 @@ import 'package:golf_society/domain/grouping/grouping_service.dart';
 import 'package:golf_society/features/members/presentation/members_provider.dart';
 import 'package:golf_society/domain/models/competition.dart';
 import 'package:golf_society/domain/models/golf_event.dart';
-import 'package:golf_society/services/seeding_service.dart';
 
 class EventAdminControlsScreen extends ConsumerStatefulWidget {
   final String eventId;

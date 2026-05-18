@@ -14,7 +14,6 @@ import '../../logic/event_scoring_controller.dart';
 import '../state/marker_selection_provider.dart';
 import '../widgets/event_scorecard_view.dart';
 import '../widgets/marker_selection_sheet.dart';
-import '../widgets/scoring/scoring_verification_view.dart';
 import '../../../matchplay/presentation/widgets/match_play_bracket_hub.dart';
 import '../../../matchplay/domain/golf_event_match_extensions.dart';
 import 'event_tabs_state.dart';
@@ -69,7 +68,8 @@ final pinnedScoringStateProvider = Provider.autoDispose.family<PinnedScoringStat
 class EventScoresUserTab extends ConsumerStatefulWidget {
   final String eventId;
   final bool isAdminMode;
-  const EventScoresUserTab({super.key, required this.eventId, this.isAdminMode = false});
+  final int initialTab;
+  const EventScoresUserTab({super.key, required this.eventId, this.isAdminMode = false, this.initialTab = 0});
 
   @override
   ConsumerState<EventScoresUserTab> createState() => _EventScoresUserTabState();
@@ -77,11 +77,21 @@ class EventScoresUserTab extends ConsumerStatefulWidget {
 
 class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
   Map<int, int>? _optimisticScores;
-  bool _optimisticIsVerifier = false;
+  final bool _optimisticIsVerifier = false;
   MarkerTab _selectedMarkerTab = MarkerTab.player;
   String? _switchedCardId;
   final PageController _holeController = PageController();
   int _currentHole = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.initialTab != 0) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ref.read(eventScoringTabProvider.notifier).set(widget.initialTab);
+      });
+    }
+  }
 
   @override
   void dispose() {
@@ -89,20 +99,6 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
     super.dispose();
   }
 
-  String _resolvePlayerName(GolfEvent event, List<Member> members, String id) {
-    final groups = event.grouping['groups'] as List? ?? [];
-    for (final group in groups) {
-      for (final p in (group['players'] as List? ?? [])) {
-        final map = Map<String, dynamic>.from(p as Map);
-        if (GuestIdHelper.resolveEffectiveId(map) == id) {
-          final n = map['name'] as String?;
-          if (n != null && n.isNotEmpty) return n;
-        }
-      }
-    }
-    final baseId = GuestIdHelper.stripGuestSuffix(id);
-    return members.firstWhereOrNull((m) => m.id == baseId)?.displayName ?? id;
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -156,8 +152,7 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
             
             String? headerBadgeText;
             Color? headerBadgeColor;
-            VoidCallback? headerOnBadgeTap;
-            
+
             final effectiveStatus = event.status;
             final bool isLocked = event.isScoringLocked == true ||
                 userScorecard?.status == ScorecardStatus.approved;
@@ -173,59 +168,51 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
             );
 
             if (userScorecard?.status == ScorecardStatus.approved) {
+              // ── Stage 5: Admin verified ───────────────────────────────────
               headerBadgeText = "Verified";
               headerBadgeColor = AppColors.lime500;
-            } else if (isLocked || (userScorecard?.status == ScorecardStatus.finalScore)) {
-              headerBadgeText = "Final Score";
-              headerBadgeColor = AppColors.lime600;
-            } else if (isCompleted) {
-              headerBadgeText = null;
-              headerBadgeColor = Colors.transparent;
-            } else if (!isScoringActive) {
-              headerBadgeText = "Not Active";
-              headerBadgeColor = AppColors.dark300;
+            } else if (userScorecard?.status == ScorecardStatus.finalScore ||
+                userScorecard?.status == ScorecardStatus.reviewed) {
+              // ── Stage 4: Both signed, in admin queue ──────────────────────
+              headerBadgeText = "Submitted";
+              headerBadgeColor = AppColors.amber500;
             } else if (userScorecard != null) {
-              // Check for conflicts
-              final officialMarkerCard = allScorecards.firstWhereOrNull((s) => s.entryId == effectiveEntryId && s.markerId != effectiveEntryId);
-              bool hasConflict = false;
-              if (officialMarkerCard != null) {
-                for (int i = 0; i < 18; i++) {
-                  final pS = userScorecard.holeScores.elementAtOrNull(i);
-                  final mS = officialMarkerCard.holeScores.elementAtOrNull(i);
-                  if (pS != null && mS != null && pS != mS) {
-                    hasConflict = true;
-                    break;
-                  }
-                }
-              }
-
-              if (hasConflict) {
+              // ── Sign-off states — checked before global lock so sign-off
+              // remains available even after admin locks score entry ──────────
+              if (userScorecard.conflictedHoles.isNotEmpty) {
                 headerBadgeText = "Conflict";
                 headerBadgeColor = AppColors.coral500;
-              } else if (userScorecard.status == ScorecardStatus.draft && isCardFull) {
-                headerBadgeText = "Verify Score";
+              } else if (userScorecard.verifiedByMarker && !userScorecard.verifiedByPlayer) {
+                // ── Stage 3a: Marker confirmed — player needs to submit ────
+                headerBadgeText = "Marker Verified";
                 headerBadgeColor = AppColors.amber500;
-                headerOnBadgeTap = () => _showVerificationSheet(event, userScorecard);
+              } else if (userScorecard.verifiedByPlayer && !userScorecard.verifiedByMarker) {
+                // ── Stage 3b: Player signed — waiting for marker ──────────
+                headerBadgeText = "Awaiting Marker";
+                headerBadgeColor = AppColors.dark300;
+              } else if (isCardFull) {
+                // ── Stage 2: All 18 done — waiting for marker to confirm ──
+                headerBadgeText = "Verify Score";
+                headerBadgeColor = AppColors.dark300;
+              } else if (event.isScoringLocked == true || isCompleted) {
+                // Global lock — score entry closed, nothing to sign yet
+                headerBadgeText = "Locked";
+                headerBadgeColor = AppColors.dark300;
+              } else if (!isScoringActive) {
+                headerBadgeText = "Not Active";
+                headerBadgeColor = AppColors.dark300;
               } else {
-                if (userScorecard.status == ScorecardStatus.submitted) {
-                  headerBadgeText = "Submitted";
-                  headerOnBadgeTap = () => _confirmUnsubmit(userScorecard.id);
-                } else if (userScorecard.status == ScorecardStatus.reviewed) {
-                  headerBadgeText = "Confirmed";
-                } else {
-                  headerBadgeText = "Scoring";
-                }
-                headerBadgeColor = _getStatusColor(userScorecard.status);
+                // ── Stage 1: Round in progress ───────────────────────────
+                headerBadgeText = "In Play";
+                headerBadgeColor = AppColors.dark300;
               }
             } else {
-              headerBadgeText = "Active";
-              headerBadgeColor = AppColors.lime400;
+              headerBadgeText = "In Play";
+              headerBadgeColor = AppColors.dark300;
             }
 
             final isStaff = currentUser.role != MemberRole.member;
             final selectedScoringTab = ref.watch(eventScoringTabProvider);
-            final allTargetIds = markerSelection.targetEntryIds.toList();
-            final members = ref.watch(allMembersProvider).value ?? [];
 
             // Pinned bottom — hole nav arrows on Scoring tab only (participants only)
             Widget? pinnedBottom;
@@ -268,26 +255,52 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
               );
             }
 
-            // Card switcher — pinned above nav bar on Scorecard tab
+            // Scorecard tab picker — lets the marker flip to the card they are marking.
+            // MKR comparison row only renders on the current user's own card (enforced
+            // in EventScorecardView), so Ashley's view remains a clean read-only grid.
             Widget? personPicker;
-            if (selectedScoringTab == 1 && allTargetIds.isNotEmpty) {
-              final selectedId = _switchedCardId ?? currentUser.id;
-              final pickerEntries = [
-                ModernFilterTab<String>(label: 'Me', value: currentUser.id),
-                ...allTargetIds.map((id) {
-                  final label = _resolvePlayerName(event, members, id).split(' ').first;
-                  return ModernFilterTab<String>(label: label, value: id);
-                }),
-              ];
-              personPicker = BoxyArtTabBar<String>(
-                tabs: pickerEntries,
-                selectedValue: selectedId,
-                onTabSelected: (id) => setState(() => _switchedCardId = id),
+            if (selectedScoringTab == 1 && isParticipant) {
+              final officialTargetScorecard = allScorecards.firstWhereOrNull(
+                (s) => s.markerId == currentUser.id,
               );
-              pinnedBottom = BoxyArtCard(
-                padding: const EdgeInsets.all(AppSpacing.atomic),
-                child: personPicker,
-              );
+              final officialTargetEntryId = officialTargetScorecard?.entryId;
+              // Guest proxy cards — this member is the assigned score entrant
+              final guestProxyCards = allScorecards.where((s) =>
+                  s.guestInputAssigneeId == currentUser.id &&
+                  s.entryId.endsWith('_guest') &&
+                  s.status != ScorecardStatus.finalScore &&
+                  s.status != ScorecardStatus.approved).toList();
+
+              final hasTabs = (officialTargetEntryId != null && officialTargetEntryId != currentUser.id) ||
+                  guestProxyCards.isNotEmpty;
+
+              if (hasTabs) {
+                final selectedId = _switchedCardId ?? currentUser.id;
+                final tabs = <ModernFilterTab<String>>[
+                  const ModernFilterTab<String>(label: 'Me', value: ''),
+                  if (officialTargetEntryId != null && officialTargetEntryId != currentUser.id)
+                    ModernFilterTab<String>(
+                      label: _resolveFirstName(officialTargetEntryId, event, full: false),
+                      value: officialTargetEntryId,
+                    ),
+                  for (final g in guestProxyCards)
+                    if (g.entryId != officialTargetEntryId)
+                      ModernFilterTab<String>(
+                        label: _resolveFirstName(g.entryId, event, full: false),
+                        value: g.entryId,
+                      ),
+                ];
+                personPicker = BoxyArtTabBar<String>(
+                  tabs: tabs,
+                  selectedValue: selectedId == currentUser.id ? '' : selectedId,
+                  onTabSelected: (val) => setState(() =>
+                      _switchedCardId = val.isEmpty ? null : val),
+                );
+                pinnedBottom = BoxyArtCard(
+                  padding: const EdgeInsets.all(AppSpacing.atomic),
+                  child: personPicker,
+                );
+              }
             }
 
             return HeadlessScaffold(
@@ -312,23 +325,18 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
                 Center(
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
-                    child: GestureDetector(
-                      onTap: headerOnBadgeTap,
-                      child: headerBadgeText == null
-                        ? const SizedBox.shrink()
-                        : BoxyArtPill.status(
-                            label: headerBadgeText,
-                            color: headerBadgeColor,
-                            hasHorizontalMargin: false,
-                            isLegend: headerOnBadgeTap == null,
-                            isAction: headerOnBadgeTap != null,
-                          ),
+                    child: BoxyArtPill.status(
+                      label: headerBadgeText,
+                      color: headerBadgeColor,
+                      hasHorizontalMargin: false,
+                      isLegend: true,
+                      isAction: false,
                     ),
                   ),
                 ),
               ],
               pinnedBottom: pinnedBottom,
-              pinnedBottomPadding: AppSpacing.section,
+              pinnedBottomPadding: AppSpacing.standard,
               slivers: [
                 if (!isParticipant) ...[
                   // Non-participant observer — scoring not available
@@ -351,8 +359,8 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
                       ),
                       child: BoxyArtTabBar<int>(
                         tabs: const [
-                          ModernFilterTab(label: 'Scoring', value: 0),
                           ModernFilterTab(label: 'Scorecard', value: 1),
+                          ModernFilterTab(label: 'Scoring', value: 0),
                         ],
                         selectedValue: selectedScoringTab,
                         onTabSelected: (val) => ref.read(eventScoringTabProvider.notifier).set(val),
@@ -372,9 +380,9 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
                               pageController: _holeController,
                               onHoleChanged: (page) => setState(() => _currentHole = page),
                               onMarkerSelectionTap: () => MarkerSelectionSheet.show(context: context, event: event),
-                              onVerifyTap: (userScorecard != null && userScorecard.status == ScorecardStatus.draft && isCardFull)
-                                  ? () => _showVerificationSheet(event, userScorecard)
-                                  : null,
+                              onProxyRecordComplete: () {
+                                ref.read(eventScoringTabProvider.notifier).set(1);
+                              },
                             )
                           : _buildScoringContent(event, comp, effectiveRules, scoringData, _switchedCardId),
                     ),
@@ -438,196 +446,437 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
     );
   }
   Widget _buildScoringContent(GolfEvent event, Competition? comp, CompetitionRules effectiveRules, ProcessedEventData? scoringData, String? switchedCardId) {
-    return EventScorecardView(
-      event: event,
-      comp: comp,
-      scoringData: scoringData,
-      effectiveRules: effectiveRules,
-      optimisticScores: _optimisticScores,
-      optimisticIsVerifier: _optimisticIsVerifier,
-      selectedMarkerTab: _selectedMarkerTab,
-      onMarkerSelectionTap: () => MarkerSelectionSheet.show(context: context, event: event),
-      onSyncFromPartner: (card) => _copyScoresFromPartner(card),
-      switchedCardId: switchedCardId,
+    final currentUser = ref.read(effectiveUserProvider);
+    final allScorecards = ref.read(scorecardsListProvider(event.id)).asData?.value ?? [];
+    final isOwnCard = switchedCardId == null || switchedCardId == currentUser.id;
+
+    Widget? actionButton;
+
+    if (isOwnCard) {
+      // Own card: show verify button (disabled until marker confirms)
+      final myCard = allScorecards.firstWhereOrNull((s) => s.entryId == currentUser.id);
+      final isCardFull = myCard != null &&
+          myCard.holeScores.length == 18 &&
+          myCard.holeScores.every((s) => s != null && s > 0);
+
+
+      if (isCardFull && !myCard.verifiedByPlayer) {
+        final markerIsGuest = myCard.markerId?.endsWith('_guest') == true;
+        final markerConfirmed = myCard.verifiedByMarker;
+        final hasConflicts = myCard.conflictedHoles.isNotEmpty;
+
+        Widget child;
+        if (hasConflicts) {
+          child = BoxyArtCard(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(Icons.warning_amber_rounded, color: AppColors.coral500, size: AppShapes.iconSmall),
+                const SizedBox(width: AppSpacing.sm),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Score conflict — cannot submit',
+                        style: AppTypography.label.copyWith(
+                          fontWeight: AppTypography.weightBold,
+                          color: AppColors.coral500,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        'Speak to your marker to resolve the discrepancy on hole${myCard.conflictedHoles.length > 1 ? 's' : ''} ${myCard.conflictedHoles.join(', ')} before submitting.',
+                        style: AppTypography.caption,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          );
+        } else if (markerConfirmed) {
+          child = BoxyArtButton(
+            title: 'Verify Score',
+            isPrimary: true,
+            fullWidth: true,
+            icon: Icons.task_alt_rounded,
+            onTap: () => _showPlayerVerifySheet(event, myCard),
+          );
+        } else {
+          String awaitingTitle;
+          String awaitingBody;
+          if (markerIsGuest) {
+            final guestCard = allScorecards.firstWhereOrNull((s) => s.entryId == myCard.markerId);
+            final assigneeId = guestCard?.guestInputAssigneeId;
+            final assigneeName = assigneeId != null
+                ? _resolveFirstName(assigneeId, event, full: false)
+                : 'The captain';
+            final guestName = _resolveFirstName(myCard.markerId!, event, full: true);
+            awaitingTitle = 'Awaiting $assigneeName\'s verification';
+            awaitingBody = '$assigneeName needs to verify your marked scores from $guestName\'s paper card before you can submit.';
+          } else {
+            awaitingTitle = 'Awaiting marker confirmation';
+            awaitingBody = 'Your marker needs to confirm your scores before you can submit.';
+          }
+          child = BoxyArtCard(
+            child: Row(
+              children: [
+                Icon(Icons.hourglass_top_rounded, color: AppColors.dark300, size: AppShapes.iconSmall),
+                const SizedBox(width: AppSpacing.sm),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(awaitingTitle,
+                          style: AppTypography.label.copyWith(fontWeight: AppTypography.weightBold)),
+                      const SizedBox(height: 2),
+                      Text(awaitingBody, style: AppTypography.caption),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
+        actionButton = Padding(
+          padding: const EdgeInsets.only(top: AppSpacing.cardToCard),
+          child: child,
+        );
+      }
+    } else {
+      final targetCard = allScorecards.firstWhereOrNull((s) => s.entryId == switchedCardId);
+      final isGuestCard = switchedCardId.endsWith('_guest');
+      final playerName = _resolveFirstName(switchedCardId, event, full: false);
+
+      if (isGuestCard && targetCard != null) {
+        final markerScoresFull = targetCard.playerVerifierScores.length == 18 &&
+            targetCard.playerVerifierScores.every((s) => s != null && s > 0);
+        final confirmed = targetCard.holeScores.length == 18 &&
+            targetCard.holeScores.every((s) => s != null && s > 0);
+        final isAssignee = targetCard.guestInputAssigneeId == currentUser.id;
+        final markedCard = allScorecards.firstWhereOrNull((s) => s.markerId == targetCard.entryId);
+        final markerRecordFull = markedCard != null &&
+            markedCard.playerVerifierScores.length == 18 &&
+            markedCard.playerVerifierScores.every((s) => s != null && s > 0);
+        final markedName = markedCard != null
+            ? _resolveFirstName(markedCard.entryId, event, full: false)
+            : null;
+        final recordConflicts = markedCard?.conflictedHoles.isNotEmpty == true;
+
+        Widget? stepCard;
+        String? stepLabel;
+
+        if (targetCard.status == ScorecardStatus.finalScore ||
+            targetCard.status == ScorecardStatus.approved) {
+          // Done — no action needed
+        } else if (!markerScoresFull) {
+          final markerName = targetCard.markerId != null
+              ? _resolveFirstName(targetCard.markerId!.replaceAll('_guest', ''), event, full: false)
+              : 'the marker';
+          stepCard = BoxyArtCard(
+            child: Row(
+              children: [
+                Icon(Icons.hourglass_top_rounded, color: AppColors.dark300, size: AppShapes.iconSmall),
+                const SizedBox(width: AppSpacing.sm),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Waiting for $markerName to complete scoring',
+                          style: AppTypography.label.copyWith(fontWeight: AppTypography.weightBold)),
+                      const SizedBox(height: 2),
+                      Text('$markerName must enter all 18 scores before you can verify.',
+                          style: AppTypography.caption),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          );
+        } else if (!confirmed && isAssignee) {
+          stepLabel = markedCard != null ? 'STEP 1 OF 3' : 'STEP 1 OF 2';
+          stepCard = BoxyArtButton(
+            title: 'Verify $playerName\'s Scores',
+            isPrimary: true,
+            fullWidth: true,
+            icon: Icons.fact_check_rounded,
+            onTap: () => _showGuestVerifyFlow(event, targetCard),
+          );
+        } else if (confirmed && markedCard != null && !markerRecordFull && isAssignee) {
+          stepLabel = 'STEP 2 OF 3';
+          stepCard = BoxyArtButton(
+            title: 'Enter $playerName\'s Record for $markedName',
+            isPrimary: true,
+            fullWidth: true,
+            icon: Icons.edit_note_rounded,
+            onTap: () => _openGuestMarkingEntry(event, markedCard),
+          );
+        } else if (recordConflicts) {
+          stepCard = BoxyArtCard(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(Icons.warning_amber_rounded, color: AppColors.coral500, size: AppShapes.iconSmall),
+                const SizedBox(width: AppSpacing.sm),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Score conflict on $markedName\'s card',
+                          style: AppTypography.label.copyWith(fontWeight: AppTypography.weightBold, color: AppColors.coral500)),
+                      const SizedBox(height: 2),
+                      Text(
+                        'Hole${markedCard!.conflictedHoles.length > 1 ? 's' : ''} ${markedCard.conflictedHoles.join(', ')} — speak to $playerName to agree the correct score.',
+                        style: AppTypography.caption,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          );
+        } else if (confirmed && (markedCard == null || markerRecordFull) && isAssignee) {
+          stepLabel = markedCard != null ? 'STEP 3 OF 3' : 'STEP 2 OF 2';
+          stepCard = BoxyArtButton(
+            title: 'Submit $playerName\'s Card',
+            isPrimary: true,
+            fullWidth: true,
+            icon: Icons.how_to_reg_rounded,
+            onTap: () => _submitGuestCard(event, switchedCardId, targetCard),
+          );
+        }
+
+        if (stepCard != null) {
+          final spacingTokens = Theme.of(context).extension<AppSpacingTokens>();
+          actionButton = Padding(
+            padding: EdgeInsets.only(
+              top: stepLabel != null
+                  ? (spacingTokens?.cardToLabel ?? AppSpacing.atomic)
+                  : AppSpacing.cardToCard,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                if (stepLabel != null) ...[
+                  Text(
+                    stepLabel,
+                    style: AppTypography.micro.copyWith(
+                      fontWeight: AppTypography.weightHeavy,
+                      letterSpacing: AppTypography.lsLabel,
+                      color: AppColors.dark400,
+                    ),
+                  ),
+                  SizedBox(height: spacingTokens?.labelToCard ?? AppSpacing.atomic),
+                ],
+                stepCard,
+              ],
+            ),
+          );
+        }
+      } else {
+        // Member card
+        final isCardFull = targetCard != null &&
+            targetCard.holeScores.length == 18 &&
+            targetCard.holeScores.every((s) => s != null && s > 0);
+        if (isCardFull && !targetCard.verifiedByMarker) {
+          if (targetCard.conflictedHoles.isNotEmpty) {
+            actionButton = Padding(
+              padding: const EdgeInsets.only(top: AppSpacing.cardToCard),
+              child: BoxyArtCard(
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Icon(Icons.warning_amber_rounded, color: AppColors.coral500, size: AppShapes.iconSmall),
+                    const SizedBox(width: AppSpacing.sm),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Score conflict — cannot confirm',
+                              style: AppTypography.label.copyWith(
+                                  fontWeight: AppTypography.weightBold, color: AppColors.coral500)),
+                          const SizedBox(height: 2),
+                          Text(
+                            'You and $playerName disagree on hole${targetCard.conflictedHoles.length > 1 ? 's' : ''} ${targetCard.conflictedHoles.join(', ')}. Agree on the correct score before confirming.',
+                            style: AppTypography.caption,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          } else {
+            actionButton = Padding(
+              padding: const EdgeInsets.only(top: AppSpacing.cardToCard),
+              child: BoxyArtButton(
+                title: 'Confirm $playerName\'s Scores',
+                isPrimary: true,
+                fullWidth: true,
+                icon: Icons.how_to_reg_rounded,
+                onTap: () => _showMarkerConfirmSheet(event, switchedCardId),
+              ),
+            );
+          }
+        }
+      }
+    }
+
+    return Column(
+      children: [
+        EventScorecardView(
+          event: event,
+          comp: comp,
+          scoringData: scoringData,
+          effectiveRules: effectiveRules,
+          optimisticScores: _optimisticScores,
+          optimisticIsVerifier: _optimisticIsVerifier,
+          selectedMarkerTab: _selectedMarkerTab,
+          onMarkerSelectionTap: () => MarkerSelectionSheet.show(context: context, event: event),
+          onSyncFromPartner: (card) => _copyScoresFromPartner(card),
+          switchedCardId: switchedCardId,
+        ),
+        ?actionButton,
+      ],
     );
   }
 
-  void _showVerificationSheet(GolfEvent event, Scorecard userScorecard) {
+  void _openGuestMarkingEntry(GolfEvent event, Scorecard markedCard) {
+    ref.read(markerSelectionProvider.notifier).ensureTarget(markedCard.entryId);
+    ref.read(eventScoringTabProvider.notifier).set(0);
+  }
+
+  // Player confirms their own card (after marker has confirmed first)
+  void _showPlayerVerifySheet(GolfEvent event, Scorecard card) {
     final currentUser = ref.read(effectiveUserProvider);
-    final allScorecards = ref.read(scorecardsListProvider(event.id)).asData?.value ?? [];
-
-    // Build sign-off tasks for all cards the current user is responsible for
-
-    // 1. My own card — sign as PLAYER
-    final myCard = allScorecards.firstWhereOrNull((s) => s.entryId == currentUser.id);
-    final tasks = <SignOffTask>[];
-
-    if (myCard != null) {
-      // Resolve marker's name for the player confirmation context
-      String? markerName;
-      if (myCard.markerId != null && myCard.markerId != currentUser.id) {
-        markerName = _resolveFirstName(myCard.markerId!, event, full: true);
-      }
-      tasks.add(SignOffTask(
-        entryId: currentUser.id,
-        playerName: currentUser.displayName,
-        isPlayerRole: true,
-        markerName: markerName,
-      ));
-    }
-
-    // 2. Cards where I am the marker — sign as MARKER for each
-    final myMarkeeCards = allScorecards
-        .where((s) => s.markerId == currentUser.id && s.entryId != currentUser.id)
-        .toList();
-
-    for (final card in myMarkeeCards) {
-      final name = _resolveFirstName(card.entryId, event, full: true);
-      tasks.add(SignOffTask(
-        entryId: card.entryId,
-        playerName: name,
-        isPlayerRole: false,
-      ));
-    }
-
-    if (tasks.isEmpty) return;
-
+    final markerIsGuest = card.markerId?.endsWith('_guest') == true;
+    final markerName = card.markerId != null ? _resolveFirstName(card.markerId!, event, full: true) : 'my marker';
+    final declaration = markerIsGuest
+        ? 'I confirm that the scores on my card are correct to the best of my knowledge. '
+          'Note: my scores were recorded by $markerName, a guest, on a paper card.'
+        : 'I confirm that the scores on my card are correct to the best of my knowledge.';
     BoxyArtBottomSheet.show(
       context: context,
-      title: 'Verify Scorecard',
-      initialChildSize: tasks.length > 2 ? 0.75 : 0.55,
-      child: ScoringVerificationView(
-        event: event,
-        tasks: tasks,
-        onSignOff: (entryId, isPlayerRole) async {
-          try {
-            final repo = ref.read(scorecardRepositoryProvider);
-            final allCards = ref.read(scorecardsListProvider(event.id)).asData?.value ?? [];
-            final targetCard = allCards.firstWhereOrNull((s) => s.entryId == entryId);
-            if (targetCard == null) {
-              if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Scorecard not found — try again')),
-              );
-              return;
-            }
-
-            final now = DateTime.now();
-            final flagged = isPlayerRole
-                ? targetCard.copyWith(verifiedByPlayer: true, playerVerifiedAt: now, updatedAt: now)
-                : targetCard.copyWith(verifiedByMarker: true, markerVerifiedAt: now, updatedAt: now);
-            await repo.updateScorecard(flagged);
-
-            // Notify the counterpart that it's their turn
-            final currentUser = ref.read(effectiveUserProvider);
-            final counterpartId = isPlayerRole
-                ? targetCard.markerId  // player signed → notify their marker
-                : entryId;             // marker signed → notify the player
-            if (counterpartId != null && counterpartId != currentUser.id) {
-              final counterpartName = isPlayerRole
-                  ? currentUser.displayName
-                  : _resolveFirstName(currentUser.id, event, full: true);
-              await _sendVerificationNotification(
-                recipientId: counterpartId,
-                title: 'Scorecard Verification',
-                message: isPlayerRole
-                    ? '$counterpartName has confirmed your scores — please sign off'
-                    : '$counterpartName has confirmed the scores you recorded',
-                eventId: event.id,
-              );
-            }
-
-            // Auto-advance to finalScore when both parties have signed off
-            final finalCard = ScoringUtils.validateAndFinalizeHandshake(
-              targetScorecard: flagged,
-              verifierScorecard: flagged,
-            );
-            if (finalCard.status != flagged.status) {
-              await repo.updateScorecard(finalCard);
-
-              // Notify admin that the card is ready for final approval
-              final playerName = _resolveFirstName(entryId, event, full: true);
-              final adminIds = ref.read(allMembersProvider).value
-                  ?.where((m) => m.role == MemberRole.admin || m.role == MemberRole.superAdmin)
-                  .map((m) => m.id) ?? [];
-              for (final adminId in adminIds) {
-                await _sendVerificationNotification(
-                  recipientId: adminId,
-                  title: 'Score Ready for Approval',
-                  message: '$playerName\'s scorecard has been verified by both parties',
-                  eventId: event.id,
-                );
-              }
-            } else if (flagged.verifiedByPlayer && flagged.verifiedByMarker) {
-              // Both signed but conflicts exist — urgent alert to player, marker and admins
-              final conflictHoles = <int>[];
-              for (int i = 0; i < 18; i++) {
-                final p = flagged.holeScores.elementAtOrNull(i);
-                final m = flagged.playerVerifierScores.elementAtOrNull(i);
-                if (p != null && m != null && p != m) conflictHoles.add(i + 1);
-              }
-              if (conflictHoles.isNotEmpty) {
-                final holeList = conflictHoles.map((h) => 'hole $h').join(', ');
-                final playerName = _resolveFirstName(entryId, event, full: true);
-
-                // Alert player
-                await _sendVerificationNotification(
-                  recipientId: entryId.replaceAll('_guest', ''),
-                  title: 'Score Conflict — Action Required',
-                  message: 'Conflict on $holeList — speak to your scorer before leaving the course.',
-                  eventId: event.id,
-                );
-
-                // Alert marker
-                final markerId = targetCard.markerId?.replaceAll('_guest', '');
-                if (markerId != null && markerId.isNotEmpty) {
-                  await _sendVerificationNotification(
-                    recipientId: markerId,
-                    title: 'Score Conflict — Action Required',
-                    message: 'Conflict on $holeList for $playerName — speak to the scorer.',
-                    eventId: event.id,
-                  );
-                }
-
-                // Alert admins
-                final adminIds = ref.read(allMembersProvider).value
-                    ?.where((m) => m.role == MemberRole.admin || m.role == MemberRole.superAdmin)
-                    .map((m) => m.id) ?? [];
-                for (final adminId in adminIds) {
-                  await _sendVerificationNotification(
-                    recipientId: adminId,
-                    title: 'Score Conflict Needs Resolution',
-                    message: '$playerName has conflicts on $holeList — please resolve before the field leaves.',
-                    eventId: event.id,
-                  );
-                }
-
-                if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                  content: Text('Score conflict on $holeList — scorer notified'),
-                  backgroundColor: AppColors.amber500,
-                ));
-              }
-            } else {
-              if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                content: Text(isPlayerRole ? 'Your scorecard submitted' : '${_resolveFirstName(entryId, event)}\'s scorecard submitted'),
-                backgroundColor: AppColors.lime500,
-              ));
-            }
-
-            // Close sheet only when all tasks are signed
-            final refreshed = ref.read(scorecardsListProvider(event.id)).asData?.value ?? [];
-            final allDone = tasks.every((t) {
-              final c = refreshed.firstWhereOrNull((s) => s.entryId == t.entryId);
-              return t.isPlayerRole ? (c?.verifiedByPlayer ?? false) : (c?.verifiedByMarker ?? false);
-            });
-            if (allDone && mounted) Navigator.of(context).pop();
-          } catch (e) {
-            if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Sign-off failed: $e'), backgroundColor: AppColors.coral500),
-            );
-          }
+      title: 'Submit Your Card',
+      child: _SignOffSheet(
+        declaration: declaration,
+        buttonLabel: 'Submit Card',
+        onConfirm: () async {
+          Navigator.of(context).pop();
+          await _performSignOff(event: event, entryId: currentUser.id, isPlayerRole: true);
         },
       ),
     );
+  }
+
+  // Marker confirms scores they recorded for a player
+  void _showMarkerConfirmSheet(GolfEvent event, String targetEntryId) {
+    final playerName = _resolveFirstName(targetEntryId, event, full: true);
+    final targetIsGuest = targetEntryId.endsWith('_guest');
+    final declaration = targetIsGuest
+        ? 'I confirm that the scores I recorded for $playerName (guest) are correct to the best of my knowledge. '
+          'The player\'s card was completed on a paper card.'
+        : 'I confirm that the scores I recorded for $playerName are correct to the best of my knowledge.';
+    BoxyArtBottomSheet.show(
+      context: context,
+      title: 'Confirm Scores',
+      child: _SignOffSheet(
+        declaration: declaration,
+        buttonLabel: 'Confirm Scores',
+        onConfirm: () async {
+          Navigator.of(context).pop();
+          await _performSignOff(event: event, entryId: targetEntryId, isPlayerRole: false);
+        },
+      ),
+    );
+  }
+
+  // Shared sign-off logic — handles notifications, conflict detection, finalScore advance
+  Future<void> _performSignOff({
+    required GolfEvent event,
+    required String entryId,
+    required bool isPlayerRole,
+  }) async {
+    try {
+      final repo = ref.read(scorecardRepositoryProvider);
+      final allCards = ref.read(scorecardsListProvider(event.id)).asData?.value ?? [];
+      final targetCard = allCards.firstWhereOrNull((s) => s.entryId == entryId);
+      if (targetCard == null) return;
+
+      final currentUser = ref.read(effectiveUserProvider);
+      final now = DateTime.now();
+      final flagged = isPlayerRole
+          ? targetCard.copyWith(verifiedByPlayer: true, playerVerifiedAt: now, updatedAt: now)
+          : targetCard.copyWith(verifiedByMarker: true, markerVerifiedAt: now, updatedAt: now);
+      await repo.updateScorecard(flagged);
+
+      // Marker confirmed → notify player it's their turn
+      if (!isPlayerRole) {
+        await _sendVerificationNotification(
+          recipientId: entryId.replaceAll('_guest', ''),
+          title: 'Marker Verified',
+          message: '${_resolveFirstName(currentUser.id, event, full: true)} has confirmed your scores — please review and submit your card.',
+          eventId: event.id,
+          actionUrl: '/events/${event.id}/live',
+        );
+      }
+
+      // Check for both signed → advance status
+      final finalCard = ScoringUtils.validateAndFinalizeHandshake(
+        targetScorecard: flagged,
+        verifierScorecard: flagged,
+      );
+      if (finalCard.status != flagged.status) {
+        await repo.updateScorecard(finalCard);
+      } else if (flagged.verifiedByPlayer && flagged.verifiedByMarker) {
+        // Both signed but conflict exists
+        final conflictHoles = flagged.conflictedHoles;
+        if (conflictHoles.isNotEmpty) {
+          final holeList = conflictHoles.map((h) => 'hole $h').join(', ');
+          final playerName = _resolveFirstName(entryId, event, full: true);
+          await _sendVerificationNotification(
+            recipientId: entryId.replaceAll('_guest', ''),
+            title: 'Score Conflict — Action Required',
+            message: 'Conflict on $holeList — speak to your marker before leaving the course.',
+            eventId: event.id,
+          );
+          final markerId = targetCard.markerId?.replaceAll('_guest', '');
+          if (markerId != null && markerId.isNotEmpty) {
+            await _sendVerificationNotification(
+              recipientId: markerId,
+              title: 'Score Conflict — Action Required',
+              message: 'Conflict on $holeList for $playerName — speak to the player.',
+              eventId: event.id,
+            );
+          }
+          final adminIds = ref.read(allMembersProvider).value
+              ?.where((m) => m.role == MemberRole.admin || m.role == MemberRole.superAdmin)
+              .map((m) => m.id) ?? [];
+          for (final adminId in adminIds) {
+            await _sendVerificationNotification(
+              recipientId: adminId,
+              title: 'Score Conflict Needs Resolution',
+              message: '$playerName has conflicts on $holeList',
+              eventId: event.id,
+            );
+          }
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+              content: Text('Score conflict on $holeList — both parties notified'),
+              backgroundColor: AppColors.coral500,
+            ));
+          }
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Sign-off failed: $e'), backgroundColor: AppColors.coral500),
+        );
+      }
+    }
   }
 
   Future<void> _sendVerificationNotification({
@@ -635,6 +884,7 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
     required String title,
     required String message,
     required String eventId,
+    String? actionUrl,
   }) async {
     try {
       final repo = ref.read(notificationsRepositoryProvider);
@@ -646,6 +896,7 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
         timestamp: DateTime.now(),
         category: 'Scoring',
         eventId: eventId,
+        actionUrl: actionUrl,
       ));
     } catch (_) {
       // Notifications are best-effort — don't block the sign-off flow
@@ -666,6 +917,62 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
     return entryId;
   }
 
+  void _showGuestVerifyFlow(GolfEvent event, Scorecard guestCard) async {
+    try {
+      // Silently confirm — copy marker's entered scores to the guest's STR row
+      final repo = ref.read(scorecardRepositoryProvider);
+      await repo.updateScorecard(guestCard.copyWith(
+        holeScores: guestCard.playerVerifierScores,
+        conflictedHoles: [],
+        verifiedByMarker: true,
+        updatedAt: DateTime.now(),
+      ));
+      if (!mounted) return;
+      // Add Carol (the person Isla marked) to scoring targets so her card
+      // appears below Isla's locked card in the Scoring tab
+      final allCards = ref.read(scorecardsListProvider(event.id)).asData?.value ?? [];
+      final markedCard = allCards.firstWhereOrNull((s) => s.markerId == guestCard.entryId);
+      if (markedCard != null) {
+        ref.read(markerSelectionProvider.notifier).ensureTarget(markedCard.entryId);
+      }
+      ref.read(eventScoringTabProvider.notifier).set(0);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to confirm scores — check your connection.')),
+        );
+      }
+    }
+  }
+
+
+  Future<void> _submitGuestCard(GolfEvent event, String guestEntryId, Scorecard card) async {
+    final playerName = _resolveFirstName(guestEntryId, event, full: false);
+    try {
+      final repo = ref.read(scorecardRepositoryProvider);
+      await repo.updateScorecard(card.copyWith(
+        status: ScorecardStatus.finalScore,
+        verifiedByPlayer: true,
+        verifiedByMarker: true,
+        playerVerifiedAt: DateTime.now(),
+        markerVerifiedAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+      ));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('$playerName\'s card submitted'),
+          backgroundColor: AppColors.lime500,
+        ));
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to submit: $e'), backgroundColor: AppColors.coral500),
+        );
+      }
+    }
+  }
+
   void _showMatchBracket(GolfEvent event) {
     BoxyArtBottomSheet.show(
       context: context,
@@ -674,33 +981,6 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
     );
   }
 
-  Future<void> _confirmUnsubmit(String scorecardId) async {
-    final confirmed = await showBoxyArtDialog<bool>(
-      context: context,
-      title: 'Unsubmit Scorecard?',
-      message: 'This will reopen your scorecard for editing. You will need to submit it again when finished.',
-      confirmText: 'Unsubmit',
-      onConfirm: () => Navigator.of(context, rootNavigator: true).pop(true),
-      onCancel: () => Navigator.of(context, rootNavigator: true).pop(false),
-    );
-
-    if (confirmed == true && mounted) {
-      try {
-        await ref.read(scorecardRepositoryProvider).updateScorecardStatus(scorecardId, ScorecardStatus.draft);
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Scorecard reopened for editing.')),
-          );
-        }
-      } catch (e) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Error reopening scorecard: $e')),
-          );
-        }
-      }
-    }
-  }
 
   Future<void> _copyScoresFromPartner(Scorecard partnerCard) async {
     final confirmed = await showBoxyArtDialog<bool>(
@@ -756,13 +1036,55 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
     }
   }
 
-  Color _getStatusColor(ScorecardStatus status) {
-    switch (status) {
-      case ScorecardStatus.approved: return AppColors.lime500;
-      case ScorecardStatus.submitted: return AppColors.teamA;
-      case ScorecardStatus.reviewed: return AppColors.lime600;
-      case ScorecardStatus.finalScore: return AppColors.lime500;
-      default: return AppColors.amber500;
-    }
+}
+
+// ---------------------------------------------------------------------------
+// Simple sign-off declaration sheet
+// ---------------------------------------------------------------------------
+
+class _SignOffSheet extends StatefulWidget {
+  final String declaration;
+  final String buttonLabel;
+  final Future<void> Function() onConfirm;
+
+  const _SignOffSheet({
+    required this.declaration,
+    required this.buttonLabel,
+    required this.onConfirm,
+  });
+
+  @override
+  State<_SignOffSheet> createState() => _SignOffSheetState();
+}
+
+class _SignOffSheetState extends State<_SignOffSheet> {
+  bool _loading = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        BoxyArtCard(
+          child: Text(
+            widget.declaration,
+            style: AppTypography.body.copyWith(height: 1.5),
+            textAlign: TextAlign.center,
+          ),
+        ),
+        const SizedBox(height: AppSpacing.standard),
+        BoxyArtButton(
+          title: _loading ? 'Submitting…' : widget.buttonLabel,
+          isPrimary: true,
+          fullWidth: true,
+          onTap: _loading ? null : () async {
+            setState(() => _loading = true);
+            await widget.onConfirm();
+          },
+        ),
+        const SizedBox(height: AppSpacing.section),
+      ],
+    );
   }
 }

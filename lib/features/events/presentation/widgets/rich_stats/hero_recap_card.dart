@@ -50,9 +50,9 @@ class SocietyHeroRecapCard extends ConsumerWidget {
         }
       }
       final diff = score - par;
-      if (diff <= -2) eclecticEagles++;
-      else if (diff == -1) eclecticBirdies++;
-      else if (diff == 0) eclecticPars++;
+      if (diff <= -2) { eclecticEagles++; }
+      else if (diff == -1) { eclecticBirdies++; }
+      else if (diff == 0) { eclecticPars++; }
     }
 
     final totalStrokes = eclecticScores.whereType<int>().fold(0, (sum, s) => sum + s);

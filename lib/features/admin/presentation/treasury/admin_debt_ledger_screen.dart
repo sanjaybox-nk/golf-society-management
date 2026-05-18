@@ -21,8 +21,6 @@ class _AdminDebtLedgerScreenState extends ConsumerState<AdminDebtLedgerScreen> {
     BoxyArtBottomSheet.show(
       context: context,
       title: 'Settle Balance',
-      initialChildSize: 0.6,
-      minChildSize: 0.45,
       child: SettlementSheetContent(summary: summary),
     );
   }

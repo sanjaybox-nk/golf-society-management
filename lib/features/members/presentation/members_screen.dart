@@ -255,10 +255,6 @@ class _MembersScreenState extends ConsumerState<MembersScreen> {
     ];
   }
 
-  String _formatHcp(double hcp) {
-    if (hcp == hcp.toInt()) return hcp.toInt().toString();
-    return hcp.toStringAsFixed(1);
-  }
 
   Widget _buildGroupedList(
     List<Member> sortedMembers, 

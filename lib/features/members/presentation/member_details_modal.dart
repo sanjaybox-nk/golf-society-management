@@ -294,9 +294,23 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
 
   void _showStatusPicker() {
     MemberStatusPicker.show(
-      context, 
-      _status, 
-      (newStatus) => setState(() => _status = newStatus),
+      context,
+      _status,
+      (newStatus) async {
+        setState(() => _status = newStatus);
+        if (!_isEditing && widget.member != null) {
+          try {
+            final repo = ref.read(membersRepositoryProvider);
+            await repo.updateMember(widget.member!.copyWith(status: newStatus));
+          } catch (e) {
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('Error: $e'), backgroundColor: AppColors.coral500),
+              );
+            }
+          }
+        }
+      },
     );
   }
 

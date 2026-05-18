@@ -3,7 +3,6 @@ import 'package:golf_society/domain/models/golf_event.dart';
 import 'package:golf_society/domain/models/scorecard.dart';
 import 'package:golf_society/domain/scoring/scorecard_constants.dart';
 import 'package:golf_society/domain/models/competition.dart';
-import 'package:golf_society/domain/models/scorecard.dart' show ScoringStatus;
 import 'package:golf_society/features/competitions/presentation/widgets/leaderboard_widget.dart';
 import 'package:golf_society/features/events/presentation/widgets/scorecard_resolver.dart';
 

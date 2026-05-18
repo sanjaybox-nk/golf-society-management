@@ -2,7 +2,6 @@ import 'package:collection/collection.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:golf_society/design_system/design_system.dart';
-import 'package:golf_society/utils/string_utils.dart';
 import 'package:golf_society/domain/models/member.dart';
 import '../../domain/models/processed_event_data.dart';
 import 'package:golf_society/domain/models/golf_event.dart';
@@ -309,7 +308,8 @@ class GroupingCard extends ConsumerWidget {
                   sc != null &&
                   sc.status == ScorecardStatus.submitted &&
                   sc.verifiedByPlayer &&
-                  sc.verifiedByMarker;
+                  sc.verifiedByMarker &&
+                  sc.conflictedHoles.isEmpty;
               final tile = GroupingPlayerTile(
                 player: p,
                 group: group,
@@ -345,11 +345,13 @@ class GroupingCard extends ConsumerWidget {
                 isEventClosed: isEventClosed,
               );
               final bool isCardLocked = isAdmin && sc != null &&
-                  (sc.status == ScorecardStatus.submitted || sc.status == ScorecardStatus.finalScore);
+                  (sc.status == ScorecardStatus.finalScore ||
+                   sc.status == ScorecardStatus.reviewed ||
+                   sc.status == ScorecardStatus.approved);
 
               if (!readyForApproval && !isCardLocked) return tile;
 
-              final markerName = isCardLocked && sc != null
+              final markerName = isCardLocked
                   ? group.players.firstWhereOrNull((mp) {
                       final mId = mp.isGuest ? '${mp.registrationMemberId}_guest' : mp.registrationMemberId;
                       return mId == sc.markerId;
@@ -382,22 +384,12 @@ class GroupingCard extends ConsumerWidget {
                         )),
                       ),
                     ),
-                  if (readyForApproval)
-                    Positioned(
-                      bottom: -4,
-                      right: -4,
-                      child: _TileBadge(
-                        label: 'Ready',
-                        icon: Icons.check_rounded,
-                        color: AppColors.lime500,
-                      ),
-                    ),
                   if (isCardLocked && onUnlockCard != null)
                     Positioned(
                       top: -6,
                       right: -4,
                       child: GestureDetector(
-                        onTap: () => onUnlockCard!(id, sc!.markerId ?? '', p.name, markerName ?? ''),
+                        onTap: () => onUnlockCard!(id, sc.markerId ?? '', p.name, markerName ?? ''),
                         child: Container(
                           width: 22,
                           height: 22,
@@ -410,7 +402,7 @@ class GroupingCard extends ConsumerWidget {
                         ),
                       ),
                     ),
-                  if (!isCardLocked && isAdmin && sc != null && sc.status == ScorecardStatus.draft && thruMap?[id] == 'F')
+                  if (!isCardLocked && isAdmin && sc.status == ScorecardStatus.draft && thruMap?[id] == 'F')
                     Positioned(
                       bottom: -4,
                       right: -4,
@@ -728,39 +720,4 @@ class GroupingCard extends ConsumerWidget {
 
 }
 
-class _TileBadge extends StatelessWidget {
-  final String label;
-  final IconData icon;
-  final Color color;
-
-  const _TileBadge({required this.label, required this.icon, required this.color});
-
-  @override
-  Widget build(BuildContext context) {
-    final shapes = Theme.of(context).extension<AppShapeTokens>();
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: 3),
-      decoration: BoxDecoration(
-        color: color,
-        borderRadius: shapes?.pill ?? BorderRadius.circular(20),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 10, color: AppColors.pureWhite),
-          const SizedBox(width: 3),
-          Text(
-            label.toUpperCase(),
-            style: AppTypography.micro.copyWith(
-              color: AppColors.pureWhite,
-              fontWeight: AppTypography.weightBold,
-              fontSize: AppTypography.sizeMicro,
-              height: 1.0,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
 

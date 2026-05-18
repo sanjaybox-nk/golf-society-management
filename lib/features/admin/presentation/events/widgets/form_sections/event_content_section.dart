@@ -2,7 +2,6 @@ import 'package:golf_society/domain/models/golf_event.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:golf_society/design_system/design_system.dart';
 import 'package:golf_society/features/admin/presentation/events/event_form_notifier.dart';
-import 'package:golf_society/design_system/widgets/boxy_art_rich_note_editor.dart';
 
 class EventContentSection extends ConsumerWidget {
   

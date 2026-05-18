@@ -4,7 +4,6 @@ import 'package:golf_society/features/members/presentation/members_provider.dart
 import 'package:golf_society/services/persistence_service.dart';
 import 'package:golf_society/features/events/presentation/state/marker_selection_provider.dart';
 import 'package:collection/collection.dart';
-import 'dart:convert';
 
 // Mock Provider for the current logged-in user
 final currentUserProvider = Provider<Member>((ref) {

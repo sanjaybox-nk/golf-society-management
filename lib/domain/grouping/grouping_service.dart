@@ -201,13 +201,24 @@ class GroupingService {
        }
        num3Balls = 0; 
     } else {
-      // Standard Logic to distribute N into groups of 3 and 4
-      for (int y = 0; y <= totalPlayers / 3; y++) {
-        int remaining = totalPlayers - (3 * y);
-        if (remaining >= 0 && remaining % 4 == 0) {
-          num3Balls = y;
-          num4Balls = remaining ~/ 4;
-          break; 
+      if (totalPlayers <= 2) {
+        // Genuine 2-ball — only 2 players, mutual marking is valid
+        num2Balls = totalPlayers == 2 ? 1 : 0;
+      } else {
+        // Standard Logic: distribute N using only 3-balls and 4-balls (no 2-balls)
+        for (int y = 0; y <= totalPlayers / 3; y++) {
+          int remaining = totalPlayers - (3 * y);
+          if (remaining >= 0 && remaining % 4 == 0) {
+            num3Balls = y;
+            num4Balls = remaining ~/ 4;
+            break;
+          }
+        }
+        // Fallback for counts with no exact 3+4 decomposition (e.g. 5):
+        // fill with 3-balls and allow at most one 2-ball remainder
+        if (num3Balls == 0 && num4Balls == 0) {
+          num3Balls = totalPlayers ~/ 3;
+          num2Balls = (totalPlayers % 3 == 2) ? 1 : 0;
         }
       }
     }
@@ -275,8 +286,21 @@ class GroupingService {
       }
     }
 
-    // 6. Post-Processing: Captains & Buggies
-    // Optimization: Variety & Handicap Optimization (Refinement Pass)
+    // 6. Post-Processing: avoid 2-balls in standard play by borrowing from a 4-ball.
+    // If a 2-player group exists and a 4-ball donor is available, move one player across
+    // to make two 3-balls. A genuine 2-ball (no 4-ball available) is left untouched.
+    if (!isMatchPlay && !is3ManScramble) {
+      for (final group in groups) {
+        if (group.players.length == 2) {
+          TeeGroup? donor;
+          for (final g in groups) {
+            if (g != group && g.players.length == 4) { donor = g; break; }
+          }
+          if (donor != null) group.players.add(donor.players.removeLast());
+        }
+      }
+    }
+
     GroupingOptimizer.optimize(groups, previousEventsInSeason, prioritizeBuggyPairing, strategy);
 
     // [PHASE 42] Auto-assign one random captain to each group (Members only)

@@ -237,12 +237,6 @@ class _GroupScoresViewState extends ConsumerState<GroupScoresView> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        BoxyArtSectionTitle(
-          title: 'Groups',
-          count: widget.groups.length,
-          followsCard: widget.followsCard,
-          horizontalPadding: 0,
-        ),
         ListView.builder(
           padding: EdgeInsets.zero,
           shrinkWrap: true,

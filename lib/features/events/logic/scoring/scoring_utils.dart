@@ -1,7 +1,5 @@
-import 'package:collection/collection.dart';
 import 'package:golf_society/domain/models/scorecard.dart';
 import 'package:golf_society/domain/scoring/scoring_calculator.dart';
-import '../../domain/models/processed_event_data.dart';
 
 /// Pure utility functions for scoring calculations.
 /// Extracted from EventScoringProcessor for readability.
@@ -61,37 +59,33 @@ class ScoringUtils {
   }
 
   /// [NEW] Final system-level submission trigger.
-  /// Transitions a scorecard to [ScorecardStatus.finalScore] if both parties have verified
-  /// and there are no score discrepancies between the player's recorded scores 
-  /// and the marker's recorded scores for that player.
+  /// Transitions a scorecard to [ScorecardStatus.finalScore] when sign-off
+  /// conditions are met and there are no score discrepancies.
+  ///
+  /// Guests have no app account so cannot provide a player signature.
+  /// For guest entries (entryId ending in '_guest') only marker confirmation
+  /// is required — the host member is the responsible party.
   static Scorecard validateAndFinalizeHandshake({
     required Scorecard targetScorecard,
     required Scorecard? verifierScorecard,
   }) {
     if (verifierScorecard == null) return targetScorecard;
 
-    // 1. Conflict detection: only flag holes where BOTH sides entered AND disagree.
-    // An empty holeScores (player didn't self-enter) is not a conflict.
-    bool isConflictFree = true;
-    for (int i = 0; i < 18; i++) {
-      final p = targetScorecard.holeScores.elementAtOrNull(i);
-      final m = verifierScorecard.playerVerifierScores.elementAtOrNull(i);
-      if (p != null && m != null && p != m) {
-        isConflictFree = false;
-        break;
-      }
-    }
+    // Read the stored conflict state — computed at write time, not here.
+    if (targetScorecard.conflictedHoles.isNotEmpty) return targetScorecard;
 
-    if (!isConflictFree) return targetScorecard;
+    final isGuestEntry = targetScorecard.entryId.endsWith('_guest');
+    final readyToFinalize = isGuestEntry
+        ? targetScorecard.verifiedByMarker
+        : targetScorecard.verifiedByPlayer && targetScorecard.verifiedByMarker;
 
-    // 2. Transition to submitted when both parties have signed off — awaits admin lock
-    if (targetScorecard.verifiedByPlayer && targetScorecard.verifiedByMarker) {
+    if (readyToFinalize) {
       return targetScorecard.copyWith(
-        status: ScorecardStatus.submitted,
+        status: ScorecardStatus.finalScore,
         updatedAt: DateTime.now(),
       );
     }
-    
+
     return targetScorecard;
   }
 }

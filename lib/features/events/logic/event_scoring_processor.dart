@@ -41,7 +41,6 @@ class EventScoringProcessor {
 
     // 1. Process Individual Scores
     final List<ProcessedPlayerScore> individualScores = [];
-    final currentUser = currentUserId != null ? members.firstWhereOrNull((m) => m.id == currentUserId) : null;
     final memberMap = {for (var m in members) m.id: m};
     
     // Ensure current user is in the map if they have a special profile (e.g. Viewing As)
@@ -162,12 +161,16 @@ class EventScoringProcessor {
         }
       }
 
-      final result = ScoringCalculator.calculate(
-        holeScores: holeScores, 
-        holes: courseConfig.holes, 
-        playingHandicap: effectivePhc, 
+      final rawResult = ScoringCalculator.calculate(
+        holeScores: holeScores,
+        holes: courseConfig.holes,
+        playingHandicap: effectivePhc,
         format: rules.format,
         maxScoreConfig: rules.maxScoreConfig,
+      );
+      final result = rawResult.withCommitteeAdjustment(
+        liveCard?.committeeAdjustment ?? 0,
+        rules.format,
       );
 
       final String resolvedName = isGuest 

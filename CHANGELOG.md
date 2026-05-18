@@ -1,3 +1,36 @@
+### Phase 83: Admin Hub Restructure & Production Hardening (v4.9) (2026-05-18)
+- **Admin Event Hub Navigation Restructure**:
+    - "Stats" tab renamed → **"Verify"** (`Icons.verified_rounded`): standalone `EventAdminVerifyScreen` with scorecard metrics (Field / Conflicts / To Verify / Verified), Lock / Publish / Remind actions, and the full `AdminVerifyTab` card list.
+    - "Controls" tab renamed → **"Manage"** (`Icons.tune_rounded`): new `EventAdminManageScreen` with two internal tabs — **Financials first** (balance overview, expenses, prizes/awards), **Controls second** (scoring lock/publish toggles moved from Scores screen, player visibility, workbench safety, event config tiles, event termination).
+    - `manage/:id/stats` now redirects to `…/verify` for backward compatibility.
+    - Nav tap paths updated in `global_app_shell.dart` for both full-admin and scorer variants.
+- **Guest Proxy Scoring Flow** (captain proxy model):
+    - Assignee (e.g. Isla) sees a 3-step sequential card in the Scores hub tab replacing multiple separate buttons: Step 1 — Verify Player Scores; Step 2 — Enter Proxy Record (opens Scoring tab via `ensureTarget`); Step 3 — Submit Card.
+    - Proxy record cards sorted to end of scoring list with `cardToLabel`/`labelToCard` spacing separators.
+    - `_confirmProxyRecordsOnHole18()`: scrolling to hole 18 auto-fills untouched proxy holes from player's scores, sets `verifiedByMarker: true`, calls `onProxyRecordComplete` callback.
+    - `ensureTarget(String targetId)` added to `MarkerSelectionNotifier` — adds without toggling if already present.
+- **Admin Scorecard Editor Improvements**:
+    - Override always enabled (was gated on conflicts only).
+    - `_persistScoreWithAudit`: updates both player and marker rows; writes audit log for every score change.
+    - Commit-on-navigation pattern in `_OverrideSheetState` — `_savedScores` map, `_commitCurrentHole()` prevents dialog firing on every stepper tap.
+    - Fixed `LateInitializationError` — all `late` fields converted to non-late with defaults.
+    - `BoxyArtStatusBanner` (new design system component) replaces private `_StatusBanner` in editor.
+    - Conflict dialog uses `BoxyArtDialog(content: ...)` — matches standard modal style.
+- **New Design System Components**:
+    - `BoxyArtScoreStepper` (`atoms/indicators/`) — shared score stepper with colour coding from score vs. par diff. Used by `AdminScorecardKeypad` replacing the old number-button row.
+    - `BoxyArtStatusBanner` (`atoms/indicators/`) — branded status banner used across verify/scoring contexts.
+    - `BoxyArtBottomSheet.show()` — `initialChildSize` made nullable; `null` = auto-size to content, explicit value = drag-to-expand sheet.
+- **Admin Scorecard Keypad** — replaced number-button row with `BoxyHoleSelector` + par/SI indicators + `BoxyArtScoreStepper`.
+- **Production Hardening**: Full `flutter analyze` pass resolving 110 issues (unused imports, dead code, null safety, curly braces). Final state: **0 issues**.
+
+### Phase 82: Verification UX & Notification Pipeline (v4.8) (2026-05-11)
+- **Member-Facing Approval Flow**: Added VERIFIED pill, amendment display, and push notification on approval.
+- **Audit Log Hardening**: Dividers between entries, `BoxyArtNumberBadge` for hole numbers, standard text colour for amendments.
+- **Notification Routing**: `actionUrl` on approval notifications routes player directly to their card.
+- **Score Lock**: Input locked when card status is `approved`.
+- **Medal Play Fix**: Joint positions, no back-9 countback for stroke play.
+- **Design Fixes**: `BoxyArtIconBadge` tint/icon colour consistency; verified icons standardised to filled/rounded family.
+
 ### Phase 81: Scoring UX Refinement & Documentation (v4.7) (2026-05-04)
 - **Scoring UX Refinement**:
     *   **Tee Indicator Optimization**: Replaced full tee pills with streamlined circular dots placed next to member names, resolving layout overflows and improving data density.

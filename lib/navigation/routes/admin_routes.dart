@@ -444,13 +444,27 @@ List<StatefulShellBranch> _buildAdminBranches(Ref ref) => [
                     ],
                   ),
                   GoRoute(
-                    path: 'manage/:id/stats',
-                    name: 'admin-event-reporting',
+                    path: 'manage/:id/verify',
+                    name: 'admin-event-verify',
                     pageBuilder: (context, state) => boxyPage(
                       state: state,
                       hubId: state.pathParameters['id']!,
-                      child: EventAdminReportsScreen(eventId: state.pathParameters['id']!),
+                      child: EventAdminVerifyScreen(eventId: state.pathParameters['id']!),
                     ),
+                  ),
+                  GoRoute(
+                    path: 'manage/:id/manage',
+                    name: 'admin-event-manage',
+                    pageBuilder: (context, state) => boxyPage(
+                      state: state,
+                      hubId: state.pathParameters['id']!,
+                      child: EventAdminManageScreen(eventId: state.pathParameters['id']!),
+                    ),
+                  ),
+                  GoRoute(
+                    path: 'manage/:id/stats',
+                    redirect: (context, state) =>
+                        '/admin/events/manage/${state.pathParameters['id']}/verify',
                   ),
                   GoRoute(
                     path: 'manage/:id/controls',

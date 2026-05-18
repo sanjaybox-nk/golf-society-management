@@ -143,14 +143,14 @@ class BoxyArtMemberRow extends ConsumerWidget {
 
               // Guest — bottom right
               if (isGuest)
-                const Positioned(bottom: -4, right: -4, child: _MemberBadge(label: 'G', color: AppColors.guestPurple)),
+                const Positioned(bottom: -4, right: -4, child: BoxyArtGuestBadge(size: 18)),
             ],
           ),
 
-          if (showVerticalDivider) 
+          if (showVerticalDivider)
             Container(
               width: 1,
-              height: double.infinity,
+              height: 44,
               margin: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
               color: varietyPillarColor ?? theme.colorScheme.onSurface.withValues(alpha: AppColors.opacitySubtle),
             )
@@ -368,17 +368,6 @@ class BoxyArtMemberRow extends ConsumerWidget {
                   ),
                 ),
                 
-              // Tie-break (B9)
-              if (tieBreakLabel != null)
-                Padding(
-                  padding: const EdgeInsets.only(top: 2),
-                  child: Text(
-                    tieBreakLabel!,
-                    textAlign: TextAlign.end,
-                    style: metaStyle,
-                  ),
-                ),
-
               // Thru Status / Finished
               if (thruLabel != null)
                 Padding(
@@ -392,10 +381,20 @@ class BoxyArtMemberRow extends ConsumerWidget {
                     ),
                   ),
                 ),
+              // Tie-break (B9) — below F so F position is always consistent
+              if (tieBreakLabel != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 2),
+                  child: Text(
+                    tieBreakLabel!,
+                    textAlign: TextAlign.end,
+                    style: metaStyle,
+                  ),
+                ),
             ],
           ),
         ],
-        
+
         if (showChevron) ...[
           const SizedBox(width: AppSpacing.sm),
           Icon(
@@ -412,9 +411,8 @@ class BoxyArtMemberRow extends ConsumerWidget {
 
 class _MemberBadge extends StatelessWidget {
   final IconData? icon;
-  final String? label;
   final Color color;
-  const _MemberBadge({this.icon, this.label, required this.color});
+  const _MemberBadge({this.icon, required this.color});
 
   @override
   Widget build(BuildContext context) {
@@ -428,7 +426,7 @@ class _MemberBadge extends StatelessWidget {
       alignment: Alignment.center,
       child: icon != null
           ? Icon(icon, size: 10, color: AppColors.pureWhite)
-          : Text(label ?? '', style: const TextStyle(color: AppColors.pureWhite, fontSize: 8, fontWeight: FontWeight.w800)),
+          : const Text('', style: TextStyle(color: AppColors.pureWhite, fontSize: 8, fontWeight: FontWeight.w800)),
     );
   }
 }

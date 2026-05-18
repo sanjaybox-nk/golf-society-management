@@ -6,7 +6,6 @@ import 'dart:io';
 
 import 'package:flutter_quill/flutter_quill.dart' as quill;
 import 'package:golf_society/design_system/design_system.dart';
-import 'package:golf_society/design_system/widgets/boxy_art_rich_note_editor.dart';
 import 'package:golf_society/domain/models/golf_event.dart';
 import 'package:golf_society/features/events/presentation/events_provider.dart';
 import 'package:golf_society/services/storage_service.dart';

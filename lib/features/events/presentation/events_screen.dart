@@ -416,7 +416,6 @@ class _AdminEventRow extends ConsumerWidget {
     BoxyArtBottomSheet.show(
       context: context,
       title: 'Change Event Status',
-      isScrollControlled: true,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: EventStatus.values.map((s) {

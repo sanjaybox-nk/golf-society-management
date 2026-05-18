@@ -10,7 +10,6 @@ import '../../../competitions/presentation/competitions_provider.dart';
 import '../../logic/event_scoring_controller.dart';
 import 'event_tabs_state.dart';
 import 'event_user_registration_tab.dart';
-import 'event_shared_logic.dart';
 import '../events_provider.dart';
 import 'package:golf_society/domain/grouping/tee_group.dart';
 import '../../../matchplay/domain/golf_event_match_extensions.dart';

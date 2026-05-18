@@ -1,17 +1,6 @@
-import 'package:intl/intl.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:golf_society/design_system/design_system.dart';
 import 'package:golf_society/utils/string_utils.dart';
-import 'package:golf_society/domain/models/member.dart';
-import '../../domain/models/processed_event_data.dart';
-import 'package:golf_society/domain/models/golf_event.dart';
-import 'package:golf_society/domain/models/competition.dart';
-import 'package:golf_society/domain/models/scorecard.dart';
-import 'package:golf_society/domain/models/course_config.dart';
-import '../../../../domain/scoring/handicap_calculator.dart';
-import '../../../../domain/grouping/grouping_service.dart';
-import '../../../matchplay/domain/match_definition.dart';
-import '../../../matchplay/domain/match_play_calculator.dart';
 
 class PodiumEntry {
   final String name;

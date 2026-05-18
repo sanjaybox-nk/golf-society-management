@@ -74,14 +74,30 @@ class _BoxyHoleSelectorState extends State<BoxyHoleSelector> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+
+    Widget chevron(IconData icon, bool enabled, VoidCallback? onTap) {
+      return GestureDetector(
+        onTap: onTap,
+        behavior: HitTestBehavior.opaque,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
+          child: Icon(
+            icon,
+            size: AppShapes.iconLg,
+            color: theme.colorScheme.onSurface.withValues(
+              alpha: enabled ? AppColors.opacityHigh : AppColors.opacitySubtle,
+            ),
+          ),
+        ),
+      );
+    }
+
     return SizedBox(
       height: widget.height,
       child: Row(
         children: [
-          IconButton(
-            icon: Icon(Icons.chevron_left, color: theme.colorScheme.onSurface.withValues(alpha: AppColors.opacityHalf), size: AppShapes.iconLg),
-            onPressed: widget.currentHole > 1 ? () => widget.onHoleChanged(widget.currentHole - 1) : null,
-          ),
+          chevron(Icons.chevron_left, widget.currentHole > 1,
+              widget.currentHole > 1 ? () => widget.onHoleChanged(widget.currentHole - 1) : null),
           Expanded(
             child: ListView.builder(
               controller: _scrollController,
@@ -97,10 +113,8 @@ class _BoxyHoleSelectorState extends State<BoxyHoleSelector> {
               },
             ),
           ),
-          IconButton(
-            icon: Icon(Icons.chevron_right, color: theme.colorScheme.onSurface.withValues(alpha: AppColors.opacityHalf), size: AppShapes.iconLg),
-            onPressed: widget.currentHole < 18 ? () => widget.onHoleChanged(widget.currentHole + 1) : null,
-          ),
+          chevron(Icons.chevron_right, widget.currentHole < 18,
+              widget.currentHole < 18 ? () => widget.onHoleChanged(widget.currentHole + 1) : null),
         ],
       ),
     );
@@ -135,13 +149,13 @@ class _BoxyHoleSelectorState extends State<BoxyHoleSelector> {
           children: [
             AnimatedDefaultTextStyle(
               duration: AppAnimations.fast,
-              style: AppTypography.displayHeading.copyWith(
+              style: (isSelected ? AppTypography.displaySection : AppTypography.body).copyWith(
                 color: hasConflict
                     ? AppColors.coral500
                     : (isSelected
                         ? (isDark ? AppColors.pureWhite : AppColors.dark900)
                         : theme.colorScheme.onSurface.withValues(alpha: AppColors.opacityHalf)),
-                fontSize: isSelected ? 24 : 18,
+                fontWeight: isSelected ? AppTypography.weightHeavy : AppTypography.weightRegular,
               ),
               child: Text('$holeNum'),
             ),

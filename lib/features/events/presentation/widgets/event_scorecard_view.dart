@@ -87,28 +87,36 @@ class _EventScorecardViewState extends ConsumerState<EventScorecardView> {
     final double displayBaseHcp = displayScoring?.handicapIndex ?? (isMeView ? currentUser.handicap : 18.0);
     final displayCard = allScorecards.firstWhereOrNull((s) => s.entryId == displayId);
 
-    final int displayPlayingHcp = displayScoring?.playingHandicap ?? (
-      HandicapCalculator.calculatePlayingHandicap(
-        handicapIndex: displayBaseHcp,
-        rules: widget.effectiveRules,
-        courseConfig: playerTeeConfig,
-        societyCut: widget.event.manualCuts[displayId] ?? 0.0,
-      )
-    );
+    final int displayPlayingHcp = displayScoring?.playingHandicap
+        ?? displayCard?.playingHandicap
+        ?? HandicapCalculator.calculatePlayingHandicap(
+             handicapIndex: displayBaseHcp,
+             rules: widget.effectiveRules,
+             courseConfig: playerTeeConfig,
+             societyCut: widget.event.manualCuts[displayId] ?? 0.0,
+           );
 
     final bool hasSocietyCutActual = (displayScoring?.appliedSocietyCut ?? (widget.event.manualCuts[displayId] ?? 0.0)) != 0;
 
-    List<int?> gridScores = displayScoring?.holeScores ?? List.generate(18, (i) {
-      final live = (displayCard != null && i < displayCard.holeScores.length) ? displayCard.holeScores[i] : null;
+    // For guest players: STR row stays empty (all dashes) until the assignee confirms
+    // via the verify tap — which copies playerVerifierScores → holeScores.
+    final bool isGuestCard = displayId.endsWith('_guest');
+    final bool guestConfirmed = isGuestCard &&
+        (displayCard?.holeScores.any((s) => s != null && s > 0) ?? false);
 
-      if (!isMeView && displayId == targetId) {
-        final myVerifier = myCard?.playerVerifierScores ?? [];
-        final mine = i < myVerifier.length ? myVerifier[i] : null;
-        return live ?? mine;
-      }
+    List<int?> gridScores = (isGuestCard && !guestConfirmed)
+        ? List<int?>.filled(18, null)
+        : (displayScoring?.holeScores ?? List.generate(18, (i) {
+            final live = (displayCard != null && i < displayCard.holeScores.length) ? displayCard.holeScores[i] : null;
 
-      return live;
-    });
+            if (!isMeView && displayId == targetId) {
+              final myVerifier = myCard?.playerVerifierScores ?? [];
+              final mine = i < myVerifier.length ? myVerifier[i] : null;
+              return live ?? mine;
+            }
+
+            return live;
+          }));
 
     if (widget.optimisticScores != null && widget.optimisticIsVerifier == (widget.selectedMarkerTab == MarkerTab.verifier)) {
       gridScores = List.generate(18, (i) {
@@ -116,7 +124,10 @@ class _EventScorecardViewState extends ConsumerState<EventScorecardView> {
       });
     }
 
-    final conflictedHoles = _computeConflictedHoles(displayCard);
+    // Conflicts on an approved card are historical — suppress conflict UI
+    final conflictedHoles = (displayCard?.status == ScorecardStatus.approved)
+        ? const <int>{}
+        : (displayCard?.conflictedHoles.toSet() ?? const <int>{});
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -161,7 +172,74 @@ class _EventScorecardViewState extends ConsumerState<EventScorecardView> {
           tieBreakLabel: displayScoring?.tieBreakLabel,
           holeTags: displayCard?.holeTags,
           conflictedHoles: conflictedHoles,
+          showYardage: true,
+          markerVerified: displayCard?.verifiedByMarker ?? false,
+          // Show marker's recorded scores on: own card, conflicted cards, or any guest card
+          // (guests can't self-enter so playerVerifierScores is the only score record)
+          verifierScores: (displayCard?.playerVerifierScores.any((s) => s != null && s > 0) ?? false) &&
+                  (displayId == currentUser.id ||
+                      displayCard?.markerId == currentUser.id ||
+                      (displayCard?.conflictedHoles.isNotEmpty ?? false) ||
+                      (displayId.endsWith('_guest')) ||
+                      (displayCard?.markerId?.endsWith('_guest') == true))
+              ? displayCard!.playerVerifierScores
+              : null,
         ),
+
+        // Approved banner — any card (own or switched) once admin has verified
+        if (displayCard?.status == ScorecardStatus.approved)
+          Padding(
+            padding: const EdgeInsets.only(top: AppSpacing.standard),
+            child: BoxyArtCard(
+              child: Row(
+                children: [
+                  Icon(Icons.verified_rounded, color: AppColors.lime500, size: AppShapes.iconSmall),
+                  const SizedBox(width: AppSpacing.sm),
+                  Text(
+                    'Approved by committee',
+                    style: AppTypography.bodySmall.copyWith(
+                      fontWeight: AppTypography.weightBold,
+                      color: AppColors.lime500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+        // Submitted banner — only on own card, only while awaiting admin approval
+        if (displayId == currentUser.id &&
+            (displayCard?.status == ScorecardStatus.finalScore ||
+             displayCard?.status == ScorecardStatus.reviewed))
+          Padding(
+            padding: const EdgeInsets.only(top: AppSpacing.standard),
+            child: BoxyArtCard(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(Icons.schedule_rounded, color: AppColors.amber500, size: AppShapes.iconSmall),
+                  const SizedBox(width: AppSpacing.sm),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Card submitted',
+                          style: AppTypography.bodySmall.copyWith(
+                            fontWeight: AppTypography.weightBold,
+                          ),
+                        ),
+                        Text(
+                          'Awaiting committee approval',
+                          style: AppTypography.bodySmall,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
 
         // Conflict strip — below the card for birds-eye summary
         if (conflictedHoles.isNotEmpty)
@@ -268,27 +346,12 @@ class _EventScorecardViewState extends ConsumerState<EventScorecardView> {
     );
   }
 
-  Set<int> _computeConflictedHoles(Scorecard? card) {
-    if (card == null) return const {};
-    final Set<int> result = {};
-    final verifier = card.playerVerifierScores;
-    for (int i = 0; i < card.holeScores.length && i < verifier.length; i++) {
-      final player = card.holeScores[i];
-      final marker = verifier[i];
-      if (player != null && marker != null && player != marker) {
-        result.add(i + 1);
-      }
-    }
-    return result;
-  }
-
   String _formatHcp(double hcp) {
     if (hcp == hcp.toInt()) return hcp.toInt().toString();
     return hcp.toStringAsFixed(1);
   }
 
   Widget _buildMemberAuditLog(BuildContext context, List<HoleAuditEntry> log) {
-    final shapes = Theme.of(context).extension<AppShapeTokens>();
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return BoxyArtCard(

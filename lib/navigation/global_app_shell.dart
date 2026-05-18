@@ -252,15 +252,15 @@ class _ShellLayoutDelegate extends ConsumerWidget {
           BoxyArtBottomNavItem(label: 'Info', icon: Icons.info_outline_rounded, activeIcon: Icons.info_rounded),
           BoxyArtBottomNavItem(label: 'Field', icon: Icons.grid_view_rounded, activeIcon: Icons.grid_view_rounded),
           BoxyArtBottomNavItem(label: 'Scores', icon: Icons.emoji_events_outlined, activeIcon: Icons.emoji_events_rounded),
-          BoxyArtBottomNavItem(label: 'Stats', icon: Icons.analytics_outlined, activeIcon: Icons.analytics_rounded),
+          BoxyArtBottomNavItem(label: 'Verify', icon: Icons.verified_outlined, activeIcon: Icons.verified_rounded),
         ];
       } else {
         items = [
           BoxyArtBottomNavItem(label: 'Info', icon: Icons.info_outline_rounded, activeIcon: Icons.info_rounded),
           BoxyArtBottomNavItem(label: 'Field', icon: Icons.grid_view_rounded, activeIcon: Icons.grid_view_rounded),
           BoxyArtBottomNavItem(label: 'Scores', icon: Icons.emoji_events_outlined, activeIcon: Icons.emoji_events_rounded),
-          BoxyArtBottomNavItem(label: 'Stats', icon: Icons.analytics_outlined, activeIcon: Icons.analytics_rounded),
-          BoxyArtBottomNavItem(label: 'Controls', icon: Icons.settings_rounded, activeIcon: Icons.settings_rounded),
+          BoxyArtBottomNavItem(label: 'Verify', icon: Icons.verified_outlined, activeIcon: Icons.verified_rounded),
+          BoxyArtBottomNavItem(label: 'Manage', icon: Icons.tune_rounded, activeIcon: Icons.tune_rounded),
         ];
       }
     }
@@ -287,9 +287,9 @@ class _ShellLayoutDelegate extends ConsumerWidget {
         finalIndex = 1;
       } else if (location.endsWith('scores')) {
         finalIndex = 2;
-      } else if (location.endsWith('stats')) {
+      } else if (location.endsWith('verify')) {
         finalIndex = 3;
-      } else if (location.endsWith('controls')) {
+      } else if (location.endsWith('manage')) {
         finalIndex = 4;
       } else {
         finalIndex = 0;
@@ -360,8 +360,8 @@ void _onTap(BuildContext context, int index, _ShellProperties props) {
     final String id = segments[manageIdx + 1];
     final String prefix = '/admin/events/manage/$id';
     final List<String> paths = props.isScorer
-        ? ['$prefix/details', '$prefix/gallery', '$prefix/scores', '$prefix/stats']
-        : ['$prefix/details', '$prefix/gallery', '$prefix/scores', '$prefix/stats', '$prefix/controls'];
+        ? ['$prefix/details', '$prefix/gallery', '$prefix/scores', '$prefix/verify']
+        : ['$prefix/details', '$prefix/gallery', '$prefix/scores', '$prefix/verify', '$prefix/manage'];
     context.go(paths[index]);
     return;
   }

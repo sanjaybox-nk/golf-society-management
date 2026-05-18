@@ -126,6 +126,12 @@ class MarkerSelectionNotifier extends Notifier<MarkerSelection> {
     ref.read(persistenceServiceProvider).setString(_getKey(_baseKeyTargets), jsonEncode(currentTargets));
   }
 
+  void ensureTarget(String targetId) {
+    if (!state.targetEntryIds.contains(targetId)) {
+      toggleTarget(targetId);
+    }
+  }
+
   void validateTargets(List<String> validIds) {
     final List<String> currentTargets = List<String>.from(state.targetEntryIds);
     final List<String> validated = currentTargets.where((id) => validIds.contains(id)).toList();

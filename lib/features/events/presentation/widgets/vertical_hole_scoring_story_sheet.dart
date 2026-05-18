@@ -61,9 +61,6 @@ extension _StorySheetMethods on _VerticalHoleScoringListState {
     BoxyArtBottomSheet.show(
       context: context,
       title: 'Hole Story',
-      initialChildSize: 0.5,
-      minChildSize: 0.45,
-      maxChildSize: 0.65,
       child: StatefulBuilder(
         builder: (ctx, setModalState) {
           final allCards = ref.read(scorecardsListProvider(widget.event.id)).asData?.value ?? [];
@@ -137,157 +134,162 @@ extension _StorySheetMethods on _VerticalHoleScoringListState {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                children: [
-                  Expanded(child: _StoryButton(
-                    label: 'Gimme',
-                    icon: Icons.check_circle_outline_rounded,
-                    isActive: isGimme,
-                    onTap: () {
-                      if (isGimme) {
-                        tags.remove('GIMME');
-                        persist(tags);
-                        if (ctx.mounted) Navigator.of(ctx, rootNavigator: false).pop();
-                      } else {
-                        tags.add('GIMME');
-                        persist(tags);
-                      }
-                    },
-                  )),
-                  const SizedBox(width: AppSpacing.sm),
-                  Expanded(child: _StoryButton(
-                    label: 'Pick Up',
-                    icon: Icons.upload_rounded,
-                    isActive: isPickUp,
-                    onTap: () async {
-                      final holeIdx = holeNum - 1;
-                      final updatedScores = List<int?>.from(scorecard.holeScores);
-                      while (updatedScores.length <= holeIdx) updatedScores.add(null);
+              BoxyArtCard(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(child: _StoryButton(
+                          label: 'Gimme',
+                          icon: Icons.check_circle_outline_rounded,
+                          isActive: isGimme,
+                          onTap: () {
+                            if (isGimme) {
+                              tags.remove('GIMME');
+                              persist(tags);
+                              if (ctx.mounted) Navigator.of(ctx, rootNavigator: false).pop();
+                            } else {
+                              tags.add('GIMME');
+                              persist(tags);
+                            }
+                          },
+                        )),
+                        const SizedBox(width: AppSpacing.sm),
+                        Expanded(child: _StoryButton(
+                          label: 'Pick Up',
+                          icon: Icons.upload_rounded,
+                          isActive: isPickUp,
+                          onTap: () async {
+                            final holeIdx = holeNum - 1;
+                            final updatedScores = List<int?>.from(scorecard.holeScores);
+                            while (updatedScores.length <= holeIdx) { updatedScores.add(null); }
 
-                      if (isPickUp) {
-                        tags.remove('PICK_UP');
-                        if (!isStableford) updatedScores[holeIdx] = null;
-                        persist(tags, updatedScores: updatedScores);
-                        if (ctx.mounted) Navigator.of(ctx, rootNavigator: false).pop();
-                        return;
-                      }
+                            if (isPickUp) {
+                              tags.remove('PICK_UP');
+                              if (!isStableford) updatedScores[holeIdx] = null;
+                              persist(tags, updatedScores: updatedScores);
+                              if (ctx.mounted) Navigator.of(ctx, rootNavigator: false).pop();
+                              return;
+                            }
 
-                      final isDqMode = rules.pickUpBehaviour == PickUpBehaviour.disqualify && !isStableford;
+                            final isDqMode = rules.pickUpBehaviour == PickUpBehaviour.disqualify && !isStableford;
+                            if (isDqMode) {
+                              final confirmed = await showDialog<bool>(
+                                context: ctx,
+                                builder: (_) => const BoxyArtConfirmDialog(
+                                  title: 'Pick Up — Disqualification',
+                                  message: 'This competition uses strict stroke play rules. Picking up on any hole disqualifies you from this round. You will not be able to enter scores for remaining holes.',
+                                  confirmLabel: 'Accept DQ',
+                                  cancelLabel: 'Cancel',
+                                  isDestructive: true,
+                                ),
+                              );
+                              if (confirmed != true) return;
+                              tags.add('PICK_UP');
+                              updatedScores[holeIdx] = null;
+                              await applyDq(tags, updatedScores, holeIdx, 'PickUp');
+                            } else {
+                              tags.add('PICK_UP');
+                              if (!isStableford) updatedScores[holeIdx] = calcPickUpScore();
+                              persist(tags, updatedScores: updatedScores);
+                            }
+                          },
+                        )),
+                      ],
+                    ),
+                    const SizedBox(height: AppSpacing.sm),
+                    _StoryButton(
+                      label: 'Not Played',
+                      icon: Icons.remove_circle_outline_rounded,
+                      isActive: isNotPlayed,
+                      onTap: () async {
+                        final holeIdx = holeNum - 1;
+                        final updatedScores = List<int?>.from(scorecard.holeScores);
+                        while (updatedScores.length <= holeIdx) { updatedScores.add(null); }
 
-                      if (isDqMode) {
-                        final confirmed = await showDialog<bool>(
-                          context: ctx,
-                          builder: (_) => const BoxyArtConfirmDialog(
-                            title: 'Pick Up — Disqualification',
-                            message: 'This competition uses strict stroke play rules. Picking up on any hole disqualifies you from this round. You will not be able to enter scores for remaining holes.',
-                            confirmLabel: 'Accept DQ',
-                            cancelLabel: 'Cancel',
-                            isDestructive: true,
-                          ),
-                        );
-                        if (confirmed != true) return;
-                        tags.add('PICK_UP');
-                        updatedScores[holeIdx] = null;
-                        await applyDq(tags, updatedScores, holeIdx, 'PickUp');
-                      } else {
-                        tags.add('PICK_UP');
-                        if (!isStableford) updatedScores[holeIdx] = calcPickUpScore();
-                        persist(tags, updatedScores: updatedScores);
-                      }
-                    },
-                  )),
-                ],
-              ),
-              const SizedBox(height: AppSpacing.sm),
-              _StoryButton(
-                label: 'Not Played',
-                icon: Icons.remove_circle_outline_rounded,
-                isActive: isNotPlayed,
-                onTap: () async {
-                  final holeIdx = holeNum - 1;
-                  final updatedScores = List<int?>.from(scorecard.holeScores);
-                  while (updatedScores.length <= holeIdx) updatedScores.add(null);
+                        if (isNotPlayed) {
+                          tags.remove('NOT_PLAYED');
+                          if (!isStableford) updatedScores[holeIdx] = null;
+                          persist(tags, updatedScores: updatedScores);
+                          if (ctx.mounted) Navigator.of(ctx, rootNavigator: false).pop();
+                          return;
+                        }
 
-                  if (isNotPlayed) {
-                    tags.remove('NOT_PLAYED');
-                    if (!isStableford) updatedScores[holeIdx] = null;
-                    persist(tags, updatedScores: updatedScores);
-                    if (ctx.mounted) Navigator.of(ctx, rootNavigator: false).pop();
-                    return;
-                  }
-
-                  final isDqMode = rules.pickUpBehaviour == PickUpBehaviour.disqualify && !isStableford;
-
-                  if (isDqMode) {
-                    final confirmed = await showDialog<bool>(
-                      context: ctx,
-                      builder: (_) => const BoxyArtConfirmDialog(
-                        title: 'Not Played — Disqualification',
-                        message: 'This competition uses strict stroke play rules. A hole not played disqualifies you from this round. Remaining holes will be locked.',
-                        confirmLabel: 'Accept DQ',
-                        cancelLabel: 'Cancel',
-                        isDestructive: true,
+                        final isDqMode = rules.pickUpBehaviour == PickUpBehaviour.disqualify && !isStableford;
+                        if (isDqMode) {
+                          final confirmed = await showDialog<bool>(
+                            context: ctx,
+                            builder: (_) => const BoxyArtConfirmDialog(
+                              title: 'Not Played — Disqualification',
+                              message: 'This competition uses strict stroke play rules. A hole not played disqualifies you from this round. Remaining holes will be locked.',
+                              confirmLabel: 'Accept DQ',
+                              cancelLabel: 'Cancel',
+                              isDestructive: true,
+                            ),
+                          );
+                          if (confirmed != true) return;
+                          tags.add('NOT_PLAYED');
+                          updatedScores[holeIdx] = null;
+                          await applyDq(tags, updatedScores, holeIdx, 'NotPlayed');
+                        } else {
+                          tags.add('NOT_PLAYED');
+                          if (!isStableford) updatedScores[holeIdx] = calcPickUpScore();
+                          persist(tags, updatedScores: updatedScores);
+                        }
+                      },
+                    ),
+                    const SizedBox(height: AppSpacing.standard),
+                    Text(
+                      'PENALTY STROKES',
+                      style: AppTypography.label.copyWith(
+                        color: AppColors.dark400,
+                        fontWeight: AppTypography.weightBold,
+                        letterSpacing: AppTypography.lsLabel,
                       ),
-                    );
-                    if (confirmed != true) return;
-                    tags.add('NOT_PLAYED');
-                    updatedScores[holeIdx] = null;
-                    await applyDq(tags, updatedScores, holeIdx, 'NotPlayed');
-                  } else {
-                    tags.add('NOT_PLAYED');
-                    if (!isStableford) updatedScores[holeIdx] = calcPickUpScore();
-                    persist(tags, updatedScores: updatedScores);
-                  }
-                },
-              ),
-              const SizedBox(height: AppSpacing.standard),
-              Text(
-                'PENALTY STROKES',
-                style: AppTypography.label.copyWith(
-                  color: AppColors.dark400,
-                  fontWeight: AppTypography.weightBold,
-                  letterSpacing: AppTypography.lsLabel,
+                    ),
+                    const SizedBox(height: AppSpacing.atomic),
+                    Row(
+                      children: [
+                        Expanded(child: _StoryButton(
+                          label: '+1 Stroke${p1Count > 0 ? '  ×$p1Count' : ''}',
+                          icon: Icons.add_circle_outline_rounded,
+                          isActive: p1Count > 0,
+                          onTap: () {
+                            tags.add('PENALTY_1_${DateTime.now().millisecondsSinceEpoch}');
+                            persist(tags);
+                          },
+                          onLongPress: p1Count > 0 ? () {
+                            tags.removeWhere((t) => t.startsWith('PENALTY_1_') || (t.startsWith('PENALTY_') && !t.startsWith('PENALTY_1_') && !t.startsWith('PENALTY_2_')));
+                            persist(tags);
+                          } : null,
+                        )),
+                        const SizedBox(width: AppSpacing.sm),
+                        Expanded(child: _StoryButton(
+                          label: '+2 Strokes${p2Count > 0 ? '  ×$p2Count' : ''}',
+                          icon: Icons.add_circle_outline_rounded,
+                          isActive: p2Count > 0,
+                          onTap: () {
+                            tags.add('PENALTY_2_${DateTime.now().millisecondsSinceEpoch}');
+                            persist(tags);
+                          },
+                          onLongPress: p2Count > 0 ? () {
+                            tags.removeWhere((t) => t.startsWith('PENALTY_2_'));
+                            persist(tags);
+                          } : null,
+                        )),
+                      ],
+                    ),
+                    if (hasPenalties) ...[
+                      const SizedBox(height: AppSpacing.atomic),
+                      Text(
+                        'Long-press to clear that type',
+                        style: AppTypography.micro.copyWith(color: AppColors.dark400),
+                      ),
+                    ],
+                  ],
                 ),
               ),
-              const SizedBox(height: AppSpacing.atomic),
-              Row(
-                children: [
-                  Expanded(child: _StoryButton(
-                    label: '+1 Stroke${p1Count > 0 ? '  ×$p1Count' : ''}',
-                    icon: Icons.add_circle_outline_rounded,
-                    isActive: p1Count > 0,
-                    onTap: () {
-                      tags.add('PENALTY_1_${DateTime.now().millisecondsSinceEpoch}');
-                      persist(tags);
-                    },
-                    onLongPress: p1Count > 0 ? () {
-                      tags.removeWhere((t) => t.startsWith('PENALTY_1_') || (t.startsWith('PENALTY_') && !t.startsWith('PENALTY_1_') && !t.startsWith('PENALTY_2_')));
-                      persist(tags);
-                    } : null,
-                  )),
-                  const SizedBox(width: AppSpacing.sm),
-                  Expanded(child: _StoryButton(
-                    label: '+2 Strokes${p2Count > 0 ? '  ×$p2Count' : ''}',
-                    icon: Icons.add_circle_outline_rounded,
-                    isActive: p2Count > 0,
-                    onTap: () {
-                      tags.add('PENALTY_2_${DateTime.now().millisecondsSinceEpoch}');
-                      persist(tags);
-                    },
-                    onLongPress: p2Count > 0 ? () {
-                      tags.removeWhere((t) => t.startsWith('PENALTY_2_'));
-                      persist(tags);
-                    } : null,
-                  )),
-                ],
-              ),
-              if (hasPenalties) ...[
-                const SizedBox(height: AppSpacing.atomic),
-                Text(
-                  'Long-press to clear that type',
-                  style: AppTypography.micro.copyWith(color: AppColors.dark400),
-                ),
-              ],
             ],
           );
         },

@@ -96,36 +96,55 @@ class BoxyArtBottomSheet extends StatelessWidget {
   }
 
   /// Helper to show the bottom sheet.
+  ///
+  /// By default the sheet auto-sizes to its content — no initialChildSize
+  /// needed. Pass [initialChildSize] only for sheets with tall scrollable
+  /// lists that benefit from drag-to-expand (e.g. audience pickers).
   static Future<T?> show<T>({
     required BuildContext context,
     required String title,
     required Widget child,
-    bool isScrollControlled = true,
-    // Default to false so the Global bottom nav bar remains visible behind the sheet.
-    // Set to true only if the sheet must appear above everything (e.g. root-level alerts).
     bool useRootNavigator = false,
-    double initialChildSize = 0.68,
-    double minChildSize = 0.5,
-    double maxChildSize = 0.80,
     bool addNavBarPadding = true,
+    // Explicit sizing — only for drag-to-expand sheets
+    double? initialChildSize,
+    double? minChildSize,
+    double? maxChildSize,
   }) {
+    final isDraggable = initialChildSize != null;
+
     return showModalBottomSheet<T>(
       context: context,
-      isScrollControlled: isScrollControlled,
+      isScrollControlled: true,
       useRootNavigator: useRootNavigator,
       backgroundColor: Colors.transparent,
-      builder: (context) => DraggableScrollableSheet(
-        initialChildSize: initialChildSize,
-        minChildSize: minChildSize,
-        maxChildSize: maxChildSize < initialChildSize ? initialChildSize : maxChildSize,
-        expand: false,
-        builder: (context, scrollController) => BoxyArtBottomSheet(
+      useSafeArea: !isDraggable,
+      builder: (context) {
+        if (isDraggable) {
+          final min = minChildSize ?? 0.5;
+          final max = (maxChildSize ?? 0.95) < initialChildSize
+              ? initialChildSize
+              : (maxChildSize ?? 0.95);
+          return DraggableScrollableSheet(
+            initialChildSize: initialChildSize,
+            minChildSize: min,
+            maxChildSize: max,
+            expand: false,
+            builder: (context, scrollController) => BoxyArtBottomSheet(
+              title: title,
+              scrollController: scrollController,
+              addNavBarPadding: addNavBarPadding,
+              child: child,
+            ),
+          );
+        }
+        // Auto-size: sheet sizes itself to its content
+        return BoxyArtBottomSheet(
           title: title,
-          scrollController: scrollController,
           addNavBarPadding: addNavBarPadding,
           child: child,
-        ),
-      ),
+        );
+      },
     );
   }
 

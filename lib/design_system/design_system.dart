@@ -10,6 +10,10 @@ export 'atoms/inputs/boxy_art_text_field.dart';
 export 'atoms/inputs/boxy_art_search_input.dart';
 export 'atoms/inputs/boxy_art_metric_input.dart';
 export 'atoms/indicators/boxy_art_indicator.dart';
+export 'atoms/indicators/boxy_art_guest_badge.dart';
+export 'atoms/indicators/boxy_art_captain_badge.dart';
+export 'atoms/indicators/boxy_art_score_stepper.dart';
+export 'atoms/indicators/boxy_art_status_banner.dart';
 
 // ── Molecules ─────────────────────────────────────────────────────────────────
 export 'molecules/molecules.dart';
