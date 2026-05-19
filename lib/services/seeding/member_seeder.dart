@@ -76,6 +76,7 @@ class MemberSeeder {
         if (i == 0 || i == 20) systemRole = MemberRole.admin;
         if (i == 1 || i == 21) systemRole = MemberRole.restrictedAdmin;
         if (i == 36) systemRole = MemberRole.viewer;
+        if (i == 3 || i == 23 || i == 38 || i == 55) systemRole = MemberRole.socialMember;
 
         double hc = (i < 10) ? (1.0 + random.nextDouble() * 5) : ((i < 40) ? (6.0 + random.nextDouble() * 14) : (20.0 + random.nextDouble() * 16));
         if (isFemale) hc += 2.0;
@@ -110,6 +111,9 @@ class MemberSeeder {
           } else if (currentStatus == MemberStatus.expired || currentStatus == MemberStatus.gracePeriod) {
              membershipEnd = DateTime.now().subtract(const Duration(days: 5));
           }
+        } else if (systemRole == MemberRole.socialMember) {
+          currentStatus = MemberStatus.social;
+          hasPaid = true;
         } else {
           // Current Market Members
           final isExpired = membershipEnd.isBefore(DateTime.now());
@@ -159,7 +163,7 @@ class MemberSeeder {
           gender: isFemale ? 'Female' : 'Male',
           phone: '+44 7${100000000 + i}',
           address: address,
-          bio: i >= 74 ? 'Demo member for ${currentStatus.name} status testing.' : bio,
+          bio: i >= 74 ? 'Demo member for ${currentStatus.name} status testing.' : (systemRole == MemberRole.socialMember ? 'Social member — attends society events and follows the season.' : bio),
           avatarUrl: avatarUrl,
           allowSocialEventsOnly: false,
           accountCredit: initialCredit,

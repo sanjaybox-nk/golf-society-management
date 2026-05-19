@@ -190,16 +190,19 @@ class _ShellLayoutDelegate extends ConsumerWidget {
     // This is the ONLY place where we watch the location.
     final location = GoRouterState.of(context).uri.path;
     final bool isAdmin = navigationShell.currentIndex >= 5;
-    final isScorer = ref.watch(effectiveUserProvider).role.isScorer;
+    final _role = ref.watch(effectiveUserProvider).role;
+    final isScorer = _role.isScorer;
+    final isEventOfficer = _role.isEventOfficer;
 
     // 1. Calculate base items
     List<BoxyArtBottomNavItem> items;
     Map<int, int> branchMap = {};
 
     if (isAdmin) {
-      if (isScorer) {
+      if (isScorer || isEventOfficer) {
+        // Scorer and Event Officer: Golf Events branch only
         items = NavigationConstants.scorerAdminNavItems;
-        branchMap = {0: 6}; // Only the admin events branch
+        branchMap = {0: 6};
       } else {
         items = NavigationConstants.adminNavItems;
         for (int i = 0; i < items.length; i++) {
@@ -239,15 +242,21 @@ class _ShellLayoutDelegate extends ConsumerWidget {
 
 
     if (isUserEventHub) {
+      final _shellUser = ref.watch(effectiveUserProvider);
+      final isSocialMember = _shellUser.role.isSocialMember
+          || _shellUser.status == MemberStatus.social
+          || _shellUser.allowSocialEventsOnly;
       items = [
         BoxyArtBottomNavItem(label: 'Info', icon: Icons.info_outline_rounded, activeIcon: Icons.info_rounded),
         BoxyArtBottomNavItem(label: 'Field', icon: Icons.grid_view_rounded, activeIcon: Icons.grid_view_rounded),
-        BoxyArtBottomNavItem(label: 'My Card', icon: Icons.edit_note_rounded, activeIcon: Icons.edit_note_rounded),
+        if (!isSocialMember)
+          BoxyArtBottomNavItem(label: 'My Card', icon: Icons.edit_note_rounded, activeIcon: Icons.edit_note_rounded),
         BoxyArtBottomNavItem(label: 'Scores', icon: Icons.emoji_events_outlined, activeIcon: Icons.emoji_events_rounded),
         BoxyArtBottomNavItem(label: 'Stats', icon: Icons.analytics_outlined, activeIcon: Icons.analytics_rounded),
       ];
     } else if (isAdminEventHub) {
       if (isScorer) {
+        // Scorer: Info, Field, Scores, Verify — no Manage
         items = [
           BoxyArtBottomNavItem(label: 'Info', icon: Icons.info_outline_rounded, activeIcon: Icons.info_rounded),
           BoxyArtBottomNavItem(label: 'Field', icon: Icons.grid_view_rounded, activeIcon: Icons.grid_view_rounded),
@@ -255,6 +264,7 @@ class _ShellLayoutDelegate extends ConsumerWidget {
           BoxyArtBottomNavItem(label: 'Verify', icon: Icons.verified_outlined, activeIcon: Icons.verified_rounded),
         ];
       } else {
+        // Event Officer and full admin: all 5 tabs including Manage
         items = [
           BoxyArtBottomNavItem(label: 'Info', icon: Icons.info_outline_rounded, activeIcon: Icons.info_rounded),
           BoxyArtBottomNavItem(label: 'Field', icon: Icons.grid_view_rounded, activeIcon: Icons.grid_view_rounded),

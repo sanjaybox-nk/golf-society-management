@@ -42,3 +42,24 @@ The central command center for processing submissions, accessed via the **RENEWA
 3. **Member Decision**: Member sees a banner on Home Screen -> Clicks "Renew Now" -> Selects Status.
 4. **Admin Review**: Admin opens Renewal Hub -> Reviews submissions.
 5. **Finalization**: Admin clicks "Batch Confirm" -> Member dates are synced -> Season resets.
+
+## Social Membership at Renewal
+
+When `SocietyConfig.enableSocialMembership` is on, the renewal flow has an additional tier choice.
+
+**Social member renewing:**
+- Sees `socialMemberFee` (set in Operations → Society Configuration → Treasury Settings)
+- Can request upgrade to full membership — admin approves, fee difference tracked manually
+- If toggle is later turned off, existing social members retain their status; they must choose Full or Leave at next renewal
+
+**Full member downgrade:**
+- A full member can request to downgrade to social at renewal
+- Admin approves via member profile → Administrative Controls → "Promote to Full Member" (works in reverse by manually editing role/status)
+
+**Fee configuration:**
+- `SocietyConfig.socialMemberFee` — set in Treasury Settings (visible only when `enableSocialMembership` is on)
+- Full membership fee is tracked separately in the renewal system
+
+**Phase status (as of 2026-05-19):**
+- Phase 1 (model + access gating): complete
+- Phase 2 (financial integration + renewal flow UI): planned

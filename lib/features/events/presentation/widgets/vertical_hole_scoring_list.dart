@@ -279,9 +279,8 @@ class _VerticalHoleScoringListState extends ConsumerState<VerticalHoleScoringLis
                       const SizedBox(height: AppSpacing.standard),
                       BoxyArtButton(
                         title: 'Add / Remove Card',
-                        isGhost: true,
-                        isPrimary: false,
                         icon: Icons.person_add_rounded,
+                        isTinted: true,
                         fullWidth: true,
                         onTap: widget.onMarkerSelectionTap,
                       ),

@@ -2,7 +2,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/foundation.dart';
 import 'package:golf_society/utils/string_utils.dart';
 import 'package:collection/collection.dart';
-import 'package:go_router/go_router.dart';
 import 'package:golf_society/domain/models/scorecard.dart';
 import 'package:golf_society/domain/scoring/scorecard_factory.dart';
 import 'scorecard_resolver.dart';
@@ -218,71 +217,52 @@ class ScorecardModal {
                               children: [
                                 Row(
                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Expanded(
-                                      child: Padding(
-                                        padding: const EdgeInsets.only(left: 4.0),
-                                        child: Text(
-                                          toTitleCase(entry.playerName),
-                                          style: AppTypography.display.copyWith(
-                                            color: AppColors.dark900,
-                                            fontWeight: AppTypography.weightHeavy,
-                                            letterSpacing: 1.0,
-                                          ),
+                                      child: Text(
+                                        toTitleCase(entry.playerName),
+                                        style: AppTypography.display.copyWith(
+                                          color: Theme.of(context).brightness == Brightness.dark ? AppColors.pureWhite : AppColors.dark600,
+                                          fontWeight: AppTypography.weightHeavy,
+                                          letterSpacing: AppTypography.lsHero,
                                         ),
                                       ),
                                     ),
-                                    const SizedBox(width: AppSpacing.md),
-                                    Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        if (isAdmin && actualScorecard.status == ScorecardStatus.submitted)
-                                          IconButton(
-                                            icon: const Icon(Icons.check_circle_outline_rounded, color: AppColors.lime500),
-                                            tooltip: 'Approve Scorecard',
-                                            onPressed: () async {
-                                              final confirmed = await showBoxyArtDialog<bool>(
-                                                context: context,
-                                                title: 'Approve Scorecard?',
-                                                message: 'Mark this scorecard as Reviewed.',
-                                                confirmText: 'Approve',
-                                              );
-                                              if (confirmed == true) {
-                                                try {
-                                                  await ref.read(scorecardRepositoryProvider).updateScorecardStatus(actualScorecard.id, ScorecardStatus.reviewed);
-                                                  if (context.mounted) Navigator.pop(context);
-                                                } catch (_) {
-                                                  if (context.mounted) {
-                                                    ScaffoldMessenger.of(context).showSnackBar(
-                                                      const SnackBar(content: Text('Failed to approve scorecard — check your connection.')),
-                                                    );
-                                                  }
-                                                }
+                                    if (isAdmin && actualScorecard.status == ScorecardStatus.submitted)
+                                      IconButton(
+                                        icon: const Icon(Icons.check_circle_outline_rounded, color: AppColors.lime500, size: AppShapes.iconLg),
+                                        tooltip: 'Approve Scorecard',
+                                        onPressed: () async {
+                                          final confirmed = await showBoxyArtDialog<bool>(
+                                            context: context,
+                                            title: 'Approve Scorecard?',
+                                            message: 'Mark this scorecard as Reviewed.',
+                                            confirmText: 'Approve',
+                                          );
+                                          if (confirmed == true) {
+                                            try {
+                                              await ref.read(scorecardRepositoryProvider).updateScorecardStatus(actualScorecard.id, ScorecardStatus.reviewed);
+                                              if (context.mounted) Navigator.pop(context);
+                                            } catch (_) {
+                                              if (context.mounted) {
+                                                ScaffoldMessenger.of(context).showSnackBar(
+                                                  const SnackBar(content: Text('Failed to approve scorecard — check your connection.')),
+                                                );
                                               }
-                                            },
-                                          ),
-                                        if (isAdmin)
-                                          IconButton(
-                                            icon: const Icon(Icons.edit_note_rounded, color: AppColors.lime500),
-                                            tooltip: 'Edit Scores',
-                                            onPressed: () {
-                                              Navigator.pop(context); // Close modal
-                                              context.push('/admin/events/manage/${Uri.encodeComponent(event.id)}/scores/${entry.entryId}');
-                                            },
-                                          ),
-                                        IconButton(
-                                          icon: const Icon(Icons.close, color: AppColors.dark150),
-                                          onPressed: () => Navigator.pop(context),
-                                        ),
-                                      ],
+                                            }
+                                          }
+                                        },
+                                      ),
+                                    IconButton(
+                                      icon: Icon(Icons.close_rounded, size: AppShapes.iconLg, color: Theme.of(context).brightness == Brightness.dark ? AppColors.dark200 : AppColors.dark400),
+                                      onPressed: () => Navigator.pop(context),
                                     ),
                                   ],
                                 ),
                                 if (isFourball || (entry.teamMemberNames != null && entry.teamMemberNames!.length > 1)) ...[
                                   const SizedBox(height: AppSpacing.sm),
                                   Wrap(
-                                    spacing: 8,
+                                    spacing: AppSpacing.atomic,
                                     children: [
                                       if (isFourball)
                                         _buildViewPill(
@@ -340,10 +320,15 @@ class ScorecardModal {
                                       const SizedBox(width: AppSpacing.md),
                                       BoxyArtIndicator.phc(context: context, label: '${entry.playingHandicap}'),
                                     ],
+                                    if (entry.thruLabel != null) ...[
+                                      const SizedBox(width: AppSpacing.md),
+                                      BoxyArtPill.status(label: entry.thruLabel!, color: AppColors.lime500, isLegend: true),
+                                    ],
                                     const Spacer(),
                                     BoxyArtIndicator.tee(
-                                      label: teeName, 
+                                      label: teeName,
                                       teeColor: teeColor,
+                                      hasHorizontalMargin: false,
                                       onTap: (isAdmin || activeMarkerId == currentUserId) ? () {
                                         _showTeeSelector(
                                           context: context,
@@ -353,29 +338,17 @@ class ScorecardModal {
                                           currentTeeName: teeName,
                                           membersList: membersList,
                                           onTeeSelected: (newTee) async {
-                                            // 1. Update local state for immediate feedback if possible
-                                            // Actually, since this is a static modal, we better just update Firestore and let the parent refresh
-                                            
-                                            // 2. Update EventRegistration in Firestore
                                             final registrations = List<EventRegistration>.from(event.registrations);
                                             final idx = registrations.indexWhere((r) => r.memberId == effectiveFocusId);
                                             if (idx >= 0) {
-                                              final reg = registrations[idx];
-                                              // Determine if guest or member
                                               final isGuestId = effectiveFocusId.contains('_guest');
-                                              final updatedReg = isGuestId 
-                                                  ? reg.copyWith(guestTeeName: newTee)
-                                                  : reg.copyWith(teeName: newTee);
-                                              
+                                              final updatedReg = isGuestId
+                                                  ? registrations[idx].copyWith(guestTeeName: newTee)
+                                                  : registrations[idx].copyWith(teeName: newTee);
                                               registrations[idx] = updatedReg;
-                                              
                                               final updatedEvent = event.copyWith(registrations: registrations);
                                               await ref.read(eventsRepositoryProvider).updateEvent(updatedEvent);
-                                              
-                                              // Trigger a rebuild of the modal by calling setModalState (passed down)
-                                              setModalState(() {
-                                                // This will trigger a re-resolve of teeName in the build method
-                                              });
+                                              setModalState(() {});
                                             }
                                           },
                                         );
@@ -383,15 +356,12 @@ class ScorecardModal {
                                     ),
                                   ],
                                 ),
-                                if (entry.thruLabel != null || entry.tieBreakLabel != null) ...[
+                                if (entry.tieBreakLabel != null) ...[
                                   const SizedBox(height: AppSpacing.sm),
                                   Wrap(
-                                    spacing: 8,
+                                    spacing: AppSpacing.atomic,
                                     children: [
-                                      if (entry.thruLabel != null)
-                                        BoxyArtPill.status(label: entry.thruLabel!, color: AppColors.lime500, isLegend: true),
-                                      if (entry.tieBreakLabel != null)
-                                        BoxyArtPill.status(label: entry.tieBreakLabel!, color: AppColors.dark400, isLegend: true),
+                                      BoxyArtPill.status(label: entry.tieBreakLabel!, color: AppColors.dark400, isLegend: true),
                                     ],
                                   ),
                                 ],
@@ -542,7 +512,7 @@ class ScorecardModal {
             style: AppTypography.micro.copyWith(
               fontWeight: AppTypography.weightBold,
               color: Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha: AppColors.opacityHigh),
-              letterSpacing: 1.0,
+              letterSpacing: AppTypography.lsLabel,
             ),
           ),
         ),
@@ -550,7 +520,7 @@ class ScorecardModal {
           Padding(
             padding: const EdgeInsets.only(bottom: AppSpacing.lg),
             child: Wrap(
-              spacing: 8,
+              spacing: AppSpacing.atomic,
               runSpacing: 4,
               children: scorecard.shotAttributions.entries.map((attr) {
                 final holeNum = attr.key + 1;
@@ -741,27 +711,27 @@ class ScorecardModal {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
         decoration: BoxDecoration(
-          color: isSelected 
-              ? AppColors.lime500.withValues(alpha: AppColors.opacityLow) 
-              : (isFocused ? AppColors.dark400.withValues(alpha: 0.1) : Colors.transparent),
+          color: isSelected
+              ? AppColors.lime500.withValues(alpha: AppColors.opacityLow)
+              : (isFocused ? AppColors.dark400.withValues(alpha: AppColors.opacityLow) : Colors.transparent),
           borderRadius: AppShapes.pill,
           border: Border.all(
-            color: isSelected 
-                ? AppColors.lime500 
+            color: isSelected
+                ? AppColors.lime500
                 : (isFocused ? AppColors.dark400 : AppColors.dark500),
-            width: (isSelected || isFocused) ? 1.5 : AppShapes.borderThin,
+            width: (isSelected || isFocused) ? AppShapes.borderMedium : AppShapes.borderThin,
           ),
         ),
         child: Text(
           label.toUpperCase(),
           style: AppTypography.micro.copyWith(
             fontWeight: (isSelected || isFocused) ? AppTypography.weightBold : AppTypography.weightStrong,
-            color: isSelected 
-                ? AppColors.lime500 
+            color: isSelected
+                ? AppColors.lime500
                 : (isFocused ? AppColors.dark900 : AppColors.dark300),
-            letterSpacing: 1.0,
+            letterSpacing: AppTypography.lsLabel,
           ),
         ),
       ),

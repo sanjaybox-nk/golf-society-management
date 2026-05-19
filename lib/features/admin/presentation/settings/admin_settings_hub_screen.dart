@@ -56,6 +56,13 @@ class AdminSettingsHubScreen extends ConsumerWidget {
                     ),
                     const BoxyArtDivider(),
                     BoxyArtNavTile(
+                      icon: Icons.people_alt_outlined,
+                      title: 'Grouping Strategy',
+                      subtitle: 'Default tee-time pairing method for all events',
+                      onTap: () => context.pushNamed('admin-settings-grouping'),
+                    ),
+                    const BoxyArtDivider(),
+                    BoxyArtNavTile(
                       icon: Icons.dashboard_customize_rounded,
                       title: 'Competition Templates',
                       subtitle: 'Pre-configured event game rules',
@@ -69,8 +76,23 @@ class AdminSettingsHubScreen extends ConsumerWidget {
                       onTap: () => context.pushNamed('admin-settings-appearance'),
                     ),
                     const BoxyArtDivider(),
+                    const BoxyArtDivider(),
                     _buildConfigToggle(
-                      context, 
+                      context,
+                      ref,
+                      icon: Icons.leaderboard_outlined,
+                      title: 'Separate Guest Leaderboard',
+                      subtitle: 'Guests appear on their own leaderboard, not ranked with members',
+                      value: config.separateGuestLeaderboard,
+                      onChanged: (val) async {
+                        final newConfig = config.copyWith(separateGuestLeaderboard: val);
+                        await ref.read(societyConfigRepositoryProvider).forceReplaceConfig(newConfig);
+                        ref.invalidate(themeControllerProvider);
+                      },
+                    ),
+                    const BoxyArtDivider(),
+                    _buildConfigToggle(
+                      context,
                       ref,
                       icon: Icons.layers_outlined,
                       title: 'Match Play Overlay',
@@ -208,6 +230,13 @@ class AdminSettingsHubScreen extends ConsumerWidget {
                       title: 'Design Lab',
                       subtitle: 'Colors, shapes, spacing, navigation, and typography',
                       onTap: () => context.pushNamed('admin-settings-branding'),
+                    ),
+                    const BoxyArtDivider(),
+                    BoxyArtNavTile(
+                      icon: Icons.message_outlined,
+                      title: 'Platform Content',
+                      subtitle: 'Default notification messages and system strings',
+                      onTap: () => context.pushNamed('admin-settings-platform-content'),
                     ),
                   ],
                 ),

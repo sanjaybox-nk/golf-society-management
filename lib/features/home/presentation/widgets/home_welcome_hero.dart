@@ -16,7 +16,7 @@ class HomeWelcomeHero extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final isAdmin = member.role == MemberRole.admin || member.role == MemberRole.superAdmin;
+    final isAdmin = member.role.hasAdminAccess;
 
     return BoxyArtCard(
       padding: const EdgeInsets.all(AppSpacing.x2l),

@@ -221,7 +221,17 @@ class _AdminGroupingHubContentState extends ConsumerState<AdminGroupingHubConten
     return Padding(
       padding: const EdgeInsets.only(bottom: 100),
       child: BoxyArtFormColumn(
-        children: localGroups.mapIndexed((index, group) {
+        children: [
+          if (!isLocked) ...[
+            BoxyArtButton(
+              title: 'Recalculate',
+              icon: Icons.refresh_rounded,
+              fullWidth: true,
+              onTap: () => _handleRecalculate(context, ref, event, localGroups),
+            ),
+            const SizedBox(height: AppSpacing.standard),
+          ],
+          ...localGroups.mapIndexed((index, group) {
                   return GroupingCard(
                     group: group,
                     memberMap: memberMap,
@@ -248,7 +258,8 @@ class _AdminGroupingHubContentState extends ConsumerState<AdminGroupingHubConten
                     computedEntries: computedEntries,
                     computedGroupResults: computedGroupResults,
                   );
-        }).toList(),
+        }),
+        ],
       ),
     );
   }
@@ -301,8 +312,18 @@ class _AdminGroupingHubContentState extends ConsumerState<AdminGroupingHubConten
 
   void _handlePlayerAction(WidgetRef ref, List<TeeGroup> groups, String action, TeeGroupParticipant p, TeeGroup currentGroup) async {
     if (action == 'captain') {
-       p.isCaptain = !p.isCaptain;
-       _updateDirty(true, groups, null);
+      for (final member in currentGroup.players) {
+        member.isCaptain = false;
+      }
+      p.isCaptain = !p.isCaptain;
+      _updateDirty(true, groups, null);
+    } else if (action == 'remove') {
+      setState(() {
+        currentGroup.players.remove(p);
+        _updateDirty(true, groups, null);
+      });
+    } else if (action == 'move') {
+      _showMoveSheet(context, ref, groups, p, currentGroup);
     } else if (action == 'tee') {
        final eventsAsync = ref.read(adminEventsProvider);
        final event = eventsAsync.value?.firstWhere((e) => e.id == widget.eventId);
@@ -370,6 +391,94 @@ class _AdminGroupingHubContentState extends ConsumerState<AdminGroupingHubConten
          );
        }
     }
+  }
+
+  void _showMoveSheet(BuildContext context, WidgetRef ref, List<TeeGroup> groups, TeeGroupParticipant p, TeeGroup currentGroup) {
+    BoxyArtBottomSheet.show(
+      context: context,
+      title: 'Move ${p.name}',
+      child: BoxyArtCard(
+        padding: EdgeInsets.zero,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: groups.asMap().entries.where((e) => e.value != currentGroup).map((e) {
+            final idx = e.key;
+            final group = e.value;
+            final isFull = group.players.length >= 4;
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (idx != groups.indexWhere((g) => g != currentGroup))
+                  const BoxyArtDivider(),
+                BoxyArtNavTile(
+                  icon: Icons.group_rounded,
+                  title: 'Group ${idx + 1}',
+                  subtitle: '${group.players.length} / 4 players${isFull ? ' — Full' : ''}',
+                  iconColor: isFull ? AppColors.dark400 : null,
+                  onTap: isFull ? () {} : () {
+                    Navigator.pop(context);
+                    setState(() {
+                      currentGroup.players.remove(p);
+                      group.players.add(p);
+                      _updateDirty(true, groups, null);
+                    });
+                  },
+                ),
+              ],
+            );
+          }).toList(),
+        ),
+      ),
+    );
+  }
+
+  void _handleRecalculate(BuildContext context, WidgetRef ref, GolfEvent event, List<TeeGroup> currentGroups) {
+    final members = ref.read(allMembersProvider).value ?? [];
+    final handicapMap = {for (var m in members) m.id: m.handicap};
+    final rules = ref.read(competitionDetailProvider(event.id)).value?.rules;
+    final useWhs = ref.read(themeControllerProvider).useWhsHandicaps;
+
+    final unassigned = GroupingService.getUnassignedPlayers(
+      event: event,
+      groups: currentGroups,
+      memberHandicaps: handicapMap,
+      rules: rules,
+      useWhs: useWhs,
+      manualCuts: event.manualCuts,
+    );
+
+    if (unassigned.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('All confirmed players are already assigned.')),
+      );
+      return;
+    }
+
+    final updatedGroups = currentGroups
+        .map((g) => g.copyWith(players: List<TeeGroupParticipant>.from(g.players)))
+        .toList();
+    var pool = List<TeeGroupParticipant>.from(unassigned);
+
+    for (final group in updatedGroups) {
+      while (group.players.length < 4 && pool.isNotEmpty) {
+        group.players.add(pool.removeAt(0));
+      }
+      if (pool.isEmpty) break;
+    }
+
+    while (pool.isNotEmpty) {
+      final chunk = pool.take(4).toList();
+      pool.removeRange(0, chunk.length);
+      final lastTime = updatedGroups.last.teeTime;
+      updatedGroups.add(TeeGroup(
+        index: updatedGroups.length,
+        teeTime: lastTime.add(const Duration(minutes: 10)),
+        players: chunk,
+      ));
+    }
+
+    _updateDirty(true, updatedGroups, null);
+    _handleSave(context, ref, event);
   }
 
   void _syncTeeToRegistration(WidgetRef ref, GolfEvent event, String memberId, bool isGuest, String newTee) async {

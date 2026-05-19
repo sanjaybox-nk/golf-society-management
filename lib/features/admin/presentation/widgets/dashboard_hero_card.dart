@@ -41,7 +41,7 @@ class DashboardHeroCard extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: AppSpacing.xs),
+                        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
                         decoration: BoxDecoration(
                           color: AppColors.pureWhite.withValues(alpha: AppColors.opacityMedium),
                           borderRadius: AppShapes.xl,

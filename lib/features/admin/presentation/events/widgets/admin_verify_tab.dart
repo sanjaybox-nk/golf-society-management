@@ -162,6 +162,7 @@ class AdminVerifyTab extends ConsumerWidget {
                           ? 'HC ${(s.handicapIndex ?? 0).toStringAsFixed(1)} · '
                           : '';
 
+                      final markerName = _markerLine(s).replaceFirst('Marker: ', '');
                       return AdminVerifyTile(
                         title: displayName,
                         subtitle: '$hcLabel${props.subtext}',
@@ -178,6 +179,9 @@ class AdminVerifyTab extends ConsumerWidget {
                         isCaptain: p.isCaptain,
                         onTap: () => context.push(
                             '/admin/events/manage/${Uri.encodeComponent(event.id)}/scores/$editorPlayerId'),
+                        onUnlock: s.status == ScorecardStatus.approved
+                            ? () => onUnlockCard(entryId, s.markerId ?? '', displayName, markerName)
+                            : null,
                       );
                     }),
                   ],
@@ -275,6 +279,7 @@ class AdminVerifyTile extends StatelessWidget {
   final Color iconColor;
   final IconData icon;
   final VoidCallback onTap;
+  final VoidCallback? onUnlock;
   final bool isDQ;
   final bool hasConflicts;
   final int penalty;
@@ -292,6 +297,7 @@ class AdminVerifyTile extends StatelessWidget {
     required this.iconColor,
     required this.icon,
     required this.onTap,
+    this.onUnlock,
     this.isDQ = false,
     this.hasConflicts = false,
     this.penalty = 0,
@@ -367,7 +373,19 @@ class AdminVerifyTile extends StatelessWidget {
               ),
             ),
             const SizedBox(width: AppSpacing.sm),
-            Icon(Icons.arrow_forward_ios_rounded, color: isDark ? AppColors.dark400 : AppColors.dark200, size: AppShapes.iconXs),
+            if (onUnlock != null)
+              GestureDetector(
+                onTap: onUnlock,
+                child: BoxyArtIconBadge(
+                  icon: Icons.lock_rounded,
+                  color: AppColors.dark500,
+                  size: 28,
+                  iconSize: 13,
+                  useCircle: true,
+                ),
+              )
+            else
+              Icon(Icons.arrow_forward_ios_rounded, color: isDark ? AppColors.dark400 : AppColors.dark200, size: AppShapes.iconXs),
           ],
         ),
       ),

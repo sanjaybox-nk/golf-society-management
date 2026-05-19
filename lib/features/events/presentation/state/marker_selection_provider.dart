@@ -179,6 +179,20 @@ class MarkerSelectionNotifier extends Notifier<MarkerSelection> {
     state = state.copyWith(isGroupScorer: value);
   }
 
+  /// Pre-populates targets from live scorecard data when preferences are empty.
+  /// Only runs if the user has no saved targets — avoids overwriting intentional selections.
+  void seedFromScorecards(List<String> targetIds) {
+    if (state.targetEntryIds.isNotEmpty || targetIds.isEmpty) return;
+    final newTargets = List<String>.from(targetIds);
+    state = state.copyWith(
+      isSelfMarking: false,
+      targetEntryIds: newTargets,
+    );
+    ref.read(persistenceServiceProvider).setBool(_getKey(_baseKeySelf), false);
+    ref.read(persistenceServiceProvider).setString(
+        _getKey(_baseKeyTargets), jsonEncode(newTargets));
+  }
+
   /// Clears all marker targets when the active event changes, preventing stale
   /// targets from a previous event appearing pre-selected in the new event's sheet.
   void clearTargets(String eventId) {

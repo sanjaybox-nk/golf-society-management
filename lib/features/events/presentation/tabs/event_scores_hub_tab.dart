@@ -467,33 +467,12 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
 
         Widget child;
         if (hasConflicts) {
-          child = BoxyArtCard(
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Icon(Icons.warning_amber_rounded, color: AppColors.coral500, size: AppShapes.iconSmall),
-                const SizedBox(width: AppSpacing.sm),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Score conflict — cannot submit',
-                        style: AppTypography.label.copyWith(
-                          fontWeight: AppTypography.weightBold,
-                          color: AppColors.coral500,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        'Speak to your marker to resolve the discrepancy on hole${myCard.conflictedHoles.length > 1 ? 's' : ''} ${myCard.conflictedHoles.join(', ')} before submitting.',
-                        style: AppTypography.caption,
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
+          child = BoxyArtStatusBanner(
+            color: AppColors.coral500,
+            icon: Icons.warning_amber_rounded,
+            message: 'Score conflict — cannot submit',
+            subtitle: 'Speak to your marker to resolve the discrepancy on hole${myCard.conflictedHoles.length > 1 ? 's' : ''} ${myCard.conflictedHoles.join(', ')} before submitting.',
+            hasBottomMargin: false,
           );
         } else if (markerConfirmed) {
           child = BoxyArtButton(
@@ -519,24 +498,12 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
             awaitingTitle = 'Awaiting marker confirmation';
             awaitingBody = 'Your marker needs to confirm your scores before you can submit.';
           }
-          child = BoxyArtCard(
-            child: Row(
-              children: [
-                Icon(Icons.hourglass_top_rounded, color: AppColors.dark300, size: AppShapes.iconSmall),
-                const SizedBox(width: AppSpacing.sm),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(awaitingTitle,
-                          style: AppTypography.label.copyWith(fontWeight: AppTypography.weightBold)),
-                      const SizedBox(height: 2),
-                      Text(awaitingBody, style: AppTypography.caption),
-                    ],
-                  ),
-                ),
-              ],
-            ),
+          child = BoxyArtStatusBanner(
+            color: AppColors.amber500,
+            icon: Icons.hourglass_top_rounded,
+            message: awaitingTitle,
+            subtitle: awaitingBody,
+            hasBottomMargin: false,
           );
         }
         actionButton = Padding(
@@ -574,25 +541,12 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
           final markerName = targetCard.markerId != null
               ? _resolveFirstName(targetCard.markerId!.replaceAll('_guest', ''), event, full: false)
               : 'the marker';
-          stepCard = BoxyArtCard(
-            child: Row(
-              children: [
-                Icon(Icons.hourglass_top_rounded, color: AppColors.dark300, size: AppShapes.iconSmall),
-                const SizedBox(width: AppSpacing.sm),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Waiting for $markerName to complete scoring',
-                          style: AppTypography.label.copyWith(fontWeight: AppTypography.weightBold)),
-                      const SizedBox(height: 2),
-                      Text('$markerName must enter all 18 scores before you can verify.',
-                          style: AppTypography.caption),
-                    ],
-                  ),
-                ),
-              ],
-            ),
+          stepCard = BoxyArtStatusBanner(
+            color: AppColors.amber500,
+            icon: Icons.hourglass_top_rounded,
+            message: 'Waiting for $markerName to complete scoring',
+            subtitle: '$markerName must enter all 18 scores before you can verify.',
+            hasBottomMargin: false,
           );
         } else if (!confirmed && isAssignee) {
           stepLabel = markedCard != null ? 'STEP 1 OF 3' : 'STEP 1 OF 2';
@@ -613,28 +567,12 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
             onTap: () => _openGuestMarkingEntry(event, markedCard),
           );
         } else if (recordConflicts) {
-          stepCard = BoxyArtCard(
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Icon(Icons.warning_amber_rounded, color: AppColors.coral500, size: AppShapes.iconSmall),
-                const SizedBox(width: AppSpacing.sm),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Score conflict on $markedName\'s card',
-                          style: AppTypography.label.copyWith(fontWeight: AppTypography.weightBold, color: AppColors.coral500)),
-                      const SizedBox(height: 2),
-                      Text(
-                        'Hole${markedCard!.conflictedHoles.length > 1 ? 's' : ''} ${markedCard.conflictedHoles.join(', ')} — speak to $playerName to agree the correct score.',
-                        style: AppTypography.caption,
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
+          stepCard = BoxyArtStatusBanner(
+            color: AppColors.coral500,
+            icon: Icons.warning_amber_rounded,
+            message: 'Score conflict on $markedName\'s card',
+            subtitle: 'Hole${markedCard!.conflictedHoles.length > 1 ? 's' : ''} ${markedCard.conflictedHoles.join(', ')} — speak to $playerName to agree the correct score.',
+            hasBottomMargin: false,
           );
         } else if (confirmed && (markedCard == null || markerRecordFull) && isAssignee) {
           stepLabel = markedCard != null ? 'STEP 3 OF 3' : 'STEP 2 OF 2';
@@ -683,29 +621,12 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
           if (targetCard.conflictedHoles.isNotEmpty) {
             actionButton = Padding(
               padding: const EdgeInsets.only(top: AppSpacing.cardToCard),
-              child: BoxyArtCard(
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Icon(Icons.warning_amber_rounded, color: AppColors.coral500, size: AppShapes.iconSmall),
-                    const SizedBox(width: AppSpacing.sm),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('Score conflict — cannot confirm',
-                              style: AppTypography.label.copyWith(
-                                  fontWeight: AppTypography.weightBold, color: AppColors.coral500)),
-                          const SizedBox(height: 2),
-                          Text(
-                            'You and $playerName disagree on hole${targetCard.conflictedHoles.length > 1 ? 's' : ''} ${targetCard.conflictedHoles.join(', ')}. Agree on the correct score before confirming.',
-                            style: AppTypography.caption,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
+              child: BoxyArtStatusBanner(
+                color: AppColors.coral500,
+                icon: Icons.warning_amber_rounded,
+                message: 'Score conflict — cannot confirm',
+                subtitle: 'You and $playerName disagree on hole${targetCard.conflictedHoles.length > 1 ? 's' : ''} ${targetCard.conflictedHoles.join(', ')}. Agree on the correct score before confirming.',
+                hasBottomMargin: false,
               ),
             );
           } else {

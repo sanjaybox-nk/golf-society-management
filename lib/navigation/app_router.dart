@@ -13,10 +13,12 @@ import '../features/home/presentation/member_home_screen.dart';
 import '../features/members/presentation/locker_screen.dart';
 import '../features/members/presentation/members_screen.dart';
 import '../features/admin/presentation/admin_dashboard_screen.dart';
+import '../features/admin/presentation/admin_operations_screen.dart';
 import '../features/admin/presentation/events/event_admin_controls_screen.dart';
 import '../features/admin/presentation/events/event_form_screen.dart';
 import '../features/admin/presentation/members/admin_member_renewal_screen.dart';
 import '../features/admin/presentation/settings/design_lab_screen.dart';
+import '../features/admin/presentation/settings/platform_content_editor_screen.dart';
 import '../features/admin/presentation/settings/society_identity_screen.dart';
 import '../features/admin/presentation/settings/app_appearance_screen.dart';
 import '../features/admin/presentation/settings/currency_selection_screen.dart';
@@ -27,6 +29,7 @@ import '../features/admin/presentation/settings/treasury_settings_screen.dart';
 import '../features/admin/presentation/settings/admin_sponsorship_hub_screen.dart';
 import '../features/admin/presentation/settings/roles_screen.dart';
 import '../features/admin/presentation/treasury/admin_debt_ledger_screen.dart';
+import '../features/admin/presentation/treasury/admin_season_financials_screen.dart';
 import '../features/admin/presentation/seasons/admin_seasons_screen.dart';
 import '../features/admin/presentation/seasons/season_form_screen.dart';
 import '../features/admin/presentation/settings/admin_settings_hub_screen.dart';
@@ -54,6 +57,7 @@ import '../features/admin/presentation/events/event_admin_financials_screen.dart
 import '../features/admin/presentation/events/event_admin_scores_screen.dart';
 import '../features/admin/presentation/events/event_admin_verify_screen.dart';
 import '../features/admin/presentation/events/event_admin_manage_screen.dart';
+import '../features/admin/presentation/events/event_admin_grouping_screen.dart';
 import '../features/admin/presentation/events/event_admin_scorecard_editor_screen.dart';
 import 'package:golf_society/features/admin/presentation/events/event_broadcast_screen.dart';
 import 'package:golf_society/features/admin/presentation/events/feed_item_editor_screen.dart';
@@ -91,7 +95,7 @@ final _branchAdminKey = GlobalKey<NavigatorState>(debugLabel: 'branchAdmin');
 final _branchAdminEventsKey = GlobalKey<NavigatorState>(debugLabel: 'branchAdminEvents');
 final _branchAdminMembersKey = GlobalKey<NavigatorState>(debugLabel: 'branchAdminMembers');
 final _branchAdminCommsKey = GlobalKey<NavigatorState>(debugLabel: 'branchAdminComms');
-final _branchAdminReportsKey = GlobalKey<NavigatorState>(debugLabel: 'branchAdminReports');
+final _branchAdminOperationsKey = GlobalKey<NavigatorState>(debugLabel: 'branchAdminOperations');
 
 CustomTransitionPage boxyPage({
   required GoRouterState state,

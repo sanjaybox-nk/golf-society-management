@@ -14,6 +14,7 @@ export 'atoms/indicators/boxy_art_guest_badge.dart';
 export 'atoms/indicators/boxy_art_captain_badge.dart';
 export 'atoms/indicators/boxy_art_score_stepper.dart';
 export 'atoms/indicators/boxy_art_status_banner.dart';
+export 'atoms/indicators/boxy_art_stat_card.dart';
 
 // ── Molecules ─────────────────────────────────────────────────────────────────
 export 'molecules/molecules.dart';

@@ -280,6 +280,16 @@ class _EventDetailsContent extends ConsumerWidget {
       }
     }
 
+    // Social members (by role or status): blocked from golf events always.
+    // Status/role is preserved even if enableSocialMembership is later toggled off —
+    // historical access remains read-only; only new-season registration is affected.
+    if ((user.role.isSocialMember || user.status == MemberStatus.social) && !isRegistered) {
+      if (event.eventType == EventType.golf) {
+        isRegistrationDisabled = true;
+        buttonTitle = 'Social membership — golf events not available';
+      }
+    }
+
     return BoxyArtCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

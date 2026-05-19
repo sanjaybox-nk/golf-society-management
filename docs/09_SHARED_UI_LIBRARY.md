@@ -205,14 +205,53 @@ The authoritative component for handicap and interactive status display.
 |---|---|---|
 | `BoxyArtIndicator.hc(label: '8.8')` | Neutral (dark300) | Global Base Index (1 decimal) |
 | `BoxyArtIndicator.phc(label: '10')` | Amber (amber500) | Contextual Playing Handicap |
-| `BoxyArtIndicator.tee(label: 'White')` | Tee specific | Course Tee Marker |
+| `BoxyArtIndicator.tee(label: 'White')` | Tee specific | Course Tee Marker — always `showBackground: false` (dot + text, no fill) |
 
 #### Interactive "Status Button" Affordance (v4.x)
-If a `BoxyArtIndicator` (or `BoxyArtStatusPill`) is provided with an `onTap` or `onToggle` callback, it automatically transforms into a "Status Button":
+If a `BoxyArtIndicator` is provided with an `onTap` callback, it transforms into a "Status Button" **only when `showBackground: true`** (the default):
 - **Background**: Gains a subtle 8% opacity background tint and 15% opacity border matching the dot color.
-- **Pencil Icon (✎)**: Automatically appends `Icons.edit_rounded` to indicate a state change is possible.
-- **Notification Icon (🔔)**: Can be overridden with a custom icon (e.g., `Icons.notifications_active_rounded`) for actions like "Nudging" members.
-- **Hero Scoring Input (v11.0)**: Specialized input pattern for high-speed digital scorecards. Includes a **32pt** heavy-weight digit inside a bordered container (`AppColors.lightBorder`) with society-specific `effectivePointsColor` branding.
+- **Pencil Icon**: Automatically appends `Icons.edit_rounded` to indicate a state change is possible.
+- **`showBackground: false`**: Keeps dot + text only, no fill/border, even when tappable. Used by `BoxyArtIndicator.tee`.
+- **Hero Scoring Input (v11.0)**: Specialized input pattern for high-speed digital scorecards.
+
+### `BoxyArtStatCard` (v4.2)
+KPI stat card for dashboard pulse rows. Sits inside a `Row` (uses `Expanded` internally).
+
+```dart
+BoxyArtStatCard(
+  icon: Icons.people_rounded,
+  value: '61',
+  sub: 'of 84 roster',
+  label: 'Members',
+  color: theme.colorScheme.primary,
+)
+```
+
+Layout (top to bottom): icon + coloured label row → large value → muted sub-text. Uses `BoxyArtCard` internally — radius, shadow, surface colour all token-controlled.
+
+### `BoxyArtStatusBanner` (v4.2 — upgraded)
+Branded status/alert banner. Supports static and tappable modes.
+
+```dart
+// Static
+BoxyArtStatusBanner(
+  icon: Icons.warning_rounded,
+  color: AppColors.amber500,
+  message: 'Scoring locked',
+  subtitle: 'Admin has locked this event.',   // optional
+)
+
+// Tappable — adds trailing arrow, wraps in GestureDetector
+BoxyArtStatusBanner(
+  icon: Icons.account_balance_wallet_outlined,
+  color: AppColors.coral500,
+  message: '£156.00 due',
+  subtitle: '3 members with unpaid fees',
+  onTap: () => context.pushNamed('admin-debt-ledger'),
+)
+```
+
+The `onTap` parameter is backwards-compatible — omitting it renders exactly as before.
 
 ---
 

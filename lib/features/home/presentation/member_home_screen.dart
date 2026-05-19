@@ -161,11 +161,11 @@ class MemberHomeScreen extends ConsumerWidget {
                       TextButton(
                         onPressed: () => context.push('/home/notifications'),
                         child: Text(
-                          'View All', 
-                          style: theme.textTheme.labelLarge?.copyWith(
-                            color: isDark ? AppColors.lime400 : AppColors.lime700,
+                          'View All',
+                          style: AppTypography.label.copyWith(
+                            color: theme.colorScheme.primary,
                             fontWeight: AppTypography.weightBold,
-                            inherit: true,
+                            letterSpacing: AppTypography.lsLabel,
                           ),
                         ),
                       ),

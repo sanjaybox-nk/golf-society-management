@@ -45,7 +45,6 @@ class _EventAdminGroupingScreenState extends ConsumerState<EventAdminGroupingScr
   
   // Match sync state
   List<MatchDefinition>? _localMatches;
-  bool _matchPlayMode = false;
 
   @override
   void dispose() {
@@ -390,7 +389,7 @@ class _EventAdminGroupingScreenState extends ConsumerState<EventAdminGroupingScr
               onAction: (action, p, g) => _handlePlayerAction(action, p, g),
               onTapParticipant: _handleParticipantTap,
               isSelected: (p) => p == _selectedForSwap,
-              matchPlayMode: _matchPlayMode,
+              matchPlayMode: rules?.isMatchPlay ?? false,
               matches: _localMatches ?? [],
               computedEntries: computedEntries,
               computedGroupResults: { for (var g in scoringData.groupRankings) g.groupIndex : g },
@@ -630,6 +629,9 @@ class _EventAdminGroupingScreenState extends ConsumerState<EventAdminGroupingScr
   void _handlePlayerAction(String action, TeeGroupParticipant p, TeeGroup currentGroup) {
     if (action == 'captain') {
       setState(() {
+        for (final member in currentGroup.players) {
+          member.isCaptain = false;
+        }
         p.isCaptain = !p.isCaptain;
         _updateDirty(true);
       });
@@ -900,67 +902,6 @@ class _EventAdminGroupingScreenState extends ConsumerState<EventAdminGroupingScr
     _updateDirty(true);
   }
 
-  void _recalculateAllPHCs(GolfEvent event, Map<String, double> handicapMap, CompetitionRules? rules, bool useWhs) {
-    if (_localGroups == null) return;
-    
-    setState(() {
-      final updatedGroups = _localGroups!.map((group) {
-        final updatedPlayers = group.players.map((player) {
-          final double rawHandicap;
-          if (player.isGuest) {
-            rawHandicap = player.handicapIndex; 
-          } else {
-            rawHandicap = handicapMap[player.registrationMemberId] ?? player.handicapIndex;
-          }
-
-          final double automatedCut = (ref.read(themeControllerProvider).societyCutMode == SocietyCutMode.global)
-            ? SocietyCutsEngine.calculateActiveCut(
-                memberId: player.registrationMemberId,
-                allEvents: ref.read(adminEventsProvider).value?.where((e) => e.date.isBefore(event.date)).toList() ?? [],
-                config: ref.read(themeControllerProvider),
-                relativeTo: event.date,
-              ).totalCut
-            : 0.0;
-
-          final double newPlayingHandicap;
-          if (rules != null) {
-            newPlayingHandicap = HandicapCalculator.calculatePlayingHandicap(
-              handicapIndex: rawHandicap,
-              rules: rules,
-              courseConfig: event.courseConfig,
-              useWhs: useWhs,
-              societyCut: (event.manualCuts[player.registrationMemberId] ?? 0.0) + automatedCut,
-            ).toDouble();
-          } else {
-            newPlayingHandicap = rawHandicap;
-          }
-
-          return TeeGroupParticipant(
-            registrationMemberId: player.registrationMemberId,
-            name: player.name,
-            isGuest: player.isGuest,
-            handicapIndex: rawHandicap,
-            playingHandicap: newPlayingHandicap,
-            needsBuggy: player.needsBuggy,
-            buggyStatus: player.buggyStatus,
-            isCaptain: player.isCaptain,
-            status: player.status,
-          );
-        }).toList();
-
-        return TeeGroup(
-          index: group.index,
-          teeTime: group.teeTime,
-          players: updatedPlayers,
-        );
-      }).toList();
-
-      _localGroups = updatedGroups;
-      _updateDirty(true);
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('All PHCs recalculated from latest member profiles.')));
-    });
-  }
-
   void _showMoveDialog(TeeGroupParticipant p, TeeGroup currentGroup) {
     showBoxyArtDialog(
       context: context,
@@ -1064,171 +1005,42 @@ class _EventAdminGroupingScreenState extends ConsumerState<EventAdminGroupingScr
   }
 
 
-  Future<void> _togglePublish(GolfEvent event) async {
-    if (!event.isRegistrationClosed && !event.isGroupingPublished) {
-      final confirm = await showBoxyArtDialog<bool>(
-        context: context,
-        title: 'Registration Still Open',
-        message: 'Registration for this event is still open. Publishing the grouping now might lead to confusion if more members join or withdraw. Proceed anyway?',
-        confirmText: 'Publish Anyway',
-        onConfirm: () => Navigator.of(context, rootNavigator: true).pop(true),
-        onCancel: () => Navigator.of(context, rootNavigator: true).pop(false),
-      );
-      if (confirm != true) return;
-    }
-
-    try {
-      final updatedEvent = event.copyWith(isGroupingPublished: !event.isGroupingPublished);
-      await ref.read(eventsRepositoryProvider).updateEvent(updatedEvent);
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(updatedEvent.isGroupingPublished ? 'Published!' : 'Unpublished')));
-    } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
-    }
-  }
-
-
-  void _autoLinkMatches(GolfEvent event) {
-    if (_localGroups == null || _localGroups!.isEmpty) return;
-
-    setState(() {
-      final newMatches = <MatchDefinition>[];
-      for (final group in _localGroups!) {
-        if (group.players.isEmpty) continue;
-
-        // Standard 4-player grouping: 1&2 vs 3&4
-        if (group.players.length >= 2) {
-          final p1 = group.players[0];
-          final p2 = group.players.length >= 2 ? group.players[1] : null;
-          final p3 = group.players.length >= 3 ? group.players[2] : null;
-          final p4 = group.players.length >= 4 ? group.players[3] : null;
-
-          if (group.players.length == 2) {
-            // Singles Match
-            newMatches.add(MatchDefinition(
-              id: 'match_${group.index}_1',
-              team1Ids: [p1.registrationMemberId],
-              team2Ids: [p2!.registrationMemberId],
-              type: MatchType.singles,
-            ));
-          } else if (group.players.length >= 4) {
-            // Two Singles or one Fourball? 
-            // Default to two singles matches as requested for the overlay
-            newMatches.add(MatchDefinition(
-              id: 'match_${group.index}_1',
-              team1Ids: [p1.registrationMemberId],
-              team2Ids: [p3!.registrationMemberId],
-              type: MatchType.singles,
-            ));
-            newMatches.add(MatchDefinition(
-              id: 'match_${group.index}_2',
-              team1Ids: [p2!.registrationMemberId],
-              team2Ids: [p4!.registrationMemberId],
-              type: MatchType.singles,
-            ));
-          }
-        }
-      }
-      _localMatches = newMatches;
-      _updateDirty(true);
-    });
-  }
-
   Widget _buildToolbar(
-    GolfEvent event, 
-    List<GolfEvent> events, 
-    Map<String, double> handicapMap, 
-    Competition? comp, 
+    GolfEvent event,
+    List<GolfEvent> events,
+    Map<String, double> handicapMap,
+    Competition? comp,
     SocietyConfig config,
   ) {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Row(
-        children: [
-          // 1. Generate/Regenerate
-          Opacity(
-            opacity: event.isRegistrationClosed ? 1.0 : 0.4,
-            child: BoxyArtGlassIconButton(
-              icon: Icons.refresh_rounded,
-              tooltip: (_localGroups == null || _localGroups!.isEmpty) ? 'Generate' : 'Regenerate',
-              onPressed: event.isRegistrationClosed
-                  ? () {
-                      if (_isLocked == true) {
-                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Groupings locked. Unlock to regenerate.')));
-                        return;
-                      }
-                      _showRegenerationOptions(event, events, handicapMap);
-                    }
-                  : null,
-            ),
-          ),
-          const SizedBox(width: AppSpacing.sm),
+    if (!_isDirty) return const SizedBox.shrink();
 
-          // 2. Recalculate PHCs
-          BoxyArtGlassIconButton(
-            icon: Icons.calculate_outlined,
-            tooltip: 'Recalculate PHCs',
-            onPressed: () => _recalculateAllPHCs(event, handicapMap, comp?.rules, config.useWhsHandicaps),
+    return Row(
+      children: [
+        Expanded(
+          child: BoxyArtButton(
+            title: 'Save',
+            isPrimary: true,
+            fullWidth: true,
+            onTap: () => _saveGrouping(event),
           ),
-          const SizedBox(width: AppSpacing.sm),
-
-          // 3. Lock/Unlock
-          Opacity(
-            opacity: event.isRegistrationClosed ? 1.0 : 0.4,
-            child: BoxyArtGlassIconButton(
-              icon: _isLocked == true ? Icons.lock_rounded : Icons.lock_open_rounded,
-              tooltip: _isLocked == true ? 'Unlock' : 'Lock',
-              iconColor: _isLocked == true ? Theme.of(context).colorScheme.primary : null,
-              onPressed: event.isRegistrationClosed
-                  ? () {
-                      if (_localGroups == null) {
-                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Generate groups first!')));
-                        return;
-                      }
-                      setState(() => _isLocked = !(_isLocked ?? false));
-                      _updateDirty(true);
-                    }
-                  : null,
-            ),
+        ),
+        const SizedBox(width: AppSpacing.md),
+        Expanded(
+          child: BoxyArtButton(
+            title: 'Discard',
+            fullWidth: true,
+            onTap: () {
+              setState(() {
+                _localGroups = null;
+                _isDirty = false;
+                _isLocked = null;
+              });
+              ref.read(groupingLocalGroupsProvider.notifier).setGroups(null);
+              ref.read(groupingDirtyProvider.notifier).setDirty(false);
+            },
           ),
-          const SizedBox(width: AppSpacing.sm),
-
-          // 4. Match Mode (if applicable)
-          if (event.secondaryTemplateId != null) ...[
-            BoxyArtGlassIconButton(
-              icon: _matchPlayMode ? Icons.check_circle_rounded : Icons.circle_outlined,
-              tooltip: 'Match Mode',
-              iconColor: _matchPlayMode ? Theme.of(context).colorScheme.primary : null,
-              onPressed: () {
-                setState(() => _matchPlayMode = !_matchPlayMode);
-                if (_matchPlayMode && (_localMatches == null || _localMatches!.isEmpty)) {
-                  _autoLinkMatches(event);
-                }
-              },
-            ),
-            const SizedBox(width: AppSpacing.sm),
-          ],
-
-          // 5. Save
-          Opacity(
-            opacity: event.isRegistrationClosed ? 1.0 : 0.4,
-            child: BoxyArtGlassIconButton(
-              icon: Icons.save_rounded,
-              tooltip: 'Save',
-              iconColor: _isDirty ? Theme.of(context).colorScheme.primary : null,
-              onPressed: event.isRegistrationClosed ? () => _saveGrouping(event) : null,
-            ),
-          ),
-          const SizedBox(width: AppSpacing.sm),
-
-          // 6. Publish
-          BoxyArtGlassIconButton(
-            icon: event.isGroupingPublished ? Icons.visibility_rounded : Icons.visibility_off_rounded,
-            tooltip: event.isGroupingPublished ? 'Unpublish' : 'Publish',
-            iconColor: event.isGroupingPublished ? Theme.of(context).colorScheme.primary : null,
-            onPressed: () => _togglePublish(event),
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }

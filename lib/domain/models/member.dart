@@ -11,7 +11,8 @@ enum MemberRole {
   restrictedAdmin,
   scorer,
   viewer,
-  member
+  member,
+  socialMember,
 }
 
 extension MemberRoleX on MemberRole {
@@ -23,22 +24,28 @@ extension MemberRoleX on MemberRole {
       case MemberRole.scorer: return 'Scorer';
       case MemberRole.viewer: return 'Viewer';
       case MemberRole.member: return 'Member';
+      case MemberRole.socialMember: return 'Social Member';
     }
   }
 
   bool get isScorer => this == MemberRole.scorer;
+  bool get isSocialMember => this == MemberRole.socialMember;
+  bool get isEventOfficer => this == MemberRole.restrictedAdmin;
   bool get hasAdminAccess => this == MemberRole.superAdmin || this == MemberRole.admin || this == MemberRole.restrictedAdmin;
+  bool get isFullAdmin => this == MemberRole.superAdmin || this == MemberRole.admin;
+  bool get isFullMember => this == MemberRole.member || hasAdminAccess || isScorer;
 }
-enum MemberStatus { 
-  member, 
-  active, // For compatibility
-  inactive, // For compatibility 
+enum MemberStatus {
+  member,
+  active,
+  inactive,
   pending,
-  suspended, 
-  archived, 
+  suspended,
+  archived,
   left,
-  expired, // [NEW] Membership has ended
-  gracePeriod // [NEW] Membership ended but in grace period
+  expired,
+  gracePeriod,
+  social, // Social-only membership tier — attends social events, no golf
 }
 
 enum MemberRenewalStatus {
@@ -65,9 +72,11 @@ extension MemberStatusX on MemberStatus {
       case MemberStatus.left:
         return AppColors.dark300; // Standardized Neutral
       case MemberStatus.expired:
-        return AppColors.amber500; // Standardized Strong Warning
+        return AppColors.amber500;
       case MemberStatus.gracePeriod:
-        return AppColors.amber400; // Standardized Warning
+        return AppColors.amber400;
+      case MemberStatus.social:
+        return AppColors.guestPurple;
     }
   }
 }

@@ -105,6 +105,7 @@ class MemberRolePicker extends StatelessWidget {
       case MemberRole.scorer: return 'Scorer';
       case MemberRole.viewer: return 'Viewer';
       case MemberRole.member: return 'Standard Member';
+      case MemberRole.socialMember: return 'Social Member';
     }
   }
 
@@ -114,8 +115,9 @@ class MemberRolePicker extends StatelessWidget {
       case MemberRole.admin: return 'Manage members, events, and results.';
       case MemberRole.restrictedAdmin: return 'Limited management rights.';
       case MemberRole.scorer: return 'Event day scorecard verification only.';
-      case MemberRole.viewer: return 'Read-only access to all data.';
+      case MemberRole.viewer: return 'Standard member access. Read-only admin view is planned.';
       case MemberRole.member: return 'Standard app access.';
+      case MemberRole.socialMember: return 'Social events only — no golf registration or scoring.';
     }
   }
 
@@ -127,6 +129,7 @@ class MemberRolePicker extends StatelessWidget {
       case MemberRole.scorer: return Icons.edit_note_rounded;
       case MemberRole.viewer: return Icons.visibility_outlined;
       case MemberRole.member: return Icons.person_outline;
+      case MemberRole.socialMember: return Icons.people_outline_rounded;
     }
   }
 }

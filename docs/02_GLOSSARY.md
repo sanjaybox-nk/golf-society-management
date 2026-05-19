@@ -202,6 +202,20 @@ Costs that are tracked for member information but do not impact the society trea
 **Control Tower**
 The central administrative hub for an event. It consolidates all management functions—including grouping, registrations, costs, awards, and **Event Comms**—into a single, card-based interface.
 
+## 13. Membership Tiers
+
+**Full Member** (`MemberRole.member`)
+Standard golf society membership. Full access to register for golf events, enter scores, and view all content.
+
+**Social Member** (`MemberRole.socialMember`)
+A reduced membership tier for people who want to be part of the society socially but do not play golf. Social members can view all events, scores, and leaderboards, and register for social (non-golf) events. They cannot register for golf events and the My Card scoring tab is hidden. Enabled per-society via `SocietyConfig.enableSocialMembership`. Social members pay `socialMemberFee` at renewal instead of the full membership fee. Admins can promote a social member to full membership in the member profile.
+
+**Social Membership Toggle**
+A society-level configuration flag (`enableSocialMembership`) in the Society Configuration section of Operations. When off, no new social members can be created, but existing social members retain their restricted access for historical seasons.
+
+**Season Financials**
+A rolling P&L view across all season events accessible from Operations → Finance & Analytics. Shows actual net position (collected revenue minus costs) and projected net position (actual + outstanding unpaid fees). Per-event breakdown shows each event's net and any outstanding fees.
+
 ## 12. Financial Concepts
 
 **Account Credit**

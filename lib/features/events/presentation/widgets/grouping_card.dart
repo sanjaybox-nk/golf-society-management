@@ -268,6 +268,7 @@ class GroupingCard extends ConsumerWidget {
                         label: '$unsubmittedCount not submitted',
                         icon: Icons.pending_rounded,
                         color: AppColors.amber500,
+                        isAction: true,
                         hasHorizontalMargin: false,
                       ),
                       const SizedBox(width: AppSpacing.sm),

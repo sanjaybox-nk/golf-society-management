@@ -22,29 +22,26 @@ class BoxyArtNumberBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    
-    // Spec: Rank #1 is amber, others are dark/neutral
     Color bg;
     Color fg;
     
     if (isRanking) {
       if (number == 1) {
-        bg = AppColors.amber500;
+        bg = AppColors.amber500;           // Gold
         fg = AppColors.pureWhite;
       } else if (number == 2) {
-        bg = isDark ? AppColors.dark200 : AppColors.dark600;
+        bg = const Color(0xFFADB5BD);      // Silver — cool grey, not dark
         fg = AppColors.pureWhite;
       } else if (number == 3) {
-        bg = const Color(0xFFCD7F32); // Bronze
+        bg = const Color(0xFFCD7F32);      // Bronze
         fg = AppColors.pureWhite;
       } else {
-        bg = isDark ? AppColors.dark600 : AppColors.dark100;
-        fg = isDark ? AppColors.dark100 : AppColors.dark800;
+        bg = Theme.of(context).primaryColor.withValues(alpha: AppColors.opacityHalf);
+        fg = AppColors.pureWhite;
       }
     } else {
       bg = Theme.of(context).primaryColor.withValues(alpha: 0.20);
-      fg = AppColors.dark900;
+      fg = Theme.of(context).primaryColor;
     }
 
     return Container(

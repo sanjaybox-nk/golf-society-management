@@ -292,6 +292,7 @@ class _RoleMembersScreenState extends ConsumerState<RoleMembersScreen> {
       case MemberRole.scorer: return 'Scorer';
       case MemberRole.viewer: return 'Viewer';
       case MemberRole.member: return 'Standard Member';
+      case MemberRole.socialMember: return 'Social Member';
     }
   }
 
@@ -303,6 +304,7 @@ class _RoleMembersScreenState extends ConsumerState<RoleMembersScreen> {
       case MemberRole.scorer: return 'Members designated as Scorers.';
       case MemberRole.viewer: return 'Members with Viewer access.';
       case MemberRole.member: return '';
+      case MemberRole.socialMember: return 'Social-only membership — attends social events, no golf access.';
     }
   }
 
@@ -314,6 +316,7 @@ class _RoleMembersScreenState extends ConsumerState<RoleMembersScreen> {
       case MemberRole.scorer: return AppColors.lime500;
       case MemberRole.viewer: return AppColors.guestPurple;
       case MemberRole.member: return AppColors.textSecondary;
+      case MemberRole.socialMember: return AppColors.guestPurple;
     }
   }
 }

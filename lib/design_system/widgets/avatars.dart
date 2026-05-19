@@ -34,10 +34,12 @@ class BoxyArtAvatar extends StatelessWidget {
         color: primary.withValues(alpha: AppColors.opacityLow),
         shape: isCircle ? BoxShape.circle : BoxShape.rectangle,
         borderRadius: isCircle ? null : BorderRadius.circular(AppShapes.rMd),
-        border: Border.all(
-          color: borderColor ?? primary.withValues(alpha: AppColors.opacityMedium),
-          width: borderWidth ?? AppShapes.borderLight,
-        ),
+        border: (borderColor != null || (borderWidth != null && borderWidth! > 0))
+            ? Border.all(
+                color: borderColor!,
+                width: borderWidth ?? AppShapes.borderLight,
+              )
+            : null,
       ),
       child: ClipRRect(
         borderRadius: isCircle ? BorderRadius.circular(radius) : BorderRadius.circular(AppShapes.rMd),

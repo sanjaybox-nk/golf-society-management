@@ -7,9 +7,9 @@
 
 A Flutter app for managing a golf society — events, scoring, handicaps, match play, membership, and treasury. Multi-tenant (one app instance per society). Backend is Firebase (Firestore, Auth, Storage, Cloud Functions).
 
-## Current state (as of 2026-05-18)
+## Current state (as of 2026-05-19)
 
-Post-refactor UAT and scoring UX work is in progress on `main`. The 6-phase architectural refactor is complete. The app is in active UAT — Medal stroke play and Stableford handshake flows are being tested. Recent additions include the guest proxy scoring flow, admin hub navigation restructure (Verify + Manage tabs), new design system components (`BoxyArtScoreStepper`, `BoxyArtStatusBanner`), and admin scorecard editor hardening. `flutter analyze` is at **0 issues**.
+Post-refactor UAT and scoring UX work is in progress on `main`. The 6-phase architectural refactor is complete. The app is in active UAT — Medal stroke play and Stableford handshake flows are being tested. Recent additions include admin console restructure (Settings Hub absorbed into Operations, 3→2 admin surfaces), social membership tier, role enforcement hardening, dashboard KPI redesign, and Season Financials screen. `flutter analyze` is at **0 issues**.
 
 Full audit report: `docs/CODEBASE_AUDIT_REPORT.md`
 
@@ -91,6 +91,51 @@ Handles the case where a guest is brought by a member (assignee) and a separate 
 - Commit-on-navigation pattern prevents conflict dialog on every stepper tap.
 - `LateInitializationError` on `_savedScores` fixed.
 
+## Post-refactor feature work (Phase 84–85, 2026-05-19)
+
+### Admin console restructure (3 surfaces → 2)
+- Settings Hub absorbed into Admin Console Operations tab — no more separate gear icon
+- Reporting nav item replaced with Operations (Golf Events · Members · Comms · Operations)
+- Dashboard becomes a single overview screen: KPI pulse row + action alerts + next event hero + recent activity
+- Operations screen: Season & Competition · Members & Community · Finance & Analytics · Society Configuration · Access & Permissions · Dev Tools (kDebugMode only)
+- Season Financials screen — rolling P&L across all season events; actual vs projected net position; per-event breakdown with outstanding fees
+- `SocietyConfigRepository.getConfigStream()` now merges defaults before `fromJson` — prevents null-field crashes when new config fields are added
+
+### Admin Dashboard redesign
+- `BoxyArtStatCard` — new design system atom (icon + large value + sub + coloured label). Exported from barrel.
+- `BoxyArtStatusBanner.onTap` — upgraded to support tappable alerts with trailing arrow. Non-breaking.
+- Dashboard pulse row: Members active count (roster excludes archived/left), Season Events completed, Treasury net position
+- Action alerts: in-play events → lime, outstanding fees → coral, renewal alerts → coral. Each navigates to the relevant screen
+- `_dashboardSummaryProvider` — combines `adminEventsProvider`, `allMembersProvider`, `debtSummariesProvider`, `reportingHubStatsProvider`
+
+### Social membership tier (Phase 1 + 2 complete)
+- `MemberRole.socialMember` — new role; `isSocialMember`, `isEventOfficer`, `isFullAdmin` helpers on `MemberRoleX`
+- `MemberStatus.social` — new status; colour `guestPurple`
+- `SocietyConfig.enableSocialMembership` (bool, default false) + `socialMemberFee` (double)
+- Access gates: golf event registration blocked for `isSocialMember || status == social`; My Card tab hidden in event hub
+- "Promote to Full Member" action in member admin controls — sets `role = member`, `status = active`
+- Treasury Settings screen shows `socialMemberFee` field conditionally when flag is on
+- Seeder: 4 social members at indices 3, 23, 38, 55
+
+### Role enforcement hardening
+- `restrictedAdmin` (Event Officer): now redirects `/admin` → `/admin/events`; Golf Events nav only; all 5 event tabs including Manage (scorer gets 4, no Manage)
+- All inline `admin || superAdmin` checks replaced with `hasAdminAccess`
+- `viewer` role: correctly has member-level nav; full read-only admin mode deferred
+- `docs/20_ROLES_AND_PERMISSIONS.md` — new reference doc covering role matrix, enforcement status, known gaps
+
+### Scorecard modal polish
+- Removed admin edit (green pen) icon
+- Tee indicator: `BoxyArtIndicator.tee` with `showBackground: false` — dot-only legend, matches HC/PHC style
+- `thruLabel` pill moved inline to HC/PHC row; tieBreakLabel remains in separate Wrap
+- Header aligned to `BoxyArtBottomSheet` standard — no `crossAxisAlignment: start`
+
+### Design system
+- `BoxyArtStatCard` — new atom in `atoms/indicators/`
+- `BoxyArtStatusBanner` — `onTap` + trailing arrow; backwards-compatible
+- `BoxyArtIndicator` — `showBackground` flag; `tee` factory defaults to `showBackground: false`
+- `BoxyArtPill.tee` — `isLegend` parameter added
+- Roles screen: flat list, `cardToCard` spacing, count shown as `ROLE NAME  (n)` inline
+
 ## What comes next
 
 - **Production infrastructure** — CI/CD (GitHub Actions or Codemagic), TestFlight internal beta, Google Play internal track
@@ -122,4 +167,10 @@ Handles the case where a guest is brought by a member (assignee) and a separate 
 | `lib/features/admin/presentation/events/event_admin_verify_screen.dart` | Standalone Verify tab — metrics + lock/publish actions + AdminVerifyTab |
 | `lib/features/admin/presentation/events/event_admin_manage_screen.dart` | Tabbed Manage screen — Financials + Controls tabs |
 | `lib/design_system/atoms/indicators/boxy_art_score_stepper.dart` | Score stepper atom with par-relative colour coding |
-| `lib/design_system/atoms/indicators/boxy_art_status_banner.dart` | Branded status/alert banner atom |
+| `lib/design_system/atoms/indicators/boxy_art_status_banner.dart` | Branded status/alert banner atom — supports `onTap` for actionable alerts |
+| `lib/design_system/atoms/indicators/boxy_art_stat_card.dart` | KPI stat card atom — icon + large value + sub + coloured label |
+| `lib/features/admin/presentation/admin_dashboard_screen.dart` | Dashboard overview — KPI pulse row + action alerts + next event + recent activity |
+| `lib/features/admin/presentation/admin_operations_screen.dart` | Operations hub — all admin sections in one scrollable screen |
+| `lib/features/admin/presentation/treasury/admin_season_financials_screen.dart` | Rolling season P&L — actual vs projected, per-event breakdown |
+| `lib/features/settings/data/society_config_repository.dart` | Firestore config stream — merges defaults before fromJson (null-safe for new fields) |
+| `docs/20_ROLES_AND_PERMISSIONS.md` | Role matrix, enforcement status, known gaps |

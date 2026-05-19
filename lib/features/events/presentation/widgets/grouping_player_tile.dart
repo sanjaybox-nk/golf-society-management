@@ -95,8 +95,6 @@ class GroupingPlayerTile extends ConsumerWidget {
       }
     }
 
-    final theme = Theme.of(context);
-
     // Score Text Formatting (v4.0 standardized)
     final bool isScramble = rules?.format == CompetitionFormat.scramble;
     final bool isDq = scoringStatus == ScoringStatus.dq;
@@ -125,7 +123,7 @@ class GroupingPlayerTile extends ConsumerWidget {
       tieBreakLabel: isEventClosed ? tieBreakLabel : null,
       teeName: player.teeName,
       teeColor: teeColor,
-      onTeeTap: isAdmin ? () => onAction?.call('tee', player, group) : null,
+      onTeeTap: null,
       onTap: onTap,
       isSelected: isSelected,
       useCard: useCard,
@@ -133,80 +131,87 @@ class GroupingPlayerTile extends ConsumerWidget {
       showVerticalDivider: true,
       showChevron: false,
       accentColor: null,
-      leading: isAdmin 
-        ? PopupMenuButton<String>(
-            onSelected: (val) => onAction?.call(val, player, group),
-            color: theme.brightness == Brightness.dark ? AppColors.dark700 : AppColors.pureWhite,
-            surfaceTintColor: Colors.transparent,
-            elevation: 8,
-            offset: const Offset(0, 48),
-            shape: RoundedRectangleBorder(borderRadius: AppShapes.lg),
-            itemBuilder: (context) => [
-              PopupMenuItem(
-                value: 'move',
-                child: Row(
-                  children: [
-                    Icon(Icons.drive_file_move_outlined, size: AppShapes.iconSm),
-                    const SizedBox(width: AppSpacing.md),
-                    const Text('Move to Group...'),
-                  ],
-                ),
-              ),
-              PopupMenuItem(
-                value: 'tee',
-                child: Row(
-                  children: [
-                    Icon(Icons.flag_circle_outlined, size: AppShapes.iconSm),
-                    const SizedBox(width: AppSpacing.md),
-                    const Text('Change Tee...'),
-                  ],
-                ),
-              ),
-              PopupMenuItem(
-                value: 'remove',
-                child: Row(
-                  children: [
-                    Icon(Icons.person_remove_outlined, size: AppShapes.iconSm),
-                    const SizedBox(width: AppSpacing.md),
-                    const Text('Remove from Group'),
-                  ],
-                ),
-              ),
-              PopupMenuItem(
-                value: 'captain',
-                child: Row(
-                  children: [
-                    Icon(Icons.shield_outlined, size: AppShapes.iconSm),
-                    const SizedBox(width: AppSpacing.md),
-                    const Text('Toggle Captain'),
-                  ],
-                ),
-              ),
-              PopupMenuItem(
-                value: 'withdraw',
-                child: Row(
-                  children: [
-                    Icon(Icons.exit_to_app, size: AppShapes.iconSm, color: AppColors.coral500),
-                    const SizedBox(width: AppSpacing.md),
-                    const Text('Withdraw Member', style: TextStyle(color: AppColors.coral500)),
-                  ],
-                ),
-              ),
-            ],
+      leading: isAdmin
+        ? GestureDetector(
+            onTap: () => _showPlayerActions(context),
             child: _buildAvatarStack(context, isScoreMode, varietyColor, hasGuestInGroup),
           )
-        : null, // BoxyArtMemberRow handles standard avatar if leading is null
+        : null,
+    );
+  }
+
+  void _showPlayerActions(BuildContext context) {
+    BoxyArtBottomSheet.show(
+      context: context,
+      title: player.name,
+      child: BoxyArtCard(
+        padding: EdgeInsets.zero,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            BoxyArtNavTile(
+              icon: Icons.drive_file_move_outlined,
+              title: 'Move to Group',
+              subtitle: 'Transfer player to a different tee time',
+              onTap: () { Navigator.pop(context); onAction?.call('move', player, group); },
+            ),
+            const BoxyArtDivider(),
+            BoxyArtNavTile(
+              icon: Icons.person_remove_outlined,
+              title: 'Remove from Group',
+              subtitle: 'Return player to the unassigned pool',
+              onTap: () { Navigator.pop(context); onAction?.call('remove', player, group); },
+            ),
+            const BoxyArtDivider(),
+            BoxyArtNavTile(
+              icon: Icons.shield_outlined,
+              title: player.isCaptain ? 'Remove Captain' : 'Make Captain',
+              subtitle: player.isCaptain
+                  ? 'Remove captain status from this player'
+                  : group.players.any((p) => p != player && p.isCaptain)
+                      ? 'Transfer captaincy to this player'
+                      : 'Assign as group captain',
+              onTap: () { Navigator.pop(context); onAction?.call('captain', player, group); },
+            ),
+            const BoxyArtDivider(),
+            BoxyArtNavTile(
+              icon: Icons.exit_to_app,
+              title: 'Withdraw Member',
+              subtitle: 'Mark as withdrawn from this event',
+              iconColor: AppColors.coral500,
+              badgeColor: AppColors.coral500.withValues(alpha: AppColors.opacityLow),
+              onTap: () { Navigator.pop(context); onAction?.call('withdraw', player, group); },
+            ),
+          ],
+        ),
+      ),
     );
   }
 
   Widget _buildAvatarStack(BuildContext context, bool isScoreMode, Color? varietyColor, bool hasGuestInGroup) {
-    return BoxyArtAvatar(
+    final avatar = BoxyArtAvatar(
       url: member?.avatarUrl,
       initials: extractInitials(player.name),
       radius: 38,
       isCircle: true,
-      borderColor: Colors.transparent,
-      borderWidth: 0,
+    );
+    if (!isAdmin || isScoreMode) return avatar;
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        avatar,
+        Positioned(
+          top: -4,
+          right: -4,
+          child: BoxyArtIconBadge(
+            icon: Icons.more_vert,
+            color: Theme.of(context).primaryColor,
+            size: 18,
+            iconSize: 11,
+            useCircle: true,
+          ),
+        ),
+      ],
     );
   }
 }

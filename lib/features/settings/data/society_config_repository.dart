@@ -20,7 +20,9 @@ class SocietyConfigRepository {
   Stream<SocietyConfig> getConfigStream() {
     return _docRef.snapshots().map((doc) {
       if (!doc.exists) return const SocietyConfig();
-      return SocietyConfig.fromJson(doc.data()!);
+      final defaults = const SocietyConfig().toJson();
+      final data = {...defaults, ...doc.data()!};
+      return SocietyConfig.fromJson(data);
     });
   }
 

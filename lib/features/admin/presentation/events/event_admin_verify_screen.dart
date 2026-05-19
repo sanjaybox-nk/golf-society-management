@@ -6,9 +6,11 @@ import 'package:golf_society/domain/models/golf_event.dart';
 import 'package:golf_society/domain/models/scorecard.dart';
 import 'package:golf_society/domain/models/competition.dart';
 import 'package:golf_society/domain/models/notification.dart';
+import 'package:golf_society/domain/models/platform_content.dart';
 import '../../../events/presentation/events_provider.dart';
 import '../../../competitions/presentation/competitions_provider.dart';
 import '../../../home/presentation/home_providers.dart';
+import '../../../settings/data/platform_content_repository.dart';
 import 'widgets/admin_verify_tab.dart';
 
 class EventAdminVerifyScreen extends ConsumerStatefulWidget {
@@ -209,12 +211,13 @@ class _EventAdminVerifyScreenState extends ConsumerState<EventAdminVerifyScreen>
   ) {
     try {
       final repo = ref.read(notificationsRepositoryProvider);
+      final content = ref.read(platformContentProvider).value ?? const PlatformContent();
       final now = DateTime.now();
       repo.sendNotification(AppNotification(
         id: '',
         recipientId: entryId.replaceAll('_guest', ''),
         title: 'Scorecard Unlocked',
-        message: 'An admin has unlocked your scorecard. Please review your scores and re-verify.',
+        message: content.scorecardUnlockedPlayer,
         timestamp: now,
         category: 'Scoring',
         eventId: eventId,
@@ -225,7 +228,7 @@ class _EventAdminVerifyScreenState extends ConsumerState<EventAdminVerifyScreen>
           id: '',
           recipientId: markerMemberId,
           title: 'Scorecard Unlocked',
-          message: "An admin has unlocked $playerName's scorecard. Please re-verify their scores.",
+          message: content.resolve(content.scorecardUnlockedMarker, {'playerName': playerName}),
           timestamp: now,
           category: 'Scoring',
           eventId: eventId,
@@ -263,20 +266,13 @@ class _UnlockConfirmSheetState extends State<_UnlockConfirmSheet> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Icon(Icons.lock_open_rounded, color: AppColors.amber500, size: AppShapes.iconSmall),
-              const SizedBox(width: AppSpacing.sm),
-              Expanded(
-                child: Text(
-                  hasMarker
-                      ? 'This will reset verification for $firstName and their marker (${widget.markerName}). Both will need to re-verify before the card can be approved again.'
-                      : 'This will reset verification for $firstName. They will need to re-verify before the card can be approved again.',
-                  style: AppTypography.bodySmall.copyWith(color: AppColors.amber500),
-                ),
-              ),
-            ],
+          BoxyArtStatusBanner(
+            color: AppColors.amber500,
+            icon: Icons.lock_open_rounded,
+            message: hasMarker
+                ? 'This will reset verification for $firstName and their marker (${widget.markerName}). Both will need to re-verify before the card can be approved again.'
+                : 'This will reset verification for $firstName. They will need to re-verify before the card can be approved again.',
+            hasBottomMargin: false,
           ),
           const SizedBox(height: AppSpacing.standard),
           BoxyArtButton(

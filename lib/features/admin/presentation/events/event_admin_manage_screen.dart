@@ -657,6 +657,15 @@ class _ControlsBodyState extends ConsumerState<_ControlsBody> {
                 child: Column(
                   children: [
                     BoxyArtNavTile(
+                      title: 'Grouping & Tee Times',
+                      subtitle: 'Build groups, assign tees, release to members',
+                      icon: Icons.golf_course_rounded,
+                      onTap: () => context.push(
+                        '/admin/events/manage/${event.id}/grouping',
+                      ),
+                    ),
+                    const BoxyArtDivider(),
+                    BoxyArtNavTile(
                       title: 'Edit Event Details',
                       subtitle: 'Change venue, date, or title',
                       icon: Icons.settings_applications_outlined,

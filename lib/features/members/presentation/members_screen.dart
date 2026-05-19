@@ -75,11 +75,11 @@ class _MembersScreenState extends ConsumerState<MembersScreen> {
               if (!matchesSearch) return false;
               if (widget.isAdminContext && searchQuery.isNotEmpty) return true;
               if (currentFilter.type == AdminMemberFilter.current) {
-                return m.status == MemberStatus.member || m.status == MemberStatus.active;
+                return m.status == MemberStatus.member || m.status == MemberStatus.active || m.status == MemberStatus.social;
               } else if (currentFilter.type == AdminMemberFilter.committee) {
                 return m.societyRole != null && m.societyRole!.isNotEmpty;
               } else if (currentFilter.type == AdminMemberFilter.other) {
-                return m.status != MemberStatus.member && m.status != MemberStatus.active;
+                return m.status != MemberStatus.member && m.status != MemberStatus.active && m.status != MemberStatus.social;
               } else if (widget.isAdminContext && currentFilter.type == AdminMemberFilter.role) {
                 return m.role == currentFilter.role;
               }
@@ -269,11 +269,14 @@ class _MembersScreenState extends ConsumerState<MembersScreen> {
     }
 
     const statusPriority = {
-      MemberStatus.expired: 0,
-      MemberStatus.suspended: 1,
-      MemberStatus.pending: 2,
-      MemberStatus.left: 3,
-      MemberStatus.archived: 4,
+      MemberStatus.social: 0,
+      MemberStatus.expired: 1,
+      MemberStatus.gracePeriod: 2,
+      MemberStatus.suspended: 3,
+      MemberStatus.pending: 4,
+      MemberStatus.inactive: 5,
+      MemberStatus.left: 6,
+      MemberStatus.archived: 7,
     };
 
     final sortedStatuses = grouped.keys.toList()

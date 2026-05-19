@@ -17,6 +17,7 @@ class BoxyArtButton extends ConsumerWidget {
   final Color? backgroundColor;
   final Color? textColor;
   final bool isDangerous;
+  final bool isTinted;
   final VoidCallback? onLongPress;
 
   const BoxyArtButton({
@@ -28,6 +29,7 @@ class BoxyArtButton extends ConsumerWidget {
     this.isTertiary = false,
     this.isGhost = false,
     this.isSmall = false,
+    this.isTinted = false,
     this.icon,
     this.isLoading = false,
     this.fullWidth = false,
@@ -44,6 +46,51 @@ class BoxyArtButton extends ConsumerWidget {
     final isDark = theme.brightness == Brightness.dark;
 
     final config = ref.watch(themeControllerProvider);
+
+    // Tinted variant: primary-coloured soft fill, primary text.
+    // Fill opacity is structural (0.15) — same constant BoxyArtIconBadge uses for explicit-colour tints.
+    // The colour itself is controlled via the society's primary colour in Design Lab.
+    if (isTinted) {
+      final primary = theme.colorScheme.primary;
+      final fill = primary.withValues(alpha: 0.15);
+      final tintedStyle = ElevatedButton.styleFrom(
+        backgroundColor: fill,
+        foregroundColor: primary,
+        elevation: 0,
+        shadowColor: Colors.transparent,
+        textStyle: isSmall
+            ? AppTypography.label.copyWith(fontWeight: AppTypography.weightBold)
+            : AppTypography.body.copyWith(fontWeight: AppTypography.weightBold),
+        padding: EdgeInsets.symmetric(
+            horizontal: config.buttonHorizontalPadding,
+            vertical: verticalPadding ?? (isSmall ? 6 : 11)),
+        minimumSize: Size(0, isSmall ? config.buttonSmallHeight : config.buttonHeight),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(
+              isSmall ? config.accentRadius : config.buttonRadius),
+          side: config.useBorders
+              ? BorderSide(
+                  color: primary.withValues(alpha: AppColors.opacitySubtle),
+                  width: config.borderWidth,
+                )
+              : BorderSide.none,
+        ),
+        disabledBackgroundColor: fill,
+        disabledForegroundColor: primary.withValues(alpha: AppColors.opacitySecondary),
+      );
+      final tintedButton = SizedBox(
+        width: fullWidth ? double.infinity : null,
+        child: ElevatedButton(
+          onPressed: isLoading ? null : onTap,
+          style: tintedStyle,
+          child: _buildContent(primary),
+        ),
+      );
+      if (onLongPress != null) {
+        return GestureDetector(onLongPress: onLongPress, child: tintedButton);
+      }
+      return tintedButton;
+    }
 
     // Map legacy variants to new v3.1 styles
     ButtonStyle style;

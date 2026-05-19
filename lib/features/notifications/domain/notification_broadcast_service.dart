@@ -2,7 +2,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:golf_society/domain/models/member.dart';
 import 'package:golf_society/domain/models/golf_event.dart';
+import 'package:golf_society/domain/models/platform_content.dart';
 import 'package:golf_society/design_system/design_system.dart';
+import 'package:golf_society/features/settings/data/platform_content_repository.dart';
 import 'package:intl/intl.dart';
 import '../../matchplay/domain/match_play_tournament.dart';
 
@@ -45,10 +47,14 @@ class NotificationBroadcastService {
   }) async {
     if (member.status == MemberStatus.suspended) return;
 
+    final content = ref.read(platformContentProvider).value ?? const PlatformContent();
     await _firestore.collection('notifications').add({
         'recipientId': member.id,
         'title': 'Tee Time Promotion!',
-        'message': 'You have been promoted from the waitlist to Group ${groupIndex + 1} for ${event.title}.',
+        'message': content.resolve(content.teeTimePromotion, {
+          'groupNumber': '${groupIndex + 1}',
+          'eventName': event.title,
+        }),
         'timestamp': FieldValue.serverTimestamp(),
         'category': 'promotion',
         'isRead': false,
@@ -61,26 +67,29 @@ class NotificationBroadcastService {
   }) async {
     if (member.status == MemberStatus.suspended) return;
 
+    final content = ref.read(platformContentProvider).value ?? const PlatformContent();
     await _firestore.collection('notifications').add({
         'recipientId': member.id,
         'title': 'Membership Renewal Due',
-        'message': 'Hi ${member.firstName}, your annual membership is due for renewal. Please visit your profile to confirm and update details.',
+        'message': content.resolve(content.membershipRenewalDue, {'firstName': member.firstName}),
         'timestamp': FieldValue.serverTimestamp(),
         'category': 'Urgent',
         'isRead': false,
         'actionUrl': '/members/${member.id}',
     });
   }
+
   /// Notifies a member that their seasonal payment is due.
   Future<void> notifyMemberOfPaymentDue({
     required Member member,
   }) async {
     if (member.status == MemberStatus.suspended) return;
 
+    final content = ref.read(platformContentProvider).value ?? const PlatformContent();
     await _firestore.collection('notifications').add({
         'recipientId': member.id,
         'title': 'Payment Reminder',
-        'message': 'Hi ${member.firstName}, your annual membership renewal is confirmed! Please finalize your payment via your profile to secure your spot for the new season.',
+        'message': content.resolve(content.membershipPaymentDue, {'firstName': member.firstName}),
         'timestamp': FieldValue.serverTimestamp(),
         'category': 'Urgent',
         'isRead': false,
@@ -94,11 +103,12 @@ class NotificationBroadcastService {
   }) async {
     final config = ref.read(themeControllerProvider);
     final deadline = config.renewalDeadline != null ? DateFormat('MMM d').format(config.renewalDeadline!) : 'soon';
+    final content = ref.read(platformContentProvider).value ?? const PlatformContent();
 
     await _firestore.collection('notifications').add({
         'recipientId': member.id,
         'title': 'Nudge: Membership Renewal',
-        'message': 'Hi ${member.firstName}, we haven\'t heard from you yet regarding the new season! Please submit your preference by $deadline to stay in the game.',
+        'message': content.resolve(content.membershipNudge, {'firstName': member.firstName, 'deadline': deadline}),
         'timestamp': FieldValue.serverTimestamp(),
         'category': 'Nudge',
         'isRead': false,

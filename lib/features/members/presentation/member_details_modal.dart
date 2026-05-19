@@ -319,7 +319,7 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
   Widget build(BuildContext context) {
     // Cache variables here to satisfy Riverpod's strict ref.watch lifecycle rules
     final currentUser = ref.watch(effectiveUserProvider);
-    final isAdmin = currentUser.role == MemberRole.admin || currentUser.role == MemberRole.superAdmin;
+    final isAdmin = currentUser.role.hasAdminAccess;
     final canAssignRoles = currentUser.role == MemberRole.superAdmin;
     final spacing = Theme.of(context).extension<AppSpacingTokens>();
     
@@ -512,78 +512,6 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
                               ),
                             ),
 
-                            // Admin Controls Section
-                            if (isAdmin) ...[
-                              const BoxyArtSectionTitle(
-                                title: 'Administrative Controls',
-                                followsCard: true,
-                              ),
-                              BoxyArtCard(
-                                child: Row(
-                                  children: [
-                                    Expanded(
-                                      child: BoxyArtFormColumn(
-                                        spacing: spacing?.labelToCard ?? AppSpacing.xs,
-                                        children: [
-                                          Text(
-                                            'Allow Social Events Only'.toUpperCase(),
-                                            style: AppTypography.micro.copyWith(
-                                              color: Theme.of(context).colorScheme.onSurface,
-                                              letterSpacing: AppTypography.lsLabel,
-                                            ),
-                                          ),
-                                          Text(
-                                            'Permits attendance at social events while suspended.',
-                                            style: AppTypography.caption.copyWith(
-                                              color: Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha: AppColors.opacityHigh),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    Switch(
-                                      value: _allowSocialEventsOnly,
-                                      activeTrackColor: Theme.of(context).primaryColor,
-                                      activeThumbColor: AppColors.pureWhite,
-                                      onChanged: _isEditing ? (val) => setState(() => _allowSocialEventsOnly = val) : null,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              const SizedBox(height: AppSpacing.sm),
-                              BoxyArtCard(
-                                child: Row(
-                                  children: [
-                                    Expanded(
-                                      child: BoxyArtFormColumn(
-                                        spacing: spacing?.labelToCard ?? AppSpacing.xs,
-                                        children: [
-                                          Text(
-                                            'Founding Member Status'.toUpperCase(),
-                                            style: AppTypography.micro.copyWith(
-                                              color: Theme.of(context).colorScheme.onSurface,
-                                              letterSpacing: AppTypography.lsLabel,
-                                            ),
-                                          ),
-                                          Text(
-                                            'Grants honorary "Founding Member" recognition badge.',
-                                            style: AppTypography.caption.copyWith(
-                                              color: Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha: AppColors.opacityHigh),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    Switch(
-                                      value: _isFoundingMember,
-                                      activeTrackColor: AppColors.lime500,
-                                      activeThumbColor: AppColors.pureWhite,
-                                      onChanged: _isEditing ? (val) => setState(() => _isFoundingMember = val) : null,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
                           ],
                         );
                       },
@@ -627,6 +555,104 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
                       addressFocusNode: _addressFocusNode,
                     ),
                   ),
+
+                  if (isAdmin) ...[
+                    const BoxyArtSectionTitle(
+                      title: 'Administrative Controls',
+                      followsCard: true,
+                    ),
+                    BoxyArtCard(
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: BoxyArtFormColumn(
+                              spacing: spacing?.labelToCard ?? AppSpacing.xs,
+                              children: [
+                                Text(
+                                  'Allow Social Events Only'.toUpperCase(),
+                                  style: AppTypography.micro.copyWith(
+                                    color: Theme.of(context).colorScheme.onSurface,
+                                    letterSpacing: AppTypography.lsLabel,
+                                  ),
+                                ),
+                                Text(
+                                  'Permits attendance at social events while suspended.',
+                                  style: AppTypography.caption.copyWith(
+                                    color: Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha: AppColors.opacityHigh),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Switch(
+                            value: _allowSocialEventsOnly,
+                            activeTrackColor: Theme.of(context).primaryColor,
+                            activeThumbColor: AppColors.pureWhite,
+                            onChanged: _isEditing ? (val) => setState(() => _allowSocialEventsOnly = val) : null,
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.sm),
+                    BoxyArtCard(
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: BoxyArtFormColumn(
+                              spacing: spacing?.labelToCard ?? AppSpacing.xs,
+                              children: [
+                                Text(
+                                  'Founding Member Status'.toUpperCase(),
+                                  style: AppTypography.micro.copyWith(
+                                    color: Theme.of(context).colorScheme.onSurface,
+                                    letterSpacing: AppTypography.lsLabel,
+                                  ),
+                                ),
+                                Text(
+                                  'Grants honorary "Founding Member" recognition badge.',
+                                  style: AppTypography.caption.copyWith(
+                                    color: Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha: AppColors.opacityHigh),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Switch(
+                            value: _isFoundingMember,
+                            activeTrackColor: AppColors.lime500,
+                            activeThumbColor: AppColors.pureWhite,
+                            onChanged: _isEditing ? (val) => setState(() => _isFoundingMember = val) : null,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+
+                  // Promote social member to full member
+                  if (isAdmin && (_role == MemberRole.socialMember || widget.member?.status == MemberStatus.social)) ...[
+                    const SizedBox(height: AppSpacing.standard),
+                    BoxyArtStatusBanner(
+                      icon: Icons.people_outline_rounded,
+                      color: AppColors.guestPurple,
+                      message: 'Social Member',
+                      subtitle: 'Promote to full membership to grant golf event access.',
+                      hasBottomMargin: false,
+                      onTap: _isEditing ? () async {
+                        final confirmed = await showBoxyArtDialog<bool>(
+                          context: context,
+                          title: 'Promote to Full Member?',
+                          message: 'This will grant full golf access and change their renewal fee to the standard membership rate.',
+                          confirmText: 'Promote',
+                        );
+                        if (confirmed == true) {
+                          setState(() {
+                            _role = MemberRole.member;
+                            _status = MemberStatus.active;
+                          });
+                        }
+                      } : null,
+                    ),
+                  ],
 
                   const SizedBox(height: AppSpacing.section),
 

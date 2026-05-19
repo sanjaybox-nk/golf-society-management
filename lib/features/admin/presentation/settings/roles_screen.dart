@@ -20,18 +20,12 @@ class _RolesScreenState extends ConsumerState<RolesScreen> {
 
     return HeadlessScaffold(
       title: 'System Roles',
-      subtitle: 'Manage administrative permissions and site-wide access tiers.',
+      subtitle: 'Manage administrative permissions.',
       topPill: BoxyArtPill.committee(label: 'ADMIN'),
       showBack: true,
       actions: const [],
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       slivers: [
-        const SliverPadding(
-          padding: EdgeInsets.symmetric(horizontal: AppSpacing.xl),
-          sliver: SliverToBoxAdapter(
-            child: BoxyArtSectionTitle(title: 'Access tiers', isPeeking: true),
-          ),
-        ),
         membersAsync.when(
           data: (members) {
             // Calculate counts for each MemberRole
@@ -41,20 +35,18 @@ class _RolesScreenState extends ConsumerState<RolesScreen> {
             }
 
             return SliverPadding(
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+              padding: EdgeInsets.fromLTRB(AppSpacing.xl, spacing?.cardToLabel ?? AppSpacing.cardToLabel, AppSpacing.xl, 0),
               sliver: SliverList(
                 delegate: SliverChildListDelegate([
-                  ...MemberRole.values.where((r) => r != MemberRole.member).map((role) {
-                    final isLastInGroup = role == MemberRole.viewer;
+                  ...MemberRole.values.asMap().entries.map((entry) {
+                    final isLast = entry.key == MemberRole.values.length - 1;
                     return Padding(
                       padding: EdgeInsets.only(
-                        bottom: isLastInGroup ? 0 : (spacing?.cardToCard ?? AppSpacing.atomic),
+                        bottom: isLast ? 0 : (spacing?.cardToCard ?? AppSpacing.standard),
                       ),
-                      child: _buildRoleCard(context, role, roleCounts[role] ?? 0),
+                      child: _buildRoleCard(context, entry.value, roleCounts[entry.value] ?? 0),
                     );
                   }),
-                  const BoxyArtSectionTitle(title: 'Standard access', isPeeking: false),
-                  _buildRoleCard(context, MemberRole.member, roleCounts[MemberRole.member] ?? 0),
                   const SizedBox(height: AppSpacing.pageBottom),
                 ]),
               ),
@@ -109,22 +101,14 @@ class _RolesScreenState extends ConsumerState<RolesScreen> {
                 Row(
                   children: [
                     Text(
-                      _getRoleDisplayName(role).toUpperCase(),
+                      count > 0
+                          ? '${_getRoleDisplayName(role).toUpperCase()}  ($count)'
+                          : _getRoleDisplayName(role).toUpperCase(),
                       style: AppTypography.labelStrong.copyWith(
-                        letterSpacing: 1.0,
+                        letterSpacing: AppTypography.lsLabel,
                         color: theme.colorScheme.onSurface,
                       ),
                     ),
-                    if (count > 0) ...[
-                      const SizedBox(width: AppSpacing.sm),
-                      BoxyArtPill(
-                        label: '$count',
-                        // Design 4.x: Primary-tinted count pills
-                        color: theme.primaryColor,
-                        fontSize: AppTypography.sizeMicroSmall,
-                        hasHorizontalMargin: false,
-                      ),
-                    ],
                   ],
                 ),
                 const SizedBox(height: 2),
@@ -156,6 +140,7 @@ class _RolesScreenState extends ConsumerState<RolesScreen> {
       case MemberRole.scorer: return 'Scorer';
       case MemberRole.viewer: return 'Observer (Read-Only)';
       case MemberRole.member: return 'Society Member';
+      case MemberRole.socialMember: return 'Social Member';
     }
   }
 
@@ -165,8 +150,9 @@ class _RolesScreenState extends ConsumerState<RolesScreen> {
       case MemberRole.admin: return 'Primary operators who manage the day-to-day running of events and the membership roster.';
       case MemberRole.restrictedAdmin: return 'Field-level support for managing specific event tasks and live scoring without full system access.';
       case MemberRole.scorer: return 'Assigned for event day scoring — can verify cards, resolve conflicts, and approve scorecards.';
-      case MemberRole.viewer: return 'Internal auditors or committee members who need to monitor stats without editing rights.';
+      case MemberRole.viewer: return 'Standard member access. Read-only admin reporting is planned — assign Admin for full access in the meantime.';
       case MemberRole.member: return 'Standard app experience for all society members to participate in the season.';
+      case MemberRole.socialMember: return 'Social-only access — can view events, scores and leaderboards but cannot register for golf or enter scores.';
     }
   }
 
@@ -178,6 +164,7 @@ class _RolesScreenState extends ConsumerState<RolesScreen> {
       case MemberRole.scorer: return Icons.edit_note_rounded;
       case MemberRole.viewer: return Icons.visibility_outlined;
       case MemberRole.member: return Icons.person_outline_rounded;
+      case MemberRole.socialMember: return Icons.people_outline_rounded;
     }
   }
 }

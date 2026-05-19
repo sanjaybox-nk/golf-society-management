@@ -9,7 +9,7 @@ List<StatefulShellBranch> _buildAdminBranches(Ref ref) => [
                 name: 'admin-dashboard',
                 redirect: (context, state) {
                   final user = ref.read(effectiveUserProvider);
-                  if (user.role.isScorer) return '/admin/events';
+                  if (user.role.isScorer || user.role.isEventOfficer) return '/admin/events';
                   return null;
                 },
                 pageBuilder: (context, state) => boxyPage(
@@ -210,6 +210,14 @@ List<StatefulShellBranch> _buildAdminBranches(Ref ref) => [
                         ),
                       ),
                       GoRoute(
+                        path: 'platform-content',
+                        name: 'admin-settings-platform-content',
+                        pageBuilder: (context, state) => boxyPage(
+                          state: state,
+                          child: const PlatformContentEditorScreen(),
+                        ),
+                      ),
+                      GoRoute(
                         path: 'design-preview',
                         name: 'admin-settings-design-preview',
                         pageBuilder: (context, state) => boxyPage(state: state,
@@ -224,6 +232,14 @@ List<StatefulShellBranch> _buildAdminBranches(Ref ref) => [
                     pageBuilder: (context, state) => boxyPage(
                       state: state,
                       child: const AdminDebtLedgerScreen(),
+                    ),
+                  ),
+                  GoRoute(
+                    path: 'season-financials',
+                    name: 'admin-season-financials',
+                    pageBuilder: (context, state) => boxyPage(
+                      state: state,
+                      child: const AdminSeasonFinancialsScreen(),
                     ),
                   ),
                   GoRoute(
@@ -410,6 +426,14 @@ List<StatefulShellBranch> _buildAdminBranches(Ref ref) => [
                         eventId: state.pathParameters['id'],
                         checkRoundProgression: state.uri.queryParameters['progress'] == 'true',
                       ),
+                    ),
+                  ),
+                  GoRoute(
+                    path: 'manage/:id/grouping',
+                    name: 'admin-event-grouping',
+                    pageBuilder: (context, state) => boxyPage(
+                      state: state,
+                      child: EventAdminGroupingScreen(eventId: state.pathParameters['id']!),
                     ),
                   ),
                   GoRoute(
@@ -665,22 +689,31 @@ List<StatefulShellBranch> _buildAdminBranches(Ref ref) => [
             ],
           ),
 
-          // 10. Admin Reports
+          // 10. Admin Operations
           StatefulShellBranch(
-            navigatorKey: _branchAdminReportsKey,
+            navigatorKey: _branchAdminOperationsKey,
             routes: [
               GoRoute(
-                path: '/admin/reports',
-                name: 'admin-reports',
+                path: '/admin/operations',
+                name: 'admin-operations',
                 pageBuilder: (context, state) => boxyPage(state: state,
-                  child: const AdminReportsScreen(), 
+                  child: const AdminOperationsScreen(),
                 ),
                 routes: [
                   GoRoute(
-                    path: 'leaderboard/:id',
+                    path: 'reports',
+                    name: 'admin-reports',
                     pageBuilder: (context, state) => boxyPage(state: state,
-                      child: const Center(child: Text('Leaderboard Detail Placeholder')),
+                      child: const AdminReportsScreen(),
                     ),
+                    routes: [
+                      GoRoute(
+                        path: 'leaderboard/:id',
+                        pageBuilder: (context, state) => boxyPage(state: state,
+                          child: const Center(child: Text('Leaderboard Detail Placeholder')),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),

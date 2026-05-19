@@ -107,6 +107,7 @@ class RolesSettingsScreen extends ConsumerWidget {
       case MemberRole.scorer: return 'Scorer';
       case MemberRole.viewer: return 'Viewer';
       case MemberRole.member: return 'Standard Member';
+      case MemberRole.socialMember: return 'Social Member';
     }
   }
 
@@ -118,6 +119,7 @@ class RolesSettingsScreen extends ConsumerWidget {
       case MemberRole.scorer: return Icons.edit_note_rounded;
       case MemberRole.viewer: return Icons.visibility_outlined;
       case MemberRole.member: return Icons.person_outline;
+      case MemberRole.socialMember: return Icons.people_outline_rounded;
     }
   }
 }

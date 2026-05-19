@@ -40,13 +40,20 @@ class MarkerSelectionSheet extends ConsumerStatefulWidget {
       }
     }
 
+    // Chrome: title bar + handle + label + spacing + safe area ≈ 240pt
+    // Per row: row height + divider ≈ 68pt
+    final n = groupPlayersRaw.length;
+    final screenHeight = MediaQuery.of(context).size.height;
+    final estimated = (240 + n * 68) / screenHeight;
+    final initialSize = estimated.clamp(0.40, 0.85);
+
     BoxyArtBottomSheet.show(
       context: context,
       title: 'Marker & Tee Selection'.toUpperCase(),
-      initialChildSize: 0.70,
-      minChildSize: 0.55,
+      initialChildSize: initialSize,
+      minChildSize: initialSize,
       maxChildSize: 0.92,
-      addNavBarPadding: false,
+      addNavBarPadding: true,
       child: MarkerSelectionSheet(event: event, groupPlayers: groupPlayersRaw),
     );
   }
@@ -56,6 +63,25 @@ class MarkerSelectionSheet extends ConsumerStatefulWidget {
 }
 
 class _MarkerSelectionSheetState extends ConsumerState<MarkerSelectionSheet> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _seedFromScorecards());
+  }
+
+  void _seedFromScorecards() {
+    if (!mounted) return;
+    final currentUser = ref.read(effectiveUserProvider);
+    final allScorecards =
+        ref.read(scorecardsListProvider(widget.event.id)).asData?.value ?? [];
+    final targetIds = allScorecards
+        .where((s) =>
+            s.markerId == currentUser.id && s.entryId != currentUser.id)
+        .map((s) => s.entryId)
+        .toList();
+    ref.read(markerSelectionProvider.notifier).seedFromScorecards(targetIds);
+  }
+
   @override
   Widget build(BuildContext context) {
     final shapes = Theme.of(context).extension<AppShapeTokens>();
@@ -67,7 +93,6 @@ class _MarkerSelectionSheetState extends ConsumerState<MarkerSelectionSheet> {
     final tees = widget.event.courseConfig.tees;
     final bool isCaptain = ref.watch(isGroupCaptainProvider(widget.event));
 
-    // Derive live marker assignments from scorecards (entryId -> markerId)
     final allScorecards = ref.watch(scorecardsListProvider(widget.event.id)).asData?.value ?? [];
     final Map<String, String> markerAssignments = {
       for (final s in allScorecards)
@@ -79,117 +104,111 @@ class _MarkerSelectionSheetState extends ConsumerState<MarkerSelectionSheet> {
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-          Text(
-            'SELECT PLAYER TO MARK',
-            style: AppTypography.label.copyWith(
-              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: AppColors.opacityHigh),
-              fontWeight: AppTypography.weightHeavy,
-              letterSpacing: AppTypography.lsLabel,
-            ),
+        Text(
+          'SELECT PLAYER TO MARK',
+          style: AppTypography.label.copyWith(
+            color: Theme.of(context).colorScheme.onSurface,
           ),
+        ),
 
-          SizedBox(height: spacing?.labelToCard ?? AppSpacing.atomic),
+        SizedBox(height: spacing?.labelToCard ?? AppSpacing.atomic),
 
-          BoxyArtCard(
-            padding: const EdgeInsets.symmetric(
-              vertical: AppSpacing.atomic,
-              horizontal: AppSpacing.standard,
-            ),
-            child: Column(
-              children: (() {
-                final otherPlayers = widget.groupPlayers.where((p) {
+        BoxyArtCard(
+          padding: EdgeInsets.zero,
+          child: Column(
+            children: (() {
+              final otherPlayers = widget.groupPlayers.where((p) {
+                final id = GuestIdHelper.resolveEffectiveId(p);
+                return id != currentUser.id;
+              }).toList();
+
+              final String currentUserDefaultTee = ScoringCalculator.resolvePlayerTee(
+                memberId: currentUser.id,
+                event: widget.event,
+                membersList: [...members, currentUser],
+                gender: currentUser.gender,
+              ).name;
+
+              return [
+                _buildSelectionRow(
+                  context, ref,
+                  shapes: shapes,
+                  isSelected: isSelfMarking,
+                  name: 'Myself (Me)',
+                  entryId: currentUser.id,
+                  tees: tees,
+                  overrides: markerSelection.teeOverrides,
+                  onSelect: () {
+                    if (!isSelfMarking) {
+                      ref.read(markerSelectionProvider.notifier).setSelfMarking(true);
+                    }
+                  },
+                  defaultTeeName: currentUserDefaultTee,
+                  showDivider: otherPlayers.isNotEmpty,
+                ),
+                ...otherPlayers.asMap().entries.map((entry) {
+                  final idx = entry.key;
+                  final p = entry.value;
                   final id = GuestIdHelper.resolveEffectiveId(p);
-                  return id != currentUser.id;
-                }).toList();
+                  final name = p['name'] ?? 'Unknown';
+                  final isSelected = markerSelection.targetEntryIds.contains(id);
+                  final baseId = GuestIdHelper.stripGuestSuffix(id);
+                  final memberProfile =
+                      members.firstWhereOrNull((m) => m.id == baseId);
+                  final String playerDefaultTee = ScoringCalculator.resolvePlayerTee(
+                    memberId: id,
+                    event: widget.event,
+                    membersList: members,
+                    gender: memberProfile?.gender,
+                  ).name;
 
-                // Circular marking is only valid in a 2-ball (players mark each other).
-                // In 3/4-ball: if I'm marking A, A cannot also be my marker.
-                final isTwoball = widget.groupPlayers.length <= 2;
+                  final isTaken = !isCaptain &&
+                      markerAssignments.entries
+                          .any((e) => e.key != currentUser.id && e.value == id);
+                  final isCaptainOverride = isCaptain &&
+                      markerAssignments.entries
+                          .any((e) => e.key != currentUser.id && e.value == id);
 
-                final String currentUserDefaultTee = ScoringCalculator.resolvePlayerTee(
-                  memberId: currentUser.id,
-                  event: widget.event,
-                  membersList: [...members, currentUser],
-                  gender: currentUser.gender,
-                ).name;
+                  String? takenByName;
+                  if (isTaken || isCaptainOverride) {
+                    final takenByEntryId = markerAssignments.entries
+                        .firstWhereOrNull(
+                            (e) => e.key != currentUser.id && e.value == id)
+                        ?.key;
+                    final takenByPlayer = takenByEntryId != null
+                        ? widget.groupPlayers.firstWhereOrNull((pp) =>
+                            GuestIdHelper.resolveEffectiveId(pp) == takenByEntryId)
+                        : null;
+                    takenByName =
+                        (takenByPlayer?['name'] as String? ?? '').split(' ').first;
+                  }
 
-                return [
-                  _buildSelectionRow(
+                  return _buildSelectionRow(
                     context, ref,
                     shapes: shapes,
-                    spacing: spacing,
-                    isSelected: isSelfMarking,
-                    name: 'Myself (Me)',
-                    entryId: currentUser.id,
+                    isSelected: isSelected,
+                    name: name,
+                    entryId: id,
                     tees: tees,
                     overrides: markerSelection.teeOverrides,
                     onSelect: () {
-                      if (!isSelfMarking) {
-                        ref.read(markerSelectionProvider.notifier).setSelfMarking(true);
+                      if (id.isNotEmpty) {
+                        ref.read(markerSelectionProvider.notifier).toggleTarget(id);
                       }
                     },
-                    defaultTeeName: currentUserDefaultTee,
-                    canBeMyMarker: false,
-                    showDivider: otherPlayers.isNotEmpty,
-                  ),
-                  ...otherPlayers.asMap().entries.map((entry) {
-                    final idx = entry.key;
-                    final p = entry.value;
-                    final id = GuestIdHelper.resolveEffectiveId(p);
-                    final name = p['name'] ?? 'Unknown';
-                    final isSelected = markerSelection.targetEntryIds.contains(id);
-                    final baseId = GuestIdHelper.stripGuestSuffix(id);
-                    final memberProfile = members.firstWhereOrNull((m) => m.id == baseId);
-                    final String playerDefaultTee = ScoringCalculator.resolvePlayerTee(
-                      memberId: id,
-                      event: widget.event,
-                      membersList: members,
-                      gender: memberProfile?.gender,
-                    ).name;
-
-                    return _buildSelectionRow(
-                      context, ref,
-                      shapes: shapes,
-                      spacing: spacing,
-                      isSelected: isSelected,
-                      name: name,
-                      entryId: id,
-                      tees: tees,
-                      overrides: markerSelection.teeOverrides,
-                      onSelect: () {
-                        if (id.isNotEmpty) {
-                          ref.read(markerSelectionProvider.notifier).toggleTarget(id);
-                        }
-                      },
-                      defaultTeeName: playerDefaultTee,
-                      isMyMarker: markerSelection.myMarkerId == id,
-                      canBeMyMarker: true,
-                      isTaken: !isCaptain && markerAssignments.entries.any((e) => e.key != currentUser.id && e.value == id),
-                      isCaptainOverride: isCaptain && markerAssignments.entries.any((e) => e.key != currentUser.id && e.value == id),
-                      isCircularAsTarget: !isTwoball && markerSelection.myMarkerId == id,
-                      isCircularAsMarker: !isTwoball && markerSelection.targetEntryIds.contains(id),
-                      showDivider: idx < otherPlayers.length - 1,
-                    );
-                  }),
-                ];
-              })(),
-            ),
+                    defaultTeeName: playerDefaultTee,
+                    isTaken: isTaken,
+                    isCaptainOverride: isCaptainOverride,
+                    takenByName: takenByName,
+                    showDivider: idx < otherPlayers.length - 1,
+                  );
+                }),
+              ];
+            })(),
           ),
-
-          const SizedBox(height: AppSpacing.atomic),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.atomic),
-            child: Text(
-              '1. Check the players whose scores you are entering.\n2. Tap the card icon at the end of a row to set that player as your marker — the person entering your score.',
-              style: AppTypography.micro.copyWith(
-                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: AppColors.opacitySecondary),
-                fontWeight: AppTypography.weightRegular,
-                height: 1.6,
-              ),
-            ),
-          ),
-          const SizedBox(height: AppSpacing.section),
-        ],
+        ),
+        const SizedBox(height: AppSpacing.standard),
+      ],
     );
   }
 
@@ -197,7 +216,6 @@ class _MarkerSelectionSheetState extends ConsumerState<MarkerSelectionSheet> {
     BuildContext context,
     WidgetRef ref, {
     required AppShapeTokens? shapes,
-    required AppSpacingTokens? spacing,
     required bool isSelected,
     required String name,
     required String entryId,
@@ -205,31 +223,33 @@ class _MarkerSelectionSheetState extends ConsumerState<MarkerSelectionSheet> {
     required Map<String, String> overrides,
     required VoidCallback onSelect,
     required String defaultTeeName,
-    bool isMyMarker = false,
-    bool canBeMyMarker = true,
     bool isTaken = false,
     bool isCaptainOverride = false,
-    bool isCircularAsTarget = false,
-    bool isCircularAsMarker = false,
+    String? takenByName,
     bool showDivider = true,
   }) {
     final theme = Theme.of(context);
-    final bool checkboxBlocked = isTaken || isCircularAsTarget;
-    final bool markerButtonBlocked = isTaken || isCircularAsMarker;
-    final opacity = checkboxBlocked ? AppColors.opacitySecondary : 1.0;
+    final double opacity = isTaken ? AppColors.opacitySecondary : 1.0;
+
+    final String? blockReason =
+        isTaken && takenByName != null && takenByName.isNotEmpty
+            ? 'Marking $takenByName'
+            : null;
 
     return Column(
       children: [
         Opacity(
           opacity: opacity,
           child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: AppSpacing.atomic),
+            padding: const EdgeInsets.symmetric(
+              vertical: AppSpacing.atomic,
+              horizontal: AppSpacing.standard,
+            ),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                // Box checkbox
                 GestureDetector(
-                  onTap: checkboxBlocked ? null : onSelect,
+                  onTap: isTaken ? null : onSelect,
                   behavior: HitTestBehavior.opaque,
                   child: Container(
                     width: AppSpacing.standard,
@@ -238,44 +258,58 @@ class _MarkerSelectionSheetState extends ConsumerState<MarkerSelectionSheet> {
                       color: isSelected ? theme.colorScheme.primary : Colors.transparent,
                       borderRadius: shapes?.accent ?? BorderRadius.circular(4),
                       border: Border.all(
-                        color: isSelected ? theme.colorScheme.primary : AppColors.dark400,
-                        width: isSelected ? AppShapes.borderMedium : AppShapes.borderThin,
+                        color: isSelected
+                            ? theme.colorScheme.primary
+                            : AppColors.dark400,
+                        width: isSelected
+                            ? AppShapes.borderMedium
+                            : AppShapes.borderThin,
                       ),
                     ),
                     child: isSelected
-                        ? Icon(Icons.check, size: AppShapes.iconXs, color: Colors.white)
+                        ? Icon(Icons.check,
+                            size: AppShapes.iconXs, color: AppColors.pureWhite)
                         : null,
                   ),
                 ),
 
                 const SizedBox(width: AppSpacing.atomic),
 
-                // Name
                 Expanded(
-                  flex: 4,
+                  flex: 5,
                   child: GestureDetector(
-                    onTap: onSelect,
+                    onTap: isTaken ? null : onSelect,
                     behavior: HitTestBehavior.opaque,
-                    child: Row(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Flexible(
-                          child: Text(
-                            name,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: AppTypography.label.copyWith(
-                              fontWeight: AppTypography.weightBold,
-                              color: isSelected
-                                  ? theme.colorScheme.onSurface
-                                  : theme.colorScheme.onSurface.withValues(alpha: AppColors.opacitySecondary),
+                        Row(
+                          children: [
+                            Flexible(
+                              child: Text(
+                                name,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: AppTypography.label.copyWith(
+                                  color: theme.colorScheme.onSurface,
+                                ),
+                              ),
                             ),
-                          ),
+                            if (isCaptainOverride) ...[
+                              const SizedBox(width: AppSpacing.xs),
+                              Icon(Icons.star_rounded,
+                                  size: AppShapes.iconXs,
+                                  color: AppColors.amber500),
+                            ],
+                          ],
                         ),
-                        if (isCaptainOverride) ...[
-                          const SizedBox(width: 4),
-                          Tooltip(
-                            message: 'Already assigned — captain override',
-                            child: Icon(Icons.star_rounded, size: 12, color: AppColors.amber500),
+                        if (blockReason != null) ...[
+                          const SizedBox(height: 2),
+                          Text(
+                            blockReason,
+                            style: AppTypography.micro.copyWith(
+                              color: theme.colorScheme.onSurface,
+                            ),
                           ),
                         ],
                       ],
@@ -285,54 +319,16 @@ class _MarkerSelectionSheetState extends ConsumerState<MarkerSelectionSheet> {
 
                 const SizedBox(width: AppSpacing.atomic),
 
-                // Tee dropdown
                 Expanded(
-                  flex: 5,
-                  child: _buildTeeDropdown(context, ref, entryId, tees, overrides, defaultTeeName, shapes),
-                ),
-
-                const SizedBox(width: AppSpacing.atomic),
-
-                // My marker indicator — fixed width slot keeps all rows aligned
-                SizedBox(
-                  width: 38,
-                  child: canBeMyMarker
-                      ? Tooltip(
-                          message: isCircularAsMarker ? 'Circular marking — not allowed in 3+ ball' : '',
-                          child: GestureDetector(
-                            onTap: markerButtonBlocked
-                                ? null
-                                : () => ref
-                                    .read(markerSelectionProvider.notifier)
-                                    .setMyMarker(isMyMarker ? null : entryId),
-                            child: BoxyArtIconBadge(
-                              icon: isCircularAsMarker
-                                  ? Icons.block_rounded
-                                  : Icons.edit_note_rounded,
-                              isPrimary: isMyMarker,
-                              isTinted: true,
-                              fillOpacity: markerButtonBlocked
-                                  ? AppColors.opacityLow
-                                  : (isMyMarker ? AppColors.opacitySubtle : AppColors.opacityLow),
-                              iconColor: isCircularAsMarker
-                                  ? AppColors.amber500
-                                  : (isMyMarker ? theme.colorScheme.primary : AppColors.dark300),
-                            ),
-                          ),
-                        )
-                      : null,
+                  flex: 4,
+                  child: _buildTeeDropdown(
+                      context, ref, entryId, tees, overrides, defaultTeeName, shapes),
                 ),
               ],
             ),
           ),
         ),
-        if (showDivider)
-          Divider(
-            height: 1,
-            color: theme.dividerColor.withValues(alpha: AppColors.opacityLow),
-            indent: AppSpacing.standard,
-            endIndent: AppSpacing.standard,
-          ),
+        if (showDivider) const Divider(),
       ],
     );
   }
@@ -347,10 +343,12 @@ class _MarkerSelectionSheetState extends ConsumerState<MarkerSelectionSheet> {
     AppShapeTokens? shapes,
   ) {
     final theme = Theme.of(context);
+    final config = ref.watch(themeControllerProvider);
     final String? persistedTee = overrides[entryId];
     String? currentTeeValue = persistedTee;
     if (currentTeeValue != null &&
-        currentTeeValue.toLowerCase().trim() == defaultTeeName.toLowerCase().trim()) {
+        currentTeeValue.toLowerCase().trim() ==
+            defaultTeeName.toLowerCase().trim()) {
       currentTeeValue = null;
     }
 
@@ -359,9 +357,12 @@ class _MarkerSelectionSheetState extends ConsumerState<MarkerSelectionSheet> {
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.atomic),
       decoration: BoxDecoration(
         borderRadius: shapes?.input,
-        border: Border.all(
-          color: theme.dividerColor.withValues(alpha: AppColors.opacityMuted),
-        ),
+        border: config.useBorders
+            ? Border.all(
+                color: theme.dividerColor.withValues(alpha: AppColors.opacityMuted),
+                width: config.borderWidth,
+              )
+            : null,
       ),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String?>(
@@ -387,7 +388,8 @@ class _MarkerSelectionSheetState extends ConsumerState<MarkerSelectionSheet> {
                     width: AppSpacing.atomic,
                     height: AppSpacing.atomic,
                     decoration: BoxDecoration(
-                      color: AppColors.getTeeColor(defaultTeeName, widget.event.courseConfig.tees),
+                      color: AppColors.getTeeColor(
+                          defaultTeeName, widget.event.courseConfig.tees),
                       shape: BoxShape.circle,
                       border: Border.all(
                         color: Colors.black.withValues(alpha: AppColors.opacityLow),
@@ -396,35 +398,33 @@ class _MarkerSelectionSheetState extends ConsumerState<MarkerSelectionSheet> {
                     ),
                   ),
                   const SizedBox(width: AppSpacing.atomic),
-                  Text(
-                    defaultTeeName,
-                    style: AppTypography.micro,
-                  ),
+                  Text(defaultTeeName, style: AppTypography.micro),
                 ],
               ),
             ),
             ...tees.map((tee) => DropdownMenuItem<String?>(
-              value: tee.name,
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    width: AppSpacing.atomic,
-                    height: AppSpacing.atomic,
-                    decoration: BoxDecoration(
-                      color: AppColors.getTeeColor(tee.name, widget.event.courseConfig.tees),
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: Colors.black.withValues(alpha: AppColors.opacityLow),
-                        width: AppShapes.borderThin,
+                  value: tee.name,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        width: AppSpacing.atomic,
+                        height: AppSpacing.atomic,
+                        decoration: BoxDecoration(
+                          color: AppColors.getTeeColor(
+                              tee.name, widget.event.courseConfig.tees),
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: Colors.black.withValues(alpha: AppColors.opacityLow),
+                            width: AppShapes.borderThin,
+                          ),
+                        ),
                       ),
-                    ),
+                      const SizedBox(width: AppSpacing.atomic),
+                      Text(tee.name, style: AppTypography.micro),
+                    ],
                   ),
-                  const SizedBox(width: AppSpacing.atomic),
-                  Text(tee.name, style: AppTypography.micro),
-                ],
-              ),
-            )),
+                )),
           ],
         ),
       ),

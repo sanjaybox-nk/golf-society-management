@@ -132,7 +132,8 @@ class _EventLeaderboardState extends ConsumerState<EventLeaderboard> {
 
     // 3. Handle Guest/Member Separation
     final bool isUnified = widget.comp?.rules.isUnifiedTeamFormat ?? false;
-    final bool shouldSeparate = (widget.event.separateGuests ?? (!widget.event.isInvitational)) && !isUnified;
+    final societySeparate = ref.watch(themeControllerProvider).separateGuestLeaderboard;
+    final bool shouldSeparate = (widget.event.separateGuests ?? societySeparate) && !isUnified;
     
     if (!shouldSeparate) {
        return Column(
@@ -154,8 +155,8 @@ class _EventLeaderboardState extends ConsumerState<EventLeaderboard> {
        );
     }
 
-    final memberEntries = _recalculatePositions(finalEntries.where((e) => !e.isGuest && memberMap.containsKey(e.teamMemberIds?.firstOrNull ?? e.entryId)).toList());
-    final guestEntries = _recalculatePositions(finalEntries.where((e) => !memberEntries.any((me) => me.entryId == e.entryId)).toList());
+    final memberEntries = _recalculatePositions(finalEntries.where((e) => !e.isGuest && memberMap.containsKey(e.teamMemberIds?.firstOrNull ?? e.entryId)).toList(), currentFormat);
+    final guestEntries = _recalculatePositions(finalEntries.where((e) => !memberEntries.any((me) => me.entryId == e.entryId)).toList(), currentFormat);
     final bool hasGuests = guestEntries.isNotEmpty;
 
     return Column(
@@ -199,28 +200,32 @@ class _EventLeaderboardState extends ConsumerState<EventLeaderboard> {
   }
 
   /// Recalculates relative positions (1, 2, 3...) for a sub-list.
-  /// 1. Entries are already sorted by the central scoring brain.
-  /// 2. Handles ties by comparing score and tie-break metrics.
-  List<LeaderboardEntry> _recalculatePositions(List<LeaderboardEntry> entries) {
+  /// Stroke/medal: tied on score = shared position — no countback splitting.
+  /// Stableford: countback metrics must also match to share a position.
+  List<LeaderboardEntry> _recalculatePositions(
+      List<LeaderboardEntry> entries, CompetitionFormat format) {
     if (entries.isEmpty) return [];
 
+    final bool isStroke = format == CompetitionFormat.stroke;
     final List<LeaderboardEntry> reRanked = [];
     int currentPos = 1;
 
     for (int i = 0; i < entries.length; i++) {
-       if (i > 0) {
-          final prev = entries[i - 1];
-          final curr = entries[i];
+      if (i > 0) {
+        final prev = entries[i - 1];
+        final curr = entries[i];
 
-          // If current score is different, or tie-break metrics differ, update position
-          final bool isTied = curr.score == prev.score && _areMetricsEqual(curr.tieBreakMetrics, prev.tieBreakMetrics);
-          
-          if (!isTied) {
-            currentPos = i + 1; // Standard competition ranking: if two people tie for 1st, next person is 3rd.
-          }
-       }
-       
-       reRanked.add(entries[i].copyWith(position: currentPos));
+        final bool isTied = isStroke
+            ? curr.score == prev.score
+            : curr.score == prev.score &&
+                _areMetricsEqual(curr.tieBreakMetrics, prev.tieBreakMetrics);
+
+        if (!isTied) {
+          currentPos = i + 1;
+        }
+      }
+
+      reRanked.add(entries[i].copyWith(position: currentPos));
     }
 
     return reRanked;

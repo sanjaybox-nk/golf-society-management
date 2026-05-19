@@ -166,6 +166,8 @@ _SocietyConfig _$SocietyConfigFromJson(
   penaltyFineAmount: (json['penaltyFineAmount'] as num?)?.toDouble() ?? 1.0,
   nrFineAmount: (json['nrFineAmount'] as num?)?.toDouble() ?? 5.0,
   enableGimmes: json['enableGimmes'] as bool? ?? true,
+  enableSocialMembership: json['enableSocialMembership'] as bool? ?? false,
+  socialMemberFee: (json['socialMemberFee'] as num?)?.toDouble() ?? 0.0,
 );
 
 Map<String, dynamic> _$SocietyConfigToJson(_SocietyConfig instance) =>
@@ -285,6 +287,8 @@ Map<String, dynamic> _$SocietyConfigToJson(_SocietyConfig instance) =>
       'penaltyFineAmount': instance.penaltyFineAmount,
       'nrFineAmount': instance.nrFineAmount,
       'enableGimmes': instance.enableGimmes,
+      'enableSocialMembership': instance.enableSocialMembership,
+      'socialMemberFee': instance.socialMemberFee,
     };
 
 const _$HandicapSystemEnumMap = {

@@ -43,7 +43,7 @@ class MatchesBracketWidget extends ConsumerWidget {
 
         return scorecardsAsync.when(
           data: (scorecards) {
-            final isAdmin = ref.watch(currentUserProvider).role == MemberRole.admin || ref.watch(currentUserProvider).role == MemberRole.superAdmin;
+            final isAdmin = ref.watch(currentUserProvider).role.hasAdminAccess;
             final currentStage = ref.watch(_bracketStageProvider);
             
             Widget body;

@@ -41,7 +41,7 @@ class MemberTile extends ConsumerWidget {
     final theme = Theme.of(context);
     
     final currentUser = ref.watch(currentUserProvider);
-    final isAdmin = currentUser.role == MemberRole.admin || currentUser.role == MemberRole.superAdmin;
+    final isAdmin = currentUser.role.hasAdminAccess;
     final canSeeFees = isAdmin && showFeeStatus;
     
     return BoxyArtMemberRow(

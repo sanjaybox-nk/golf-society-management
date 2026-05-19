@@ -10,6 +10,7 @@ class BoxyArtIndicator extends StatelessWidget {
   final double? fontSize;
   final Color? textColor;
   final IconData? customActionIcon;
+  final bool showBackground;
 
   const BoxyArtIndicator({
     super.key,
@@ -21,6 +22,7 @@ class BoxyArtIndicator extends StatelessWidget {
     this.textColor,
     this.customActionIcon,
     this.icon,
+    this.showBackground = true,
   });
 
   final IconData? icon;
@@ -68,6 +70,7 @@ class BoxyArtIndicator extends StatelessWidget {
       onTap: onTap,
       hasHorizontalMargin: hasHorizontalMargin,
       fontSize: fontSize ?? 11.0,
+      showBackground: false,
     );
   }
 
@@ -76,12 +79,13 @@ class BoxyArtIndicator extends StatelessWidget {
     final theme = Theme.of(context);
     final isInteractive = onTap != null;
     
+    final bool applyBackground = isInteractive && showBackground;
     final Widget content = Container(
       padding: EdgeInsets.symmetric(
-        horizontal: hasHorizontalMargin ? (isInteractive ? AppSpacing.md : AppSpacing.xs) : 0,
-        vertical: isInteractive ? 4 : 2,
+        horizontal: hasHorizontalMargin ? (applyBackground ? AppSpacing.md : AppSpacing.xs) : 0,
+        vertical: applyBackground ? 4 : 2,
       ),
-      decoration: isInteractive ? BoxDecoration(
+      decoration: applyBackground ? BoxDecoration(
         color: dotColor.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(100),
         border: Border.all(color: dotColor.withValues(alpha: 0.15)),
@@ -126,7 +130,7 @@ class BoxyArtIndicator extends StatelessWidget {
             ),
           ),
 
-          if (isInteractive) ...[
+          if (applyBackground) ...[
             const SizedBox(width: AppSpacing.xs),
             Icon(
               customActionIcon ?? Icons.edit_rounded,

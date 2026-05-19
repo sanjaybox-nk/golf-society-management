@@ -32,9 +32,9 @@ class NavigationConstants {
       label: 'Comms',
     ),
     BoxyArtBottomNavItem(
-      icon: Icons.analytics_outlined,
-      activeIcon: Icons.analytics,
-      label: 'Reporting',
+      icon: Icons.tune_outlined,
+      activeIcon: Icons.tune,
+      label: 'Operations',
     ),
   ];
 

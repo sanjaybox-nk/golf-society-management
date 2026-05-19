@@ -94,6 +94,7 @@ const _$MemberRoleEnumMap = {
   MemberRole.scorer: 'scorer',
   MemberRole.viewer: 'viewer',
   MemberRole.member: 'member',
+  MemberRole.socialMember: 'socialMember',
 };
 
 const _$MemberStatusEnumMap = {
@@ -106,6 +107,7 @@ const _$MemberStatusEnumMap = {
   MemberStatus.left: 'left',
   MemberStatus.expired: 'expired',
   MemberStatus.gracePeriod: 'gracePeriod',
+  MemberStatus.social: 'social',
 };
 
 const _$MemberRenewalStatusEnumMap = {

@@ -148,8 +148,8 @@ class BoxyArtPill extends ConsumerWidget {
     return BoxyArtPill(
       label: label.toUpperCase(),
       color: AppColors.amber500,
-      backgroundColor: AppColors.amber500.withValues(alpha: 0.1),
-      borderColor: AppColors.amber500.withValues(alpha: 0.3),
+      backgroundColor: AppColors.amber500.withValues(alpha: AppColors.opacityLow),
+      borderColor: AppColors.amber500.withValues(alpha: AppColors.opacitySubtle),
       textColor: AppColors.dark900,
       fontSize: fontSize ?? AppTypography.sizeMicro,
       fontWeight: AppTypography.weightBold,
@@ -197,7 +197,7 @@ class BoxyArtPill extends ConsumerWidget {
       baseColor = Color(config.secondaryColor);
     }
     
-    final Color? baseBorderColor = borderColor ?? (baseColor?.withValues(alpha: 0.18));
+    final Color? baseBorderColor = borderColor ?? (baseColor?.withValues(alpha: AppColors.opacityBorder));
     
     bool showFill = !isLegend || isAction;
     bool showBorder = !isLegend && !isAction && baseBorderColor != null;
@@ -205,7 +205,7 @@ class BoxyArtPill extends ConsumerWidget {
     final Color effectiveBgColor = backgroundColor ?? (
       isAction 
         ? (baseColor ?? Color(config.primaryColor))
-        : (showFill ? (baseColor?.withValues(alpha: 0.08) ?? Colors.transparent) : Colors.transparent)
+        : (showFill ? (baseColor?.withValues(alpha: AppColors.opacityFaint) ?? Colors.transparent) : Colors.transparent)
     );
     final Color? effectiveBorderColorActual = showBorder ? baseBorderColor : null;
     final Color effectiveTextColor = textColor ?? (

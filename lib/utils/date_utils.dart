@@ -8,12 +8,13 @@ class DateUtils {
 
   /// Checks if an event is today or in the future, or currently in play.
   static bool isUpcoming(GolfEvent event) {
+    if (event.status == EventStatus.completed) return false;
     final now = DateTime.now();
     final today = truncateTime(now);
     final eventDate = truncateTime(event.date);
-    
-    return eventDate.isAtSameMomentAs(today) || 
-           eventDate.isAfter(today) || 
+
+    return eventDate.isAtSameMomentAs(today) ||
+           eventDate.isAfter(today) ||
            event.status == EventStatus.inPlay;
   }
 
@@ -29,10 +30,11 @@ class DateUtils {
 
   /// Checks if an event date is strictly before today (ignoring time).
   static bool isPastEvent(GolfEvent event) {
+    if (event.status == EventStatus.inPlay) return false;
     final now = DateTime.now();
     final today = truncateTime(now);
     final eventDate = truncateTime(event.date);
-    
+
     return eventDate.isBefore(today);
   }
 

@@ -131,7 +131,9 @@ abstract class SocietyConfig with _$SocietyConfig {
     @Default(false) bool enablePenaltyFines, // [NEW] Toggle for Charity Pot / Fines
     @Default(1.0) double penaltyFineAmount, // [NEW] Cost per penalty stroke
     @Default(5.0) double nrFineAmount, // [NEW] Cost for a Pick Up / NR
-    @Default(true) bool enableGimmes, // [NEW] Toggle for Gimme tracking
+    @Default(true) bool enableGimmes,
+    @Default(false) bool enableSocialMembership,
+    @Default(0.0) double socialMemberFee,
   }) = _SocietyConfig;
 
   const SocietyConfig._();

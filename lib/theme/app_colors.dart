@@ -80,12 +80,14 @@ class AppColors {
   static const double opacityStrong = 0.9;    // Primary Text / High Emphasis
   static const double opacitySecondary = 0.6; // Secondary Text / Medium Emphasis
   static const double opacitySubtle = 0.3;    // Tertiary Text / Disabled / Hints
-  
+
   // Layout Opacities
-  static const double opacityHalf = 0.5;   // Scrims / Overlays
-  static const double opacityMuted = 0.3;  // De-emphasized borders
-  static const double opacityLow = 0.1;    // Surface overlays
-  static const double opacityHigh = 0.8;   // Background-contrast text
+  static const double opacityHalf = 0.5;    // Scrims / Overlays
+  static const double opacityMuted = 0.3;   // De-emphasized borders
+  static const double opacityLow = 0.1;     // Surface overlays / tinted fills
+  static const double opacityHigh = 0.8;    // Background-contrast text
+  static const double opacityFaint = 0.08;  // Very subtle pill / chip fills
+  static const double opacityBorder = 0.18; // Standard pill / chip borders
   static const double opacityMedium = opacitySecondary; // Legacy alias
 
   /// Generates the Dark ColorScheme based on v3.1 spec

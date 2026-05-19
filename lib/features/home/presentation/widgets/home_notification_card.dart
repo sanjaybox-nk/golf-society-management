@@ -1,61 +1,54 @@
+import 'dart:convert';
 import 'package:intl/intl.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_quill/flutter_quill.dart' as quill;
 import 'package:golf_society/domain/models/notification.dart';
 import 'package:golf_society/design_system/design_system.dart';
-import 'package:flutter_quill/flutter_quill.dart' as quill;
-import 'dart:convert';
 import '../home_providers.dart';
 
-class HomeNotificationCard extends ConsumerStatefulWidget {
+class HomeNotificationCard extends ConsumerWidget {
   final AppNotification notification;
   final VoidCallback? onTap;
+  final void Function(DismissDirection)? onDismissed;
 
   const HomeNotificationCard({
     super.key,
     required this.notification,
     this.onTap,
+    this.onDismissed,
   });
 
   @override
-  ConsumerState<HomeNotificationCard> createState() => _HomeNotificationCardState();
-}
-
-class _HomeNotificationCardState extends ConsumerState<HomeNotificationCard> {
-  bool _isExpanded = false;
-
-  @override
-  Widget build(BuildContext context) {
-    final isUrgent = widget.notification.category == 'Urgent';
-    final primary = isUrgent ? const Color(0xFFE74C3C) : const Color(0xFFF39C12);
+  Widget build(BuildContext context, WidgetRef ref) {
+    final style = _resolveStyle(notification);
+    final shapes = Theme.of(context).extension<AppShapeTokens>();
 
     return Padding(
       padding: const EdgeInsets.only(bottom: AppSpacing.md),
       child: Dismissible(
-        key: Key('notif_${widget.notification.id}'),
+        key: Key('notif_${notification.id}'),
         direction: DismissDirection.endToStart,
-        onDismissed: (direction) {
-          ref.read(notificationsRepositoryProvider).markAsRead(widget.notification.id);
-        },
+        onDismissed: onDismissed ??
+            (_) => ref.read(notificationsRepositoryProvider).markAsRead(notification.id),
         background: Container(
           alignment: Alignment.centerRight,
           padding: const EdgeInsets.only(right: AppSpacing.x2l),
           decoration: BoxDecoration(
             color: Theme.of(context).colorScheme.secondary,
-            borderRadius: AppShapes.lg,
+            borderRadius: shapes?.card ?? AppShapes.lg,
           ),
-          child: const Column(
+          child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.done_all_rounded, color: AppColors.pureWhite, size: AppShapes.iconLg),
-              SizedBox(height: AppSpacing.xs),
+              const Icon(Icons.done_all_rounded,
+                  color: AppColors.pureWhite, size: AppShapes.iconLg),
+              const SizedBox(height: AppSpacing.xs),
               Text(
                 'READ',
-                style: TextStyle(
+                style: AppTypography.micro.copyWith(
                   color: AppColors.pureWhite,
-                  fontSize: AppTypography.sizeCaption,
-                  fontWeight: AppTypography.weightBold,
-                  letterSpacing: 1.0,
+                  letterSpacing: AppTypography.lsLabel,
                 ),
               ),
             ],
@@ -63,137 +56,137 @@ class _HomeNotificationCardState extends ConsumerState<HomeNotificationCard> {
         ),
         child: BoxyArtCard(
           padding: const EdgeInsets.all(AppSpacing.lg),
-          onTap: widget.onTap ?? (widget.notification.actionUrl != null
-              ? () => context.push(widget.notification.actionUrl!)
-              : () => setState(() => _isExpanded = !_isExpanded)),
+          onTap: onTap ??
+              (notification.actionUrl != null
+                  ? () => context.push(notification.actionUrl!)
+                  : null),
           child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Left: Squircle Icon with Glow
-                Container(
-                  width: 52,
-                  height: 52,
-                  decoration: ShapeDecoration(
-                    color: primary.withValues(alpha: AppColors.opacityLow),
-                    shape: ContinuousRectangleBorder(
-                      borderRadius: AppShapes.x2l,
-                    ),
-                    shadows: [
-                      BoxShadow(
-                        color: primary.withValues(alpha: AppColors.opacityLow),
-                        blurRadius: 10,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: Icon(
-                    isUrgent ? Icons.campaign_rounded : Icons.info_rounded,
-                    color: primary,
-                    size: 26,
-                  ),
-                ),
-                const SizedBox(width: AppSpacing.lg),
-                
-                // Middle: Title and Body
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              widget.notification.title,
-                              style: AppTypography.cardTitle,
-                            ),
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              BoxyArtIconBadge(
+                icon: style.icon,
+                color: style.color,
+              ),
+              const SizedBox(width: AppSpacing.lg),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            notification.title,
+                            style: AppTypography.cardTitle,
                           ),
-                          const SizedBox(width: AppSpacing.sm),
-                          Text(
-                            _formatTimestamp(widget.notification.timestamp),
-                            style: TextStyle(
-                              fontSize: AppTypography.sizeCaptionStrong,
-                              color: Theme.of(context).textTheme.bodySmall?.color,
-                              fontWeight: AppTypography.weightMedium,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: AppSpacing.xs),
-                      AnimatedSize(
-                        duration: AppAnimations.medium,
-                        curve: Curves.easeInOut,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            _buildMessageContent(context),
-                            if (widget.notification.actionUrl != null && _isExpanded)
-                              Padding(
-                                padding: const EdgeInsets.only(top: AppSpacing.md),
-                                  child: BoxyArtButton(
-                                    title: widget.notification.actionUrl!.contains('members') ? 'RENEW NOW' : 'VIEW DETAILS',
-                                    isPrimary: true,
-                                    fullWidth: false,
-                                    isSmall: true,
-                                    onTap: () {
-                                      context.push(widget.notification.actionUrl!);
-                                    },
-                                  ),
-                              ),
-                          ],
                         ),
+                        const SizedBox(width: AppSpacing.sm),
+                        Text(
+                          _formatTimestamp(notification.timestamp),
+                          style: AppTypography.caption.copyWith(
+                            color: Theme.of(context).textTheme.bodySmall?.color,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: AppSpacing.xs),
+                    _buildMessage(context),
+                    if (notification.actionUrl != null)
+                      Padding(
+                        padding: const EdgeInsets.only(top: AppSpacing.md),
+                        child: notification.actionUrl!.contains('members')
+                            ? BoxyArtButton(
+                                title: 'Renew Now',
+                                isSecondary: true,
+                                isPrimary: false,
+                                fullWidth: false,
+                                isSmall: true,
+                                onTap: () => context.push(notification.actionUrl!),
+                              )
+                            : GestureDetector(
+                                onTap: () => context.push(notification.actionUrl!),
+                                child: Text(
+                                  'View Details →',
+                                  style: AppTypography.label.copyWith(
+                                    color: Theme.of(context).colorScheme.primary,
+                                    fontWeight: AppTypography.weightBold,
+                                    letterSpacing: AppTypography.lsLabel,
+                                  ),
+                                ),
+                              ),
                       ),
-                    ],
-                  ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
+      ),
     );
   }
 
-  Widget _buildMessageContent(BuildContext context) {
+  ({Color color, IconData icon}) _resolveStyle(AppNotification n) {
+    final title = n.title.toLowerCase();
+    final category = n.category.toLowerCase();
+
+    if (category == 'urgent') {
+      return (color: AppColors.coral500, icon: Icons.campaign_rounded);
+    }
+    if (title.contains('verified') || title.contains('approved') ||
+        title.contains('confirmed') || title.contains('promoted')) {
+      return (color: AppColors.lime600, icon: Icons.check_circle_rounded);
+    }
+    if (title.contains('unlocked') || title.contains('reset') ||
+        title.contains('re-verify')) {
+      return (color: AppColors.amber500, icon: Icons.lock_open_rounded);
+    }
+    if (title.contains('conflict') || title.contains('dq') ||
+        title.contains('disqualif')) {
+      return (color: AppColors.coral500, icon: Icons.warning_rounded);
+    }
+    if (category == 'scoring') {
+      return (color: AppColors.amber500, icon: Icons.sports_score_rounded);
+    }
+    if (category == 'membership') {
+      return (color: AppColors.dark400, icon: Icons.person_rounded);
+    }
+    return (color: AppColors.dark400, icon: Icons.info_rounded);
+  }
+
+  Widget _buildMessage(BuildContext context) {
+    final bodyStyle = AppTypography.bodySmall.copyWith(
+      color: Theme.of(context).textTheme.bodyMedium?.color,
+    );
+
     try {
-      final List<dynamic> deltaJson = jsonDecode(widget.notification.message);
+      final List<dynamic> deltaJson = jsonDecode(notification.message);
       final controller = quill.QuillController(
         document: quill.Document.fromJson(deltaJson),
         selection: const TextSelection.collapsed(offset: 0),
         readOnly: true,
       );
-
       return quill.QuillEditor.basic(
         controller: controller,
-        config: quill.QuillEditorConfig(
+        config: const quill.QuillEditorConfig(
           scrollable: false,
           autoFocus: false,
           expands: false,
           padding: EdgeInsets.zero,
           showCursor: false,
           enableInteractiveSelection: false,
-          // Limit lines if not expanded
-          maxHeight: _isExpanded ? null : 40, 
         ),
       );
     } catch (_) {
-      // Fallback to plain text
-      return Text(
-        widget.notification.message,
-        maxLines: _isExpanded ? null : 2,
-        overflow: _isExpanded ? TextOverflow.visible : TextOverflow.ellipsis,
-        style: TextStyle(
-          fontSize: AppTypography.sizeLabelStrong,
-          color: Theme.of(context).textTheme.bodyMedium?.color?.withValues(alpha: AppColors.opacityHigh),
-          height: 1.4,
-        ),
-      );
+      return Text(notification.message, style: bodyStyle);
     }
   }
 
   String _formatTimestamp(DateTime timestamp) {
     final now = DateTime.now();
-    final difference = now.difference(timestamp);
-    if (difference.inHours < 1) return '${difference.inMinutes}m ago';
-    if (difference.inHours < 24) return '${difference.inHours}h ago';
+    final diff = now.difference(timestamp);
+    if (diff.inHours < 1) return '${diff.inMinutes}m ago';
+    if (diff.inHours < 24) return '${diff.inHours}h ago';
     return DateFormat('MMM d').format(timestamp);
   }
 }

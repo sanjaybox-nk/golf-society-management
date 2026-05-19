@@ -50,6 +50,7 @@ class _EventScorecardViewState extends ConsumerState<EventScorecardView> {
   @override
   Widget build(BuildContext context) {
     final config = ref.watch(themeControllerProvider);
+    final spacing = Theme.of(context).extension<AppSpacingTokens>();
     final currentUser = ref.watch(effectiveUserProvider);
     final markerSelection = ref.watch(markerSelectionProvider);
     final bool isSelfMarking = markerSelection.isSelfMarking;
@@ -186,65 +187,24 @@ class _EventScorecardViewState extends ConsumerState<EventScorecardView> {
               : null,
         ),
 
-        // Approved banner — any card (own or switched) once admin has verified
-        if (displayCard?.status == ScorecardStatus.approved)
-          Padding(
-            padding: const EdgeInsets.only(top: AppSpacing.standard),
-            child: BoxyArtCard(
-              child: Row(
-                children: [
-                  Icon(Icons.verified_rounded, color: AppColors.lime500, size: AppShapes.iconSmall),
-                  const SizedBox(width: AppSpacing.sm),
-                  Text(
-                    'Approved by committee',
-                    style: AppTypography.bodySmall.copyWith(
-                      fontWeight: AppTypography.weightBold,
-                      color: AppColors.lime500,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-
         // Submitted banner — only on own card, only while awaiting admin approval
         if (displayId == currentUser.id &&
             (displayCard?.status == ScorecardStatus.finalScore ||
              displayCard?.status == ScorecardStatus.reviewed))
           Padding(
-            padding: const EdgeInsets.only(top: AppSpacing.standard),
-            child: BoxyArtCard(
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Icon(Icons.schedule_rounded, color: AppColors.amber500, size: AppShapes.iconSmall),
-                  const SizedBox(width: AppSpacing.sm),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Card submitted',
-                          style: AppTypography.bodySmall.copyWith(
-                            fontWeight: AppTypography.weightBold,
-                          ),
-                        ),
-                        Text(
-                          'Awaiting committee approval',
-                          style: AppTypography.bodySmall,
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
+            padding: EdgeInsets.only(top: spacing?.cardToCard ?? AppSpacing.cardToCard),
+            child: BoxyArtStatusBanner(
+              color: AppColors.amber500,
+              icon: Icons.schedule_rounded,
+              message: 'Card submitted — awaiting committee approval',
+              hasBottomMargin: false,
             ),
           ),
 
         // Conflict strip — below the card for birds-eye summary
         if (conflictedHoles.isNotEmpty)
           Padding(
-            padding: const EdgeInsets.only(top: AppSpacing.sm),
+            padding: EdgeInsets.only(top: spacing?.cardToCard ?? AppSpacing.cardToCard),
             child: _buildConflictStrip(context, conflictedHoles, displayCard),
           ),
 
@@ -252,8 +212,20 @@ class _EventScorecardViewState extends ConsumerState<EventScorecardView> {
         if (displayCard?.status == ScorecardStatus.approved &&
             (displayCard?.holeAuditLog.isNotEmpty ?? false))
           Padding(
-            padding: const EdgeInsets.only(top: AppSpacing.standard),
+            padding: EdgeInsets.only(top: spacing?.cardToCard ?? AppSpacing.cardToCard),
             child: _buildMemberAuditLog(context, displayCard!.holeAuditLog),
+          ),
+
+        // Approved banner — last element, closing confirmation once admin has verified
+        if (displayCard?.status == ScorecardStatus.approved)
+          Padding(
+            padding: EdgeInsets.only(top: spacing?.cardToCard ?? AppSpacing.cardToCard),
+            child: BoxyArtStatusBanner(
+              color: AppColors.lime500,
+              icon: Icons.verified_rounded,
+              message: 'Approved by committee',
+              hasBottomMargin: false,
+            ),
           ),
 
       ],
@@ -329,9 +301,9 @@ class _EventScorecardViewState extends ConsumerState<EventScorecardView> {
       child: Row(
         children: teamMembers.map((p) => Expanded(
           child: Padding(
-            padding: const EdgeInsets.only(right: 4.0),
+            padding: const EdgeInsets.only(right: AppSpacing.xs),
             child: BoxyArtCard(
-              padding: const EdgeInsets.all(8),
+              padding: const EdgeInsets.all(AppSpacing.atomic),
               child: Text(
                 p.name.split(' ').first,
                 textAlign: TextAlign.center,
@@ -355,21 +327,17 @@ class _EventScorecardViewState extends ConsumerState<EventScorecardView> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return BoxyArtCard(
-      padding: const EdgeInsets.all(AppSpacing.standard),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(children: [
-            const Icon(Icons.edit_note_rounded, size: 16, color: AppColors.amber500),
+            const Icon(Icons.edit_note_rounded, size: AppShapes.iconSmall, color: AppColors.amber500),
             const SizedBox(width: AppSpacing.xs),
-            Text('Score Amendments', style: AppTypography.labelStrong.copyWith(
-              fontWeight: AppTypography.weightBold,
-              letterSpacing: AppTypography.lsLabel,
-            )),
+            Text('Score Amendments', style: AppTypography.bodySmall.copyWith(fontWeight: AppTypography.weightBold)),
           ]),
           const SizedBox(height: AppSpacing.md),
           for (int i = 0; i < log.length; i++) ...[
-            if (i > 0) const Divider(height: AppSpacing.xl, thickness: 0.5),
+            if (i > 0) const Divider(height: AppSpacing.xl),
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -381,13 +349,13 @@ class _EventScorecardViewState extends ConsumerState<EventScorecardView> {
                     children: [
                       Text(
                         'Hole ${log[i].hole} score corrected to ${log[i].resolvedTo}',
-                        style: AppTypography.bodySmall.copyWith(fontWeight: AppTypography.weightBold),
+                        style: AppTypography.cardTitle,
                       ),
                       if (log[i].reason.isNotEmpty) ...[
                         const SizedBox(height: AppSpacing.xs),
                         Text(
                           '"${log[i].reason}"',
-                          style: AppTypography.micro.copyWith(
+                          style: AppTypography.bodySmall.copyWith(
                             color: isDark ? AppColors.dark300 : AppColors.dark400,
                           ),
                         ),
