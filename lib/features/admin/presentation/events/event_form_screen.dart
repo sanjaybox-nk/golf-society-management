@@ -74,7 +74,7 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
                         Expanded(
                           child: BoxyArtButton(
                             title: 'CANCEL',
-                            isGhost: true,
+                            isTinted: true,
                             onTap: () => context.go('/admin/events'),
                           ),
                         ),

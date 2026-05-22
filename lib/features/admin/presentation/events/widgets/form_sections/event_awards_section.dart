@@ -23,7 +23,8 @@ class EventAwardsSection extends ConsumerWidget {
           children: [
             const BoxyArtSectionTitle(title: 'Prizes & Awards', followsCard: true),
             BoxyArtCard(
-              child: BoxyArtFormColumn(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   BoxyArtSwitchField(
                     label: 'Enable Prize Table',
@@ -31,7 +32,7 @@ class EventAwardsSection extends ConsumerWidget {
                     onChanged: (v) => ref.read(eventFormNotifierProvider.notifier).updateShowAwards(v),
                   ),
                   if (state.showAwards) ...[
-                    const Divider(height: AppSpacing.x3l),
+                    const BoxyArtDivider(),
                     ...state.awards.asMap().entries.map((entry) {
                       final index = entry.key;
                       final award = entry.value;
@@ -43,17 +44,23 @@ class EventAwardsSection extends ConsumerWidget {
                         ref: ref,
                       );
                     }),
-                    BoxyArtButton(
-                      title: 'Add award',
-                      fullWidth: true,
-                      onTap: () => ref.read(eventFormNotifierProvider.notifier).addAward(),
-                      isGhost: true,
-                      icon: Icons.add_circle_outline_rounded,
-                    ),
                   ],
                 ],
               ),
             ),
+            if (state.showAwards) ...[
+              Builder(builder: (context) {
+                final spacing = Theme.of(context).extension<AppSpacingTokens>();
+                return SizedBox(height: spacing?.cardToCard ?? AppSpacing.standard);
+              }),
+              BoxyArtButton(
+                title: 'Add award',
+                fullWidth: true,
+                onTap: () => ref.read(eventFormNotifierProvider.notifier).addAward(),
+                isTinted: true,
+                icon: Icons.add_circle_outline_rounded,
+              ),
+            ],
           ],
         );
       },
@@ -118,7 +125,7 @@ class _AwardRowState extends State<_AwardRow> {
   Widget build(BuildContext context) {
     return BoxyArtFormColumn(
       children: [
-        if (widget.index > 0) const Divider(height: AppSpacing.x3l),
+        if (widget.index > 0) const BoxyArtDivider(),
         Row(
           children: [
             Expanded(
@@ -140,19 +147,27 @@ class _AwardRowState extends State<_AwardRow> {
               ),
             ),
             IconButton(
-              icon: const Icon(Icons.remove_circle_outline, color: Colors.redAccent),
+              icon: const Icon(Icons.remove_circle_outline, color: AppColors.coral500),
               onPressed: () => widget.ref.read(eventFormNotifierProvider.notifier).removeAward(widget.index),
             ),
           ],
         ),
-        BoxyArtSegmentedControl<String>(
-          value: ['Cup', 'Cash', 'Voucher'].firstWhere((t) => t.toLowerCase() == widget.award.type.toLowerCase(), orElse: () => 'Cup'),
-          options: const [
-            BoxyOption(value: 'Cup', label: 'Cup'),
-            BoxyOption(value: 'Cash', label: 'Cash'),
-            BoxyOption(value: 'Voucher', label: 'Voucher'),
-          ],
-          onChanged: (type) => widget.ref.read(eventFormNotifierProvider.notifier).updateAward(widget.index, widget.award.copyWith(type: type)),
+        Row(
+          children: ['Cup', 'Cash', 'Voucher'].map((type) {
+            final isSelected = type.toLowerCase() == widget.award.type.toLowerCase();
+            return Expanded(
+              child: Padding(
+                padding: EdgeInsets.only(right: type != 'Voucher' ? AppSpacing.sm : 0),
+                child: BoxyArtButton(
+                  title: type,
+                  isTinted: isSelected,
+                  isSecondary: !isSelected,
+                  isSmall: true,
+                  onTap: () => widget.ref.read(eventFormNotifierProvider.notifier).updateAward(widget.index, widget.award.copyWith(type: type)),
+                ),
+              ),
+            );
+          }).toList(),
         ),
       ],
     );

@@ -18,10 +18,21 @@ class LeaderboardRuleTranslator {
         return 'Takes your best score on every hole across all rounds in the series to build a composite scorecard, $metric based$hcp.';
       },
       markerCounter: (c) {
-        final targets = c.targetTypes.map((t) => t.name).join(', ');
-        final basis = c.rankingMethod == MarkerRankingMethod.points ? 'points' : 'frequency';
+        String fmt(String val) {
+          final exp = RegExp(r'(?<=[a-z])[A-Z]');
+          final s = val.replaceAllMapped(exp, (m) => ' ${m.group(0)}');
+          return s[0].toUpperCase() + s.substring(1).toLowerCase();
+        }
+        final targets = c.targetTypes.map((t) => fmt(t.name)).join(', ');
+        final holeDesc = c.holeFilter == HoleFilter.all
+            ? 'all holes'
+            : '${fmt(c.holeFilter.name)}s only';
         final count = c.bestN == 0 ? 'all rounds' : 'the best ${c.bestN} rounds';
-        return 'Tracks the $basis of $targets across $count. Perfect for "Birdie Tree" or "Par Challenge" season standings.';
+        if (c.rankingMethod == MarkerRankingMethod.points) {
+          return 'Tracks total Stableford points scored on $holeDesc across $count.';
+        } else {
+          return 'Counts $targets on $holeDesc across $count.';
+        }
       },
     );
   }

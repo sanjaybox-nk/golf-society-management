@@ -70,10 +70,17 @@ class ReportingHubStats {
     required this.ledgerEntries,
   });
 
-  double get totalLedgerRevenue => ledgerEntries.where((e) => e.isPaid).fold(0.0, (sum, e) => sum + e.amount);
-  double get totalUnpaidLedgerRevenue => ledgerEntries.where((e) => !e.isPaid).fold(0.0, (sum, e) => sum + e.amount);
+  double get totalLedgerRevenue => ledgerEntries
+      .where((e) => e.isPaid && (e.type == 'Sponsorship' || e.type == 'Donation'))
+      .fold(0.0, (sum, e) => sum + e.amount);
+  double get totalUnpaidLedgerRevenue => ledgerEntries
+      .where((e) => !e.isPaid && (e.type == 'Sponsorship' || e.type == 'Donation'))
+      .fold(0.0, (sum, e) => sum + e.amount);
+  double get totalLedgerExpenditure => ledgerEntries
+      .where((e) => e.type == 'Expenditure')
+      .fold(0.0, (sum, e) => sum + e.amount);
 
-  double get netTreasury => startingBalance + totalRevenue + totalCollectedFines + totalCharity + totalLedgerRevenue - totalExpenses - totalCashPrizes - totalSocietyCosts;
+  double get netTreasury => startingBalance + totalRevenue + totalCollectedFines + totalCharity + totalLedgerRevenue - totalExpenses - totalCashPrizes - totalSocietyCosts - totalLedgerExpenditure;
 }
 
 final reportingHubStatsProvider = Provider<AsyncValue<ReportingHubStats>>((ref) {
@@ -112,11 +119,14 @@ final reportingHubStatsProvider = Provider<AsyncValue<ReportingHubStats>>((ref) 
           'Donations': 0,
           'Charity': 0,
           'Overheads': globalExpenses.fold(0.0, (sum, e) => sum + e.amount),
+          'Expenditure': 0,
         };
 
-        // Aggregating Ledger Entries (Sponsorships/Donations)
+        // Aggregating Ledger Entries (Sponsorships / Donations / Expenditure)
         for (var entry in config.ledgerEntries) {
-          if (entry.isPaid) {
+          if (entry.type == 'Expenditure') {
+            breakdown['Expenditure'] = (breakdown['Expenditure'] ?? 0) + entry.amount;
+          } else if (entry.isPaid) {
             if (entry.type == 'Sponsorship') {
               breakdown['Sponsorships'] = (breakdown['Sponsorships'] ?? 0) + entry.amount;
             } else if (entry.type == 'Donation') {

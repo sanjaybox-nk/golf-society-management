@@ -168,6 +168,9 @@ _SocietyConfig _$SocietyConfigFromJson(
   enableGimmes: json['enableGimmes'] as bool? ?? true,
   enableSocialMembership: json['enableSocialMembership'] as bool? ?? false,
   socialMemberFee: (json['socialMemberFee'] as num?)?.toDouble() ?? 0.0,
+  socialMembersGolfWaitlistPriority:
+      json['socialMembersGolfWaitlistPriority'] as bool? ?? true,
+  socialRenewalOpen: json['socialRenewalOpen'] as bool? ?? false,
 );
 
 Map<String, dynamic> _$SocietyConfigToJson(_SocietyConfig instance) =>
@@ -289,6 +292,9 @@ Map<String, dynamic> _$SocietyConfigToJson(_SocietyConfig instance) =>
       'enableGimmes': instance.enableGimmes,
       'enableSocialMembership': instance.enableSocialMembership,
       'socialMemberFee': instance.socialMemberFee,
+      'socialMembersGolfWaitlistPriority':
+          instance.socialMembersGolfWaitlistPriority,
+      'socialRenewalOpen': instance.socialRenewalOpen,
     };
 
 const _$HandicapSystemEnumMap = {
@@ -361,5 +367,5 @@ const _$SponsorTierEnumMap = {
   SponsorTier.gold: 'gold',
   SponsorTier.silver: 'silver',
   SponsorTier.bronze: 'bronze',
-  SponsorTier.standard: 'standard',
+  SponsorTier.partner: 'standard',
 };

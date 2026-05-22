@@ -38,7 +38,7 @@ class EventCompetitionSection extends ConsumerWidget {
                   children: [
                     Text(
                       "No rules applied", 
-                      style: AppTypography.labelStrong.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                      style: AppTypography.labelStrong.copyWith(color: AppColors.dark400),
                     ),
                     BoxyArtButton(
                       title: "Add game format",
@@ -68,7 +68,10 @@ class EventCompetitionSection extends ConsumerWidget {
 
                   // Secondary Competition Section
                   if (state.secondaryTemplateId != null || state.secondaryCompetition != null) ...[
-                    const SizedBox(height: AppSpacing.lg),
+                    Builder(builder: (context) {
+                      final spacing = Theme.of(context).extension<AppSpacingTokens>();
+                      return SizedBox(height: spacing?.cardToCard ?? AppSpacing.standard);
+                    }),
                     CompetitionRulesCard(
                       competition: state.secondaryCompetition ?? selectedSecondaryTemplate,
                       eventId: state.eventId ?? "",
@@ -84,17 +87,21 @@ class EventCompetitionSection extends ConsumerWidget {
                       customizeLabel: state.isSecondaryCustomized ? "Customized" : "Customize",
                     ),
                   ] else ...[
-                    const SizedBox(height: AppSpacing.lg),
+                    Builder(builder: (context) {
+                      final spacing = Theme.of(context).extension<AppSpacingTokens>();
+                      return SizedBox(height: spacing?.cardToCard ?? AppSpacing.standard);
+                    }),
                     BoxyArtCard(
                       child: BoxyArtFormColumn(
                         children: [
                           Text(
-                            "No side game active", 
-                            style: AppTypography.labelStrong.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                            "No side game active",
+                            style: AppTypography.labelStrong.copyWith(color: AppColors.dark400),
                           ),
                           BoxyArtButton(
                             title: "Add side game overlay",
                             fullWidth: true,
+                            isTinted: true,
                             onTap: () => _handleAddGame(context, ref, state, isSecondary: true),
                           ),
                         ],
@@ -103,10 +110,9 @@ class EventCompetitionSection extends ConsumerWidget {
                   ],
 
                   BoxyArtCard(
-                    padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
                     child: BoxyArtSwitchField(
                       label: 'Separate Guests in Standings',
-                      subtitle: 'By default, guests are merged in Invitationals and separated in Official games.',
+                      subtitle: 'By default, guests are merged in Non-Season events and separated in Season games.',
                       value: state.separateGuests ?? (!state.isInvitational),
                       onChanged: (v) => ref.read(eventFormNotifierProvider.notifier).updateSeparateGuests(v),
                     ),
@@ -117,7 +123,7 @@ class EventCompetitionSection extends ConsumerWidget {
                       children: [
                         Text(
                           'Season Standings (OOM/Eclectic)',
-                          style: AppTypography.captionStrong.copyWith(color: AppColors.textSecondary),
+                          style: AppTypography.microStrong.copyWith(color: AppColors.textSecondary),
                         ),
                         BoxyArtCard(
                           child: BoxyArtFormColumn(

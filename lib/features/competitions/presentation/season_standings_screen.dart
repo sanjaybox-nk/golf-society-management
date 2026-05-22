@@ -5,6 +5,7 @@ import 'standings/standings_providers.dart';
 import '../../members/presentation/profile_provider.dart';
 import 'package:golf_society/domain/models/leaderboard_config.dart';
 import 'package:golf_society/design_system/design_system.dart';
+import '../../admin/utils/leaderboard_rule_translator.dart';
 
 class SeasonStandingsScreen extends ConsumerWidget {
   final String? seasonId;
@@ -58,32 +59,34 @@ class SeasonStandingsScreen extends ConsumerWidget {
            );
         }
 
+        final groups = groupLeaderboards(leaderboards);
+
         return HeadlessScaffold(
           title: title,
           subtitle: subtitle,
           showBack: true,
           slivers: [
             SliverPadding(
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.lg),
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
               sliver: SliverList(
-                delegate: SliverChildBuilderDelegate(
-                  (context, index) {
-                    final config = leaderboards[index];
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: AppSpacing.lg),
-                      child: _LeaderboardHubCard(
-                        seasonId: season.id,
-                        config: config,
-                        currentUserId: currentUserId,
+                delegate: SliverChildListDelegate([
+                  const SizedBox(height: AppSpacing.lg),
+                  for (final group in groups) ...[
+                    BoxyArtSectionTitle(title: group.label, isPeeking: true),
+                    for (final config in group.configs)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: AppSpacing.cardToCard),
+                        child: LeaderboardHubCard(
+                          seasonId: season.id,
+                          config: config,
+                          currentUserId: currentUserId,
+                        ),
                       ),
-                    );
-                  },
-                  childCount: leaderboards.length,
-                ),
+                  ],
+                  const SizedBox(height: 100),
+                ]),
               ),
             ),
-            // Safety bottom padding for the floating navigation
-            const SliverToBoxAdapter(child: SizedBox(height: 100)),
           ],
         );
       },
@@ -119,12 +122,32 @@ class SeasonStandingsScreen extends ConsumerWidget {
   }
 }
 
-class _LeaderboardHubCard extends ConsumerWidget {
+class LeaderboardGroup {
+  final String label;
+  final List<LeaderboardConfig> configs;
+  LeaderboardGroup(this.label, this.configs);
+}
+
+List<LeaderboardGroup> groupLeaderboards(List<LeaderboardConfig> leaderboards) {
+  final oom = leaderboards.where((l) => l is OrderOfMeritConfig).toList();
+  final bos = leaderboards.where((l) => l is BestOfSeriesConfig).toList();
+  final eclectic = leaderboards.where((l) => l is EclecticConfig).toList();
+  final marker = leaderboards.where((l) => l is MarkerCounterConfig).toList();
+  return [
+    if (oom.isNotEmpty) LeaderboardGroup('Order of Merit', oom),
+    if (bos.isNotEmpty) LeaderboardGroup('Best of Series', bos),
+    if (eclectic.isNotEmpty) LeaderboardGroup('Eclectic', eclectic),
+    if (marker.isNotEmpty) LeaderboardGroup('Marker Counters', marker),
+  ];
+}
+
+class LeaderboardHubCard extends ConsumerWidget {
   final String seasonId;
   final LeaderboardConfig config;
   final String currentUserId;
 
-  const _LeaderboardHubCard({
+  const LeaderboardHubCard({
+    super.key,
     required this.seasonId,
     required this.config,
     required this.currentUserId,
@@ -134,6 +157,7 @@ class _LeaderboardHubCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final standingsAsync = ref.watch(leaderboardStandingsProvider((seasonId: seasonId, leaderboardId: config.id)));
     final primary = Theme.of(context).primaryColor;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     final IconData icon = config.map(
       orderOfMerit: (_) => Icons.emoji_events_rounded,
@@ -149,88 +173,79 @@ class _LeaderboardHubCard extends ConsumerWidget {
       markerCounter: (_) => AppColors.lime500,
     );
 
-    final String description = config.map(
-      orderOfMerit: (_) => 'Accumulate points from all rounds.',
-      bestOfSeries: (bos) => 'Count top ${bos.bestN} scores.',
-      eclectic: (_) => 'Best score per hole across season.',
-      markerCounter: (_) => 'Track Birdies, Eagles, or Pars.',
-    );
+    final String description = LeaderboardRuleTranslator.translate(config);
 
     return BoxyArtCard(
-      padding: const EdgeInsets.all(AppSpacing.lg),
+      padding: const EdgeInsets.all(AppSpacing.large),
       onTap: () => context.push('/locker/standings/${config.id}?seasonId=$seasonId'),
       child: Row(
         children: [
-          // Standardized Design 4.x Icon Badge
           BoxyArtIconBadge(
             icon: icon,
             color: brandColor,
             isTinted: true,
-            size: 48,
-            iconSize: 24,
+            size: AppShapes.iconHero,
+            iconSize: AppShapes.iconLg,
           ),
           const SizedBox(width: AppSpacing.lg),
-          
+
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   config.name.toUpperCase(),
-                  style: AppTypography.labelStrong.copyWith(
-                    letterSpacing: 0.5,
-                  ),
+                  style: AppTypography.labelStrong,
                 ),
+                const SizedBox(height: AppSpacing.xs),
                 Text(
                   description,
-                  style: AppTypography.caption.copyWith(
-                    color: AppColors.textSecondary,
-                    height: 1.2,
+                  style: AppTypography.micro.copyWith(
+                    color: isDark ? AppColors.dark200 : AppColors.dark400,
                   ),
                 ),
-                const SizedBox(height: 6),
-                
-                // Live Leader Info with Premium Branded Labels
+                const SizedBox(height: AppSpacing.xs),
+
                 standingsAsync.when(
                   data: (standings) {
                     if (standings.isEmpty) {
                       return Text(
                         'NO DATA AVAILABLE',
                         style: AppTypography.micro.copyWith(
-                          color: AppColors.textSecondary.withValues(alpha: 0.5),
-                          fontWeight: AppTypography.weightBlack,
-                          letterSpacing: 1.0,
+                          color: AppColors.dark400,
+                          fontWeight: AppTypography.weightBold,
+                          letterSpacing: AppTypography.lsLabel,
                         ),
                       );
                     }
-                    
+
                     final leader = standings.first;
                     final isMemberLeader = leader.memberId == currentUserId;
                     final Color indicatorColor = isMemberLeader ? primary : brandColor;
 
                     final unit = config.map(
-                      orderOfMerit: (_) => 'PTS', 
-                      bestOfSeries: (bos) => bos.metric == BestOfMetric.stableford ? 'PTS' : 'STR', 
-                      eclectic: (_) => 'STR', 
-                      markerCounter: (_) => 'BIRDIES',
+                      orderOfMerit: (_) => 'PTS',
+                      bestOfSeries: (bos) => bos.metric == BestOfMetric.stableford ? 'PTS' : 'STR',
+                      eclectic: (e) => e.metric == EclecticMetric.stableford ? 'PTS' : 'STR',
+                      markerCounter: (c) => c.rankingMethod == MarkerRankingMethod.points ? 'PTS' : 'MARKERS',
                     );
-                    
+
                     return Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Icon(
                           isMemberLeader ? Icons.person_rounded : Icons.trending_up_rounded,
-                          size: 14,
+                          size: AppShapes.iconXs,
                           color: indicatorColor,
                         ),
-                        const SizedBox(width: 4),
+                        const SizedBox(width: AppSpacing.xs),
                         Flexible(
                           child: Text(
                             '1st: ${isMemberLeader ? 'YOU' : leader.memberName} • ${leader.points.toStringAsFixed(0)} $unit',
                             style: AppTypography.micro.copyWith(
                               color: indicatorColor,
-                              fontWeight: AppTypography.weightBlack,
-                              letterSpacing: 0.2,
+                              fontWeight: AppTypography.weightBold,
+                              letterSpacing: AppTypography.lsStandard,
                             ),
                             overflow: TextOverflow.ellipsis,
                           ),
@@ -239,8 +254,8 @@ class _LeaderboardHubCard extends ConsumerWidget {
                     );
                   },
                   loading: () => const SizedBox(
-                    height: 14,
-                    width: 14,
+                    height: AppShapes.iconXs,
+                    width: AppShapes.iconXs,
                     child: CircularProgressIndicator(strokeWidth: 1),
                   ),
                   error: (e, s) => const SizedBox.shrink(),
@@ -248,8 +263,7 @@ class _LeaderboardHubCard extends ConsumerWidget {
               ],
             ),
           ),
-          
-          // Trailing Chevron for Hub Navigation
+
           const Icon(
             Icons.chevron_right_rounded,
             color: AppColors.dark400,

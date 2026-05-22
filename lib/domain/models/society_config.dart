@@ -15,7 +15,8 @@ enum SponsorTier {
   gold,
   silver,
   bronze,
-  standard,
+  @JsonValue('standard')
+  partner,
 }
 
 @freezed
@@ -134,6 +135,8 @@ abstract class SocietyConfig with _$SocietyConfig {
     @Default(true) bool enableGimmes,
     @Default(false) bool enableSocialMembership,
     @Default(0.0) double socialMemberFee,
+    @Default(true) bool socialMembersGolfWaitlistPriority,
+    @Default(false) bool socialRenewalOpen,
   }) = _SocietyConfig;
 
   const SocietyConfig._();

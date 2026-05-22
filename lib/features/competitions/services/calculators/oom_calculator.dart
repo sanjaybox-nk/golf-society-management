@@ -26,9 +26,24 @@ class OOMCalculator implements LeaderboardCalculator {
       final processedData = processedEvents[comp.id];
       if (processedData == null) continue;
 
-      // Filter out excluded rounds if applicable (though usually OOM captures the whole event)
-      // but if an event has multiple rounds, we might need more granular logic.
-      // For now, we assume 1 event = 1 leaderboard result.
+      // Pre-calculate average points for each tied position (position-based OOM only)
+      final Map<int, double> effectivePoints = {};
+      if (oomConfig.source == OOMSource.position) {
+        final positionCounts = <int, int>{};
+        for (final e in processedData.leaderboard) {
+          if (e.scoringStatus != ScoringStatus.dq) {
+            positionCounts[e.position] = (positionCounts[e.position] ?? 0) + 1;
+          }
+        }
+        for (final pos in positionCounts.keys) {
+          final count = positionCounts[pos]!;
+          double total = 0;
+          for (int i = 0; i < count; i++) {
+            total += (oomConfig.positionPointsMap[pos + i] ?? 0).toDouble();
+          }
+          effectivePoints[pos] = total / count;
+        }
+      }
 
       for (var entry in processedData.leaderboard) {
         // DQ'd players earn 0 OOM points — exclude entirely
@@ -39,7 +54,7 @@ class OOMCalculator implements LeaderboardCalculator {
         // Calculate Points
         double pointsEarned = 0;
         if (oomConfig.source == OOMSource.position) {
-          pointsEarned = (oomConfig.positionPointsMap[position] ?? 0).toDouble();
+          pointsEarned = effectivePoints[position] ?? 0;
         } else if (oomConfig.source == OOMSource.stableford) {
           // If source is stableford, we use the score directly (assuming it's formatted as pts)
           pointsEarned = entry.score.toDouble();

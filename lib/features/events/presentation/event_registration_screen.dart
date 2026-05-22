@@ -12,6 +12,7 @@ import 'package:golf_society/features/competitions/presentation/competitions_pro
 import 'package:golf_society/features/notifications/domain/notification_broadcast_service.dart';
 import 'package:golf_society/features/members/presentation/profile_provider.dart';
 import 'package:golf_society/features/guests/data/guest_repository.dart';
+import 'package:golf_society/domain/models/member.dart';
 
 class EventRegistrationScreen extends ConsumerStatefulWidget {
   final String eventId;
@@ -82,16 +83,18 @@ class _EventRegistrationScreenState extends ConsumerState<EventRegistrationScree
           ? (event.selectedFemaleTeeName ?? event.selectedTeeName) 
           : event.selectedTeeName;
 
+      final extraCostsTotal = event.extraCosts.fold(0.0, (s, e) => s + e.amount);
       double totalCost = 0;
       if (event.eventType == EventType.social) {
         totalCost += event.eventCost ?? 0.0;
       } else {
         if (_attendingGolf) totalCost += event.memberCost ?? 0.0;
-        // Buggy cost is indicative and paid to pro shop directly, so we exclude it from totalCost
+        if (_needsBuggy && event.buggyCollectedBySociety) totalCost += event.buggyCost ?? 0.0;
       }
       if (_attendingBreakfast) totalCost += event.breakfastCost ?? 0.0;
       if (_attendingLunch) totalCost += event.lunchCost ?? 0.0;
       if (_attendingDinner) totalCost += event.dinnerCost ?? 0.0;
+      totalCost += extraCostsTotal;
 
       if (_registerGuest) {
         if (event.eventType == EventType.social) {
@@ -102,6 +105,7 @@ class _EventRegistrationScreenState extends ConsumerState<EventRegistrationScree
         if (_guestAttendingBreakfast) totalCost += event.breakfastCost ?? 0.0;
         if (_guestAttendingLunch) totalCost += event.lunchCost ?? 0.0;
         if (_guestAttendingDinner) totalCost += event.dinnerCost ?? 0.0;
+        totalCost += extraCostsTotal;
 
         // Look up or create persistent guest record
         final guestRepo = ref.read(guestRepositoryProvider);
@@ -124,6 +128,18 @@ class _EventRegistrationScreenState extends ConsumerState<EventRegistrationScree
         description: existingReg == null ? 'Initial registration' : 'Member updated their registration details',
         actor: memberName,
       );
+
+      // Social members registering for golf go to waitlist unless already overridden.
+      final societyConfig = ref.read(themeControllerProvider);
+      final isSocialMember = currentMember.role.isSocialMember ||
+          currentMember.status == MemberStatus.social;
+      final forceSocialWaitlist = isSocialMember &&
+          event.eventType == EventType.golf &&
+          societyConfig.socialMembersGolfWaitlistPriority &&
+          existingReg?.statusOverride == null;
+      final resolvedStatusOverride = forceSocialWaitlist
+          ? 'waitlist'
+          : existingReg?.statusOverride;
 
       final registration = EventRegistration(
         memberId: memberId,
@@ -149,7 +165,7 @@ class _EventRegistrationScreenState extends ConsumerState<EventRegistrationScree
         registeredAt: existingReg?.registeredAt ?? DateTime.now(), // Preserve original time if updating
         isConfirmed: existingReg?.isConfirmed ?? false, // Preserve status
         guestIsConfirmed: existingReg?.guestIsConfirmed ?? false,
-        statusOverride: existingReg?.statusOverride,
+        statusOverride: resolvedStatusOverride,
         buggyStatusOverride: existingReg?.buggyStatusOverride,
         guestBuggyStatusOverride: existingReg?.guestBuggyStatusOverride,
         partnerId: _partnerId,
@@ -244,24 +260,27 @@ class _EventRegistrationScreenState extends ConsumerState<EventRegistrationScree
   }
 
   double _calculateTotal(GolfEvent event) {
+    final extraCostsTotal = event.extraCosts.fold(0.0, (s, e) => s + e.amount);
     double total = 0;
     if (event.eventType == EventType.social) {
       total += event.eventCost ?? 0.0;
     } else {
       if (_attendingGolf) total += event.memberCost ?? 0.0;
-      // Buggy cost is indicative and paid to pro shop directly, so we exclude it from total
+      if (_needsBuggy && event.buggyCollectedBySociety) total += event.buggyCost ?? 0.0;
     }
     if (_attendingBreakfast) total += event.breakfastCost ?? 0.0;
     if (_attendingLunch) total += event.lunchCost ?? 0.0;
     if (_attendingDinner) total += event.dinnerCost ?? 0.0;
+    total += extraCostsTotal;
 
     if (_registerGuest) {
       if (event.eventType == EventType.social) {
         total += event.eventCost ?? 0.0;
       } else {
         total += event.guestCost ?? 0.0;
-        // Buggy cost is indicative and paid to pro shop directly, so we exclude it from total
+        if (_guestNeedsBuggy && event.buggyCollectedBySociety) total += event.buggyCost ?? 0.0;
       }
+      total += extraCostsTotal;
       if (_guestAttendingBreakfast) total += event.breakfastCost ?? 0.0;
       if (_guestAttendingLunch) total += event.lunchCost ?? 0.0;
       if (_guestAttendingDinner) total += event.dinnerCost ?? 0.0;
@@ -281,18 +300,26 @@ class _EventRegistrationScreenState extends ConsumerState<EventRegistrationScree
           _buildMiniCostRow('Event Entry', event.eventCost)
         else ...[
           if (_attendingGolf) _buildMiniCostRow('Member Golf', event.memberCost),
-          if (_needsBuggy) _buildMiniCostRow('Buggy (Paid to Pro Shop)', event.buggyCost),
+          if (_needsBuggy) _buildMiniCostRow(
+            event.buggyCollectedBySociety ? 'Buggy' : 'Buggy (Pay at Club)',
+            event.buggyCollectedBySociety ? event.buggyCost : null,
+          ),
         ],
         if (_attendingBreakfast) _buildMiniCostRow('Breakfast', event.breakfastCost),
         if (_attendingLunch) _buildMiniCostRow('Lunch', event.lunchCost),
         if (_attendingDinner) _buildMiniCostRow('Dinner', event.dinnerCost),
+        ...event.extraCosts.map((e) => _buildMiniCostRow(e.label, e.amount)),
         if (_registerGuest) ...[
           const Divider(height: AppSpacing.lg),
           if (event.eventType == EventType.social)
             _buildMiniCostRow('Guest Entry', event.eventCost, isGuest: true)
           else ...[
             _buildMiniCostRow('Guest Golf', event.guestCost, isGuest: true),
-            if (_guestNeedsBuggy) _buildMiniCostRow('Guest Buggy (Paid to Pro Shop)', event.buggyCost, isGuest: true),
+            if (_guestNeedsBuggy) _buildMiniCostRow(
+              event.buggyCollectedBySociety ? 'Guest Buggy' : 'Guest Buggy (Pay at Club)',
+              event.buggyCollectedBySociety ? event.buggyCost : null,
+              isGuest: true,
+            ),
           ],
           if (_guestAttendingBreakfast) _buildMiniCostRow('Guest Breakfast', event.breakfastCost, isGuest: true),
           if (_guestAttendingLunch) _buildMiniCostRow('Guest Lunch', event.lunchCost, isGuest: true),

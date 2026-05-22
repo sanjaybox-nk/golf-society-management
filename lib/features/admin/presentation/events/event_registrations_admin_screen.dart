@@ -151,7 +151,7 @@ class EventRegistrationsAdminScreen extends ConsumerWidget {
               title: 'Registration Stats',
               isPeeking: false, // Uses tabToContent (16.0) for standard top gap
             ),
-            RegistrationStatsCard(event: event, isCompact: true, showAdminMetrics: true),
+            RegistrationStatsCard(event: event),
 
 
           // MEMBERS - PLAYING

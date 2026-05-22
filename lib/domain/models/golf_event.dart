@@ -117,6 +117,7 @@ abstract class GolfEvent with _$GolfEvent {
     double? lunchCost,
     double? dinnerCost,
     double? buggyCost,
+    @Default(false) bool buggyCollectedBySociety,
     @Default(false) bool hasBreakfast,
     @Default(false) bool hasLunch,
     @Default(true) bool hasDinner,
@@ -147,6 +148,7 @@ abstract class GolfEvent with _$GolfEvent {
     @Default([]) List<EventFeedItem> feedItems,
     @Default(false) bool isScoringLocked,
     @Default(false) bool isStatsReleased,
+    bool? isStandingsReleased, // null = fall back to isStatsReleased (backward compat)
     @Default({}) Map<String, dynamic> finalizedStats,
     String? secondaryTemplateId, // Reference for Match Play overlay
     @Default(false) bool isSeasonEvent, // [NEW] Distinguishes league events from ad hoc games
@@ -163,10 +165,12 @@ abstract class GolfEvent with _$GolfEvent {
     String? groupingStrategy, // [NEW] Per event grouping logic override
     bool? separateGuests, // [NEW] null=auto, true=separate, false=merge
     @Default(true) bool allowGuests, // [NEW] Explicitly enable/disable guest participation
+    @Default([]) List<String> socialGolfOverrides, // Member IDs granted one-off golf access
   }) = _GolfEvent;
 
   bool get isClosed => status == EventStatus.completed || status == EventStatus.cancelled;
   bool get isPast => DateTime.now().isAfter(date.add(const Duration(days: 1)));
+  bool get standingsVisible => isStandingsReleased ?? isStatsReleased;
 
   bool get occursToday {
     final now = DateTime.now();

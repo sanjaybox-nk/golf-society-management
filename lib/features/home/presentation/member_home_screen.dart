@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
@@ -229,9 +230,10 @@ class MemberHomeScreen extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     BoxyArtSectionTitle(
-                      title: isLive ? 'Live Now' : 'Next Fixture', 
+                      title: isLive ? 'Live Now' : 'Next Fixture',
                     ),
                     _NextMatchCard(event: event),
+                    _EventSponsorCard(event: event, societyConfig: societyConfig),
                   ],
                 ),
               ),
@@ -433,167 +435,146 @@ class MemberHomeScreen extends ConsumerWidget {
           error: (err, stack) => const SliverToBoxAdapter(child: SizedBox.shrink()),
         ),
         
-        // Season Sponsors (Consolidated Tiered View)
+        // Season Sponsors — Official Sponsors card (Gold / Silver / Bronze)
         (() {
-          // 1. Managed Sponsors: Show all registry sponsors (removing strict scope filter to find the missing 8)
-          final managedSponsors = societyConfig.sponsors.toList();
-          
-          // 2. Unmanaged Sponsors: Sponsors in ledger but NOT in registry
+          bool hasSeasonEntry(Sponsor s) {
+            final entries = societyConfig.ledgerEntries
+                .where((e) => e.sponsorId == s.id && e.type == 'Sponsorship')
+                .toList();
+            return entries.isEmpty || entries.any((e) => e.scope?.toLowerCase() != 'event');
+          }
+
+          final managedSponsors = societyConfig.sponsors.where(hasSeasonEntry).toList();
           final unmanagedSponsors = societyConfig.ledgerEntries
-              .where((e) => e.type == 'Sponsorship' && 
-                e.scope?.toLowerCase() != 'event' && 
-                !societyConfig.sponsors.any((s) => s.id == e.sponsorId)
-              )
+              .where((e) => e.type == 'Sponsorship' &&
+                e.scope?.toLowerCase() != 'event' &&
+                !societyConfig.sponsors.any((s) => s.id == e.sponsorId))
               .map((e) => Sponsor(
                 id: e.id,
                 name: e.source,
-                tier: SponsorTier.standard,
+                tier: SponsorTier.partner,
                 description: e.description,
                 logoUrl: e.logoUrl,
               ))
               .toList();
-          
-          // 3. Combine and merge by ID to be super safe
-          final Map<String, Sponsor> uniqueSponsors = {};
-          for (var s in managedSponsors) { uniqueSponsors[s.id] = s; }
-          for (var s in unmanagedSponsors) {
-            if (!uniqueSponsors.containsKey(s.id)) uniqueSponsors[s.id] = s;
+
+          final Map<String, Sponsor> uniqueMap = {};
+          for (var s in managedSponsors) { uniqueMap[s.id] = s; }
+          for (var s in unmanagedSponsors) { uniqueMap.putIfAbsent(s.id, () => s); }
+
+          final tieredSponsors = uniqueMap.values
+              .where((s) => s.tier != SponsorTier.partner)
+              .toList()
+              ..sort((a, b) => a.tier.index.compareTo(b.tier.index));
+
+          if (tieredSponsors.isEmpty) return const SliverToBoxAdapter(child: SizedBox.shrink());
+
+          final Map<SponsorTier, List<Sponsor>> grouped = {};
+          for (final s in tieredSponsors) {
+            grouped.putIfAbsent(s.tier, () => []).add(s);
           }
-          
-          final sponsors = uniqueSponsors.values.toList()
-            ..sort((a, b) => a.tier.index.compareTo(b.tier.index));
-          
-          if (sponsors.isEmpty) return const SliverToBoxAdapter(child: SizedBox.shrink());
+          final sortedTiers = grouped.keys.toList()
+            ..sort((a, b) => a.index.compareTo(b.index));
 
           return SliverPadding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppSpacing.xl, 
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
             sliver: SliverToBoxAdapter(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const BoxyArtSectionTitle(
-                    title: 'Official Season Sponsors',
-                  ),
+                  const BoxyArtSectionTitle(title: 'Official Season Sponsors'),
                   BoxyArtCard(
                     padding: const EdgeInsets.symmetric(vertical: AppSpacing.xl, horizontal: AppSpacing.xl),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      children: (() {
-                        final List<Widget> children = [];
-                        
-                        // Group by tier
-                        final Map<SponsorTier, List<Sponsor>> grouped = {};
-                        for (final s in sponsors) {
-                          grouped.putIfAbsent(s.tier, () => []).add(s);
-                        }
-
-                        final sortedTiers = grouped.keys.toList()
-                          ..sort((a, b) => a.index.compareTo(b.index));
-
-                        for (int i = 0; i < sortedTiers.length; i++) {
-                          final tier = sortedTiers[i];
-                          final group = grouped[tier]!;
-                          
-                          // Subheader
-                          children.add(
-                            Padding(
-                              padding: EdgeInsets.only(
-                                top: i == 0 ? 0 : AppSpacing.xl,
-                                bottom: AppSpacing.md,
-                              ),
-                              child: Text(
-                                '${tier.name.toUpperCase()} PARTNERS',
-                                style: AppTypography.micro.copyWith(
-                                  color: AppColors.dark300,
-                                  fontWeight: AppTypography.weightHeavy,
-                                  letterSpacing: 1.0,
-                                  fontSize: 10,
-                                ),
+                      children: [
+                        for (int i = 0; i < sortedTiers.length; i++) ...[
+                          if (i > 0) const SizedBox(height: AppSpacing.xl),
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: AppSpacing.md),
+                            child: Text(
+                              '${sortedTiers[i].name.toUpperCase()} PARTNERS',
+                              style: AppTypography.micro.copyWith(
+                                color: AppColors.dark300,
+                                fontWeight: AppTypography.weightHeavy,
+                                letterSpacing: 1.0,
+                                fontSize: 10,
                               ),
                             ),
-                          );
-
-                          // Partner Rows
-                          for (int j = 0; j < group.length; j++) {
-                            final s = group[j];
-                            final isLastInGroup = j == group.length - 1;
-                            
-                            children.add(
-                              Padding(
-                                padding: EdgeInsets.only(bottom: isLastInGroup ? 0 : AppSpacing.lg),
-                                child: Row(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    if (s.logoUrl != null && s.logoUrl!.isNotEmpty)
-                                      BoxyArtImage(
-                                        url: s.logoUrl!,
-                                        width: 56,
-                                        height: 56,
-                                        fit: BoxFit.contain,
-                                        borderRadius: BorderRadius.circular(8),
-                                        errorWidget: const BoxyArtIconBadge(
-                                          icon: Icons.handshake_rounded,
-                                          color: AppColors.lime500,
-                                          isTinted: true,
-                                          size: 56,
-                                        ),
-                                      )
-                                    else
-                                      const BoxyArtIconBadge(
-                                        icon: Icons.handshake_rounded,
-                                        color: AppColors.lime500,
-                                        isTinted: true,
-                                        size: 56,
-                                      ),
-                                    const SizedBox(width: AppSpacing.lg),
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          (() {
-                                            // Find best entry for label (prioritizing season)
-                                            String labelStr = toTitleCase(s.name);
-                                            
-                                            return Column(
-                                              crossAxisAlignment: CrossAxisAlignment.start,
-                                              children: [
-                                                Text(
-                                                  labelStr,
-                                                  style: AppTypography.body.copyWith(
-                                                    fontWeight: AppTypography.weightBold,
-                                                    fontSize: 16,
-                                                    letterSpacing: -0.4,
-                                                  ),
-                                                ),
-                                              ],
-                                            );
-                                          })(),
-                                          if (s.description != null && s.description!.isNotEmpty)
-                                            Padding(
-                                              padding: const EdgeInsets.only(top: 4.0),
-                                              child: Text(
-                                                _extractPlainText(s.description),
-                                                style: AppTypography.label.copyWith(
-                                                  color: AppColors.dark300,
-                                                  height: 1.4,
-                                                ),
-                                                maxLines: 3,
-                                                overflow: TextOverflow.ellipsis,
-                                              ),
-                                            ),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
-                                ),
+                          ),
+                          for (int j = 0; j < grouped[sortedTiers[i]]!.length; j++)
+                            Padding(
+                              padding: EdgeInsets.only(
+                                bottom: j < grouped[sortedTiers[i]]!.length - 1 ? AppSpacing.lg : 0,
                               ),
-                            );
-                          }
-                        }
-                        return children;
-                      })(),
+                              child: _SponsorRow(
+                                sponsor: grouped[sortedTiers[i]]![j],
+                                extractText: _extractPlainText,
+                              ),
+                            ),
+                        ],
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        })(),
+
+        // Partners card (Partner tier — always after the sponsors card)
+        (() {
+          bool hasSeasonEntry(Sponsor s) {
+            final entries = societyConfig.ledgerEntries
+                .where((e) => e.sponsorId == s.id && e.type == 'Sponsorship')
+                .toList();
+            return entries.isEmpty || entries.any((e) => e.scope?.toLowerCase() != 'event');
+          }
+
+          final managedSponsors = societyConfig.sponsors
+              .where((s) => s.tier == SponsorTier.partner && hasSeasonEntry(s))
+              .toList();
+          final unmanagedSponsors = societyConfig.ledgerEntries
+              .where((e) => e.type == 'Sponsorship' &&
+                e.scope?.toLowerCase() != 'event' &&
+                !societyConfig.sponsors.any((s) => s.id == e.sponsorId))
+              .map((e) => Sponsor(
+                id: e.id,
+                name: e.source,
+                tier: SponsorTier.partner,
+                description: e.description,
+                logoUrl: e.logoUrl,
+              ))
+              .toList();
+
+          final Map<String, Sponsor> uniqueMap = {};
+          for (var s in managedSponsors) { uniqueMap[s.id] = s; }
+          for (var s in unmanagedSponsors) { uniqueMap.putIfAbsent(s.id, () => s); }
+
+          final partners = uniqueMap.values.toList();
+          if (partners.isEmpty) return const SliverToBoxAdapter(child: SizedBox.shrink());
+
+          return SliverPadding(
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+            sliver: SliverToBoxAdapter(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const BoxyArtSectionTitle(title: 'Partners'),
+                  BoxyArtCard(
+                    padding: const EdgeInsets.symmetric(vertical: AppSpacing.xl, horizontal: AppSpacing.xl),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        for (int j = 0; j < partners.length; j++)
+                          Padding(
+                            padding: EdgeInsets.only(bottom: j < partners.length - 1 ? AppSpacing.lg : 0),
+                            child: _SponsorRow(
+                              sponsor: partners[j],
+                              extractText: _extractPlainText,
+                            ),
+                          ),
+                      ],
                     ),
                   ),
                 ],
@@ -631,4 +612,138 @@ class MemberHomeScreen extends ConsumerWidget {
   }
 }
 
+class _SponsorRow extends StatelessWidget {
+  final Sponsor sponsor;
+  final String Function(String?) extractText;
 
+  const _SponsorRow({required this.sponsor, required this.extractText});
+
+  Widget _sponsorLogo(String? url) {
+    const fallback = BoxyArtIconBadge(
+      icon: Icons.handshake_rounded,
+      color: AppColors.lime500,
+      isTinted: true,
+      size: 56,
+    );
+    if (url == null || url.isEmpty) return fallback;
+    final isLocal = url.startsWith('/') || url.contains('cache');
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(8),
+      child: SizedBox(
+        width: 56,
+        height: 56,
+        child: isLocal
+            ? Image.file(File(url), fit: BoxFit.contain, errorBuilder: (ctx, err, st) => fallback)
+            : BoxyArtImage(url: url, fit: BoxFit.contain, errorWidget: fallback),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _sponsorLogo(sponsor.logoUrl),
+        const SizedBox(width: AppSpacing.lg),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                toTitleCase(sponsor.name),
+                style: AppTypography.headline.copyWith(
+                  fontWeight: AppTypography.weightBold,
+                  letterSpacing: AppTypography.lsHero,
+                ),
+              ),
+              if (sponsor.description != null && sponsor.description!.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.only(top: 4),
+                  child: Text(
+                    extractText(sponsor.description),
+                    style: AppTypography.label.copyWith(
+                      color: AppColors.dark300,
+                      height: 1.4,
+                    ),
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _EventSponsorCard extends StatelessWidget {
+  final GolfEvent event;
+  final SocietyConfig societyConfig;
+
+  const _EventSponsorCard({required this.event, required this.societyConfig});
+
+  @override
+  Widget build(BuildContext context) {
+    final sponsors = event.isClosed
+        ? <FinancialEntry>[]
+        : societyConfig.ledgerEntries.where((e) =>
+            e.type == 'Sponsorship' &&
+            e.scope?.toLowerCase() == 'event' &&
+            e.eventId == event.id).toList();
+
+    if (sponsors.isEmpty) return const SizedBox.shrink();
+
+    return Padding(
+      padding: const EdgeInsets.only(top: AppSpacing.atomic),
+      child: BoxyArtCard(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.xl,
+          vertical: AppSpacing.lg,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'EVENT SPONSOR',
+              style: AppTypography.micro.copyWith(
+                color: AppColors.dark300,
+                fontWeight: AppTypography.weightHeavy,
+                letterSpacing: 1.0,
+                fontSize: 10,
+              ),
+            ),
+            const SizedBox(height: AppSpacing.md),
+            for (int i = 0; i < sponsors.length; i++) ...[
+              if (i > 0) const SizedBox(height: AppSpacing.lg),
+              _SponsorRow(
+                sponsor: Sponsor(
+                  id: sponsors[i].id,
+                  name: sponsors[i].source,
+                  tier: SponsorTier.partner,
+                  description: sponsors[i].description,
+                  logoUrl: sponsors[i].logoUrl,
+                ),
+                extractText: (s) {
+                  if (s == null) return '';
+                  if (s.startsWith('[{"insert"')) {
+                    try {
+                      final List<dynamic> delta = jsonDecode(s);
+                      return delta
+                          .where((op) => op['insert'] is String)
+                          .map((op) => op['insert'] as String)
+                          .join('')
+                          .trim();
+                    } catch (_) {}
+                  }
+                  return s.trim();
+                },
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}

@@ -83,8 +83,7 @@ class EventCostControlScreen extends ConsumerWidget {
                       children: [
                         Expanded(
                           child: BoxyArtFormField(
-                            label: 'Buggy Cost (Indicative)',
-                            subtitle: 'Paid directly to pro shop (not collected by society)',
+                            label: 'Buggy Cost ($currency)',
                             initialValue: event.buggyCost?.toString() ?? '',
                             keyboardType: TextInputType.number,
                             onChanged: (v) => _updateEvent(ref, event, buggyCost: double.tryParse(v)),
@@ -164,7 +163,7 @@ class EventCostControlScreen extends ConsumerWidget {
                 BoxyArtButton(
                   title: 'Add expense',
                   onTap: () => _showExpenseDialog(context, ref, event),
-                  isGhost: true,
+                  isTinted: true,
                   fullWidth: true,
                 ),
                 SizedBox(height: AppSpacing.hero), // Spacing for safe area
@@ -184,6 +183,7 @@ class EventCostControlScreen extends ConsumerWidget {
     double? memberCost,
     double? guestCost,
     double? buggyCost,
+    bool? buggyCollectedBySociety,
     bool? hasBreakfast,
     double? societyBreakfastCost,
     double? breakfastCost,
@@ -203,6 +203,7 @@ class EventCostControlScreen extends ConsumerWidget {
         memberCost: memberCost ?? event.memberCost,
         guestCost: guestCost ?? event.guestCost,
         buggyCost: buggyCost ?? event.buggyCost,
+        buggyCollectedBySociety: buggyCollectedBySociety ?? event.buggyCollectedBySociety,
         hasBreakfast: hasBreakfast ?? event.hasBreakfast,
         societyBreakfastCost: societyBreakfastCost ?? event.societyBreakfastCost,
         breakfastCost: breakfastCost ?? event.breakfastCost,
@@ -293,7 +294,7 @@ class EventCostControlScreen extends ConsumerWidget {
                   const SizedBox(height: 2),
                   Text(
                     expense.category.toUpperCase(), 
-                    style: AppTypography.caption.copyWith(
+                    style: AppTypography.micro.copyWith(
                       color: AppColors.dark600, 
                       letterSpacing: 0.5,
                       fontWeight: AppTypography.weightBold,

@@ -8,8 +8,10 @@ import '../../../events/logic/event_analysis_engine.dart';
 import '../../../admin/providers/admin_ui_providers.dart';
 import 'package:golf_society/domain/grouping/grouping_service.dart';
 import 'package:golf_society/features/members/presentation/members_provider.dart';
+import 'package:golf_society/domain/models/member.dart';
 import 'package:golf_society/domain/models/competition.dart';
 import 'package:golf_society/domain/models/golf_event.dart';
+import '../../../competitions/services/leaderboard_invoker_service.dart';
 
 class EventAdminControlsScreen extends ConsumerStatefulWidget {
   final String eventId;
@@ -103,7 +105,16 @@ class _EventAdminControlsScreenState extends ConsumerState<EventAdminControlsScr
                     ),
                   ),
 
-                  // 3. Workbench Safety Section
+                  // 3. Social Golf Access (golf events only)
+                  if (event.eventType == EventType.golf) ...[
+                    const BoxyArtSectionTitle(
+                      title: 'Social member access',
+                      isPeeking: true,
+                    ),
+                    _SocialGolfAccessCard(event: event),
+                  ],
+
+                  // 4. Workbench Safety Section
                   const BoxyArtSectionTitle(
                     title: 'Workbench safety',
                     isPeeking: true,
@@ -139,7 +150,7 @@ class _EventAdminControlsScreenState extends ConsumerState<EventAdminControlsScr
                                 children: [
                                   Text(
                                     'Status:',
-                                    style: AppTypography.caption.copyWith(
+                                    style: AppTypography.micro.copyWith(
                                       color: AppColors.textSecondary,
                                       fontWeight: AppTypography.weightBold,
                                     ),
@@ -365,6 +376,9 @@ class _EventAdminControlsScreenState extends ConsumerState<EventAdminControlsScr
         ),
       );
 
+      // Trigger season standings recalculation so leaderboards update immediately
+      await ref.read(leaderboardInvokerServiceProvider).recalculateAll(event.seasonId);
+
       // [Design 4.x Progression Check] Match Play Automation
       // If this event had a Match Play overlay, we now offer to transition to the next round draw.
       if (event.secondaryTemplateId != null) {
@@ -488,6 +502,149 @@ class _EventAdminControlsScreenState extends ConsumerState<EventAdminControlsScr
       );
     }
   }
+}
 
+// ---------------------------------------------------------------------------
+// Social Golf Access Card
+// ---------------------------------------------------------------------------
 
+class _SocialGolfAccessCard extends ConsumerWidget {
+  final GolfEvent event;
+
+  const _SocialGolfAccessCard({required this.event});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final allMembers = ref.watch(allMembersProvider).value ?? [];
+    final socialMembers = allMembers
+        .where((m) => m.role == MemberRole.socialMember)
+        .toList()
+        .cast<Member>();
+    final overrides = event.socialGolfOverrides;
+
+    return BoxyArtCard(
+      padding: EdgeInsets.zero,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (overrides.isEmpty)
+            Padding(
+              padding: const EdgeInsets.all(AppSpacing.lg),
+              child: Text(
+                'No social members granted golf access for this event.',
+                style: AppTypography.micro.copyWith(
+                  color: AppColors.dark400,
+                  fontWeight: AppTypography.weightRegular,
+                ),
+              ),
+            )
+          else
+            Column(
+              children: overrides.asMap().entries.map((entry) {
+                final isLast = entry.key == overrides.length - 1;
+                final member = allMembers.firstWhere(
+                  (m) => m.id == entry.value,
+                  orElse: () => allMembers.first,
+                );
+                return Column(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppSpacing.lg,
+                        vertical: AppSpacing.md,
+                      ),
+                      child: Row(
+                        children: [
+                          BoxyArtAvatar(
+                            url: member.avatarUrl,
+                            initials: '${member.firstName[0]}${member.lastName[0]}',
+                            radius: 18,
+                            isCircle: true,
+                          ),
+                          const SizedBox(width: AppSpacing.md),
+                          Expanded(
+                            child: Text(
+                              '${member.firstName} ${member.lastName}',
+                              style: AppTypography.labelStrong,
+                            ),
+                          ),
+                          BoxyArtGlassIconButton(
+                            icon: Icons.remove_circle_outline_rounded,
+                            iconSize: 18,
+                            onPressed: () {
+                              final updated = List<String>.from(overrides)
+                                ..remove(entry.value);
+                              ref.read(eventsRepositoryProvider).updateEvent(
+                                event.copyWith(socialGolfOverrides: updated),
+                              );
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                    if (!isLast) const BoxyArtDivider(),
+                  ],
+                );
+              }).toList(),
+            ),
+          const BoxyArtDivider(),
+          Padding(
+            padding: const EdgeInsets.all(AppSpacing.lg),
+            child: BoxyArtButton(
+              title: 'Grant Golf Access',
+              icon: Icons.person_add_rounded,
+              isTinted: true,
+              fullWidth: true,
+              onTap: socialMembers.isEmpty
+                  ? null
+                  : () => _showSocialMemberPicker(context, ref, socialMembers, overrides),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showSocialMemberPicker(
+    BuildContext context,
+    WidgetRef ref,
+    List<Member> socialMembers,
+    List<String> overrides,
+  ) {
+    BoxyArtBottomSheet.show(
+      context: context,
+      title: 'Grant Golf Access',
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: socialMembers.map<Widget>((m) {
+          final alreadyGranted = overrides.contains(m.id);
+          return ListTile(
+            contentPadding: EdgeInsets.zero,
+            leading: BoxyArtAvatar(
+              url: m.avatarUrl,
+              initials: '${m.firstName[0]}${m.lastName[0]}',
+              radius: 22,
+              isCircle: true,
+            ),
+            title: Text(
+              '${m.firstName} ${m.lastName}',
+              style: AppTypography.labelStrong,
+            ),
+            trailing: alreadyGranted
+                ? const Icon(Icons.check_circle_rounded, color: AppColors.lime500)
+                : null,
+            onTap: alreadyGranted
+                ? null
+                : () {
+                    Navigator.pop(context);
+                    final updated = [...overrides, m.id];
+                    ref.read(eventsRepositoryProvider).updateEvent(
+                      event.copyWith(socialGolfOverrides: updated),
+                    );
+                  },
+          );
+        }).toList(),
+      ),
+    );
+  }
 }

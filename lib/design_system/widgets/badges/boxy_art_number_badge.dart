@@ -4,6 +4,7 @@ import 'package:golf_society/design_system/design_system.dart';
 /// A centralized number/position badge (e.g. for leaderboards).
 class BoxyArtNumberBadge extends StatelessWidget {
   final int number;
+  final String? prefix;
   final Color? color;
   final Color? textColor;
   final double size;
@@ -13,6 +14,7 @@ class BoxyArtNumberBadge extends StatelessWidget {
   const BoxyArtNumberBadge({
     super.key,
     required this.number,
+    this.prefix,
     this.color,
     this.textColor,
     this.size = 28,
@@ -53,10 +55,10 @@ class BoxyArtNumberBadge extends StatelessWidget {
         shape: BoxShape.circle,
       ),
       child: Text(
-        '$number',
-        style: AppTypography.caption.copyWith(
+        '${prefix ?? ''}$number',
+        style: AppTypography.micro.copyWith(
           color: textColor ?? (!isFilled ? AppColors.pureWhite : (color != null ? AppColors.pureWhite : fg)),
-          fontSize: size * 0.45,
+          fontSize: prefix != null ? size * 0.38 : size * 0.45,
           fontWeight: AppTypography.weightBold,
         ),
       ),

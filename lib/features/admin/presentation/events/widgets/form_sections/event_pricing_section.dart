@@ -58,94 +58,133 @@ class EventPricingSection extends ConsumerWidget {
                       ),
                     ],
                   ),
+                ],
+                if (state.eventType == EventType.social)
                   BoxyArtFormField(
-                    label: 'Indicative Buggy Cost ($currency)',
+                    label: 'Event Cost ($currency)',
+                    initialValue: state.eventCost?.toString() ?? '',
+                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    onChanged: (v) => ref.read(eventFormNotifierProvider.notifier).updateEventCost(double.tryParse(v)),
+                  ),
+              ],
+            ),
+          ),
+
+          if (state.eventType == EventType.golf) ...[
+            const BoxyArtSectionTitle(title: 'Buggy', followsCard: true),
+            BoxyArtCard(
+              child: BoxyArtFormColumn(
+                children: [
+                  BoxyArtSwitchField(
+                    label: 'Collect buggy payment via society',
+                    subtitle: state.buggyCollectedBySociety
+                        ? 'Included in registration total'
+                        : 'Members pay the club directly',
+                    value: state.buggyCollectedBySociety,
+                    onChanged: (v) => ref.read(eventFormNotifierProvider.notifier).updateBuggyCollectedBySociety(v),
+                  ),
+                  BoxyArtFormField(
+                    label: 'Buggy Cost ($currency)',
                     initialValue: state.buggyCost?.toString() ?? '',
                     keyboardType: TextInputType.number,
                     onChanged: (v) => ref.read(eventFormNotifierProvider.notifier).updateBuggyCost(double.tryParse(v)),
                   ),
                 ],
-                // Dynamic Costs
-                if (state.extraCosts.isNotEmpty) ...[
-                  const BoxyArtDivider(),
+              ),
+            ),
+          ],
+
+          if (state.extraCosts.isNotEmpty) ...[
+            const BoxyArtSectionTitle(title: 'Additional Costs', followsCard: true),
+            BoxyArtCard(
+              child: BoxyArtFormColumn(
+                children: [
                   ...state.extraCosts.asMap().entries.map((entry) {
                     final index = entry.key;
                     final cost = entry.value;
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: AppSpacing.md),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            flex: 5,
-                            child: BoxyArtFormField(
-                              label: 'Cost Label',
-                              initialValue: cost.label,
-                              onChanged: (v) => ref.read(eventFormNotifierProvider.notifier).updateCost(index, cost.copyWith(label: v)),
-                            ),
+                    return Row(
+                      children: [
+                        Expanded(
+                          flex: 5,
+                          child: BoxyArtFormField(
+                            label: 'Cost Label',
+                            initialValue: cost.label,
+                            onChanged: (v) => ref.read(eventFormNotifierProvider.notifier).updateCost(index, cost.copyWith(label: v)),
                           ),
-                          const SizedBox(width: AppSpacing.md),
-                          Expanded(
-                            flex: 3,
-                            child: BoxyArtFormField(
-                              label: 'Amount ($currency)',
-                              initialValue: cost.amount == 0 ? '' : cost.amount.toString(),
-                              keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                              onChanged: (v) => ref.read(eventFormNotifierProvider.notifier).updateCost(index, cost.copyWith(amount: double.tryParse(v) ?? 0.0)),
-                            ),
+                        ),
+                        const SizedBox(width: AppSpacing.md),
+                        Expanded(
+                          flex: 3,
+                          child: BoxyArtFormField(
+                            label: 'Amount ($currency)',
+                            initialValue: cost.amount == 0 ? '' : cost.amount.toString(),
+                            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                            onChanged: (v) => ref.read(eventFormNotifierProvider.notifier).updateCost(index, cost.copyWith(amount: double.tryParse(v) ?? 0.0)),
                           ),
-                          IconButton(
-                            icon: const Icon(Icons.remove_circle_outline, color: Colors.redAccent),
-                            onPressed: () => ref.read(eventFormNotifierProvider.notifier).removeCost(index),
-                          ),
-                        ],
-                      ),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.remove_circle_outline, color: AppColors.coral500),
+                          onPressed: () => ref.read(eventFormNotifierProvider.notifier).removeCost(index),
+                        ),
+                      ],
                     );
                   }),
                 ],
-                BoxyArtButton(
-                  title: 'Add cost',
-                  fullWidth: true,
-                  onTap: () => ref.read(eventFormNotifierProvider.notifier).addCost(),
-                  isGhost: true,
-                  icon: Icons.add_circle_outline_rounded,
-                ),
-              ],
+              ),
             ),
+          ],
+
+          Builder(builder: (context) {
+            final spacing = Theme.of(context).extension<AppSpacingTokens>();
+            return SizedBox(height: spacing?.cardToCard ?? AppSpacing.standard);
+          }),
+          BoxyArtButton(
+            title: 'Add cost',
+            fullWidth: true,
+            onTap: () => ref.read(eventFormNotifierProvider.notifier).addCost(),
+            isTinted: true,
+            icon: Icons.add_circle_outline_rounded,
           ),
           BoxyArtSectionTitle(
             title: state.eventType == EventType.social ? 'Event Details' : 'Meal Options & Costs',
             followsCard: true,
           ),
           BoxyArtCard(
-            child: BoxyArtFormColumn(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 if (state.eventType == EventType.golf) ...[
-                  _buildMealToggle(ref, 'Breakfast', state.hasBreakfast, state.societyBreakfastCost, state.breakfastCost, currency, 
+                  _buildMealToggle(ref, 'Breakfast', state.hasBreakfast, state.societyBreakfastCost, state.breakfastCost, currency,
                     (v) => ref.read(eventFormNotifierProvider.notifier).updateHasBreakfast(v),
                     (v) => ref.read(eventFormNotifierProvider.notifier).updateSocietyBreakfastCost(double.tryParse(v) ?? 0),
                     (v) => ref.read(eventFormNotifierProvider.notifier).updateBreakfastCost(double.tryParse(v) ?? 0),
                   ),
-                  _buildMealToggle(ref, 'Lunch', state.hasLunch, state.societyLunchCost, state.lunchCost, currency, 
+                  _buildMealToggle(ref, 'Lunch', state.hasLunch, state.societyLunchCost, state.lunchCost, currency,
                     (v) => ref.read(eventFormNotifierProvider.notifier).updateHasLunch(v),
                     (v) => ref.read(eventFormNotifierProvider.notifier).updateSocietyLunchCost(double.tryParse(v) ?? 0),
                     (v) => ref.read(eventFormNotifierProvider.notifier).updateLunchCost(double.tryParse(v) ?? 0),
                   ),
-                  _buildMealToggle(ref, 'Dinner', state.hasDinner, state.societyDinnerCost, state.dinnerCost, currency, 
+                  _buildMealToggle(ref, 'Dinner', state.hasDinner, state.societyDinnerCost, state.dinnerCost, currency,
                     (v) => ref.read(eventFormNotifierProvider.notifier).updateHasDinner(v),
                     (v) => ref.read(eventFormNotifierProvider.notifier).updateSocietyDinnerCost(double.tryParse(v) ?? 0),
                     (v) => ref.read(eventFormNotifierProvider.notifier).updateDinnerCost(double.tryParse(v) ?? 0),
                   ),
                 ],
                 if (state.hasDinner || state.eventType == EventType.social) ...[
-                  BoxyArtFormField(
-                    label: state.eventType == EventType.social ? 'Event Location' : 'Dinner Location',
-                    initialValue: state.dinnerLocation,
-                    onChanged: (v) => ref.read(eventFormNotifierProvider.notifier).updateDinnerLocation(v),
-                  ),
-                  BoxyArtFormField(
-                    label: state.eventType == EventType.social ? 'Event Address' : 'Dinner Address (Optional)',
-                    initialValue: state.dinnerAddress,
-                    onChanged: (v) => ref.read(eventFormNotifierProvider.notifier).updateDinnerAddress(v),
+                  const BoxyArtDivider(),
+                  BoxyArtFormColumn(
+                    children: [
+                      BoxyArtFormField(
+                        label: state.eventType == EventType.social ? 'Event Location' : 'Dinner Location',
+                        initialValue: state.dinnerLocation,
+                        onChanged: (v) => ref.read(eventFormNotifierProvider.notifier).updateDinnerLocation(v),
+                      ),
+                      BoxyArtFormField(
+                        label: state.eventType == EventType.social ? 'Event Address' : 'Dinner Address (Optional)',
+                        initialValue: state.dinnerAddress,
+                        onChanged: (v) => ref.read(eventFormNotifierProvider.notifier).updateDinnerAddress(v),
+                      ),
+                    ],
                   ),
                 ],
               ],

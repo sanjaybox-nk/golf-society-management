@@ -69,6 +69,7 @@ abstract class EventFormState with _$EventFormState {
     double? guestCost,
     double? societyGreenFee,
     double? buggyCost,
+    @Default(false) bool buggyCollectedBySociety,
     double? eventCost,
     
     // Meals

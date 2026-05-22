@@ -69,6 +69,11 @@ class MarkerCounterCalculator implements LeaderboardCalculator {
           if (isTarget) {
             markersInRound++;
             roundScore += 1;
+            // Track per-hole only for single-type configs
+            if (markerConfig.targetTypes.length == 1) {
+              final holeKey = (i + 1).toString();
+              stats.holeMarkers[holeKey] = (stats.holeMarkers[holeKey] ?? 0) + 1;
+            }
           }
         }
 
@@ -103,6 +108,8 @@ class MarkerCounterCalculator implements LeaderboardCalculator {
         points: totalPoints,
         roundsPlayed: stats.rounds.length,
         roundsCounted: countToTake,
+        history: stats.rounds.map((r) => r.score).toList(),
+        holeScores: markerConfig.targetTypes.length == 1 ? stats.holeMarkers : {},
       ));
     });
 
@@ -116,6 +123,7 @@ class MarkerCounterCalculator implements LeaderboardCalculator {
 class _PlayerStats {
   final String memberId;
   final List<_RoundData> rounds = [];
+  final Map<String, int> holeMarkers = {};
   _PlayerStats({required this.memberId});
 }
 

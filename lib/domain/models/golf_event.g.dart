@@ -142,6 +142,7 @@ _GolfEvent _$GolfEventFromJson(Map<String, dynamic> json) => _GolfEvent(
   lunchCost: (json['lunchCost'] as num?)?.toDouble(),
   dinnerCost: (json['dinnerCost'] as num?)?.toDouble(),
   buggyCost: (json['buggyCost'] as num?)?.toDouble(),
+  buggyCollectedBySociety: json['buggyCollectedBySociety'] as bool? ?? false,
   hasBreakfast: json['hasBreakfast'] as bool? ?? false,
   hasLunch: json['hasLunch'] as bool? ?? false,
   hasDinner: json['hasDinner'] as bool? ?? true,
@@ -190,6 +191,7 @@ _GolfEvent _$GolfEventFromJson(Map<String, dynamic> json) => _GolfEvent(
       const [],
   isScoringLocked: json['isScoringLocked'] as bool? ?? false,
   isStatsReleased: json['isStatsReleased'] as bool? ?? false,
+  isStandingsReleased: json['isStandingsReleased'] as bool?,
   finalizedStats: json['finalizedStats'] as Map<String, dynamic>? ?? const {},
   secondaryTemplateId: json['secondaryTemplateId'] as String?,
   isSeasonEvent: json['isSeasonEvent'] as bool? ?? false,
@@ -226,6 +228,11 @@ _GolfEvent _$GolfEventFromJson(Map<String, dynamic> json) => _GolfEvent(
   groupingStrategy: json['groupingStrategy'] as String?,
   separateGuests: json['separateGuests'] as bool?,
   allowGuests: json['allowGuests'] as bool? ?? true,
+  socialGolfOverrides:
+      (json['socialGolfOverrides'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toList() ??
+      const [],
 );
 
 Map<String, dynamic> _$GolfEventToJson(
@@ -255,6 +262,7 @@ Map<String, dynamic> _$GolfEventToJson(
   'lunchCost': instance.lunchCost,
   'dinnerCost': instance.dinnerCost,
   'buggyCost': instance.buggyCost,
+  'buggyCollectedBySociety': instance.buggyCollectedBySociety,
   'hasBreakfast': instance.hasBreakfast,
   'hasLunch': instance.hasLunch,
   'hasDinner': instance.hasDinner,
@@ -281,6 +289,7 @@ Map<String, dynamic> _$GolfEventToJson(
   'feedItems': instance.feedItems.map((e) => e.toJson()).toList(),
   'isScoringLocked': instance.isScoringLocked,
   'isStatsReleased': instance.isStatsReleased,
+  'isStandingsReleased': instance.isStandingsReleased,
   'finalizedStats': instance.finalizedStats,
   'secondaryTemplateId': instance.secondaryTemplateId,
   'isSeasonEvent': instance.isSeasonEvent,
@@ -297,6 +306,7 @@ Map<String, dynamic> _$GolfEventToJson(
   'groupingStrategy': instance.groupingStrategy,
   'separateGuests': instance.separateGuests,
   'allowGuests': instance.allowGuests,
+  'socialGolfOverrides': instance.socialGolfOverrides,
 };
 
 const _$EventStatusEnumMap = {

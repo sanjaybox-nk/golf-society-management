@@ -91,6 +91,7 @@ class EventFormNotifier extends AsyncNotifier<EventFormState> {
       guestCost: e.guestCost,
       societyGreenFee: e.societyGreenFee,
       buggyCost: e.buggyCost,
+      buggyCollectedBySociety: e.buggyCollectedBySociety,
       eventCost: e.eventCost,
       hasBreakfast: e.hasBreakfast,
       hasLunch: e.hasLunch,
@@ -166,6 +167,7 @@ class EventFormNotifier extends AsyncNotifier<EventFormState> {
   void updateDressCode(String v) => state = AsyncData(state.value!.copyWith(dressCode: v));
   void updateAvailableBuggies(int? v) => state = AsyncData(state.value!.copyWith(availableBuggies: v));
   void updateBuggyCost(double? v) => state = AsyncData(state.value!.copyWith(buggyCost: v));
+  void updateBuggyCollectedBySociety(bool v) => state = AsyncData(state.value!.copyWith(buggyCollectedBySociety: v));
   void updateMaxParticipants(int? v) => state = AsyncData(state.value!.copyWith(maxParticipants: v));
 
   void updateTemplateId(String? v) => state = AsyncData(state.value!.copyWith(selectedTemplateId: v));
@@ -447,6 +449,7 @@ class EventFormNotifier extends AsyncNotifier<EventFormState> {
         guestCost: s.guestCost,
         societyGreenFee: s.societyGreenFee,
         buggyCost: s.buggyCost,
+        buggyCollectedBySociety: s.buggyCollectedBySociety,
         eventCost: s.eventCost,
         hasBreakfast: s.hasBreakfast,
         hasLunch: s.hasLunch,
@@ -501,6 +504,7 @@ class EventFormNotifier extends AsyncNotifier<EventFormState> {
       guestCost: s.guestCost,
       societyGreenFee: s.societyGreenFee,
       buggyCost: s.buggyCost,
+      buggyCollectedBySociety: s.buggyCollectedBySociety,
       eventCost: s.eventCost,
       hasBreakfast: s.hasBreakfast,
       hasLunch: s.hasLunch,

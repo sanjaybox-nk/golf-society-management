@@ -7,7 +7,7 @@ import 'package:golf_society/utils/string_utils.dart';
 import 'package:golf_society/domain/models/season.dart';
 import 'package:golf_society/domain/models/leaderboard_config.dart';
 import '../../../events/presentation/events_provider.dart';
-import '../../../competitions/services/leaderboard_invoker_service.dart';
+import '../../utils/leaderboard_rule_translator.dart';
 
 class SeasonFormScreen extends ConsumerStatefulWidget {
   final Season? season;
@@ -60,15 +60,7 @@ class _SeasonFormScreenState extends ConsumerState<SeasonFormScreen> {
       topPill: BoxyArtPill.committee(label: 'ADMIN'),
       showBack: true,
       onBack: () => context.pop(),
-      actions: [
-        if (widget.season != null)
-          BoxyArtGlassIconButton(
-            icon: Icons.sync_rounded,
-            onPressed: _syncStandings,
-            tooltip: 'Sync Standings',
-          ),
-        const SizedBox(width: AppSpacing.sm),
-      ],
+      actions: const [],
       slivers: [
         SliverPadding(
           padding: EdgeInsets.only(
@@ -159,7 +151,7 @@ class _SeasonFormScreenState extends ConsumerState<SeasonFormScreen> {
                 const SizedBox(height: AppSpacing.standard),
                 BoxyArtButton(
                   title: 'Add Leaderboard Templates',
-                  isSecondary: true,
+                  isTinted: true,
                   icon: Icons.add_to_photos_rounded,
                   fullWidth: true,
                   onTap: _showTemplateSelector,
@@ -173,6 +165,42 @@ class _SeasonFormScreenState extends ConsumerState<SeasonFormScreen> {
                     fullWidth: true,
                   ),
                 ),
+                if (widget.season != null && _status == SeasonStatus.active) ...[
+                  const BoxyArtSectionTitle(title: 'Danger Zone', followsCard: true),
+                  BoxyArtCard(
+                    backgroundColor: AppColors.coral500.withValues(alpha: 0.06),
+                    border: Border.all(color: AppColors.coral500.withValues(alpha: 0.2)),
+                    padding: const EdgeInsets.all(AppSpacing.lg),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Close & Archive Season',
+                          style: AppTypography.labelStrong.copyWith(
+                            color: AppColors.coral500,
+                          ),
+                        ),
+                        const SizedBox(height: AppSpacing.xs),
+                        Text(
+                          'Moves this season and all its events to the archive. This cannot be undone.',
+                          style: AppTypography.micro.copyWith(
+                            color: AppColors.dark400,
+                            fontWeight: AppTypography.weightRegular,
+                          ),
+                        ),
+                        const SizedBox(height: AppSpacing.standard),
+                        BoxyArtButton(
+                          title: 'Close & Archive Season',
+                          icon: Icons.lock_outline_rounded,
+                          fullWidth: true,
+                          isDangerous: true,
+                          onTap: _closeSeasonDialog,
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.pageBottom),
+                ],
               ],
             ),
             ),
@@ -239,8 +267,12 @@ class _SeasonFormScreenState extends ConsumerState<SeasonFormScreen> {
                     context: context,
                     title: 'Remove Leaderboard?',
                     message: 'This will remove "${l.name}" from the season and clear its calculated standings. This cannot be undone.',
-                    confirmText: 'Remove',
+                    confirmText: 'REMOVE',
                     isDangerous: true,
+                    onCancel: () => Navigator.of(context, rootNavigator: true).pop(false),
+                    onConfirm: () async {
+                      Navigator.of(context, rootNavigator: true).pop(true);
+                    },
                   );
                 },
                 onDismissed: (_) {
@@ -257,7 +289,7 @@ class _SeasonFormScreenState extends ConsumerState<SeasonFormScreen> {
                         orderOfMerit: (_) => Icons.format_list_numbered_rounded,
                         bestOfSeries: (_) => Icons.stars_rounded,
                         eclectic: (_) => Icons.grid_on_rounded,
-                        markerCounter: (_) => Icons.emoji_events_rounded,
+                        markerCounter: (_) => Icons.park_rounded,
                       ),
                       color: Theme.of(context).colorScheme.primary,
                       isTinted: true,
@@ -271,15 +303,21 @@ class _SeasonFormScreenState extends ConsumerState<SeasonFormScreen> {
                           const SizedBox(height: 2),
                           Text(
                             _getFormatConfigSummary(l),
-                            style: AppTypography.caption.copyWith(color: AppColors.dark400),
+                            style: AppTypography.micro.copyWith(color: AppColors.dark400),
                             overflow: TextOverflow.ellipsis,
                           ),
                           const SizedBox(height: AppSpacing.sm),
                           BoxyArtIndicator(
-                            label: l.scope == LeaderboardScope.global ? 'GLOBAL' : 'SEASON LONG',
-                            dotColor: l.scope == LeaderboardScope.global 
-                                ? AppColors.lime500 
-                                : AppColors.teamA,
+                            label: switch (l.scope) {
+                              LeaderboardScope.global => 'GLOBAL',
+                              LeaderboardScope.invitationalsOnly => 'NON-SEASON',
+                              LeaderboardScope.seasonOnly => 'SEASON LONG',
+                            },
+                            dotColor: switch (l.scope) {
+                              LeaderboardScope.global => AppColors.lime500,
+                              LeaderboardScope.invitationalsOnly => AppColors.amber500,
+                              LeaderboardScope.seasonOnly => AppColors.teamA,
+                            },
                             hasHorizontalMargin: false,
                           ),
                         ],
@@ -299,12 +337,7 @@ class _SeasonFormScreenState extends ConsumerState<SeasonFormScreen> {
   }
 
   String _getFormatConfigSummary(LeaderboardConfig config) {
-    return config.map(
-      orderOfMerit: (o) => 'OOM (${o.source.name.toUpperCase()}) • ${o.rankingBasis.name.toUpperCase()}${o.bestN > 0 ? ' • Best ${o.bestN}' : ' • All rounds'}',
-      bestOfSeries: (b) => 'Best of Series • ${b.metric.name.toUpperCase()}${b.bestN > 0 ? ' • Best ${b.bestN}' : ' • All rounds'}',
-      eclectic: (e) => 'Eclectic • ${e.metric.name.toUpperCase()}${e.handicapPercentage > 0 ? ' • ${e.handicapPercentage}% HCP' : ' • Gross'}',
-      markerCounter: (m) => 'Markers • ${m.targetTypes.length} Targets • ${m.holeFilter == HoleFilter.all ? 'All Holes' : m.holeFilter.name.toUpperCase()}',
-    );
+    return LeaderboardRuleTranslator.translate(config);
   }
 
   void _showTemplateSelector() async {
@@ -335,40 +368,6 @@ class _SeasonFormScreenState extends ConsumerState<SeasonFormScreen> {
     }
   }
 
-  Future<void> _syncStandings() async {
-    if (widget.season == null) return;
-    
-    _showSnackBar('Syncing standings...', Icons.sync_rounded);
-    
-    try {
-      final invoker = ref.read(leaderboardInvokerServiceProvider);
-      await invoker.recalculateAll(widget.season!.id, overrideConfigs: _leaderboards);
-      if (mounted) {
-        _showSnackBar('Standings synchronized!', Icons.check_circle_rounded, color: AppColors.lime500);
-      }
-    } catch (e) {
-      if (mounted) {
-        _showSnackBar('Sync failed: $e', Icons.error_outline_rounded, color: AppColors.coral500);
-      }
-    }
-  }
-
-  void _showSnackBar(String message, IconData icon, {Color? color}) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Row(
-          children: [
-            Icon(icon, color: Colors.white, size: 20),
-            const SizedBox(width: AppSpacing.md),
-            Text(message),
-          ],
-        ),
-        backgroundColor: color ?? AppColors.dark700,
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
-  }
-
   Future<void> _pickDate({required bool isStart}) async {
     final picked = await showDatePicker(
       context: context,
@@ -385,6 +384,29 @@ class _SeasonFormScreenState extends ConsumerState<SeasonFormScreen> {
         }
       });
     }
+  }
+
+  void _closeSeasonDialog() {
+    showBoxyArtDialog(
+      context: context,
+      title: 'Close Season?',
+      message: 'This will move "${widget.season!.name}" and all its events to the Archive. This cannot be undone.',
+      confirmText: 'ARCHIVE',
+      cancelText: 'CANCEL',
+      isDangerous: true,
+      onCancel: () => Navigator.of(context, rootNavigator: true).pop(),
+      onConfirm: () async {
+        await ref.read(seasonsRepositoryProvider).closeSeason(widget.season!.id, {
+          'captain': 'TBD',
+          'playerOfTheYear': 'TBD',
+          'majorWinners': [],
+        });
+        if (mounted) {
+          Navigator.of(context, rootNavigator: true).pop();
+          context.pop();
+        }
+      },
+    );
   }
 
   Future<void> _save() async {

@@ -102,22 +102,23 @@ class EventCourseSection extends ConsumerWidget {
                         ),
                       ),
                       const SizedBox(width: AppSpacing.lg),
-                      const Expanded(child: SizedBox.shrink()),
+                      Expanded(
+                        child: BoxyArtFormField(
+                          label: 'Available Spaces',
+                          initialValue: state.maxParticipants?.toString() ?? '',
+                          keyboardType: TextInputType.number,
+                          hintText: 'Multiples of 4',
+                          onChanged: (v) => ref.read(eventFormNotifierProvider.notifier).updateMaxParticipants(int.tryParse(v)),
+                          validator: (v) {
+                            if (v == null || v.isEmpty) return null;
+                            final val = int.tryParse(v);
+                            if (val == null) return 'Invalid number';
+                            if (val % 4 != 0) return 'Must be a multiple of 4';
+                            return null;
+                          },
+                        ),
+                      ),
                     ],
-                  ),
-                  BoxyArtFormField(
-                    label: 'Available Spaces',
-                    initialValue: state.maxParticipants?.toString() ?? '',
-                    keyboardType: TextInputType.number,
-                    hintText: 'Max players (multiples of 4)',
-                    onChanged: (v) => ref.read(eventFormNotifierProvider.notifier).updateMaxParticipants(int.tryParse(v)),
-                    validator: (v) {
-                      if (v == null || v.isEmpty) return null;
-                      final val = int.tryParse(v);
-                      if (val == null) return 'Invalid number';
-                      if (val % 4 != 0) return 'Must be a multiple of 4';
-                      return null;
-                    },
                   ),
                 ],
               ),

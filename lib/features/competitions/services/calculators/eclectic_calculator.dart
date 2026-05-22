@@ -14,7 +14,10 @@ class EclecticCalculator implements LeaderboardCalculator {
     Map<String, Map<String, dynamic>>? groupings,
     Map<String, ProcessedEventData>? processedEvents,
   }) async {
-    final Map<String, Map<String, int>> playerHoleScores = {}; // memberId -> {holeIndex -> score}
+    final eclecticConfig = config as EclecticConfig;
+    final isStableford = eclecticConfig.metric == EclecticMetric.stableford;
+
+    final Map<String, Map<String, int>> playerHoleScores = {}; // memberId -> {holeIndex -> bestScore}
 
     if (processedEvents == null || processedEvents.isEmpty) return [];
 
@@ -23,25 +26,26 @@ class EclecticCalculator implements LeaderboardCalculator {
       final processedData = processedEvents[comp.id];
       if (processedData == null) continue;
 
-      for (var player in processedData.individualScores) {
-        if (player.isGuest) continue;
-        if (player.scoringStatus == ScoringStatus.dq) continue; // DQ rounds excluded from eclectic
+      final entries = isStableford
+          ? processedData.leaderboard
+              .where((e) => !e.isGuest && e.scoringStatus != ScoringStatus.dq)
+              .map((e) => (id: e.entryId, scores: e.holePoints ?? e.holeScores ?? <int?>[]))
+              .toList()
+          : processedData.individualScores
+              .where((p) => !p.isGuest && p.scoringStatus != ScoringStatus.dq)
+              .map((p) => (id: p.playerId, scores: p.holeScores))
+              .toList();
 
-        final memberId = player.playerId;
-        if (!playerHoleScores.containsKey(memberId)) {
-          playerHoleScores[memberId] = {};
-        }
-        final bestHoles = playerHoleScores[memberId]!;
+      for (final entry in entries) {
+        playerHoleScores.putIfAbsent(entry.id, () => {});
+        final bestHoles = playerHoleScores[entry.id]!;
 
-        for (int i = 0; i < player.holeScores.length; i++) {
-          final score = player.holeScores[i];
+        for (int i = 0; i < entry.scores.length; i++) {
+          final score = entry.scores[i];
           if (score == null) continue;
-          
           final holeKey = (i + 1).toString();
-          final currentBest = bestHoles[holeKey];
-
-          // Strokes: lower is better
-          if (currentBest == null || score < currentBest) {
+          final current = bestHoles[holeKey];
+          if (current == null || (isStableford ? score > current : score < current)) {
             bestHoles[holeKey] = score;
           }
         }
@@ -59,15 +63,17 @@ class EclecticCalculator implements LeaderboardCalculator {
         memberId: memberId,
         memberName: memberId,
         currentHandicap: 0,
-        points: total, // Total Strokes
+        points: total,
         roundsPlayed: 0,
-        roundsCounted: 0, 
+        roundsCounted: 0,
         holeScores: holes,
       ));
     });
 
-    // 3. Sort (Ascending for Strokes)
-    standings.sort((a, b) => a.points.compareTo(b.points));
+    // 3. Sort — Stableford: descending (more points = better). Strokes: ascending.
+    standings.sort((a, b) => isStableford
+        ? b.points.compareTo(a.points)
+        : a.points.compareTo(b.points));
 
     return standings;
   }

@@ -7,6 +7,8 @@ import 'package:golf_society/features/events/presentation/events_provider.dart';
 import 'package:golf_society/domain/models/golf_event.dart';
 import 'package:golf_society/domain/models/competition.dart';
 import 'package:golf_society/features/competitions/presentation/competitions_provider.dart';
+import 'package:golf_society/features/competitions/presentation/season_standings_screen.dart';
+import 'package:golf_society/domain/models/leaderboard_config.dart';
 import 'package:golf_society/features/members/presentation/profile_provider.dart';
 import 'package:golf_society/utils/string_utils.dart';
 import 'package:golf_society/utils/date_utils.dart' as utils;
@@ -30,15 +32,12 @@ class EventsScreen extends ConsumerWidget {
     final filter = isAdminContext
         ? ref.watch(adminEventFilterProvider)
         : ref.watch(eventFilterProvider);
-    final upcomingSeasonAsync = isAdminContext
-        ? ref.watch(adminUpcomingSeasonEventsProvider)
-        : ref.watch(upcomingSeasonEventsProvider);
-    final pastSeasonAsync = isAdminContext
-        ? ref.watch(adminPastSeasonEventsProvider)
-        : ref.watch(pastSeasonEventsProvider);
-    final socialAsync = isAdminContext
-        ? ref.watch(adminSocialEventsProvider)
-        : ref.watch(socialEventsProvider);
+    final upcomingAsync = isAdminContext
+        ? ref.watch(adminUpcomingEventsProvider)
+        : ref.watch(upcomingEventsProvider);
+    final pastAsync = isAdminContext
+        ? ref.watch(adminPastEventsProvider)
+        : ref.watch(pastEventsProvider);
 
     // --- Subtitle: dynamic season name for members, static for admin ---
     final String subtitle;
@@ -88,7 +87,7 @@ class EventsScreen extends ConsumerWidget {
           child: BoxyArtTabBar<EventFilter>(
             tabs: const [
               ModernFilterTab(label: 'Golf Events', value: EventFilter.season),
-              ModernFilterTab(label: 'Social', value: EventFilter.social),
+              ModernFilterTab(label: 'Leaderboards', value: EventFilter.leaderboard),
             ],
             selectedValue: filter,
             onTabSelected: (val) => isAdminContext
@@ -98,12 +97,11 @@ class EventsScreen extends ConsumerWidget {
           ),
         ),
 
-        // Spacing below filter bar
         SliverToBoxAdapter(
           child: SizedBox(height: spacing?.cardToLabel ?? AppSpacing.standard),
         ),
 
-        // Season tab
+        // Golf Events tab
         if (filter == EventFilter.season) ...[
           const SliverPadding(
             padding: EdgeInsets.symmetric(horizontal: AppSpacing.xl),
@@ -112,37 +110,97 @@ class EventsScreen extends ConsumerWidget {
             ),
           ),
           _buildEventList(
-            context, ref, upcomingSeasonAsync, 'Upcoming',
+            context, ref, upcomingAsync, 'Upcoming',
             allowHighlight: !isAdminContext,
           ),
-
-          const SliverPadding(
-            padding: EdgeInsets.symmetric(horizontal: AppSpacing.xl),
-            sliver: SliverToBoxAdapter(
-              child: BoxyArtSectionTitle(title: 'Past Events', isPeeking: false),
+          if (pastAsync.value?.isNotEmpty == true) ...[
+            const SliverPadding(
+              padding: EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+              sliver: SliverToBoxAdapter(
+                child: BoxyArtSectionTitle(title: 'Past Events', followsCard: true),
+              ),
             ),
-          ),
-          _buildEventList(context, ref, pastSeasonAsync, 'Past'),
+            _buildEventList(context, ref, pastAsync, 'Past'),
+          ],
         ],
 
-        // Social tab
-        if (filter == EventFilter.social) ...[
-          const SliverPadding(
-            padding: EdgeInsets.symmetric(horizontal: AppSpacing.xl),
-            sliver: SliverToBoxAdapter(
-              child: BoxyArtSectionTitle(title: 'Social Events', isPeeking: true),
-            ),
-          ),
-          _buildEventList(
-            context, ref, socialAsync, 'Social',
-            allowHighlight: !isAdminContext,
-          ),
-        ],
+        // Leaderboard tab
+        if (filter == EventFilter.leaderboard)
+          _buildLeaderboardTab(context, ref),
 
         SliverToBoxAdapter(
           child: SizedBox(height: spacing?.cardToLabel ?? AppSpacing.cardToLabel),
         ),
       ],
+    );
+  }
+
+  Widget _buildLeaderboardTab(BuildContext context, WidgetRef ref) {
+    final currentUser = ref.watch(effectiveUserProvider);
+    final seasonAsync = ref.watch(activeSeasonProvider);
+
+    return seasonAsync.when(
+      data: (season) {
+        if (season == null) {
+          return const SliverPadding(
+            padding: EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+            sliver: SliverToBoxAdapter(
+              child: BoxyArtEmptyCard(
+                title: 'No Leaderboards Assigned',
+                message: 'No leaderboards have been assigned to the current season.',
+                icon: Icons.leaderboard_rounded,
+              ),
+            ),
+          );
+        }
+        if (season.leaderboards.isEmpty) {
+          return const SliverPadding(
+            padding: EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+            sliver: SliverToBoxAdapter(
+              child: BoxyArtEmptyCard(
+                title: 'No Leaderboards',
+                message: 'No leaderboards have been assigned to this season yet.',
+                icon: Icons.leaderboard_rounded,
+              ),
+            ),
+          );
+        }
+        final groups = groupLeaderboards(season.leaderboards);
+        return SliverPadding(
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+          sliver: SliverList(
+            delegate: SliverChildListDelegate([
+              const SizedBox(height: AppSpacing.lg),
+              for (final group in groups) ...[
+                BoxyArtSectionTitle(title: group.label, isPeeking: true),
+                for (final config in group.configs)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: AppSpacing.cardToCard),
+                    child: LeaderboardHubCard(
+                      seasonId: season.id,
+                      config: config,
+                      currentUserId: currentUser.id,
+                    ),
+                  ),
+              ],
+            ]),
+          ),
+        );
+      },
+      loading: () => const SliverPadding(
+        padding: EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.xl),
+        sliver: SliverToBoxAdapter(child: BoxyArtLoadingCard(useCard: true)),
+      ),
+      error: (e, s) => SliverPadding(
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+        sliver: SliverToBoxAdapter(
+          child: BoxyArtEmptyCard(
+            title: 'Leaderboard Error',
+            message: e.toString(),
+            icon: Icons.error_outline_rounded,
+          ),
+        ),
+      ),
     );
   }
 
@@ -276,6 +334,7 @@ class _EventRow extends ConsumerWidget {
       gameTypePill: _buildGameTypePill(context, ref, event.id, isHighlighted),
       statusPill: statusPill,
       isHighlighted: isHighlighted,
+      showSponsorStrip: true,
     );
   }
 

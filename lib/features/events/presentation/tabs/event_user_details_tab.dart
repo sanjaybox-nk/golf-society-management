@@ -7,6 +7,7 @@ import '../events_provider.dart';
 import 'package:flutter_quill/flutter_quill.dart' as quill;
 import 'dart:convert';
 import 'dart:io';
+import 'package:golf_society/utils/string_utils.dart';
 import '../../domain/registration_logic.dart';
 import 'package:golf_society/domain/models/competition.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -204,7 +205,8 @@ class _EventDetailsContentState extends ConsumerState<EventDetailsContent> {
               
               if (_selectedTab == EventInfoSubTab.info) ...[
                 _buildDateTimeSection(context),
-                SizedBox(height: spacing?.cardToLabel ?? AppSpacing.sectionTitleTop), // Semantic gap for first two cards (no titles)
+                ..._buildEventSponsors(context, ref, event),
+                SizedBox(height: spacing?.cardToLabel ?? AppSpacing.sectionTitleTop),
                 _buildHeroSection(context),
                 
                 if (event.eventType == EventType.golf) ...[
@@ -293,10 +295,8 @@ class _EventDetailsContentState extends ConsumerState<EventDetailsContent> {
     return Column(
       children: [
         // 1. REGISTRATION (PEEKING if first)
-        if (regItem != null) ...[
+        if (regItem != null)
           EventRegistrationCard(event: event, isManagement: isStaff, isPeeking: true),
-          ..._buildEventSponsors(context, ref, event),
-        ],
 
         // 2. YOUR GROUP
         if (showYourGroup) ...[
@@ -946,13 +946,11 @@ class _EventDetailsContentState extends ConsumerState<EventDetailsContent> {
                if (event.buggyCost != null && event.eventType == EventType.golf) ...[
                 const SizedBox(height: AppTheme.cardSpacing),
                 ModernInfoRow(
-                  label: 'Buggy Cost (Indicative)',
+                  label: event.buggyCollectedBySociety
+                      ? 'Buggy Cost'
+                      : 'Buggy Cost (Pay at Club)',
                   value: '${widget.currencySymbol}${event.buggyCost!.toStringAsFixed(2)}',
                   icon: Icons.electric_rickshaw_rounded,
-                  trailing: const Tooltip(
-                    message: 'Paid directly to pro shop',
-                    child: Icon(Icons.info_outline_rounded, size: 16, color: AppColors.textSecondary),
-                  ),
                 ),
                ],
                // Dynamic Extra Costs
@@ -1079,7 +1077,7 @@ class _EventDetailsContentState extends ConsumerState<EventDetailsContent> {
   List<Widget> _buildEventSponsors(BuildContext context, WidgetRef ref, GolfEvent event) {
     final societyConfig = ref.watch(themeControllerProvider);
     final sponsors = societyConfig.ledgerEntries
-        .where((e) => e.type == 'Sponsorship' && e.scope == 'event' && e.eventId == event.id && e.isPaid)
+        .where((e) => e.type == 'Sponsorship' && e.scope?.toLowerCase() == 'event' && e.eventId == event.id)
         .toList();
 
     if (sponsors.isEmpty) return [];
@@ -1088,50 +1086,88 @@ class _EventDetailsContentState extends ConsumerState<EventDetailsContent> {
     final spacing = theme.extension<AppSpacingTokens>();
 
     return [
-      const BoxyArtSectionTitle(title: 'OFFICIAL EVENT SPONSOR'),
-      ...sponsors.mapIndexed((index, s) => Padding(
-        padding: EdgeInsets.only(bottom: index < sponsors.length - 1 ? (spacing?.cardToCard ?? AppSpacing.standard) : 0),
-        child: BoxyArtCard(
-          padding: const EdgeInsets.all(AppSpacing.lg),
-          child: Row(
-            children: [
-              if (s.logoUrl != null && s.logoUrl!.isNotEmpty)
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(10),
-                  child: Image.network(
-                    s.logoUrl!,
-                    width: 48,
-                    height: 48,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) => const BoxyArtIconBadge(
-                      icon: Icons.handshake_rounded,
-                      size: 48,
+      SizedBox(height: spacing?.cardToLabel ?? AppSpacing.standard),
+      const BoxyArtSectionTitle(title: 'Sponsored By'),
+      BoxyArtCard(
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.lg),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            for (int i = 0; i < sponsors.length; i++) ...[
+              if (i > 0) const SizedBox(height: AppSpacing.lg),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _sponsorLogo(sponsors[i].logoUrl),
+                  const SizedBox(width: AppSpacing.lg),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          toTitleCase(sponsors[i].source),
+                          style: AppTypography.headline.copyWith(
+                            fontWeight: AppTypography.weightBold,
+                            letterSpacing: AppTypography.lsHero,
+                          ),
+                        ),
+                        if (sponsors[i].description != null && sponsors[i].description!.isNotEmpty)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 4),
+                            child: Text(
+                              _extractSponsorText(sponsors[i].description!),
+                              style: AppTypography.label.copyWith(
+                                color: AppColors.dark300,
+                                height: 1.4,
+                              ),
+                              maxLines: 3,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                      ],
                     ),
                   ),
-                )
-              else
-                const BoxyArtIconBadge(
-                  icon: Icons.handshake_rounded,
-                  size: 48,
-                ),
-              const SizedBox(width: AppSpacing.lg),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(s.source.toUpperCase(), style: AppTypography.label),
-                    if (s.description != null)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 4.0),
-                        child: _buildRichDescription(context, s.description!),
-                      ),
-                  ],
-                ),
+                ],
               ),
             ],
-          ),
+          ],
         ),
-      )),
+      ),
     ];
+  }
+
+  String _extractSponsorText(String content) {
+    if (content.startsWith('[{"insert"')) {
+      try {
+        final List<dynamic> delta = jsonDecode(content);
+        return delta
+            .where((op) => op['insert'] is String)
+            .map((op) => op['insert'] as String)
+            .join('')
+            .trim();
+      } catch (_) {}
+    }
+    return content.trim();
+  }
+
+  Widget _sponsorLogo(String? url) {
+    const fallback = BoxyArtIconBadge(
+      icon: Icons.handshake_rounded,
+      color: AppColors.lime500,
+      isTinted: true,
+      size: 56,
+    );
+    if (url == null || url.isEmpty) return fallback;
+    final isLocal = url.startsWith('/') || url.contains('cache');
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(8),
+      child: SizedBox(
+        width: 56,
+        height: 56,
+        child: isLocal
+            ? Image.file(File(url), fit: BoxFit.contain, errorBuilder: (ctx, err, st) => fallback)
+            : BoxyArtImage(url: url, fit: BoxFit.contain, errorWidget: fallback),
+      ),
+    );
   }
 }
