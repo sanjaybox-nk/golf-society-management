@@ -33,6 +33,12 @@ Never use arbitrary alpha values. Use the consolidated tokens via `.withValues(a
 
 ## 02 · Typography (The v4.x Split)
 
+### Migration Note: `caption` removed
+`AppTypography.caption` has been removed. Use the following instead:
+- `AppTypography.micro` — micro text, medium weight (was `caption`)
+- `AppTypography.microStrong` — micro text, bold variant
+- `AppTypography.bodySmall` — smaller body text (below `body` in the size hierarchy)
+
 ### Plus Jakarta Sans — Display & Scoring
 Used for high-impact numeric data and leaderboard "Hero" moments.
 - **Leaderboard Scores**: 22pt / 800 weight (`AppTypography.weightBlack`), -0.5 letter spacing.

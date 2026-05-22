@@ -81,7 +81,12 @@ Typed dropdown wrapper with label, hint, and `DropdownMenuItem<T>` support.
 Read-only field that triggers a date/time picker on tap.
 
 ### `BoxyArtSwitchField`
-Label + `Switch` in a single row layout. Active state uses `activeTrackColor` (not deprecated `activeColor`).
+Label + `Switch` in a single row layout, **no icon**, designed for use **inside** a `BoxyArtCard` with 8pt internal vertical padding (`AppSpacing.sm`). Active state uses `activeTrackColor` (not deprecated `activeColor`).
+
+### `BoxyArtSwitchTile`
+Label + `Switch` row with a required leading **icon** (`BoxyArtIconBadge`). Standalone — not nested inside a card. Use for settings-style rows (e.g. Operations hub toggles). Extends `ConsumerWidget` to resolve branding tokens.
+
+> **Rule**: Use `BoxyArtSwitchField` for inline form toggles inside cards. Use `BoxyArtSwitchTile` for icon-led settings rows outside cards.
 
 ### `BoxyArtFormColumn`
 Vertical column wrapper with standardised gap between form fields.
@@ -168,6 +173,8 @@ The standard for status, format, and type classification.
 | `BoxyArtPill.guest()` | Guest indicator |
 | `BoxyArtPill.meal(type: ...)` | Meal preference |
 
+- **`showActionIcon: bool`** — when `true`, appends a small action chevron/icon to the pill (e.g. for tappable filter pills that open a picker).
+
 > [!CAUTION]
 > `BoxyArtPill.committee()` is NOT a `const` constructor. When providing it to `titleSuffix`, the parent `HeadlessScaffold` itself cannot be prefixed with `const`. However, the `actions` list should still be marked `const []` if it is empty to maintain code quality.
 
@@ -182,6 +189,7 @@ Toggleable "Paid / Unpaid" or "Visible / Hidden" double-state pill with tap-to-t
 
 ### `BoxyArtNumberBadge`
 Circular numbered position badge (used in leaderboards).
+- **`prefix: String?`** — optional string rendered before the number inside the badge with a smaller font size. Use to display shared positions (e.g. `prefix: '='` produces `=2` inside the badge).
 
 ### `BoxyArtIconBadge`
 Square icon badge with optional tint fill.
@@ -194,6 +202,7 @@ The unified row for displaying members across the application.
 - **`name`**: Primary member name.
 - **`teamNames`**: (List<String>) Optional list of names for multi-line display (e.g. Scramble teams). If provided, `name` is ignored in the primary content area.
 - **`isCaptain`**: Triggers the amber shield badge and background identity on the avatar.
+- **`isSocialMember`**: Shows a social membership badge on the avatar (also supported on `member_tile.dart`).
 - **`initials`**: Explicit initials for the avatar (overrides name-derived initials).
 - **`useCard`**: Whether to wrap in a `BoxyArtCard` (default: true). Set to `false` for internal list items.
 - **`showChevron`**: Toggle the right-aligned interaction chevron.
@@ -252,6 +261,36 @@ BoxyArtStatusBanner(
 ```
 
 The `onTap` parameter is backwards-compatible — omitting it renders exactly as before.
+
+### `BoxyArtScoreStepper`
+Par-relative score stepper for digital scorecards. Renders a score box flanked by decrement / increment tap targets.
+
+```dart
+BoxyArtScoreStepper(
+  score: 4,
+  par: 4,          // drives automatic colour (Eagle/Birdie/Par/Bogey/Double/Triple+)
+  onDecrement: () => ...,
+  onIncrement: () => ...,
+  isLocked: false,
+)
+```
+
+- Score box is 48×48pt, uses `shapes?.input` radius.
+- Score colour resolves automatically from `AppColors.scoreEagle` → `AppColors.scoreTriplePlus` via `par` diff. Pass `scoreColor` to override.
+- When `isLocked: true` or no callback provided, buttons render in `AppColors.dark400` and are non-interactive.
+- Score display font: 32pt, `AppTypography.weightHeavy`.
+
+### `BoxyArtGuestBadge`
+Tinted purple circle badge (default 16pt) identifying a guest player. Used consistently across grouping, scoring, and admin views.
+
+```dart
+BoxyArtGuestBadge()           // 16pt default
+BoxyArtGuestBadge(size: 20)   // larger variant
+```
+
+- Fill: `AppColors.guestPurple` at `opacityLow`.
+- Border: `AppColors.guestPurple` at `opacityMuted`.
+- Renders 'G' text at 50% of `size`, `weightBold`.
 
 ---
 
@@ -427,6 +466,7 @@ Replace with `BoxyArtTabBar` for all value-based navigation.
 | `ModernUnderlinedFilterBar<T>` (value-based) | `BoxyArtTabBar<T>` |
 | `BoxyArtEmptyState` | `BoxyArtEmptyCard` |
 | `BrandingSettingsScreen` | `DesignLabScreen` (route: `admin-settings-branding`) |
+| `AppTypography.caption` | `AppTypography.micro` (medium weight) / `AppTypography.microStrong` (bold) |
 ## 13. Branding & Identity
 
 Specialized components for managing society profile data and visual "atmosphere."
@@ -520,6 +560,7 @@ These components automatically consume global branding tokens:
 ### Standard Information Rows
 - **`ModernInfoRow`**: The primary component for event details. It now defaults to the **Global Branding** tokens (no flags required).
 - **`BoxyArtSwitchTile` / `BoxyArtNavTile`**: Use these for settings and navigation. They automatically apply branding tokens to their leading icons.
+  - `BoxyArtNavTile` accepts an optional **`trailing`** widget parameter, rendered at the right edge of the tile (e.g. a `BoxyArtPill` or count badge).
 
 ### Implementation Best Practices
 1. **Prefer Branding Tokens**: Avoid passing `isPrimary` or `isSecondary` flags for standard informational icons. Let them fall back to the branding tokens for maximum administrative control.

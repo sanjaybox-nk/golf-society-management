@@ -48,11 +48,11 @@ This document tracks the remaining work required to take **Golf Society Manageme
         - [x] **Customization Flow**: On-the-fly creation and deep-linked rules editing.
         - [x] **Rich Visualization**: Rule-summarizing cards with dynamic status pills.
     - [x] **Template Gallery**: Reusable society-approved game formats.
-    - [x] **Marker Counter (Birdie Tree)**: Track birdies/eagles across season.
-    - [x] **Eclectic**: Best hole scores across multiple rounds.
+    - [x] **Marker Counter (Birdie Tree)**: Track birdies/eagles across season. `MarkerCounterCalculator` now populates `history` (per-round) and `holeScores` (per-hole, single-type configs only). (Completed 2026-05-21)
+    - [x] **Eclectic**: Best hole scores across multiple rounds. `EclecticCalculator` respects `EclecticMetric.stableford` vs `strokes` (desc sort + holePoints for stableford). (Completed 2026-05-21)
     - [x] **Digital Scorecard**: Input strokes hole-by-hole with real-time format extraction.
     - [x] **Live Leaderboard**: Real-time ranking with dynamic support for Stableford/Medal.
-    - [x] **Order of Merit (OoM) Points**: Industry standard point conversion (25, 18, 15, 12).
+    - [x] **Order of Merit (OoM) Points**: Industry standard point conversion (25, 18, 15, 12). Tied positions now share points equally (averaged across tied slots). (Completed 2026-05-21)
     - [x] **Best N Selection**: Automatically count only the top $N$ rounds for season standings.
     - [x] **Dynamic Member Standings**: Live season rank and performance statistics on member profiles.
     - [x] **Team Attribution**: Individual credit for team/pairs events.
@@ -320,3 +320,43 @@ Cuts follow a dual-accessibility pattern based on administrative context:
 - [x] Split `match_play_draw_manager_screen.dart` (1080L → 492L)
 - [x] Rename `isStableford: bool` → `higherIsBetter: bool` in `TieBreakerLogic`
 - [x] Add 49 unit tests for `ScoringStrategy`, `TieBreakerLogic`, `HandicapCalculator`
+
+### Admin Console Restructure & Social Membership (Completed 2026-05-19)
+- [x] **Admin Verify tab** and **Manage tab** added to Event Hub (scorer gets Verify only; Manage requires admin+)
+- [x] **Social membership tier** (`socialMember` role) with `SocietyConfig.enableSocialMembership` toggle
+- [x] **Role enforcement** — `restrictedAdmin` redirected to `/admin/events`; `scorer` redirect enforced
+- [x] **Dashboard KPI redesign** — `BoxyArtStatCard` pulse rows
+
+### Guest Proxy Flow (Completed 2026-05-19)
+- [x] **3-step proxy card** in Scores hub for entering proxy records
+- [x] **Proxy record entry** via Scoring tab
+- [x] **Hole-18 auto-confirm** — proxy card auto-confirms when hole 18 is entered
+
+### Sponsorship Hub Refinements (Completed 2026-05-21)
+- [x] `SponsorTier.standard` renamed to `SponsorTier.partner` with `@JsonValue('standard')` for Firestore backward compat
+- [x] **Form flow**: scope first (Season vs Event), then tier dropdown for season (Gold/Silver/Bronze/Partner) or event picker for event scope
+- [x] **Partner tier card** shown on home screen; season sponsors grouped by tier on home screen sponsor cards
+- [x] **Event sponsors** shown in event card strip and event detail tab
+
+### Reporting Hub — Treasury Calculation Fix (Completed 2026-05-21)
+- [x] `totalLedgerRevenue` now only sums Sponsorship + Donation entries (excludes Expenditure)
+- [x] `totalLedgerExpenditure` added as separate computed field
+- [x] `netTreasury` correctly subtracts `totalLedgerExpenditure`
+
+### Event Form & Finance Hardening (Completed 2026-05-21)
+- [x] **Event P&L** — Green Fees cost uses `societyGreenFee × paidGolferCount`; Catering uses society cost fields
+- [x] **Buggy collected by society** — `GolfEvent.buggyCollectedBySociety` toggle; affects member registration total
+- [x] **EXPENSES / PRIZES sections removed** from Manage tab (moved to Finance Hub ledger and event form respectively)
+- [x] **Form buttons** standardised: outside cards, `isTinted: true`, `cardToCard` spacing; Buggy card separated from Playing Costs
+
+### Registration Stats Card Unification (Completed 2026-05-21)
+- [x] `showAdminMetrics` param removed — admin and member views render identical tile set
+- [x] **Tile order fixed**: Capacity → Playing → Reserve → Guests → Waitlist → Withdrawn → Breakfast → Lunch → Dinner → Buggies
+
+### Season Leaderboards & Standings ✅ (Completed 2026-05-21)
+- [x] **Leaderboard grouping**: `groupLeaderboards()` public helper groups by type — OOM → Best of Series → Eclectic → Marker Counters
+- [x] **Shared position display**: `=N` prefix on `BoxyArtNumberBadge` used throughout leaderboard detail screen
+- [x] **OOM shared points**: Tied positions in qualifying events share points equally (averaged across tied rank slots)
+- [x] **Eclectic metric fix**: `EclecticCalculator` respects `EclecticMetric.stableford` vs `strokes`
+- [x] **Marker Counter history/holeScores**: `MarkerCounterCalculator` populates `history` (per-round) and `holeScores` (per-hole, single-type only)
+- [x] **Auto-recalculate on close**: `LeaderboardInvokerService.recalculateAll()` called automatically in `_closeEvent()` in `event_admin_controls_screen.dart`

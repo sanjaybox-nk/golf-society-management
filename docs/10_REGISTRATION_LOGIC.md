@@ -96,6 +96,17 @@ To ensure consistent resolution across scoring and registration:
 
 ---
 
+## Buggy Cost Collection (`buggyCollectedBySociety`)
+
+`GolfEvent` has a `buggyCollectedBySociety: bool` field (default `false`), toggled in the event form **Buggy** card.
+
+| Value | Behaviour |
+|---|---|
+| `false` (default) | Member sees "Buggy (Pay at Club)" label — cost is excluded from society registration total |
+| `true` | "Buggy" label shown — buggy cost is added to the member's registration total and collected by the society |
+
+---
+
 ## Match Play Partner Handshaking
 
 For events configured with **Pairs Match Play** rules, the registration flow includes a specialized **Handshake Partner** logic.
@@ -116,6 +127,22 @@ Once both partners are **Confirmed**, the `MatchPlayEntrantService` maps them in
 - **Member-Member Pairings**: Mapped as a single unit using both member IDs, ensuring they are seeded together.
 
 ---
+
+## Registration Stats Card (`RegistrationStatsCard`)
+
+The `RegistrationStatsCard` is unified — admin and member views render the same tile set via the same widget. The `showAdminMetrics` parameter has been **removed**; both contexts receive identical metrics.
+
+### Tile order (fixed)
+1. **Capacity** — `event.maxParticipants`
+2. **Playing** — Confirmed golfers. Guest sub-count shown in brackets when > 0 (e.g. `12 (3)`).
+3. **Reserve** — Members + guests in Reserved state.
+4. **Guests** — Total guest registrations (confirmed + reserve + waitlist).
+5. **Waitlist** — Players who cannot be confirmed due to capacity.
+6. **Withdrawn** — Participants who cancelled.
+7. **Breakfast** — Shown only when `event.hasBreakfast`.
+8. **Lunch** — Shown only when `event.hasLunch`.
+9. **Dinner** — Shown only when `event.hasDinner`.
+10. **Buggies** — Count shown as `N/capacity` when buggy capacity is configured.
 
 ## Metrics & Reporting
 

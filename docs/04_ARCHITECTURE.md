@@ -82,7 +82,10 @@ Complex business rules are encapsulated in standalone classes in `domain/`:
 - **`RegistrationLogic`**: Centralised helper for FCFS positions, status legend, and buggy allocations.
 - **Automated Financials**:
   - **Club Bill**: Auto-calculated from confirmed registrations and meal preferences.
-  - **Indicative Costs** (e.g. Buggy): Treated as member-direct and excluded from society treasury.
+  - **Green Fees cost**: `societyGreenFee × paidGolferCount` (uses society rate, not per-member charge).
+  - **Catering cost**: Uses `societyCatering*Cost` fields from `SocietyConfig` — never the per-member meal charges.
+  - **Buggy cost**: When `GolfEvent.buggyCollectedBySociety == false` (default), buggy cost is paid at the club by the member and excluded from society treasury. When `true`, it is added to the registration total collected by the society.
+  - **Ledger revenue**: `totalLedgerRevenue` sums Sponsorship + Donation entries only. `totalLedgerExpenditure` tracks Expenditure entries separately. `netTreasury` subtracts both society operating costs and `totalLedgerExpenditure`.
 - **`SmartAudienceEvaluator`**: Central logic for dynamic audience membership. Handles AND-logic filtering across member status, handicap, debt, and next-event registration status.
 
 ## Complex Form Architecture
@@ -97,7 +100,7 @@ For large multi-domain forms (e.g. `EventFormScreen`, `SurveyEditorScreen`):
 Hierarchical shell architecture:
 
 - **`GlobalAppShell`**: Wraps the 4 primary branches (Home, Events, Members, Admin). Bottom navigation bar is always visible unless the current route is a "Special Form" (creation/edit flow that should fill the screen).
-- **`EventAdminShell`**: Context-aware 5-tab hub for event administrators.
+- **`EventAdminShell`**: Context-aware 5-tab hub for event administrators. Includes a **Verify** tab (scorers and above) and a **Manage** tab (admins only — scorer role excluded).
 - **`EventUserShell`**: Context-aware 5-tab hub for event members. Includes the **2-Tab Segmented Scoring Hub** (v10.5) featuring the "SCORING" stream and "SCORECARD" overview views.
 - **Branch Navigators**: Administrative sub-hubs (Renewal Hub, Debt Ledger, Grouping Hub) use branch navigators to maintain `GlobalAppShell` visibility. Pushing to the root navigator for these screens is a known anti-pattern to avoid.
 - **Administrative Modal Stabilization**: (v7.1) All global administrative modals (e.g. Edit Menus, Audience Managers) must use `BoxyArtBottomSheet.show(useRootNavigator: true)` or `showModalBottomSheet(useRootNavigator: true)`. This ensures they correctly overlay the `GlobalAppShell` and prevents clipping by the persistent bottom navigation bar.
@@ -113,11 +116,11 @@ All models are immutable, generated with `freezed` and `JsonSerializable`:
   | Model | Purpose |
   |---|---|
   | `Member` | Core user profile, membership status, handicap |
-  | `GolfEvent` | Event metadata, registrations, feed items, multi-day support |
+  | `GolfEvent` | Event metadata, registrations, feed items, multi-day support. `buggyCollectedBySociety: bool` (default false) — when true, buggy cost is added to the member's registration total rather than paid at the club. |
   | `Competition` | Scoring rules, formats, handicap config |
   | `Campaign` | Society broadcast with multi-section `notes[]`, draft/sent lifecycle |
   | `Survey` / `SurveyQuestion` | Multi-question survey with Quill Delta JSON prompts |
-  | `FinancialEntry` | Treasury ledger items (sponsorship, donation, expense) |
+  | `FinancialEntry` | Treasury ledger items. Types: `Sponsorship`, `Donation`, `Expenditure`. Sponsorship entries carry `tier` (`SponsorTier`: `gold`/`silver`/`bronze`/`partner`) and `scope` (`Season` or `Event`). `SponsorTier.partner` is stored as `'standard'` in Firestore for backward compat (`@JsonValue('standard')`). |
   | `LeaderboardEntry` | Pre-calculated scoring vehicle — SSOT for all display |
   | `SocietyConfig` | Comprehensive Branding SSOT (Tokens, radii, spacing, mechanicals) |
   | `DistributionList` | Target audience definition with `isDynamic` and `filterCriteria` support |

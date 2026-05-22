@@ -48,11 +48,29 @@ The standard approach for society tour standings.
 -   **Appearance Points**: Bonus points awarded just for participating.
 -   **Best N Counting**: Supports "Best X of Y" rules (e.g., only your best 8 rounds out of 11 are totaled).
 -   **Individual Credit**: Points for team-based events (Scramble/Pairs) are attributed to each individual member of the entry for their individual season total.
+-   **Tied positions share points equally**: When multiple players finish tied at the same rank in a qualifying event, the `OOMCalculator` averages the points across all tied slots. E.g. two players tied 2nd both receive `(2nd points + 3rd points) / 2`.
 
 ### 3.2 Advanced Leaderboards
 -   **Birdie Tree**: Tracks birdies, eagles, and albatrosses throughout the season.
 -   **Eclectic**: Constructs the "perfect round" by taking the best score on each individual hole across all qualifying events.
+    -   `EclecticCalculator` is metric-aware: `EclecticMetric.stableford` uses `holePoints`, applies a per-hole maximum, and sorts descending; `EclecticMetric.strokes` uses raw strokes and sorts ascending.
 -   **Best Of Series**: Tracks the best $N$ scores by raw metric (Net, Stableford) without point conversion.
+-   **Marker Counter (Birdie Tree)**: `MarkerCounterCalculator` now populates two additional fields:
+    -   `history` — per-round breakdown of markers earned.
+    -   `holeScores` — per-hole detail, populated only for single-type configurations (e.g. birdies-only) to power the hole heat-map UI.
+
+### 3.2a Leaderboard Grouping & Display Order
+The `groupLeaderboards()` public helper (in the leaderboards data layer) sorts and groups leaderboard configs by type in the following order for display:
+1. Order of Merit
+2. Best of Series
+3. Eclectic
+4. Marker Counters
+
+### 3.2b Tie-Breaking — Phase 1 (Shared Positions)
+Shared positions are displayed with an `=` prefix (e.g. `=2`) using `BoxyArtNumberBadge(prefix: '=')`. The `season_leaderboard_detail_screen.dart` podium and standings list both implement this convention. OOM tied positions share points equally (see §3.1 above).
+
+### 3.2c Season Date Filter — Known Gotcha
+The season end date **must include all event dates** that should count towards standings. If any event date falls after the season end date, that event's results are silently excluded from all leaderboard calculations and the standings will appear empty or incomplete. Always extend the season end date past the last scheduled event when configuring a season.
 
 ### 3.3 Leaderboard Edit Controls — Design 4.x (April 2026)
 
@@ -99,9 +117,11 @@ Members access the hub via `Locker -> Season Standings`.
 
 ### 4.2 High-Fidelity Detail View (Spoke)
 Tapping a hub card navigates to the specific leaderboard detail screen (`SeasonLeaderboardDetailScreen`).
-- **Premium Podium**: Visual highlights for the top 3 players (Gold/Silver/Bronze) featuring high-fidelity avatar rings and rank badges.
+- **Premium Podium**: Visual highlights for the top 3 players (Gold/Silver/Bronze) featuring high-fidelity avatar rings, member photos, and rank badges. Shared `=2` positions are displayed with the `=` prefix.
 - **Branded Stage**: A dedicated "Stage" component at the podium base provides visual depth and thematic anchoring.
-- **Standing List**: A tight, data-dense list of the entire field featuring tokenized borders and personal best indicators for the current member.
+- **Standing List**: A tight, data-dense list of the entire field featuring tokenized borders and personal best indicators for the current member. Tied positions show `=N` via `BoxyArtNumberBadge(prefix: '=')`.
+- **Rules Card & Sheet**: A rules summary card is shown inline; tapping it opens a full rules bottom sheet.
+- **Type-Aware Player Detail Sheet**: Tapping a player row opens a detail sheet that adapts its content to the leaderboard type (OOM shows points history per event; Eclectic shows best hole breakdown; Marker Counter shows marker history).
 - **Summary Sheets**: Tapping a player row opens a deep-dive performance sheet showing rounds played, handicap trajectory, and best round metrics.
 
 ### 4.3 Admin Oversight

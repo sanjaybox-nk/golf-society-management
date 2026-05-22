@@ -46,6 +46,13 @@ Seeds two events for conflict/verification testing:
 - **Rhythm Stableford** (stableford, singles) — progressive scoring states
 - Guests in these events use real guest pool IDs (not placeholder `guest_0` IDs).
 
+### 5. Seed Stableford Leaderboard UAT
+Seeds a two-event season leaderboard UAT scenario for testing OOM/Eclectic/Marker Counter calculations end-to-end.
+- **Access**: Admin Operations → **"Seed Stableford Leaderboard UAT"**
+- **Round 1**: Fully approved stableford event with final results.
+- **Round 2**: In-play stableford event (scoring active, not yet approved).
+- Designed to exercise the season standings hub, leaderboard grouping, shared position display, and tie-breaking logic.
+
 ### 3. Competition Template Gallery
 The master seed populates the administrative template library with authoritative, modular blueprints:
 - **Stableford Solo**: Standard singles format (95% allowance).
@@ -63,7 +70,7 @@ The system enforces a strict "Review and Publish" workflow for Match Play:
 
 ### 4. Society Branding & Atmosphere
 - **Global Identity**: Restores the society name, logo, and theme mode.
-- **Sponsorship Hub**: Re-establishes Gold/Silver/Bronze season partners (e.g., Rafiki Golf, Titleist, PING).
+- **Sponsorship Hub**: Re-establishes Gold/Silver/Bronze/Partner season sponsors (e.g., Rafiki Golf, Titleist, PING). Sponsors are scoped as Season or Event and grouped by tier on the home screen.
 - **Financial Ledger**: Injects sponsorship revenue and society overheads.
 
 ### 5. System Factory Reset (The "Deep Wipe")

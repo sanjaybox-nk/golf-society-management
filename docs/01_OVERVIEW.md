@@ -4,8 +4,8 @@
 
 ## Core Features
 
-1. **Member Dashboard**: Personalized view with dynamic notifications, "Next Match" hero card, Season Sponsors, and quick-access Order of Merit snippet.
-2. **Society Reporting Hub**: Comprehensive reporting engine for finances, member engagement, fines, charity tracking, and competition analytics.
+1. **Member Dashboard**: Personalized view with dynamic notifications, "Next Match" hero card, Season Sponsors (grouped by tier including Partner tier card), and quick-access Order of Merit snippet.
+2. **Society Reporting Hub**: Comprehensive reporting engine for finances, member engagement, fines, charity tracking, and competition analytics. Treasury net calculation subtracts ledger expenditure (`totalLedgerExpenditure`) from revenue.
 3. **Communications Hub (Admin)**: A sophisticated broadcasting system with multi-section rich-text composing, custom distribution lists, draft persistence, and event targeting.
 4. **Events Hub**: Comprehensive listing of Upcoming and Past events, with player-facing registration, live scoring, and event feed.
 5. **Members Directory**: Searchable roster with live filtering, photo uploads, member status management, and inline admin controls.
