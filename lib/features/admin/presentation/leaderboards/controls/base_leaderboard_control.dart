@@ -1,5 +1,7 @@
 import 'package:golf_society/design_system/design_system.dart';
 import 'package:golf_society/domain/models/leaderboard_config.dart';
+import 'package:golf_society/domain/models/division_config.dart';
+import 'package:golf_society/domain/divisions/division_helper.dart';
 
 mixin BaseLeaderboardControlMixin<T extends StatefulWidget> on State<T> {
 
@@ -176,6 +178,35 @@ mixin BaseLeaderboardControlMixin<T extends StatefulWidget> on State<T> {
       isTinted: true,
       icon: icon,
       fullWidth: true,
+    );
+  }
+
+  Widget buildDivisionFilterSelector({
+    required Division? value,
+    required ValueChanged<Division?> onChanged,
+  }) {
+    final description = value == null
+        ? 'Includes all members regardless of division.'
+        : 'Only includes ${DivisionHelper.label(value)} members. Requires divisions to be configured on the season.';
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        BoxyArtDropdownField<Division?>(
+          label: 'Division Filter',
+          prefixIcon: const Icon(Icons.workspaces_rounded),
+          value: value,
+          items: [
+            const DropdownMenuItem(value: null, child: Text('ALL MEMBERS')),
+            ...Division.values.map((d) => DropdownMenuItem(
+              value: d,
+              child: Text(DivisionHelper.shortLabel(d)),
+            )),
+          ],
+          onChanged: onChanged,
+        ),
+        buildInfoBubble(description),
+      ],
     );
   }
 

@@ -6,7 +6,9 @@ import 'package:golf_society/utils/string_utils.dart';
 
 import 'package:golf_society/domain/models/season.dart';
 import 'package:golf_society/domain/models/leaderboard_config.dart';
+import 'package:golf_society/domain/models/division_config.dart';
 import '../../../events/presentation/events_provider.dart';
+import '../../../members/presentation/members_provider.dart';
 import '../../utils/leaderboard_rule_translator.dart';
 
 class SeasonFormScreen extends ConsumerStatefulWidget {
@@ -32,6 +34,12 @@ class _SeasonFormScreenState extends ConsumerState<SeasonFormScreen> {
   bool _isSaving = false;
   bool _isCurrent = false;
 
+  // Divisions
+  bool _divisionsEnabled = false;
+  late TextEditingController _thresholdController;
+  bool _genderSeparated = false;
+  late List<String> _voluntaryDiv1MemberIds;
+
   @override
   void initState() {
     super.initState();
@@ -43,12 +51,18 @@ class _SeasonFormScreenState extends ConsumerState<SeasonFormScreen> {
     _status = s?.status ?? SeasonStatus.active;
     _isCurrent = s?.isCurrent ?? false;
     _leaderboards = List.from(s?.leaderboards ?? []);
+    final dc = s?.divisionConfig;
+    _divisionsEnabled = dc != null;
+    _thresholdController = TextEditingController(text: (dc?.threshold ?? 12.0).toString());
+    _genderSeparated = dc?.genderSeparated ?? false;
+    _voluntaryDiv1MemberIds = List.from(dc?.voluntaryDiv1MemberIds ?? []);
   }
 
   @override
   void dispose() {
     _nameController.dispose();
     _yearController.dispose();
+    _thresholdController.dispose();
     super.dispose();
   }
 
@@ -146,6 +160,8 @@ class _SeasonFormScreenState extends ConsumerState<SeasonFormScreen> {
                     ),
                   ),
                 ),
+                const BoxyArtSectionTitle(title: 'Divisions', isPeeking: true, followsCard: true),
+                _buildDivisionsSection(),
                 const BoxyArtSectionTitle(title: 'Assigned Leaderboards', isPeeking: true, followsCard: true),
                 _buildLeaderboardsList(),
                 const SizedBox(height: AppSpacing.standard),
@@ -207,6 +223,159 @@ class _SeasonFormScreenState extends ConsumerState<SeasonFormScreen> {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildDivisionsSection() {
+    final members = ref.watch(allMembersProvider).value ?? [];
+    final threshold = double.tryParse(_thresholdController.text) ?? 12.0;
+    final voluntaryMembers = members.where((m) => _voluntaryDiv1MemberIds.contains(m.id)).toList();
+
+    return BoxyArtCard(
+      padding: EdgeInsets.zero,
+      child: Column(
+        children: [
+          BoxyArtSwitchTile(
+            icon: Icons.workspaces_rounded,
+            label: 'Enable Divisions',
+            subtitle: 'Split members into Div 1 and Div 2 based on handicap.',
+            value: _divisionsEnabled,
+            onChanged: (v) => setState(() => _divisionsEnabled = v),
+          ),
+          if (_divisionsEnabled) ...[
+            const BoxyArtDivider(),
+            Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.xl,
+                vertical: AppSpacing.lg,
+              ),
+              child: BoxyArtFormColumn(
+                children: [
+                  BoxyArtInputField(
+                    label: 'Handicap threshold (Div 1 ≤ this)',
+                    controller: _thresholdController,
+                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    onChanged: (_) => setState(() {}),
+                  ),
+                  BoxyArtSwitchField(
+                    label: 'Separate by gender',
+                    subtitle: 'Creates Div 1 Men, Div 2 Men, Div 1 Ladies, Div 2 Ladies.',
+                    value: _genderSeparated,
+                    onChanged: (v) => setState(() => _genderSeparated = v),
+                  ),
+                ],
+              ),
+            ),
+            const BoxyArtDivider(),
+            // Voluntary Div 1 upgrades
+            if (voluntaryMembers.isNotEmpty)
+              Column(
+                children: voluntaryMembers.asMap().entries.map((entry) {
+                  final m = entry.value;
+                  final isLast = entry.key == voluntaryMembers.length - 1;
+                  return Column(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: AppSpacing.xl,
+                          vertical: AppSpacing.md,
+                        ),
+                        child: Row(
+                          children: [
+                            BoxyArtAvatar(
+                              url: m.avatarUrl,
+                              initials: '${m.firstName[0]}${m.lastName[0]}',
+                              radius: 18,
+                              isCircle: true,
+                            ),
+                            const SizedBox(width: AppSpacing.md),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    '${m.firstName} ${m.lastName}',
+                                    style: AppTypography.labelStrong,
+                                  ),
+                                  Text(
+                                    'Plays in Div 1 · HC capped at $threshold',
+                                    style: AppTypography.micro.copyWith(
+                                      color: AppColors.dark400,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            BoxyArtGlassIconButton(
+                              icon: Icons.remove_circle_outline_rounded,
+                              iconSize: 18,
+                              onPressed: () => setState(() =>
+                                  _voluntaryDiv1MemberIds.remove(m.id)),
+                            ),
+                          ],
+                        ),
+                      ),
+                      if (!isLast) const BoxyArtDivider(),
+                    ],
+                  );
+                }).toList(),
+              ),
+            Padding(
+              padding: const EdgeInsets.all(AppSpacing.lg),
+              child: BoxyArtButton(
+                title: 'Grant Div 1 Voluntary Upgrade',
+                icon: Icons.person_add_rounded,
+                isTinted: true,
+                fullWidth: true,
+                onTap: () => _showVoluntaryUpgradePicker(members, threshold),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  void _showVoluntaryUpgradePicker(List members, double threshold) {
+    final eligible = members.where((m) =>
+        m.handicap > threshold && !_voluntaryDiv1MemberIds.contains(m.id)).toList();
+
+    BoxyArtBottomSheet.show(
+      context: context,
+      title: 'Grant Div 1 Upgrade',
+      child: eligible.isEmpty
+          ? Padding(
+              padding: const EdgeInsets.all(AppSpacing.xl),
+              child: Text(
+                'All Div 2 members have already been granted an upgrade.',
+                style: AppTypography.body.copyWith(color: AppColors.dark400),
+                textAlign: TextAlign.center,
+              ),
+            )
+          : Column(
+              mainAxisSize: MainAxisSize.min,
+              children: eligible.map<Widget>((m) => ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: BoxyArtAvatar(
+                  url: m.avatarUrl,
+                  initials: '${m.firstName[0]}${m.lastName[0]}',
+                  radius: 22,
+                  isCircle: true,
+                ),
+                title: Text(
+                  '${m.firstName} ${m.lastName}',
+                  style: AppTypography.labelStrong,
+                ),
+                subtitle: Text(
+                  'HC ${m.handicap.toStringAsFixed(1)} · will be capped at $threshold',
+                  style: AppTypography.micro.copyWith(color: AppColors.dark400),
+                ),
+                onTap: () {
+                  Navigator.pop(context);
+                  setState(() => _voluntaryDiv1MemberIds.add(m.id));
+                },
+              )).toList(),
+            ),
     );
   }
 
@@ -423,6 +592,13 @@ class _SeasonFormScreenState extends ConsumerState<SeasonFormScreen> {
       status: _status,
       isCurrent: _isCurrent,
       leaderboards: _leaderboards,
+      divisionConfig: _divisionsEnabled
+          ? DivisionConfig(
+              threshold: double.tryParse(_thresholdController.text) ?? 12.0,
+              genderSeparated: _genderSeparated,
+              voluntaryDiv1MemberIds: _voluntaryDiv1MemberIds,
+            )
+          : null,
     );
 
     if (widget.season == null) {

@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:golf_society/design_system/design_system.dart';
 import 'package:golf_society/domain/models/leaderboard_config.dart';
+import 'package:golf_society/domain/models/division_config.dart';
 import 'package:uuid/uuid.dart';
 import 'base_leaderboard_control.dart';
 
@@ -27,6 +28,7 @@ class _MarkerCounterControlState extends ConsumerState<MarkerCounterControl>
   late MarkerRankingMethod _rankingMethod;
   late TextEditingController _bestNController;
   late LeaderboardScope _scope;
+  Division? _divisionFilter;
   bool _isSaving = false;
   bool _showMarkersError = false;
 
@@ -42,6 +44,7 @@ class _MarkerCounterControlState extends ConsumerState<MarkerCounterControl>
     _bestNController = TextEditingController(
         text: (config?.bestN ?? 0).toString());
     _scope = config?.scope ?? LeaderboardScope.seasonOnly;
+    _divisionFilter = config?.divisionFilter;
   }
 
   @override
@@ -73,6 +76,10 @@ class _MarkerCounterControlState extends ConsumerState<MarkerCounterControl>
                 buildScopeSelector(
                   value: _scope,
                   onChanged: (v) => setState(() => _scope = v as LeaderboardScope),
+                ),
+                buildDivisionFilterSelector(
+                  value: _divisionFilter,
+                  onChanged: (v) => setState(() => _divisionFilter = v),
                 ),
               ],
             ),
@@ -249,6 +256,7 @@ class _MarkerCounterControlState extends ConsumerState<MarkerCounterControl>
       holeFilter: _holeFilter,
       rankingMethod: _rankingMethod,
       bestN: int.tryParse(_bestNController.text) ?? 0,
+      divisionFilter: _divisionFilter,
     );
 
     widget.onSave(config);

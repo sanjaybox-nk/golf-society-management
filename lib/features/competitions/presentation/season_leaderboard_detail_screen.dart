@@ -6,6 +6,7 @@ import 'package:golf_society/domain/models/leaderboard_standing.dart';
 import '../../members/presentation/profile_provider.dart';
 import '../../members/presentation/members_provider.dart';
 import 'package:golf_society/domain/models/leaderboard_config.dart';
+import 'package:golf_society/domain/divisions/division_helper.dart';
 import 'package:golf_society/design_system/design_system.dart';
 import '../../admin/utils/leaderboard_rule_translator.dart';
 
@@ -101,6 +102,7 @@ class SeasonLeaderboardDetailScreen extends ConsumerWidget {
                                 isShared: _isSharedPosition(positions, index),
                                 isMe: standing.memberId == currentUserId,
                                 config: config,
+                                divisionConfig: season?.divisionConfig,
                               ),
                             );
                           },
@@ -453,6 +455,7 @@ class _StandingRow extends ConsumerWidget {
   final bool isShared;
   final bool isMe;
   final LeaderboardConfig? config;
+  final DivisionConfig? divisionConfig;
 
   const _StandingRow({
     required this.standing,
@@ -460,6 +463,7 @@ class _StandingRow extends ConsumerWidget {
     required this.isShared,
     required this.isMe,
     this.config,
+    this.divisionConfig,
   });
 
   @override
@@ -468,6 +472,18 @@ class _StandingRow extends ConsumerWidget {
     final primary = theme.primaryColor;
     final members = ref.watch(allMembersProvider).value ?? [];
     final member = members.firstWhereOrNull((m) => m.id == standing.memberId);
+
+    // Show division pill when leaderboard is not already filtered to one division
+    final configDivisionFilter = config?.map(
+      orderOfMerit: (c) => c.divisionFilter,
+      bestOfSeries: (c) => c.divisionFilter,
+      eclectic: (c) => c.divisionFilter,
+      markerCounter: (c) => c.divisionFilter,
+    );
+    final memberDivision = divisionConfig != null && member != null
+        ? DivisionHelper.assignDivision(member, divisionConfig)
+        : null;
+    final showDivisionPill = memberDivision != null && configDivisionFilter == null;
 
     return BoxyArtCard(
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.lg),
@@ -501,7 +517,7 @@ class _StandingRow extends ConsumerWidget {
                   ), 
                   overflow: TextOverflow.ellipsis,
                 ),
-                if (isMe) 
+                if (isMe)
                   Text(
                     'PERSONAL BEST',
                     style: AppTypography.micro.copyWith(
@@ -509,6 +525,14 @@ class _StandingRow extends ConsumerWidget {
                       fontWeight: AppTypography.weightBold,
                       letterSpacing: AppTypography.lsLabel,
                     ),
+                  ),
+                if (showDivisionPill)
+                  BoxyArtPill.status(
+                    label: DivisionHelper.shortLabel(memberDivision!),
+                    color: memberDivision == Division.div1 || memberDivision == Division.div1Ladies
+                        ? AppColors.lime500
+                        : AppColors.amber500,
+                    hasHorizontalMargin: false,
                   ),
               ],
             ),

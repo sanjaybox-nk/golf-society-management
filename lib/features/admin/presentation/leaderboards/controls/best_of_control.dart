@@ -1,5 +1,6 @@
 import 'package:golf_society/design_system/design_system.dart';
 import 'package:golf_society/domain/models/leaderboard_config.dart';
+import 'package:golf_society/domain/models/division_config.dart';
 import 'package:uuid/uuid.dart';
 import 'base_leaderboard_control.dart';
 
@@ -24,6 +25,7 @@ class _BestOfSeriesControlState extends State<BestOfSeriesControl>
   late TiePolicy _tiePolicy;
   late Map<int, int> _positionPoints;
   late LeaderboardScope _scope;
+  Division? _divisionFilter;
   bool _isSaving = false;
 
   @override
@@ -35,6 +37,7 @@ class _BestOfSeriesControlState extends State<BestOfSeriesControl>
     _appearancePointsController =
         TextEditingController(text: (config?.appearancePoints ?? 0).toString());
     _scope = config?.scope ?? LeaderboardScope.seasonOnly;
+    _divisionFilter = config?.divisionFilter;
 
     _metric = config?.metric ?? BestOfMetric.stableford;
     if (_metric == BestOfMetric.position) {
@@ -88,6 +91,10 @@ class _BestOfSeriesControlState extends State<BestOfSeriesControl>
                 buildScopeSelector(
                   value: _scope,
                   onChanged: (v) => setState(() => _scope = v as LeaderboardScope),
+                ),
+                buildDivisionFilterSelector(
+                  value: _divisionFilter,
+                  onChanged: (v) => setState(() => _divisionFilter = v),
                 ),
               ],
             ),
@@ -280,6 +287,7 @@ class _BestOfSeriesControlState extends State<BestOfSeriesControl>
           _scoringType == ScoringType.position ? _positionPoints : {},
       appearancePoints:
           int.tryParse(_appearancePointsController.text) ?? 0,
+      divisionFilter: _divisionFilter,
     );
 
     widget.onSave(config);

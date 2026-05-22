@@ -21,6 +21,9 @@ _Season _$SeasonFromJson(Map<String, dynamic> json) => _Season(
           ?.map((e) => LeaderboardConfig.fromJson(e as Map<String, dynamic>))
           .toList() ??
       const [],
+  divisionConfig: json['divisionConfig'] == null
+      ? null
+      : DivisionConfig.fromJson(json['divisionConfig'] as Map<String, dynamic>),
   agmData: json['agmData'] as Map<String, dynamic>? ?? const {},
 );
 
@@ -33,6 +36,7 @@ Map<String, dynamic> _$SeasonToJson(_Season instance) => <String, dynamic>{
   'status': _$SeasonStatusEnumMap[instance.status]!,
   'isCurrent': instance.isCurrent,
   'leaderboards': instance.leaderboards.map((e) => e.toJson()).toList(),
+  'divisionConfig': instance.divisionConfig?.toJson(),
   'agmData': instance.agmData,
 };
 

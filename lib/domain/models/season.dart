@@ -1,6 +1,7 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:golf_society/utils/json_converters.dart';
 import 'leaderboard_config.dart';
+import 'division_config.dart';
 
 part 'season.freezed.dart';
 part 'season.g.dart';
@@ -20,6 +21,7 @@ abstract class Season with _$Season {
     @Default(SeasonStatus.active) SeasonStatus status,
     @Default(false) bool isCurrent,
     @Default([]) List<LeaderboardConfig> leaderboards,
+    DivisionConfig? divisionConfig,
     @Default({}) Map<String, dynamic> agmData,
   }) = _Season;
 

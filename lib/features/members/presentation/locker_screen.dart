@@ -12,6 +12,7 @@ import 'package:golf_society/features/members/presentation/widgets/member_cuts_c
 import 'package:golf_society/features/members/presentation/widgets/handicap_trend_chart.dart';
 import '../../home/presentation/home_providers.dart';
 import '../../events/presentation/events_provider.dart';
+import 'package:golf_society/domain/divisions/division_helper.dart';
 import 'widgets/society_honors_modal.dart';
 
 class LockerScreen extends ConsumerWidget {
@@ -94,24 +95,36 @@ class LockerScreen extends ConsumerWidget {
               ),
 
               // Handicap Section OR Registration Call
-              if (user.handicapId != null) 
-                BoxyArtCard(
-                  child: Column(
-                    children: [
-                      const BoxyArtSectionTitle(title: 'Current Handicap', isLevel2: true),
-                      Text(
-                        user.handicap.toStringAsFixed(1),
-                        style: AppTypography.displayHero.copyWith(
-                          color: primary,
+              if (user.handicapId != null)
+                Builder(builder: (context) {
+                  final season = ref.watch(activeSeasonProvider).value;
+                  final division = DivisionHelper.assignDivision(user, season?.divisionConfig);
+                  return BoxyArtCard(
+                    child: Column(
+                      children: [
+                        const BoxyArtSectionTitle(title: 'Current Handicap', isLevel2: true),
+                        Text(
+                          user.handicap.toStringAsFixed(1),
+                          style: AppTypography.displayHero.copyWith(color: primary),
                         ),
-                      ),
-                      if (user.handicapHistory.isNotEmpty) ...[
-                        const SizedBox(height: AppSpacing.lg),
-                        BoxyArtHandicapTrend(history: user.handicapHistory),
+                        if (division != null) ...[
+                          const SizedBox(height: AppSpacing.md),
+                          BoxyArtPill.status(
+                            label: DivisionHelper.label(division),
+                            color: division == Division.div1 || division == Division.div1Ladies
+                                ? AppColors.lime500
+                                : AppColors.amber500,
+                            isAction: false,
+                          ),
+                        ],
+                        if (user.handicapHistory.isNotEmpty) ...[
+                          const SizedBox(height: AppSpacing.lg),
+                          BoxyArtHandicapTrend(history: user.handicapHistory),
+                        ],
                       ],
-                    ],
-                  ),
-                )
+                    ),
+                  );
+                })
               else
                 BoxyArtCard(
                   backgroundColor: AppColors.lime500.withValues(alpha: AppColors.opacityLow),

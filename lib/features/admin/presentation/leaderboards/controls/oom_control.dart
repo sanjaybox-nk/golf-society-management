@@ -1,5 +1,6 @@
 import 'package:golf_society/design_system/design_system.dart';
 import 'package:golf_society/domain/models/leaderboard_config.dart';
+import 'package:golf_society/domain/models/division_config.dart';
 import 'package:uuid/uuid.dart';
 import 'base_leaderboard_control.dart';
 
@@ -23,6 +24,7 @@ class _OrderOfMeritControlState extends State<OrderOfMeritControl>
   late ScoringType _scoringType;
   late LeaderboardScope _scope;
   late Map<int, int> _positionPoints;
+  Division? _divisionFilter;
   bool _isSaving = false;
 
   @override
@@ -34,6 +36,7 @@ class _OrderOfMeritControlState extends State<OrderOfMeritControl>
         TextEditingController(text: (config?.appearancePoints ?? 0).toString());
 
     _scope = config?.scope ?? LeaderboardScope.seasonOnly;
+    _divisionFilter = config?.divisionFilter;
     final source = config?.source ?? OOMSource.position;
     final basis = config?.rankingBasis ?? OOMRankingBasis.stableford;
 
@@ -85,6 +88,10 @@ class _OrderOfMeritControlState extends State<OrderOfMeritControl>
                 buildScopeSelector(
                   value: _scope,
                   onChanged: (v) => setState(() => _scope = v as LeaderboardScope),
+                ),
+                buildDivisionFilterSelector(
+                  value: _divisionFilter,
+                  onChanged: (v) => setState(() => _divisionFilter = v),
                 ),
               ],
             ),
@@ -277,6 +284,7 @@ class _OrderOfMeritControlState extends State<OrderOfMeritControl>
       appearancePoints: int.tryParse(_appearancePointsController.text) ?? 0,
       positionPointsMap:
           _scoringType == ScoringType.position ? _positionPoints : {},
+      divisionFilter: _divisionFilter,
     );
 
     widget.onSave(config);

@@ -5,6 +5,7 @@ import 'package:golf_society/features/events/logic/event_scoring_processor.dart'
 import 'package:golf_society/features/events/domain/models/processed_event_data.dart';
 import 'package:golf_society/features/events/presentation/state/marker_selection_provider.dart';
 import 'package:golf_society/domain/models/golf_event.dart';
+import 'package:golf_society/domain/divisions/division_helper.dart';
 
 import '../../events/presentation/events_provider.dart';
 import '../../competitions/presentation/competitions_provider.dart'; // For scorecardRepositoryProvider
@@ -112,9 +113,24 @@ class LeaderboardInvokerService {
         );
 
         // Update standings with real names
-        final namedStandings = standings.map((s) => s.copyWith(
+        var namedStandings = standings.map((s) => s.copyWith(
           memberName: memberNames[s.memberId] ?? s.memberName,
         )).toList();
+
+        // Apply division filter if configured
+        final divisionFilter = config.map(
+          orderOfMerit: (c) => c.divisionFilter,
+          bestOfSeries: (c) => c.divisionFilter,
+          eclectic: (c) => c.divisionFilter,
+          markerCounter: (c) => c.divisionFilter,
+        );
+        if (divisionFilter != null && season.divisionConfig != null) {
+          namedStandings = namedStandings.where((s) =>
+            DivisionHelper.memberBelongsToDivision(
+              s.memberId, divisionFilter, season.divisionConfig!, members,
+            ),
+          ).toList();
+        }
 
         // Save
         await seasonRepo.updateLeaderboardStandings(seasonId, config.id, namedStandings);
