@@ -177,7 +177,7 @@ class _CommitteeRoleMembersScreenState extends ConsumerState<CommitteeRoleMember
                 if (member.societyRole != null && member.societyRole!.isNotEmpty)
                   Text(
                     member.societyRole!,
-                    style: AppTypography.caption.copyWith(
+                    style: AppTypography.micro.copyWith(
                       color: theme.primaryColor,
                       height: 1.0,
                     ),

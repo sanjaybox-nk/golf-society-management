@@ -163,7 +163,7 @@ class RegistrationCard extends ConsumerWidget {
                       if (isGuest)
                         Text(
                           label, // "Guest of Host Name"
-                          style: AppTypography.caption.copyWith(
+                          style: AppTypography.micro.copyWith(
                             color: theme.colorScheme.onSurface.withValues(alpha: AppColors.opacityHigh),
                             fontSize: AppTypography.sizeMicro,
                           ),

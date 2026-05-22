@@ -31,8 +31,6 @@ class BoxyArtSwitchTile extends ConsumerWidget {
           // Boxed Icon (Standard 4.x via BoxyArtIconBadge)
           BoxyArtIconBadge(
             icon: icon,
-            size: 44,
-            iconSize: 20,
           ),
           const SizedBox(width: AppSpacing.lg),
           // Content
@@ -55,7 +53,7 @@ class BoxyArtSwitchTile extends ConsumerWidget {
                     const SizedBox(height: 2),
                     Text(
                       subtitle!,
-                      style: AppTypography.caption.copyWith(
+                      style: AppTypography.micro.copyWith(
                         color: isDark ? AppColors.dark200 : AppColors.dark400,
                         fontWeight: AppTypography.weightMedium,
                       ),

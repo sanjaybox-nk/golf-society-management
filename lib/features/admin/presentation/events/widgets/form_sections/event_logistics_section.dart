@@ -137,8 +137,8 @@ class EventLogisticsSection extends ConsumerWidget {
                   ),
 
                   BoxyArtSwitchField(
-                    label: 'Invitational / Non-Scoring',
-                    subtitle: "Exclude this event's scores from leaderboards.",
+                    label: 'Non-Season Event',
+                    subtitle: "Exclude this event's scores from season leaderboards.",
                     value: state.isInvitational,
                     onChanged: (v) => ref.read(eventFormNotifierProvider.notifier).updateIsInvitational(v),
                   ),

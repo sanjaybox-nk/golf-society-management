@@ -348,7 +348,7 @@ class LockerScreen extends ConsumerWidget {
                                 const SizedBox(height: 4),
                                 Text(
                                   'Recognized for establishing the foundations of the society.',
-                                  style: AppTypography.caption.copyWith(
+                                  style: AppTypography.micro.copyWith(
                                     color: theme.textTheme.bodySmall?.color?.withValues(alpha: AppColors.opacityHigh),
                                   ),
                                 ),
@@ -428,6 +428,8 @@ class LockerScreen extends ConsumerWidget {
                 BoxyArtButton(
                   title: 'Season Standings',
                   icon: Icons.leaderboard_rounded,
+                  isTinted: true,
+                  fullWidth: true,
                   onTap: () => GoRouter.of(context).push('/locker/standings'),
                 ),
                 const BoxyArtSectionTitle(title: 'Round Story'),

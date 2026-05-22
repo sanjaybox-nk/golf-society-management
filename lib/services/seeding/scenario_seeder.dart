@@ -1058,4 +1058,280 @@ class ScenarioSeeder {
 
     return event.id;
   }
+
+  // ---------------------------------------------------------------------------
+  // Stableford Leaderboard UAT
+  // Two-event scenario: Event 1 fully approved (recalculate to see standings),
+  // Event 2 in-play with all groups partial except the last group which is
+  // fully submitted and ready for admin to verify → close event.
+  // ---------------------------------------------------------------------------
+
+  Future<void> seedStablefordLeaderboardUAT() async {
+    final membersRepo = ref.read(membersRepositoryProvider);
+    final allMembers = await membersRepo.getMembers();
+
+    final courseRepo = ref.read(courseRepositoryProvider);
+    var courses = await courseRepo.watchCourses().first;
+    if (courses.isEmpty) courses = await CourseSeeder(ref, random).seed();
+    final course = courses.first;
+
+    final compRepo = ref.read(competitionsRepositoryProvider);
+    final templates = await compRepo.getTemplates();
+
+    final stablefordTemplate = templates.firstWhereOrNull(
+          (t) => t.rules.format == CompetitionFormat.stableford,
+        ) ??
+        Competition(
+          id: 'tmpl_stableford_solo',
+          name: 'Stableford',
+          type: CompetitionType.game,
+          rules: const CompetitionRules(
+            format: CompetitionFormat.stableford,
+            mode: CompetitionMode.singles,
+            handicapAllowance: 1.0,
+          ),
+          startDate: DateTime.now(),
+          endDate: DateTime.now(),
+        );
+
+    // Filter to active golf-eligible members only
+    final members = allMembers.where((m) =>
+        m.status != MemberStatus.suspended &&
+        m.status != MemberStatus.left &&
+        m.status != MemberStatus.archived &&
+        m.status != MemberStatus.expired &&
+        m.role != MemberRole.socialMember,
+    ).toList();
+    final eventSeeder = EventSeeder(ref, random);
+    final scoreRepo = ref.read(scorecardRepositoryProvider);
+    final eventsRepo = ref.read(eventsRepositoryProvider);
+    final now = DateTime.now();
+
+    // ── EVENT 1: Completed ────────────────────────────────────────────────────
+    final event1Date = now.subtract(const Duration(days: 14));
+    await eventSeeder.createFullEvent(
+      seasonId: seasonId,
+      course: course,
+      title: 'Stableford — Round 1',
+      date: event1Date,
+      format: CompetitionFormat.stableford,
+      isInvitational: false,
+      isSeasonEvent: true,
+      members: members,
+      appliedCuts: {},
+      status: EventStatus.inPlay,
+      templates: [stablefordTemplate],
+    );
+
+    final allEvents = await eventsRepo.getEvents(seasonId: seasonId);
+    final event1 = allEvents.firstWhere((e) => e.title == 'Stableford — Round 1');
+    final cards1 = await scoreRepo.getScorecards(event1.id);
+    final groups1 = (event1.grouping['groups'] as List)
+        .map((g) => TeeGroup.fromJson(g))
+        .toList();
+
+    final adminId = allMembers.firstWhereOrNull(
+          (m) => m.role == MemberRole.admin || m.role == MemberRole.superAdmin,
+        )?.id ??
+        'admin_seed';
+
+    // All groups fully approved with 18 holes of realistic stableford scores
+    for (final group in groups1) {
+      final players = group.players;
+      for (int j = 0; j < players.length; j++) {
+        final p = players[j];
+        final entryId = p.isGuest ? '${p.registrationMemberId}_guest' : p.registrationMemberId;
+        final s = cards1.firstWhereOrNull((sc) => sc.entryId == entryId);
+        if (s == null) continue;
+
+        final member = members.firstWhereOrNull((m) => m.id == p.registrationMemberId);
+        final index = member?.handicap ?? 18.0;
+        final teeName = (member?.gender == 'Female') ? 'Red' : 'Yellow';
+        final tee = course.tees.firstWhere((t) => t.name == teeName,
+            orElse: () => course.tees.first);
+        final phc = HandicapCalculator.calculatePlayingHandicap(
+          handicapIndex: index,
+          rules: stablefordTemplate.rules,
+          courseConfig: cfg.CourseConfig(
+            rating: tee.rating,
+            slope: tee.slope,
+            par: tee.holePars.fold<int>(0, (a, b) => a + b),
+            holes: tee.holePars.asMap().entries
+                .map((e) => cfg.CourseHole(
+                      hole: e.key + 1,
+                      par: e.value,
+                      si: tee.holeSIs[e.key],
+                    ))
+                .toList(),
+          ),
+        );
+
+        final holeScores = _stablefordGrossScores(tee, phc, random);
+        final gross = holeScores.whereType<int>().fold<int>(0, (a, b) => a + b);
+        final marker = players[(j + 1) % players.length];
+        final markerId = marker.isGuest
+            ? '${marker.registrationMemberId}_guest'
+            : marker.registrationMemberId;
+        final submittedAt = event1Date.copyWith(hour: 14, minute: 30 + random.nextInt(60));
+
+        await scoreRepo.updateScorecard(s.copyWith(
+          status: ScorecardStatus.approved,
+          markerId: markerId,
+          holeScores: holeScores,
+          playerVerifierScores: List<int?>.from(holeScores),
+          conflictedHoles: [],
+          holeTags: {},
+          holeAuditLog: [],
+          handicapIndex: index,
+          playingHandicap: phc,
+          grossTotal: gross,
+          verifiedByPlayer: !p.isGuest,
+          verifiedByMarker: !marker.isGuest,
+          approvedBy: adminId,
+          approvedAt: submittedAt.add(const Duration(minutes: 45)),
+          submittedAt: submittedAt,
+          updatedAt: DateTime.now(),
+        ));
+      }
+    }
+
+    await eventsRepo.updateEvent(event1.copyWith(isScoringLocked: true));
+
+    // ── EVENT 2: In-Play ──────────────────────────────────────────────────────
+    await eventSeeder.createFullEvent(
+      seasonId: seasonId,
+      course: course,
+      title: 'Stableford — Round 2',
+      date: now,
+      format: CompetitionFormat.stableford,
+      isInvitational: false,
+      isSeasonEvent: true,
+      members: members,
+      appliedCuts: {},
+      status: EventStatus.inPlay,
+      templates: [stablefordTemplate],
+    );
+
+    final event2 = (await eventsRepo.getEvents(seasonId: seasonId))
+        .firstWhere((e) => e.title == 'Stableford — Round 2');
+    final cards2 = await scoreRepo.getScorecards(event2.id);
+    final groups2 = (event2.grouping['groups'] as List)
+        .map((g) => TeeGroup.fromJson(g))
+        .toList();
+
+    for (int gi = 0; gi < groups2.length; gi++) {
+      final group = groups2[gi];
+      final isLastGroup = gi == groups2.length - 1;
+      final players = group.players;
+
+      for (int j = 0; j < players.length; j++) {
+        final p = players[j];
+        final entryId = p.isGuest ? '${p.registrationMemberId}_guest' : p.registrationMemberId;
+        final s = cards2.firstWhereOrNull((sc) => sc.entryId == entryId);
+        if (s == null) continue;
+
+        final member = members.firstWhereOrNull((m) => m.id == p.registrationMemberId);
+        final index = member?.handicap ?? 18.0;
+        final teeName = (member?.gender == 'Female') ? 'Red' : 'Yellow';
+        final tee = course.tees.firstWhere((t) => t.name == teeName,
+            orElse: () => course.tees.first);
+        final phc = HandicapCalculator.calculatePlayingHandicap(
+          handicapIndex: index,
+          rules: stablefordTemplate.rules,
+          courseConfig: cfg.CourseConfig(
+            rating: tee.rating,
+            slope: tee.slope,
+            par: tee.holePars.fold<int>(0, (a, b) => a + b),
+            holes: tee.holePars.asMap().entries
+                .map((e) => cfg.CourseHole(
+                      hole: e.key + 1,
+                      par: e.value,
+                      si: tee.holeSIs[e.key],
+                    ))
+                .toList(),
+          ),
+        );
+
+        final marker = players[(j + 1) % players.length];
+        final markerId = marker.isGuest
+            ? '${marker.registrationMemberId}_guest'
+            : marker.registrationMemberId;
+
+        if (isLastGroup) {
+          // Last group: all 18 holes complete, both parties signed → ready to verify
+          final holeScores = _stablefordGrossScores(tee, phc, random);
+          final gross = holeScores.whereType<int>().fold<int>(0, (a, b) => a + b);
+          final submittedAt = now.copyWith(hour: 13, minute: 45 + random.nextInt(30));
+
+          await scoreRepo.updateScorecard(s.copyWith(
+            status: ScorecardStatus.submitted,
+            markerId: markerId,
+            holeScores: holeScores,
+            playerVerifierScores: List<int?>.from(holeScores),
+            conflictedHoles: [],
+            holeTags: {},
+            holeAuditLog: [],
+            handicapIndex: index,
+            playingHandicap: phc,
+            grossTotal: gross,
+            verifiedByPlayer: !p.isGuest,
+            verifiedByMarker: !marker.isGuest,
+            approvedBy: null,
+            approvedAt: null,
+            submittedAt: submittedAt,
+            updatedAt: DateTime.now(),
+          ));
+        } else {
+          // All other groups: first 9 holes in progress (draft)
+          final partialScores = _stablefordGrossScores(tee, phc, random, holes: 9);
+          final gross = partialScores.whereType<int>().fold<int>(0, (a, b) => a + b);
+
+          await scoreRepo.updateScorecard(s.copyWith(
+            status: ScorecardStatus.draft,
+            markerId: markerId,
+            holeScores: partialScores,
+            playerVerifierScores: [],
+            conflictedHoles: [],
+            holeTags: {},
+            holeAuditLog: [],
+            handicapIndex: index,
+            playingHandicap: phc,
+            grossTotal: gross,
+            verifiedByPlayer: false,
+            verifiedByMarker: false,
+            approvedBy: null,
+            approvedAt: null,
+            submittedAt: null,
+            updatedAt: DateTime.now(),
+          ));
+        }
+      }
+    }
+  }
+
+  /// Generates realistic gross scores for a stableford round.
+  /// [holes] defaults to 18; pass 9 for a partial front-nine card.
+  List<int?> _stablefordGrossScores(dynamic tee, int phc, Random rng, {int holes = 18}) {
+    final scores = <int?>[];
+    for (int h = 0; h < 18; h++) {
+      if (h >= holes) {
+        scores.add(null);
+        continue;
+      }
+      final par = tee.holePars[h] as int;
+      final si = tee.holeSIs[h] as int;
+      final strokesOnHole = (phc / 18).floor() + (phc % 18 >= si ? 1 : 0);
+      final rand = rng.nextDouble();
+      // Net score distribution: 15% birdie, 55% par, 22% bogey, 8% double
+      final netScore = rand < 0.15
+          ? par - 1
+          : rand < 0.70
+              ? par
+              : rand < 0.92
+                  ? par + 1
+                  : par + 2;
+      scores.add((netScore + strokesOnHole).toInt());
+    }
+    return scores;
+  }
 }

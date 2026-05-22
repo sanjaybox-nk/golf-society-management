@@ -122,7 +122,7 @@ class _BoxyArtRichNoteEditorState extends ConsumerState<BoxyArtRichNoteEditor> {
                       iconSize: 20,
                       onPressed: widget.onRemove,
                       tooltip: 'Remove Note',
-                      iconColor: Theme.of(context).colorScheme.onSurfaceVariant,
+                      iconColor: AppColors.coral500,
                     ),
                   ],
                 ),

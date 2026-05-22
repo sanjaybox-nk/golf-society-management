@@ -114,7 +114,7 @@ class _RolesScreenState extends ConsumerState<RolesScreen> {
                 const SizedBox(height: 2),
                 Text(
                   _getRoleDescription(role),
-                  style: AppTypography.caption.copyWith(
+                  style: AppTypography.micro.copyWith(
                     color: isDark ? AppColors.dark200 : AppColors.dark400,
                   ),
                 ),

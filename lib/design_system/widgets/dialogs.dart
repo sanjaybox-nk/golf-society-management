@@ -60,7 +60,8 @@ class BoxyArtDialog extends ConsumerWidget {
                 message!,
                 style: AppTypography.body.copyWith(
                   color: isDark ? AppColors.dark60 : AppColors.dark900,
-                  height: 1.5, // Improved readability for 4.x
+                  fontWeight: AppTypography.weightRegular,
+                  height: 1.5,
                 ),
               ),
               
@@ -238,12 +239,13 @@ class _BoxyArtDeleteConfirmationDialogState extends State<BoxyArtDeleteConfirmat
             widget.message,
             style: AppTypography.body.copyWith(
               color: theme.brightness == Brightness.dark ? AppColors.dark60 : AppColors.dark900,
+              fontWeight: AppTypography.weightRegular,
             ),
           ),
           const SizedBox(height: AppSpacing.lg),
           Text(
             'Type "${widget.requiredText}" to confirm:',
-            style: AppTypography.caption.copyWith(
+            style: AppTypography.micro.copyWith(
               fontWeight: AppTypography.weightBold,
               color: widget.isDestructive ? theme.colorScheme.error : null,
             ),

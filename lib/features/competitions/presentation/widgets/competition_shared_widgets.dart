@@ -265,7 +265,7 @@ class CompetitionRulesCard extends ConsumerWidget {
                                           const SizedBox(height: 2),
                                           Text(
                                             isSecondary ? 'SECONDARY OVERLAY' : comp.rules.gameName.toUpperCase(),
-                                            style: AppTypography.caption.copyWith(
+                                            style: AppTypography.micro.copyWith(
                                               color: isDark ? AppColors.dark300 : AppColors.dark400,
                                               fontWeight: AppTypography.weightBold,
                                             ),
@@ -288,10 +288,10 @@ class CompetitionRulesCard extends ConsumerWidget {
                                 
                                 Text(
                                   isTemplate ? 'Fetching competition specific rules...' : CompetitionRuleTranslator.translate(comp.rules),
-                                  style: AppTypography.body.copyWith(
-                                    fontSize: AppTypography.sizeBody,
+                                  style: AppTypography.subtext.copyWith(
+                                    color: isDark ? AppColors.dark150 : AppColors.dark700,
                                     height: 1.5,
-                                    color: isDark ? AppColors.dark60 : AppColors.dark900,
+                                    fontWeight: AppTypography.weightSemibold,
                                   ),
                                 ),
                                 

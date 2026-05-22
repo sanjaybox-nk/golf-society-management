@@ -58,9 +58,9 @@ class SeedingService {
       if (kDebugMode) debugPrint('Wipe completed.');
 
       if (kDebugMode) debugPrint('Seeding new demo season foundation...');
-      await _seedGlobalLeaderboardTemplates();
+      final leaderboardTemplates = await _seedGlobalLeaderboardTemplates();
       await _seedCompetitionTemplates();
-      await _seedDemoSeason();
+      await _seedDemoSeason(leaderboardTemplates);
 
       if (kDebugMode) debugPrint('Restoring society branding and setting renewal defaults + sponsors...');
       final eventsRepo = ref.read(eventsRepositoryProvider);
@@ -94,7 +94,7 @@ class SeedingService {
         Sponsor(
           id: 'sp_titleist',
           name: 'Titleist',
-          tier: SponsorTier.standard,
+          tier: SponsorTier.partner,
           logoUrl: 'assets/images/sponsors/titleist.png',
           websiteUrl: 'https://www.titleist.com',
           description: 'The #1 ball in golf. Proud official partner.',
@@ -102,7 +102,7 @@ class SeedingService {
         Sponsor(
           id: 'sp_taylormade',
           name: 'TaylorMade',
-          tier: SponsorTier.standard,
+          tier: SponsorTier.partner,
           logoUrl: 'assets/images/sponsors/taylormade.png',
           websiteUrl: 'https://www.taylormadegolf.com',
           description: 'Beyond Driven. Supporting the society pursuit of excellence.',
@@ -110,7 +110,7 @@ class SeedingService {
         Sponsor(
           id: 'sp_ping',
           name: 'PING',
-          tier: SponsorTier.standard,
+          tier: SponsorTier.partner,
           logoUrl: 'assets/images/sponsors/ping.png',
           websiteUrl: 'https://www.ping.com',
           description: 'Play Your Best. Equipping our members for success.',
@@ -286,6 +286,18 @@ class SeedingService {
     }
   }
 
+  Future<void> seedStablefordLeaderboardUAT() async {
+    try {
+      if (kDebugMode) debugPrint('--- STARTING STABLEFORD LEADERBOARD UAT ---');
+      await ScenarioSeeder(ref, _random).seedStablefordLeaderboardUAT();
+      if (kDebugMode) debugPrint('--- STABLEFORD LEADERBOARD UAT COMPLETED ---');
+    } catch (e, stack) {
+      if (kDebugMode) debugPrint('STABLEFORD LEADERBOARD UAT FAILURE: $e');
+      if (kDebugMode) debugPrint(stack.toString());
+      rethrow;
+    }
+  }
+
   /// Incremental Hardening: Seed/Refresh members only.
   Future<void> seedMembersOnly() async {
     try {
@@ -305,6 +317,8 @@ class SeedingService {
 
       // Seed fixed guest pool so admin Guests tab has data
       await _seedGuestPool();
+
+      await _seedSeason();
 
       if (kDebugMode) debugPrint('--- MEMBER ROSTER + GUESTS REFRESHED ---');
     } catch (e) {
@@ -327,10 +341,10 @@ class SeedingService {
   Future<void> clearActivityData() async {
     final firestore = FirebaseFirestore.instance;
     
-    // Preserves: 'templates', 'leaderboard_templates', 'distribution_lists', 'society_config', 'members', 'guests'
-    // Members/guests are managed separately via Harden Members
+    // Preserves: 'templates', 'leaderboard_templates', 'distribution_lists', 'society_config'
     final collections = [
       'scorecards', 'events', 'competitions', 'seasons',
+      'members', 'guests',
       'notifications', 'campaigns', 'global_expenses', 'surveys', 'activities', 'courses',
       'match_play_tournaments', 'leaderboards', 'standings',
     ];
@@ -461,10 +475,10 @@ class SeedingService {
     );
     await ref.read(societyConfigRepositoryProvider).forceReplaceConfig(cleanedConfig);
     await ref.read(persistenceServiceProvider).clear();
-    
-    // Hard Refresh: Invalidate the theme controller 
+
+    // Hard Refresh: Invalidate the theme controller
     ref.invalidate(themeControllerProvider);
-    
+
     if (kDebugMode) debugPrint('Clear Demo Data completed.');
   }
 
@@ -512,8 +526,8 @@ class SeedingService {
     if (kDebugMode) debugPrint('Total System Wipe completed (Factory Reset).');
   }
 
-  Future<void> _seedDemoSeason() async {
-    final seasonId = await _seedSeason();
+  Future<void> _seedDemoSeason(List<LeaderboardConfig> leaderboardTemplates) async {
+    final seasonId = await _seedSeason(leaderboardTemplates);
     await MemberSeeder(ref, _random).seed();
     await _seedGuestPool();
     final members = await ref.read(membersRepositoryProvider).getMembers();
@@ -622,9 +636,7 @@ class SeedingService {
     }
   }
 
-  Future<void> _seedGlobalLeaderboardTemplates() async {
-    final repo = ref.read(leaderboardTemplatesRepositoryProvider);
-    
+  Future<List<LeaderboardConfig>> _seedGlobalLeaderboardTemplates() async {
     // We define the "Big 5" standard blueprints for a society
     final templates = [
       LeaderboardConfig.orderOfMerit(
@@ -663,12 +675,32 @@ class SeedingService {
       ),
     ];
 
-    for (final template in templates) {
-      // Update if exists (blueprint matches), otherwise add
-      await repo.updateTemplate(template).catchError((_) => repo.addTemplate(template));
+    final firestore = FirebaseFirestore.instance;
+    final knownIds = templates.map((t) => t.id).toSet();
+
+    // Only remove stale standard blueprints — never touch user-created templates (UUID ids)
+    final existing = await firestore.collection('leaderboard_templates').get();
+    for (final doc in existing.docs) {
+      if (doc.id.endsWith('_blueprint') && !knownIds.contains(doc.id)) {
+        await doc.reference.delete();
+      }
     }
+
+    for (final template in templates) {
+      await firestore
+          .collection('leaderboard_templates')
+          .doc(template.id)
+          .set(template.toJson());
+    }
+
+    // For season seeding: prefer user-created templates (UUID IDs).
+    // Fall back to all standard blueprints if no custom templates exist yet.
+    final allDocs = await firestore.collection('leaderboard_templates').get();
+    final all = allDocs.docs.map((d) => LeaderboardConfig.fromJson(d.data())).toList();
+    final custom = all.where((t) => !t.id.endsWith('_blueprint')).toList();
+    return custom.isNotEmpty ? custom : all;
   }
-  
+
   Future<void> _seedCompetitionTemplates() async {
     final repo = ref.read(competitionsRepositoryProvider);
     
@@ -759,13 +791,21 @@ class SeedingService {
     }
   }
 
-  Future<String> _seedSeason() async {
+  Future<String> _seedSeason([List<LeaderboardConfig>? templateOverride]) async {
     final repo = ref.read(seasonsRepositoryProvider);
-    final templateRepo = ref.read(leaderboardTemplatesRepositoryProvider);
-    
-    // Fetch the 5 templates from the library
-    final templates = await templateRepo.watchTemplates().first;
-    
+
+    // Use override (from full seedAll flow) or fetch user's existing templates
+    final List<LeaderboardConfig> templates;
+    if (templateOverride != null) {
+      templates = templateOverride;
+    } else {
+      final firestore = FirebaseFirestore.instance;
+      final allDocs = await firestore.collection('leaderboard_templates').get();
+      final all = allDocs.docs.map((d) => LeaderboardConfig.fromJson(d.data())).toList();
+      final custom = all.where((t) => !t.id.endsWith('_blueprint')).toList();
+      templates = custom.isNotEmpty ? custom : all;
+    }
+
     final season = Season(
       id: 'demo_season_2025_2026',
       name: 'Demo Season 25-26',

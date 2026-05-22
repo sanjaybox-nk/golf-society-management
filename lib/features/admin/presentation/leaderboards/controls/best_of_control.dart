@@ -85,7 +85,6 @@ class _BestOfSeriesControlState extends State<BestOfSeriesControl>
                   prefixIcon: Icon(Icons.list_alt_rounded),
                   validator: (v) => (v == null || v.isEmpty) ? 'Required' : null,
                 ),
-                const BoxyArtDivider(),
                 buildScopeSelector(
                   value: _scope,
                   onChanged: (v) => setState(() => _scope = v as LeaderboardScope),
@@ -114,7 +113,6 @@ class _BestOfSeriesControlState extends State<BestOfSeriesControl>
                   },
                 ),
                 buildInfoBubble('Only the top N scores will count toward the final total.'),
-                const BoxyArtDivider(),
                 BoxyArtDropdownField<BestOfMetric>(
                   label: 'Metric',
                   prefixIcon: const Icon(Icons.show_chart_rounded),
@@ -127,7 +125,6 @@ class _BestOfSeriesControlState extends State<BestOfSeriesControl>
                       .toList(),
                   onChanged: (v) => setState(() => _metric = v!),
                 ),
-                const BoxyArtDivider(),
                 BoxyArtDropdownField<ScoringType>(
                   label: 'Scoring Type',
                   prefixIcon: const Icon(Icons.calculate_rounded),
@@ -161,7 +158,6 @@ class _BestOfSeriesControlState extends State<BestOfSeriesControl>
                     keyboardType: TextInputType.number,
                     prefixIcon: Icon(Icons.star_outline_rounded),
                   ),
-                  const BoxyArtDivider(),
                   BoxyArtFormColumn(
                     spacing: AppSpacing.md,
                     children: (_positionPoints.entries.toList()

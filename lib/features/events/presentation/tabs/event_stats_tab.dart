@@ -20,9 +20,6 @@ import '../../../competitions/presentation/competitions_provider.dart';
 import '../widgets/grouping_widgets.dart';
 import '../../../../domain/grouping/tee_group.dart';
 
-// Providers moved from user_placeholders if they were local or needed here
-// Use richStatsModeProvider from debug_providers.dart
-
 class EventStatsTab extends ConsumerWidget {
   final String eventId;
   final bool isAdmin;
@@ -37,7 +34,7 @@ class EventStatsTab extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final eventAsync = ref.watch(eventProvider(eventId));
     final compAsync = ref.watch(competitionDetailProvider(eventId));
-    
+
     return eventAsync.when(
       data: (event) {
         final comp = compAsync.value;
@@ -77,7 +74,7 @@ class EventStatsTab extends ConsumerWidget {
   }
 }
 
-class _EventStatsContent extends ConsumerWidget {
+class _EventStatsContent extends ConsumerStatefulWidget {
   final GolfEvent event;
   final Competition? comp;
   final bool isAdmin;
@@ -89,29 +86,40 @@ class _EventStatsContent extends ConsumerWidget {
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_EventStatsContent> createState() => _EventStatsContentState();
+}
+
+class _EventStatsContentState extends ConsumerState<_EventStatsContent> {
+  int _selectedTab = 0;
+
+  @override
+  Widget build(BuildContext context) {
     final spacing = Theme.of(context).extension<AppSpacingTokens>();
-    final data = ref.watch(eventScoringControllerProvider(event.id));
-    final allScorecards = ref.watch(scorecardsListProvider(event.id)).asData?.value ?? [];
+    final data = ref.watch(eventScoringControllerProvider(widget.event.id));
+    final allScorecards = ref.watch(scorecardsListProvider(widget.event.id)).asData?.value ?? [];
 
     final effectiveUser = ref.watch(effectiveUserProvider);
     final currentUserId = effectiveUser.id;
-    
-    const statsMode = 0; 
-    final currentFormat = comp?.rules.format ?? CompetitionFormat.stableford;
+
+    final currentFormat = widget.comp?.rules.format ?? CompetitionFormat.stableford;
     final isStableford = currentFormat == CompetitionFormat.stableford;
 
-    // Use the authoritative individual score for personal recap
     final myScoreEntry = data.individualScores.firstWhereOrNull(
-      (s) => s.playerId.replaceFirst('_guest', '') == currentUserId
+      (s) => s.playerId.replaceFirst('_guest', '') == currentUserId,
     );
 
-    final statsReleased = event.isStatsReleased == true || isAdmin || event.status == EventStatus.completed;
-    
-    // Simplified ready check
-    final bool isDataReady = data.individualScores.any((p) => p.result.holesPlayed > 0) || data.eventStats.isNotEmpty;
-    
-    if (!isDataReady || (!isAdmin && !statsReleased)) {
+    final myLbEntry = data.leaderboard.firstWhereOrNull(
+      (e) => e.entryId.replaceFirst('_guest', '') == currentUserId,
+    );
+
+    final statsReleased = widget.event.isStatsReleased == true ||
+        widget.isAdmin ||
+        widget.event.status == EventStatus.completed;
+
+    final bool isDataReady = data.individualScores.any((p) => p.result.holesPlayed > 0) ||
+        data.eventStats.isNotEmpty;
+
+    if (!isDataReady || (!widget.isAdmin && !statsReleased)) {
       return BoxyArtCard(
         child: Padding(
           padding: const EdgeInsets.all(AppSpacing.x3l),
@@ -132,10 +140,9 @@ class _EventStatsContent extends ConsumerWidget {
     }
 
     final fs = data.eventStats;
-    final holes = event.courseConfig.holes;
+    final holes = widget.event.courseConfig.holes;
     final totalPlayers = data.individualScores.length;
 
-    // --- Extracted Stats from Central Brain ---
     Map<int, double> holeAverages = {};
     int fieldEagles = 0;
     int fieldBirdies = 0;
@@ -167,8 +174,7 @@ class _EventStatsContent extends ConsumerWidget {
     double fieldAvgBB = 0;
     double maxDiff = 0;
     int toughestIdx = 0;
-    String toughestName = 'Hole 1';
-    
+
     String hotStreakId = '';
     String bounceBackId = '';
     String finisherId = '';
@@ -194,7 +200,8 @@ class _EventStatsContent extends ConsumerWidget {
       }
       if (trends?['parTypeAverages'] != null) {
         parTypeAverages = Map<int, double>.from(
-          (trends!['parTypeAverages'] as Map).map((k, v) => MapEntry(int.parse(k.toString()), (v as num).toDouble()))
+          (trends!['parTypeAverages'] as Map)
+              .map((k, v) => MapEntry(int.parse(k.toString()), (v as num).toDouble())),
         );
       }
       fieldAvgNetScore = (trends?['fieldAvgNetScore'] as num?)?.toDouble() ?? 0;
@@ -202,7 +209,9 @@ class _EventStatsContent extends ConsumerWidget {
       fieldAvgBB = (trends?['fieldAvgBB'] as num?)?.toDouble() ?? 0;
 
       final heatmap = fs['difficultyHeatmap'] as Map?;
-      heatmap?.forEach((k, v) { holeAverages[int.parse(k)] = (v as num).toDouble(); });
+      heatmap?.forEach((k, v) {
+        holeAverages[int.parse(k)] = (v as num).toDouble();
+      });
 
       final hof = fs['hallOfFame'] as List?;
       if (hof != null) {
@@ -211,40 +220,34 @@ class _EventStatsContent extends ConsumerWidget {
           final displayVal = award['displayValue'];
           final name = award['playerName'] ?? 'Unknown';
           final pid = (award['playerId'] ?? '').toString();
-          
-          if (type == 'HOT_STREAK') { 
-            hotStreakPlayer = name; 
-            maxStreak = (displayVal as num?)?.toInt() ?? 1; 
+
+          if (type == 'HOT_STREAK') {
+            hotStreakPlayer = name;
+            maxStreak = (displayVal as num?)?.toInt() ?? 1;
             hotStreakId = pid;
-          }
-          else if (type == 'BOUNCE_BACK') { 
-            bounceBackPlayer = name; 
-            maxBounceBacks = (displayVal as num?)?.toInt() ?? 1; 
+          } else if (type == 'BOUNCE_BACK') {
+            bounceBackPlayer = name;
+            maxBounceBacks = (displayVal as num?)?.toInt() ?? 1;
             bounceBackId = pid;
-          }
-          else if (type == 'TOP_FINISHER') { 
-            finisherPlayer = name; 
+          } else if (type == 'TOP_FINISHER') {
+            finisherPlayer = name;
             bestFinishScore = (displayVal as num?)?.toInt() ?? (isStableford ? 6 : 12);
             finisherId = pid;
-          }
-          else if (type == 'BLOB_KING' || type == 'DISASTER_MASTER') { 
-            blobKingPlayer = name; 
-            maxBlobs = (displayVal as num?)?.toInt() ?? 1; 
+          } else if (type == 'BLOB_KING' || type == 'DISASTER_MASTER') {
+            blobKingPlayer = name;
+            maxBlobs = (displayVal as num?)?.toInt() ?? 1;
             blobKingId = pid;
-          }
-          else if (type == 'CONSISTENT') { 
-            grinderPlayer = name; 
-            maxParsPlayer = (displayVal as num?)?.toInt() ?? 1; 
+          } else if (type == 'CONSISTENT') {
+            grinderPlayer = name;
+            maxParsPlayer = (displayVal as num?)?.toInt() ?? 1;
             grinderId = pid;
-          }
-          else if (type == 'SNIPER') { 
-            sniperPlayer = name; 
-            maxBirdsPlayer = (displayVal as num?)?.toInt() ?? 1; 
+          } else if (type == 'SNIPER') {
+            sniperPlayer = name;
+            maxBirdsPlayer = (displayVal as num?)?.toInt() ?? 1;
             sniperId = pid;
-          }
-          else if (type == 'ROLLERCOASTER') { 
-            rollercoasterPlayer = name; 
-            maxVariance = (displayVal as num?)?.toDouble() ?? 5.0; 
+          } else if (type == 'ROLLERCOASTER') {
+            rollercoasterPlayer = name;
+            maxVariance = (displayVal as num?)?.toDouble() ?? 5.0;
             rollercoasterId = pid;
           }
         }
@@ -257,23 +260,32 @@ class _EventStatsContent extends ConsumerWidget {
         eclecticRound = List<int?>.from(insights!['eclecticRound']);
       }
     }
-    toughestName = 'Hole ${toughestIdx + 1}';
+    final toughestName = 'Hole ${toughestIdx + 1}';
 
     final Map<String, String> awardWinNames = {
-      'HOT STREAK': hotStreakPlayer, 
-      'BOUNCE BACK': bounceBackPlayer, 
+      'HOT STREAK': hotStreakPlayer,
+      'BOUNCE BACK': bounceBackPlayer,
       'TOP FINISHER': finisherPlayer,
-      'THE BLOB KING': blobKingPlayer, 
-      'THE GRINDER': grinderPlayer, 
+      'THE BLOB KING': blobKingPlayer,
+      'THE GRINDER': grinderPlayer,
       'THE SNIPER': sniperPlayer,
       'THE ROLLERCOASTER': rollercoasterPlayer,
     };
 
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (statsMode == 0) ...[
+        BoxyArtTabBar<int>(
+          selectedValue: _selectedTab,
+          onTabSelected: (t) => setState(() => _selectedTab = t),
+          tabs: const [
+            ModernFilterTab(label: 'SOCIETY', value: 0),
+            ModernFilterTab(label: 'PERSONAL', value: 1),
+          ],
+        ),
+        SizedBox(height: spacing?.labelToCard ?? AppSpacing.md),
+
+        if (_selectedTab == 0) ...[
           const BoxyArtSectionTitle(
             horizontalPadding: 0,
             title: 'Society Hero Recap',
@@ -282,71 +294,70 @@ class _EventStatsContent extends ConsumerWidget {
           StaggeredEntrance(
             index: 0,
             child: SocietyHeroRecapCard(
-              eclecticScores: eclecticRound, 
+              eclecticScores: eclecticRound,
               holes: holes,
-              totalPlayers: totalPlayers, 
-              totalHolesPlayed: totalPlayers * holes.length, 
-              topHoleName: toughestName, 
+              totalPlayers: totalPlayers,
+              totalHolesPlayed: totalPlayers * holes.length,
+              topHoleName: toughestName,
               topHoleDiff: maxDiff,
               totalBirdies: fieldBirdies,
               totalEagles: fieldEagles,
               fieldAvgNet: fieldAvgNetScore,
+              isStableford: isStableford,
             ),
           ),
 
-          // [NEW] Group Results Podium moved from scoring hub
-          if (data.groupRankings.isNotEmpty && (comp?.rules.isMatchPlay != true)) ...[
-          const BoxyArtSectionTitle(
-            followsCard: true,
-            horizontalPadding: 0,
-            title: 'Top Performing Groups',
-          ),
-             Builder(builder: (context) {
-                final List<PodiumEntry> podiumEntries = [];
-                final groupsData = event.grouping['groups'] as List?;
-                final List<TeeGroup> groups = groupsData != null 
-                    ? groupsData.map((g) => TeeGroup.fromJson(g)).toList() 
-                    : [];
+          if (data.groupRankings.isNotEmpty && (widget.comp?.rules.isMatchPlay != true)) ...[
+            const BoxyArtSectionTitle(
+              followsCard: true,
+              horizontalPadding: 0,
+              title: 'Top Performing Groups',
+            ),
+            Builder(builder: (context) {
+              final List<PodiumEntry> podiumEntries = [];
+              final groupsData = widget.event.grouping['groups'] as List?;
+              final List<TeeGroup> groups = groupsData != null
+                  ? groupsData.map((g) => TeeGroup.fromJson(g)).toList()
+                  : [];
 
-                for (int i=0; i<3 && i<data.groupRankings.length; i++) {
-                   final gRes = data.groupRankings[i];
-                   final group = groups.firstWhereOrNull((g) => g.index == gRes.groupIndex);
-                   if (group == null) continue;
+              for (int i = 0; i < 3 && i < data.groupRankings.length; i++) {
+                final gRes = data.groupRankings[i];
+                final group = groups.firstWhereOrNull((g) => g.index == gRes.groupIndex);
+                if (group == null) continue;
 
-                   String? tieLabel;
-                   final bool isTied = (i > 0 && data.groupRankings[i].totalScore == data.groupRankings[i-1].totalScore) || 
-                                       (i < data.groupRankings.length - 1 && data.groupRankings[i].totalScore == data.groupRankings[i+1].totalScore);
-                   if (isTied) {
-                      final metrics = gRes.tieBreakMetrics;
-                      final diffIdx = metrics.indexWhere((m) => m != 0);
-                      if (diffIdx != -1) {
-                         final mNames = ['B9', 'B6', 'B3', 'B1'];
-                         final name = diffIdx < mNames.length ? mNames[diffIdx] : 'Metric';
-                         tieLabel = '$name: ${metrics[diffIdx]}';
-                      }
-                   }
-
-                   final int bestX = comp?.rules.teamBestXCount ?? 2;
-                   final String formatLabel = 'Best $bestX';
-
-                   podiumEntries.add(PodiumEntry(
-                     name: 'Group ${group.index + 1}',
-                     score: gRes.label,
-                     rank: i + 1,
-                     groupIndex: group.index,
-                     tieBreakLabel: tieLabel,
-                     formatLabel: formatLabel,
-                   ));
+                String? tieLabel;
+                final bool isTied =
+                    (i > 0 && data.groupRankings[i].totalScore == data.groupRankings[i - 1].totalScore) ||
+                    (i < data.groupRankings.length - 1 &&
+                        data.groupRankings[i].totalScore == data.groupRankings[i + 1].totalScore);
+                if (isTied) {
+                  final metrics = gRes.tieBreakMetrics;
+                  final diffIdx = metrics.indexWhere((m) => m != 0);
+                  if (diffIdx != -1) {
+                    final mNames = ['B9', 'B6', 'B3', 'B1'];
+                    final name = diffIdx < mNames.length ? mNames[diffIdx] : 'Metric';
+                    tieLabel = '$name: ${metrics[diffIdx]}';
+                  }
                 }
-                
-                return GroupingPodiumHeader(
-                  entries: podiumEntries,
-                  onTap: (idx) {
-                    // Navigate back to scores tab and scroll to group? 
-                    // For now, just show the podium.
-                  },
-                );
-             }),
+
+                final int bestX = widget.comp?.rules.teamBestXCount ?? 2;
+
+                podiumEntries.add(PodiumEntry(
+                  name: 'Group ${group.index + 1}',
+                  score: gRes.label,
+                  rank: i + 1,
+                  groupIndex: group.index,
+                  tieBreakLabel: tieLabel,
+                  formatLabel: 'Best $bestX',
+                ));
+              }
+
+              return GroupingPodiumHeader(
+                entries: podiumEntries,
+                isStableford: isStableford,
+                onTap: (idx) {},
+              );
+            }),
           ],
 
           const BoxyArtSectionTitle(
@@ -357,7 +368,12 @@ class _EventStatsContent extends ConsumerWidget {
           StaggeredEntrance(
             index: 2,
             child: ScoringTypeDistributionChart(counts: {
-              'EAGLE': fieldEagles, 'BIRDIE': fieldBirdies, 'PAR': fieldPars, 'BOGEY': fieldBogeys, 'DBL BOGEY': fieldDoubleBogeys, 'BLOB': fieldBlobs,
+              'EAGLE': fieldEagles,
+              'BIRDIE': fieldBirdies,
+              'PAR': fieldPars,
+              'BOGEY': fieldBogeys,
+              'DBL BOGEY': fieldDoubleBogeys,
+              'BLOB': fieldBlobs,
             }),
           ),
           if (isStableford) ...[
@@ -385,7 +401,11 @@ class _EventStatsContent extends ConsumerWidget {
           ),
           StaggeredEntrance(
             index: 4,
-            child: SplitPerformanceCard(front9Avg: front9AvgVal, back9Avg: back9AvgVal, isStableford: isStableford),
+            child: SplitPerformanceCard(
+              front9Avg: front9AvgVal,
+              back9Avg: back9AvgVal,
+              isStableford: isStableford,
+            ),
           ),
           SizedBox(height: spacing?.cardToCard ?? AppSpacing.md),
           StaggeredEntrance(
@@ -415,12 +435,12 @@ class _EventStatsContent extends ConsumerWidget {
             StaggeredEntrance(
               index: 8,
               child: AchievementTile(
-                title: 'HOT STREAK', 
-                playerName: hotStreakPlayer, 
-                value: '$maxStreak holes Par or better', 
-                icon: Icons.local_fire_department, 
+                title: 'HOT STREAK',
+                playerName: hotStreakPlayer,
+                value: '$maxStreak holes Par or better',
+                icon: Icons.local_fire_department,
                 color: AppColors.amber500,
-                onTap: hotStreakId.isNotEmpty ? () => _showScorecard(context, ref, hotStreakId, data) : null,
+                onTap: hotStreakId.isNotEmpty ? () => _showScorecard(context, hotStreakId, data) : null,
               ),
             ),
           if (maxBounceBacks > 0) ...[
@@ -428,12 +448,12 @@ class _EventStatsContent extends ConsumerWidget {
             StaggeredEntrance(
               index: 9,
               child: AchievementTile(
-                title: 'BOUNCE BACK', 
-                playerName: bounceBackPlayer, 
-                value: '$maxBounceBacks recoveries today', 
-                icon: Icons.trending_up, 
+                title: 'BOUNCE BACK',
+                playerName: bounceBackPlayer,
+                value: '$maxBounceBacks recoveries today',
+                icon: Icons.trending_up,
                 color: AppColors.teamA,
-                onTap: bounceBackId.isNotEmpty ? () => _showScorecard(context, ref, bounceBackId, data) : null,
+                onTap: bounceBackId.isNotEmpty ? () => _showScorecard(context, bounceBackId, data) : null,
               ),
             ),
           ],
@@ -442,12 +462,14 @@ class _EventStatsContent extends ConsumerWidget {
             StaggeredEntrance(
               index: 10,
               child: AchievementTile(
-                title: 'TOP FINISHER', 
-                playerName: finisherPlayer, 
-                value: isStableford ? 'Rallied for $bestFinishScore points on final 3 holes' : 'Total $bestFinishScore on final 3 holes', 
-                icon: Icons.flag, 
+                title: 'TOP FINISHER',
+                playerName: finisherPlayer,
+                value: isStableford
+                    ? 'Rallied for $bestFinishScore points on final 3 holes'
+                    : 'Total $bestFinishScore on final 3 holes',
+                icon: Icons.flag,
                 color: AppColors.teamB,
-                onTap: finisherId.isNotEmpty ? () => _showScorecard(context, ref, finisherId, data) : null,
+                onTap: finisherId.isNotEmpty ? () => _showScorecard(context, finisherId, data) : null,
               ),
             ),
           ],
@@ -460,12 +482,12 @@ class _EventStatsContent extends ConsumerWidget {
             StaggeredEntrance(
               index: 11,
               child: AchievementTile(
-                title: 'THE BLOB KING', 
-                playerName: blobKingPlayer, 
-                value: isStableford ? '$maxBlobs holes with zero points 💀' : '$maxBlobs holes with Triple Bogey+ 💀', 
-                icon: Icons.sentiment_very_dissatisfied, 
+                title: 'THE BLOB KING',
+                playerName: blobKingPlayer,
+                value: isStableford ? '$maxBlobs holes with zero points 💀' : '$maxBlobs holes with Triple Bogey+ 💀',
+                icon: Icons.sentiment_very_dissatisfied,
                 color: AppColors.coral500,
-                onTap: blobKingId.isNotEmpty ? () => _showScorecard(context, ref, blobKingId, data) : null,
+                onTap: blobKingId.isNotEmpty ? () => _showScorecard(context, blobKingId, data) : null,
               ),
             ),
           if (maxParsPlayer > 0) ...[
@@ -473,12 +495,12 @@ class _EventStatsContent extends ConsumerWidget {
             StaggeredEntrance(
               index: 12,
               child: AchievementTile(
-                title: 'THE GRINDER', 
-                playerName: grinderPlayer, 
-                value: 'Most consistent with $maxParsPlayer pars', 
-                icon: Icons.shield, 
+                title: 'THE GRINDER',
+                playerName: grinderPlayer,
+                value: 'Most consistent with $maxParsPlayer pars',
+                icon: Icons.shield,
                 color: AppColors.lime500,
-                onTap: grinderId.isNotEmpty ? () => _showScorecard(context, ref, grinderId, data) : null,
+                onTap: grinderId.isNotEmpty ? () => _showScorecard(context, grinderId, data) : null,
               ),
             ),
           ],
@@ -487,12 +509,12 @@ class _EventStatsContent extends ConsumerWidget {
             StaggeredEntrance(
               index: 13,
               child: AchievementTile(
-                title: 'THE SNIPER', 
-                playerName: sniperPlayer, 
-                value: 'Picked off $maxBirdsPlayer birdies', 
-                icon: Icons.gps_fixed, 
+                title: 'THE SNIPER',
+                playerName: sniperPlayer,
+                value: 'Picked off $maxBirdsPlayer birdies',
+                icon: Icons.gps_fixed,
                 color: Colors.blueGrey,
-                onTap: sniperId.isNotEmpty ? () => _showScorecard(context, ref, sniperId, data) : null,
+                onTap: sniperId.isNotEmpty ? () => _showScorecard(context, sniperId, data) : null,
               ),
             ),
           ],
@@ -501,12 +523,12 @@ class _EventStatsContent extends ConsumerWidget {
             StaggeredEntrance(
               index: 14,
               child: AchievementTile(
-                title: 'THE ROLLERCOASTER', 
-                playerName: rollercoasterPlayer, 
-                value: 'Wildest round of the day 🎢', 
-                icon: Icons.attractions, 
+                title: 'THE ROLLERCOASTER',
+                playerName: rollercoasterPlayer,
+                value: 'Wildest round of the day 🎢',
+                icon: Icons.attractions,
                 color: AppColors.coral400,
-                onTap: rollercoasterId.isNotEmpty ? () => _showScorecard(context, ref, rollercoasterId, data) : null,
+                onTap: rollercoasterId.isNotEmpty ? () => _showScorecard(context, rollercoasterId, data) : null,
               ),
             ),
           ],
@@ -520,30 +542,38 @@ class _EventStatsContent extends ConsumerWidget {
             const BoxyArtCard(
               child: Padding(
                 padding: EdgeInsets.all(AppSpacing.x2l),
-                child: Center(child: Text('No personal scorecard found for this event.', style: TextStyle(color: AppColors.dark900))),
+                child: Center(
+                  child: Text(
+                    'No personal scorecard found for this event.',
+                    style: TextStyle(color: AppColors.dark900),
+                  ),
+                ),
               ),
             )
           else
             _buildPersonalRecap(
-              context: context, 
-              myScoreEntry: myScoreEntry, 
-              fieldHoleAvgs: holeAverages, 
-              fieldParTypeAvgs: parTypeAverages, 
-              courseConfig: event.courseConfig, 
-              rules: comp?.rules,
+              context: context,
+              myScoreEntry: myScoreEntry,
+              holePoints: myLbEntry?.holePoints ?? [],
+              myPosition: myLbEntry?.position,
+              fieldHoleAvgs: holeAverages,
+              fieldParTypeAvgs: parTypeAverages,
+              courseConfig: widget.event.courseConfig,
+              rules: widget.comp?.rules,
               fieldAvgVariance: fieldAvgVar,
               fieldAvgNet: fieldAvgNetScore,
               fieldAvgBounceBackRate: fieldAvgBB,
               fieldToughestHoleIdx: toughestIdx,
               awardWinners: awardWinNames,
-              registrations: event.registrations,
+              registrations: widget.event.registrations,
+              isStableford: isStableford,
             ),
         ],
       ],
     );
   }
 
-  void _showScorecard(BuildContext context, WidgetRef ref, String playerId, ProcessedEventData data) {
+  void _showScorecard(BuildContext context, String playerId, ProcessedEventData data) {
     final ple = data.leaderboard.firstWhereOrNull((e) => e.entryId == playerId);
     if (ple == null) return;
 
@@ -575,19 +605,21 @@ class _EventStatsContent extends ConsumerWidget {
       context,
       ref,
       entry: entry,
-      scorecards: const [], // ScorecardModal will use holeScores from entry
-      event: event,
-      comp: comp,
+      scorecards: const [],
+      event: widget.event,
+      comp: widget.comp,
       membersList: membersList,
     );
   }
 
   Widget _buildPersonalRecap({
-    required BuildContext context, 
-    required ProcessedPlayerScore myScoreEntry, 
-    required Map<int, double> fieldHoleAvgs, 
-    required Map<int, double> fieldParTypeAvgs, 
-    required CourseConfig courseConfig, 
+    required BuildContext context,
+    required ProcessedPlayerScore myScoreEntry,
+    required List<int?> holePoints,
+    required int? myPosition,
+    required Map<int, double> fieldHoleAvgs,
+    required Map<int, double> fieldParTypeAvgs,
+    required CourseConfig courseConfig,
     required CompetitionRules? rules,
     required double fieldAvgVariance,
     required double fieldAvgNet,
@@ -595,10 +627,13 @@ class _EventStatsContent extends ConsumerWidget {
     required int fieldToughestHoleIdx,
     required Map<String, String> awardWinners,
     required List<EventRegistration> registrations,
+    required bool isStableford,
   }) {
     final holes = courseConfig.holes;
     final myName = myScoreEntry.playerName;
+    final spacing = Theme.of(context).extension<AppSpacingTokens>();
 
+    // Personal hole-by-hole calculations
     Map<int, double> myParTypeSums = {3: 0, 4: 0, 5: 0};
     Map<int, int> myParTypeCounts = {3: 0, 4: 0, 5: 0};
     List<double> myDiffs = [];
@@ -607,50 +642,101 @@ class _EventStatsContent extends ConsumerWidget {
     int myBounceBacks = 0;
     int myOpportunities = 0;
 
+    int pEagles = 0, pBirdies = 0, pPars = 0, pBogeys = 0, pDoubles = 0, pBlobs = 0;
+    int personalFront9 = 0, personalBack9 = 0;
+
     for (int i = 0; i < 18; i++) {
-        final score = myScoreEntry.holeScores.length > i ? myScoreEntry.holeScores[i] : null;
-        if (score != null) {
-            final par = holes.length > i ? holes[i].par : 4;
-            final diff = (score - par).toDouble();
-            myParTypeSums[par] = (myParTypeSums[par] ?? 0) + diff;
-            myParTypeCounts[par] = (myParTypeCounts[par] ?? 0) + 1;
-            myDiffs.add(diff);
-            if (diff > myMaxDiff) { myMaxDiff = diff; myHardestIdx = i; }
-            if (i > 0) {
-              final prevScore = myScoreEntry.holeScores.length > i-1 ? myScoreEntry.holeScores[i-1] : null;
-              if (prevScore != null) {
-                final prevPar = holes.length > i-1 ? holes[i-1].par : 4;
-                if (prevScore > prevPar) { myOpportunities++; if (score <= par) myBounceBacks++; }
-              }
-            }
+      final score = myScoreEntry.holeScores.length > i ? myScoreEntry.holeScores[i] : null;
+      if (score != null) {
+        final par = holes.length > i ? holes[i].par : 4;
+        final diff = (score - par).toDouble();
+        myParTypeSums[par] = (myParTypeSums[par] ?? 0) + diff;
+        myParTypeCounts[par] = (myParTypeCounts[par] ?? 0) + 1;
+        myDiffs.add(diff);
+        if (diff > myMaxDiff) {
+          myMaxDiff = diff;
+          myHardestIdx = i;
         }
+        if (i > 0) {
+          final prevScore = myScoreEntry.holeScores.length > i - 1 ? myScoreEntry.holeScores[i - 1] : null;
+          if (prevScore != null) {
+            final prevPar = holes.length > i - 1 ? holes[i - 1].par : 4;
+            if (prevScore > prevPar) {
+              myOpportunities++;
+              if (score <= par) myBounceBacks++;
+            }
+          }
+        }
+        final idiff = score - par;
+        if (idiff <= -2) { pEagles++; }
+        else if (idiff == -1) { pBirdies++; }
+        else if (idiff == 0) { pPars++; }
+        else if (idiff == 1) { pBogeys++; }
+        else if (idiff == 2) { pDoubles++; }
+        else { pBlobs++; }
+        if (i < 9) { personalFront9 += score; } else { personalBack9 += score; }
+      }
     }
+
+    // Stableford overrides for distribution and split
+    int ptsFront9 = 0, ptsBack9 = 0;
+    if (isStableford && holePoints.isNotEmpty) {
+      pEagles = holePoints.where((p) => p != null && p >= 4).length;
+      pBirdies = holePoints.where((p) => p == 3).length;
+      pPars = holePoints.where((p) => p == 2).length;
+      pBogeys = holePoints.where((p) => p == 1).length;
+      pDoubles = 0;
+      pBlobs = holePoints.where((p) => p == 0).length;
+      for (int i = 0; i < holePoints.length; i++) {
+        final p = holePoints[i] ?? 0;
+        if (i < 9) { ptsFront9 += p; } else { ptsBack9 += p; }
+      }
+    }
+
+    final front9Val = isStableford ? ptsFront9.toDouble() : personalFront9.toDouble();
+    final back9Val = isStableford ? ptsBack9.toDouble() : personalBack9.toDouble();
+
     Map<int, double> myParTypeAverages = {};
-    myParTypeSums.forEach((key, value) { if (myParTypeCounts[key]! > 0) myParTypeAverages[key] = value / myParTypeCounts[key]!; });
+    myParTypeSums.forEach((key, value) {
+      if (myParTypeCounts[key]! > 0) myParTypeAverages[key] = value / myParTypeCounts[key]!;
+    });
 
     double myVariance = 0;
     if (myDiffs.isNotEmpty && myDiffs.length > 5) {
-      double mean = myDiffs.fold<num>(0, (a, b) => a + b).toDouble() / myDiffs.length;
-      myVariance = myDiffs.map((d) => math.pow(d - mean, 2)).fold<double>(0.0, (a, b) => a + b) / myDiffs.length;
+      final mean = myDiffs.fold<num>(0, (a, b) => a + b).toDouble() / myDiffs.length;
+      myVariance =
+          myDiffs.map((d) => math.pow(d - mean, 2)).fold<double>(0.0, (a, b) => a + b) / myDiffs.length;
     }
     final myBounceBackRate = myOpportunities > 0 ? (myBounceBacks / myOpportunities) : 0.0;
-    final grossScore = myScoreEntry.result.score; // Authoritative score
-    final diff = HandicapCalculator.calculateDifferential(grossScore: grossScore, courseConfig: courseConfig);
+    final grossScore = myScoreEntry.result.score;
+    final diff = HandicapCalculator.calculateDifferential(
+        grossScore: grossScore, courseConfig: courseConfig);
 
     List<String> myAwards = [];
-    awardWinners.forEach((title, winner) { if (winner == myName) myAwards.add(title); });
+    awardWinners.forEach((title, winner) {
+      if (winner == myName) myAwards.add(title);
+    });
 
-    final fieldHardestHoleDiff = fieldHoleAvgs[fieldToughestHoleIdx] != null ? fieldHoleAvgs[fieldToughestHoleIdx]! - holes[fieldToughestHoleIdx].par.toDouble() : 0.0;
-
-    final spacing = Theme.of(context).extension<AppSpacingTokens>();
+    final fieldHardestHoleDiff = fieldHoleAvgs[fieldToughestHoleIdx] != null
+        ? fieldHoleAvgs[fieldToughestHoleIdx]! - holes[fieldToughestHoleIdx].par.toDouble()
+        : 0.0;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const BoxyArtSectionTitle(
-          title: 'Personal Performance',
-          topPadding: 0,
-        ),
+        // Position + score summary
+        if (myPosition != null) ...[
+          _PersonalSummaryBar(
+            position: myPosition,
+            totalPlayers: 0,
+            score: myScoreEntry.result.score,
+            scoreLabel: myScoreEntry.result.label,
+            isStableford: isStableford,
+          ),
+          SizedBox(height: spacing?.cardToCard ?? AppSpacing.md),
+        ],
+
+        // Award banner
         if (myAwards.isNotEmpty) ...[
           Container(
             width: double.infinity,
@@ -663,30 +749,207 @@ class _EventStatsContent extends ConsumerWidget {
               children: [
                 const Icon(Icons.emoji_events, color: AppColors.pureWhite, size: AppShapes.iconXl),
                 const SizedBox(height: AppSpacing.sm),
-                const Text('AWARD EARNED!', style: TextStyle(color: AppColors.pureWhite, fontWeight: AppTypography.weightSemibold, fontSize: AppTypography.sizeLabel, letterSpacing: 1.5)),
+                const Text(
+                  'AWARD EARNED!',
+                  style: TextStyle(
+                    color: AppColors.pureWhite,
+                    fontWeight: AppTypography.weightSemibold,
+                    fontSize: AppTypography.sizeLabel,
+                    letterSpacing: 1.5,
+                  ),
+                ),
                 const SizedBox(height: AppSpacing.xs),
-                Text(myAwards.join(' & '), textAlign: TextAlign.center, style: const TextStyle(color: AppColors.pureWhite, fontWeight: AppTypography.weightBold, fontSize: AppTypography.sizeLargeBody)),
+                Text(
+                  myAwards.join(' & '),
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    color: AppColors.pureWhite,
+                    fontWeight: AppTypography.weightBold,
+                    fontSize: AppTypography.sizeLargeBody,
+                  ),
+                ),
               ],
             ),
           ),
-          SizedBox(height: spacing?.labelToCard ?? AppSpacing.md),
+          SizedBox(height: spacing?.cardToCard ?? AppSpacing.md),
         ],
+
+        // Hole grid
+        RoundHoleGrid(
+          holeScores: myScoreEntry.holeScores,
+          holePoints: holePoints,
+          holes: holes,
+          isStableford: isStableford,
+        ),
+        SizedBox(height: spacing?.cardToCard ?? AppSpacing.md),
+
+        // Personal scoring distribution
+        ScoringTypeDistributionChart(counts: {
+          'EAGLE': pEagles,
+          'BIRDIE': pBirdies,
+          'PAR': pPars,
+          'BOGEY': pBogeys,
+          'DBL BOGEY': pDoubles,
+          'BLOB': pBlobs,
+        }),
+        SizedBox(height: spacing?.cardToCard ?? AppSpacing.md),
+
+        // Front / Back personal split
+        SplitPerformanceCard(
+          front9Avg: front9Val,
+          back9Avg: back9Val,
+          isStableford: isStableford,
+        ),
+        SizedBox(height: spacing?.cardToCard ?? AppSpacing.md),
+
         PersonalBenchmarkingCard(myAverages: myParTypeAverages, fieldAverages: fieldParTypeAvgs),
-        SizedBox(height: spacing?.labelToCard ?? AppSpacing.md),
-        NetComparisonCard(myNet: myScoreEntry.result.score, fieldAvgNet: fieldAvgNet),
-        SizedBox(height: spacing?.labelToCard ?? AppSpacing.md),
+        SizedBox(height: spacing?.cardToCard ?? AppSpacing.md),
+        NetComparisonCard(
+          myNet: myScoreEntry.result.score,
+          fieldAvgNet: fieldAvgNet,
+          isStableford: isStableford,
+        ),
+        SizedBox(height: spacing?.cardToCard ?? AppSpacing.md),
         ConsistencyStatCard(myVariance: myVariance, fieldAvgVariance: fieldAvgVariance),
-        SizedBox(height: spacing?.labelToCard ?? AppSpacing.md),
+        SizedBox(height: spacing?.cardToCard ?? AppSpacing.md),
         BounceBackStatCard(myRate: myBounceBackRate, fieldRate: fieldAvgBounceBackRate),
-        SizedBox(height: spacing?.labelToCard ?? AppSpacing.md),
-        HoleNemesisComparison(myHardestHoleIdx: myHardestIdx, myHardestHoleDiff: myMaxDiff, fieldHardestHoleIdx: fieldToughestHoleIdx, fieldHardestHoleDiff: fieldHardestHoleDiff),
-        SizedBox(height: spacing?.labelToCard ?? AppSpacing.md),
-        // Simplified heatmap use
-        HoleComparisonHeatmap(myHoleScores: myScoreEntry.holeScores, fieldAverages: fieldHoleAvgs, holes: holes),
-        SizedBox(height: spacing?.labelToCard ?? AppSpacing.md),
-        AchievementTile(title: 'HANDICAP IMPACT', playerName: 'Round Rating', value: 'Net Differential: ${diff.toStringAsFixed(1)}', icon: Icons.analytics, color: Theme.of(context).colorScheme.primary),
+        SizedBox(height: spacing?.cardToCard ?? AppSpacing.md),
+        HoleNemesisComparison(
+          myHardestHoleIdx: myHardestIdx,
+          myHardestHoleDiff: myMaxDiff,
+          fieldHardestHoleIdx: fieldToughestHoleIdx,
+          fieldHardestHoleDiff: fieldHardestHoleDiff,
+        ),
+        SizedBox(height: spacing?.cardToCard ?? AppSpacing.md),
+        HoleComparisonHeatmap(
+          myHoleScores: myScoreEntry.holeScores,
+          fieldAverages: fieldHoleAvgs,
+          holes: holes,
+        ),
+        SizedBox(height: spacing?.cardToCard ?? AppSpacing.md),
+        AchievementTile(
+          title: 'HANDICAP IMPACT',
+          playerName: 'Round Rating',
+          value: 'Net Differential: ${diff.toStringAsFixed(1)}',
+          icon: Icons.analytics,
+          color: Theme.of(context).colorScheme.primary,
+        ),
       ],
     );
   }
+}
 
+
+class _PersonalSummaryBar extends ConsumerWidget {
+  final int position;
+  final int totalPlayers;
+  final int score;
+  final String scoreLabel;
+  final bool isStableford;
+
+  const _PersonalSummaryBar({
+    required this.position,
+    required this.totalPlayers,
+    required this.score,
+    required this.scoreLabel,
+    required this.isStableford,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final shapes = Theme.of(context).extension<AppShapeTokens>();
+    final config = ref.watch(themeControllerProvider);
+    final pointsColor = Color(config.effectivePointsColor);
+    final muted = Theme.of(context).colorScheme.onSurface.withValues(alpha: AppColors.opacitySecondary);
+
+    return BoxyArtCard(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.standard,
+        vertical: AppSpacing.atomic,
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'POSITION',
+                  style: AppTypography.micro.copyWith(
+                    color: muted,
+                    fontWeight: AppTypography.weightBold,
+                    letterSpacing: AppTypography.lsLabel,
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.xs),
+                Text(
+                  '#$position',
+                  style: AppTypography.headline.copyWith(
+                    fontWeight: AppTypography.weightBlack,
+                    color: pointsColor,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Container(width: 1, height: 40, color: AppColors.dark500.withValues(alpha: 0.4)),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Text(
+                  isStableford ? 'YOUR POINTS' : 'YOUR SCORE',
+                  style: AppTypography.micro.copyWith(
+                    color: muted,
+                    fontWeight: AppTypography.weightBold,
+                    letterSpacing: AppTypography.lsLabel,
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.xs),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  crossAxisAlignment: CrossAxisAlignment.baseline,
+                  textBaseline: TextBaseline.alphabetic,
+                  children: [
+                    Text(
+                      '$score',
+                      style: AppTypography.headline.copyWith(
+                        fontWeight: AppTypography.weightBlack,
+                        color: pointsColor,
+                      ),
+                    ),
+                    if (isStableford)
+                      Text(
+                        ' pts',
+                        style: AppTypography.label.copyWith(
+                          color: pointsColor,
+                        ),
+                      )
+                    else
+                      Padding(
+                        padding: const EdgeInsets.only(left: 6),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.atomic, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: pointsColor.withValues(alpha: AppColors.opacitySubtle),
+                            borderRadius: shapes?.pill,
+                          ),
+                          child: Text(
+                            scoreLabel,
+                            style: AppTypography.micro.copyWith(
+                              fontWeight: AppTypography.weightBold,
+                              color: pointsColor,
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }

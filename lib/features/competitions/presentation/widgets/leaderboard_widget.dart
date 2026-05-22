@@ -42,39 +42,62 @@ class LeaderboardWidget extends StatelessWidget {
             : entry.scoringStatus.name.toUpperCase();
             
         String? differentiatorChain;
-        if (hasScore && !isStableford && !isMatchPlay) {
+        if (hasScore && !isMatchPlay) {
           final tiedWith = tiedGroups[entry.score] ?? [];
           if (tiedWith.length > 1) {
-            List<String> getSegments(LeaderboardEntry e) => 
-                (e.tieBreakDetails ?? e.tieBreakLabel ?? '').split(RegExp(r'[,•]')).map((s) => s.trim()).toList();
-            
-            final mySegments = getSegments(entry);
-            
-            int findFirstDiff(List<String> a, List<String> b) {
-              int k = 0;
-              while (k < a.length && k < b.length && a[k] == b[k]) {
-                k++;
+            if (isStableford) {
+              // Build B9→B6→B3→B1 chain, showing down to the first level that differs
+              const mNames = ['B9', 'B6', 'B3', 'B1'];
+              final myMetrics = entry.tieBreakMetrics ?? <int>[];
+
+              int findFirstDiff(List<int> a, List<int> b) {
+                int k = 0;
+                while (k < a.length && k < b.length && a[k] == b[k]) k++;
+                return k;
               }
-              return k;
-            }
 
-            int maxDiffNeeded = 0;
-            if (idx > 0 && entries[idx-1].score == entry.score) {
-               maxDiffNeeded = findFirstDiff(mySegments, getSegments(entries[idx-1]));
-            }
-            if (idx < entries.length - 1 && entries[idx+1].score == entry.score) {
-               final belowDiff = findFirstDiff(mySegments, getSegments(entries[idx+1]));
-               if (belowDiff > maxDiffNeeded) maxDiffNeeded = belowDiff;
-            }
+              int maxDepth = 0;
+              if (idx > 0 && entries[idx - 1].score == entry.score) {
+                final other = entries[idx - 1].tieBreakMetrics ?? <int>[];
+                maxDepth = findFirstDiff(myMetrics, other);
+              }
+              if (idx < entries.length - 1 && entries[idx + 1].score == entry.score) {
+                final other = entries[idx + 1].tieBreakMetrics ?? <int>[];
+                final d = findFirstDiff(myMetrics, other);
+                if (d > maxDepth) maxDepth = d;
+              }
 
-            if (maxDiffNeeded < mySegments.length) {
-              differentiatorChain = mySegments.take(maxDiffNeeded + 1).join(' • ');
+              final parts = <String>[];
+              for (int i = 0; i <= maxDepth && i < myMetrics.length && i < mNames.length; i++) {
+                parts.add('${mNames[i]}: ${myMetrics[i]}');
+              }
+              differentiatorChain = parts.isEmpty ? null : parts.join(' • ');
             } else {
-              differentiatorChain = mySegments.join(' • ');
+              List<String> getSegments(LeaderboardEntry e) =>
+                  (e.tieBreakDetails ?? e.tieBreakLabel ?? '').split(RegExp(r'[,•]')).map((s) => s.trim()).toList();
+
+              final mySegments = getSegments(entry);
+
+              int findFirstDiff(List<String> a, List<String> b) {
+                int k = 0;
+                while (k < a.length && k < b.length && a[k] == b[k]) k++;
+                return k;
+              }
+
+              int maxDiffNeeded = 0;
+              if (idx > 0 && entries[idx - 1].score == entry.score) {
+                maxDiffNeeded = findFirstDiff(mySegments, getSegments(entries[idx - 1]));
+              }
+              if (idx < entries.length - 1 && entries[idx + 1].score == entry.score) {
+                final d = findFirstDiff(mySegments, getSegments(entries[idx + 1]));
+                if (d > maxDiffNeeded) maxDiffNeeded = d;
+              }
+
+              differentiatorChain = maxDiffNeeded < mySegments.length
+                  ? mySegments.take(maxDiffNeeded + 1).join(' • ')
+                  : mySegments.join(' • ');
             }
           }
-        } else {
-          differentiatorChain = entry.tieBreakLabel;
         }
 
         final theme = Theme.of(context);

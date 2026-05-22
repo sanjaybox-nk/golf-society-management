@@ -242,7 +242,7 @@ class VerticalCourseInfoCard extends StatelessWidget {
           Expanded(
             child: Text(
               'P$par SI$si',
-              style: AppTypography.caption.copyWith(
+              style: AppTypography.micro.copyWith(
                 color: theme.colorScheme.onSurface.withValues(alpha: AppColors.opacityMedium),
                 fontSize: 13,
                 fontWeight: AppTypography.weightBold,
@@ -278,7 +278,7 @@ class VerticalCourseInfoCard extends StatelessWidget {
               width: 24,
               height: 24,
               alignment: Alignment.center,
-              child: Text('-', style: AppTypography.caption.copyWith(color: AppColors.dark400)),
+              child: Text('-', style: AppTypography.micro.copyWith(color: AppColors.dark400)),
             ),
 
           // Points

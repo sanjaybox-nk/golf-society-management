@@ -277,7 +277,7 @@ class ConsistencyStatCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(AppSpacing.atomic),
                 decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.primary.withValues(alpha: AppColors.opacitySubtle),
+                  color: color.withValues(alpha: AppColors.opacitySubtle),
                   borderRadius: shapes?.button,
                 ),
                 child: Icon(
@@ -297,11 +297,13 @@ class ConsistencyStatCard extends StatelessWidget {
 class NetComparisonCard extends StatelessWidget {
   final int myNet;
   final double fieldAvgNet;
+  final bool isStableford;
 
   const NetComparisonCard({
     super.key,
     required this.myNet,
     required this.fieldAvgNet,
+    this.isStableford = false,
   });
 
   @override
@@ -329,14 +331,14 @@ class NetComparisonCard extends StatelessWidget {
                 Row(
                   children: [
                     Text(
-                      '$myNet',
+                      isStableford ? '$myNet pts' : '$myNet',
                       style: AppTypography.displayLocker.copyWith(
                         fontWeight: AppTypography.weightBlack,
                       ),
                     ),
                     const SizedBox(width: AppSpacing.atomic),
                     Text(
-                      'vs ${fieldAvgNet.toStringAsFixed(1)} AVG',
+                      'vs ${fieldAvgNet.toStringAsFixed(1)}${isStableford ? ' pts' : ''} AVG',
                       style: AppTypography.bodySmall.copyWith(
                         color: Theme.of(context).colorScheme.onSurface.withValues(alpha: AppColors.opacitySecondary),
                       ),
@@ -349,7 +351,7 @@ class NetComparisonCard extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: AppSpacing.atomic, vertical: AppSpacing.xs),
             decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.primary.withValues(alpha: AppColors.opacitySubtle),
+              color: (better ? AppColors.lime500 : AppColors.coral500).withValues(alpha: AppColors.opacitySubtle),
               borderRadius: shapes?.pill,
             ),
             child: Text(
@@ -388,7 +390,7 @@ class BounceBackStatCard extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(AppSpacing.atomic),
             decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.primary.withValues(alpha: AppColors.opacitySubtle),
+              color: color.withValues(alpha: AppColors.opacitySubtle),
               borderRadius: shapes?.button,
             ),
             child: Icon(Icons.replay_circle_filled, color: color, size: AppShapes.iconMd),
@@ -436,5 +438,197 @@ class BounceBackStatCard extends StatelessWidget {
         ],
       ),
     );
+  }
+}
+
+class RoundHoleGrid extends StatelessWidget {
+  final List<int?> holeScores;
+  final List<int?> holePoints;
+  final List<dynamic> holes;
+  final bool isStableford;
+
+  const RoundHoleGrid({
+    super.key,
+    required this.holeScores,
+    required this.holePoints,
+    required this.holes,
+    this.isStableford = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final shapes = Theme.of(context).extension<AppShapeTokens>();
+    final sc = Theme.of(context).extension<ScoreColors>()!;
+
+    return BoxyArtCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Center(
+            child: Text(
+              'YOUR ROUND',
+              style: AppTypography.label.copyWith(
+                color: Theme.of(context).colorScheme.onSurface,
+                fontWeight: AppTypography.weightHeavy,
+                letterSpacing: AppTypography.lsLabel,
+              ),
+            ),
+          ),
+          const SizedBox(height: AppSpacing.standard),
+          _buildHalfRow(context, 'FRONT 9', 0, 9, shapes, sc),
+          const SizedBox(height: AppSpacing.atomic),
+          _buildHalfRow(context, 'BACK 9', 9, 18, shapes, sc),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHalfRow(BuildContext context, String label, int from, int to,
+      AppShapeTokens? shapes, ScoreColors sc) {
+    final muted = Theme.of(context).colorScheme.onSurface.withValues(alpha: AppColors.opacitySecondary);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: AppTypography.micro.copyWith(
+            color: muted,
+            fontWeight: AppTypography.weightBold,
+            letterSpacing: AppTypography.lsLabel,
+          ),
+        ),
+        const SizedBox(height: AppSpacing.xs),
+        // Hole number header row
+        Row(
+          children: [
+            for (int i = from; i < to && i < holes.length; i++) ...[
+              if (i > from) const SizedBox(width: 4),
+              Expanded(
+                child: Text(
+                  '${i + 1}',
+                  textAlign: TextAlign.center,
+                  style: AppTypography.micro.copyWith(
+                    color: muted,
+                    fontWeight: AppTypography.weightBold,
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ),
+        const SizedBox(height: AppSpacing.xs),
+        // Score tile row
+        Row(
+          children: [
+            for (int i = from; i < to && i < holes.length; i++) ...[
+              if (i > from) const SizedBox(width: 4),
+              Expanded(
+                child: _HoleTile(
+                  holeIndex: i,
+                  holeScores: holeScores,
+                  holePoints: holePoints,
+                  holes: holes,
+                  isStableford: isStableford,
+                  shapes: shapes,
+                  sc: sc,
+                ),
+              ),
+            ],
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+class _HoleTile extends StatelessWidget {
+  final int holeIndex;
+  final List<int?> holeScores;
+  final List<int?> holePoints;
+  final List<dynamic> holes;
+  final bool isStableford;
+  final AppShapeTokens? shapes;
+  final ScoreColors sc;
+
+  const _HoleTile({
+    required this.holeIndex,
+    required this.holeScores,
+    required this.holePoints,
+    required this.holes,
+    required this.isStableford,
+    required this.shapes,
+    required this.sc,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final score = holeIndex < holeScores.length ? holeScores[holeIndex] : null;
+    int par = 4;
+    if (holeIndex < holes.length) {
+      final h = holes[holeIndex];
+      if (h is Map) {
+        par = (h['par'] as num?)?.toInt() ?? 4;
+      } else {
+        try { par = h.par as int; } catch (_) {}
+      }
+    }
+
+    Color bg;
+    String centerLabel;
+
+    if (score == null) {
+      bg = Theme.of(context).colorScheme.surface.withValues(alpha: 0.5);
+      centerLabel = '–';
+    } else if (isStableford) {
+      final pts = holeIndex < holePoints.length ? holePoints[holeIndex] : null;
+      final p = pts ?? 0;
+      bg = _pointsColor(p);
+      centerLabel = '$p';
+    } else {
+      final diff = score - par;
+      bg = _diffColor(diff);
+      centerLabel = diff == 0 ? 'E' : (diff > 0 ? '+$diff' : '$diff');
+    }
+
+    final played = score != null;
+    final labelColor = played
+        ? AppColors.pureWhite
+        : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.25);
+
+    return AspectRatio(
+      aspectRatio: 1.0,
+      child: Container(
+        decoration: BoxDecoration(
+          color: bg,
+          borderRadius: shapes?.button,
+        ),
+        child: Center(
+          child: Text(
+            centerLabel,
+            style: AppTypography.micro.copyWith(
+              color: labelColor,
+              fontWeight: AppTypography.weightBlack,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Color _diffColor(int diff) {
+    if (diff <= -2) return sc.eagle;
+    if (diff == -1) return sc.birdie;
+    if (diff == 0) return sc.par;
+    if (diff == 1) return sc.bogey;
+    if (diff == 2) return sc.doubleBogey;
+    return sc.triplePlus;
+  }
+
+  Color _pointsColor(int pts) {
+    if (pts >= 4) return sc.eagle;
+    if (pts == 3) return sc.birdie;
+    if (pts == 2) return sc.par;
+    if (pts == 1) return sc.bogey;
+    return sc.triplePlus;
   }
 }

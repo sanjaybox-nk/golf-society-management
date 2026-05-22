@@ -137,7 +137,7 @@ class _CurrencySelectionScreenState extends ConsumerState<CurrencySelectionScree
                               const SizedBox(height: 2),
                               Text(
                                 c.code,
-                                style: AppTypography.caption.copyWith(
+                                style: AppTypography.micro.copyWith(
                                   color: isDark ? AppColors.dark300 : AppColors.dark400,
                                 ),
                               ),

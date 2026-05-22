@@ -173,9 +173,9 @@ class AppTheme {
         indicatorColor: primaryColor,
         labelTextStyle: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {
-            return AppTypography.caption.copyWith(color: colorScheme.onSurface);
+            return AppTypography.micro.copyWith(color: colorScheme.onSurface);
           }
-          return AppTypography.caption.copyWith(color: colorScheme.onSurfaceVariant);
+          return AppTypography.micro.copyWith(color: colorScheme.onSurfaceVariant);
         }),
       ),
 

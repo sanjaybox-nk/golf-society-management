@@ -59,7 +59,6 @@ class _EclecticControlState extends State<EclecticControl>
                   prefixIcon: Icon(Icons.grid_on_rounded),
                   validator: (v) => (v == null || v.isEmpty) ? 'Required' : null,
                 ),
-                const BoxyArtDivider(),
                 buildScopeSelector(
                   value: _scope,
                   onChanged: (v) => setState(() => _scope = v as LeaderboardScope),
@@ -89,7 +88,6 @@ class _EclecticControlState extends State<EclecticControl>
                       .toList(),
                   onChanged: (v) => setState(() => _metric = v!),
                 ),
-                if (_metric == EclecticMetric.strokes) const BoxyArtDivider(),
 
                 if (_metric == EclecticMetric.strokes) ...[
                   BoxyArtFormColumn(

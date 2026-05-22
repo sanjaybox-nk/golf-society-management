@@ -9,6 +9,7 @@ class BoxyArtNavTile extends ConsumerWidget {
   final String subtitle;
   final Color? iconColor;
   final Color? badgeColor;
+  final Widget? trailing;
   final VoidCallback onTap;
 
   const BoxyArtNavTile({
@@ -18,6 +19,7 @@ class BoxyArtNavTile extends ConsumerWidget {
     required this.subtitle,
     this.iconColor,
     this.badgeColor,
+    this.trailing,
     required this.onTap,
   });
 
@@ -38,8 +40,6 @@ class BoxyArtNavTile extends ConsumerWidget {
               icon: icon,
               iconColor: iconColor,
               color: badgeColor ?? Colors.transparent,
-              size: 44,
-              iconSize: 22,
             ),
             const SizedBox(width: AppSpacing.lg),
             // Content
@@ -54,13 +54,13 @@ class BoxyArtNavTile extends ConsumerWidget {
                       color: theme.colorScheme.onSurface,
                       fontWeight: AppTypography.weightBold,
                       fontSize: AppTypography.sizeLabel,
-                      letterSpacing: 1.0,
+                      letterSpacing: AppTypography.lsLabel,
                     ),
                   ),
                   const SizedBox(height: 2),
                   Text(
                     subtitle,
-                    style: AppTypography.caption.copyWith(
+                    style: AppTypography.micro.copyWith(
                       color: isDark ? AppColors.dark200 : AppColors.dark400,
                       fontWeight: AppTypography.weightMedium,
                     ),
@@ -69,9 +69,9 @@ class BoxyArtNavTile extends ConsumerWidget {
               ),
             ),
             const SizedBox(width: AppSpacing.sm),
-            Icon(
-              Icons.arrow_forward_ios_rounded, 
-              color: isDark ? AppColors.dark400 : AppColors.dark200, 
+            trailing ?? Icon(
+              Icons.arrow_forward_ios_rounded,
+              color: isDark ? AppColors.dark400 : AppColors.dark200,
               size: AppShapes.iconXs,
             ),
           ],

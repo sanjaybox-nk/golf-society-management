@@ -50,8 +50,8 @@ class PersonalBenchmarkingCard extends StatelessWidget {
   Widget _buildBenchStat(BuildContext context, String label, double myAvg, double fieldAvg) {
     final diff = myAvg - fieldAvg;
     final betterThanField = diff < 0; // Scoring lower vs par is better
-    final color = myAvg > 0 ? Theme.of(context).colorScheme.error : AppColors.lime500;
-    
+    final color = myAvg > 0 ? AppColors.coral500 : AppColors.lime500;
+
     return Expanded(
       child: Column(
         children: [
@@ -60,12 +60,12 @@ class PersonalBenchmarkingCard extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: AppSpacing.sm),
             decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.primary.withValues(alpha: AppColors.opacitySubtle),
+              color: color.withValues(alpha: AppColors.opacitySubtle),
               borderRadius: AppShapes.x2l,
             ),
             child: Text(
               '${myAvg > 0 ? "+" : ""}${myAvg.toStringAsFixed(1)}',
-              style: TextStyle(fontWeight: AppTypography.weightBlack, color: color, fontSize: AppTypography.sizeLargeBody),
+              style: AppTypography.body.copyWith(fontWeight: AppTypography.weightBlack, color: color),
             ),
           ),
           const SizedBox(height: AppSpacing.xs),
@@ -80,10 +80,9 @@ class PersonalBenchmarkingCard extends StatelessWidget {
               const SizedBox(width: AppShapes.borderMedium),
               Text(
                 '${betterThanField ? "-" : "+"}${diff.abs().toStringAsFixed(1)} FIELD',
-                style: TextStyle(
-                  fontSize: AppTypography.sizeNano, 
-                  fontWeight: AppTypography.weightBlack, 
-                  color: betterThanField ? AppColors.lime500 : AppColors.coral500
+                style: AppTypography.micro.copyWith(
+                  fontWeight: AppTypography.weightBlack,
+                  color: betterThanField ? AppColors.lime500 : AppColors.coral500,
                 ),
               ),
             ],

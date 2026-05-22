@@ -100,7 +100,8 @@ class LeaderboardRulesCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    
+    final shapes = theme.extension<AppShapeTokens>();
+
     final type = config.map(
       orderOfMerit: (_) => LeaderboardType.orderOfMerit,
       bestOfSeries: (_) => LeaderboardType.bestOfSeries,
@@ -109,78 +110,74 @@ class LeaderboardRulesCard extends StatelessWidget {
     );
 
     final color = _getFormatColor(type);
-    
+
     return BoxyArtCard(
       padding: EdgeInsets.zero,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: AppShapes.xl,
-        child: Padding(
-          padding: const EdgeInsets.all(AppSpacing.xl),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  BoxyArtIconBadge(
-                    icon: _getFormatIcon(type),
-                    color: color,
-                    isTinted: true,
-                    size: 44,
-                    iconSize: 22,
-                  ),
-                  const SizedBox(width: AppSpacing.lg),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          config.name.toUpperCase(),
-                          style: AppTypography.labelStrong.copyWith(
-                            letterSpacing: 1.0,
-                          ),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          _getFormatDisplayName(type).toUpperCase(),
-                          style: AppTypography.caption.copyWith(
-                            color: isDark ? AppColors.dark300 : AppColors.dark400,
-                            fontWeight: AppTypography.weightBold,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  if (showChevron)
-                    Icon(
-                      Icons.arrow_forward_ios_rounded, 
-                      color: isDark ? AppColors.dark400 : AppColors.dark200, 
-                      size: AppShapes.iconXs,
-                    ),
-                ],
-              ),
-              
-              const SizedBox(height: AppSpacing.lg),
-              const BoxyArtDivider(verticalPadding: 0),
-              const SizedBox(height: AppSpacing.lg),
-              
-              Text(
-                LeaderboardRuleTranslator.translate(config),
-                style: AppTypography.body.copyWith(
-                  fontSize: AppTypography.sizeBody,
-                  height: 1.5,
-                  color: isDark ? AppColors.dark60 : AppColors.dark900,
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.large),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                BoxyArtIconBadge(
+                  icon: _getFormatIcon(type),
+                  color: color,
+                  isTinted: true,
+                  size: shapes?.iconBadgeSize ?? AppShapes.iconHero,
+                  iconSize: shapes?.iconBadgeIconSize ?? AppShapes.iconLg,
                 ),
+                const SizedBox(width: AppSpacing.standard),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        config.name.toUpperCase(),
+                        style: AppTypography.labelStrong.copyWith(
+                          letterSpacing: AppTypography.lsLabel,
+                        ),
+                      ),
+                      const SizedBox(height: AppSpacing.xs),
+                      Text(
+                        _getFormatDisplayName(type).toUpperCase(),
+                        style: AppTypography.micro.copyWith(
+                          color: isDark ? AppColors.dark200 : AppColors.dark400,
+                          fontWeight: AppTypography.weightBold,
+                          letterSpacing: AppTypography.lsLabel,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                if (showChevron)
+                  Icon(
+                    Icons.chevron_right_rounded,
+                    color: AppColors.dark400,
+                    size: AppShapes.iconSm,
+                  ),
+              ],
+            ),
+
+            const SizedBox(height: AppSpacing.standard),
+            const BoxyArtDivider(verticalPadding: 0),
+            const SizedBox(height: AppSpacing.standard),
+
+            Text(
+              LeaderboardRuleTranslator.translate(config),
+              style: AppTypography.micro.copyWith(
+                color: isDark ? AppColors.dark200 : AppColors.dark400,
               ),
-              
-              const SizedBox(height: AppSpacing.xl),
-              
-              LeaderboardBadgeRow(
-                config: config,
-                baseColor: color,
-              ),
-            ],
-          ),
+            ),
+
+            const SizedBox(height: AppSpacing.standard),
+
+            LeaderboardBadgeRow(
+              config: config,
+              baseColor: color,
+            ),
+          ],
         ),
       ),
     );
@@ -188,10 +185,10 @@ class LeaderboardRulesCard extends StatelessWidget {
 
   String _getFormatDisplayName(LeaderboardType type) {
     switch (type) {
-      case LeaderboardType.orderOfMerit: return 'Order Of Merit';
-      case LeaderboardType.bestOfSeries: return 'Best Of Series';
+      case LeaderboardType.orderOfMerit: return 'Order of Merit';
+      case LeaderboardType.bestOfSeries: return 'Best of Series';
       case LeaderboardType.eclectic: return 'Eclectic';
-      case LeaderboardType.markerCounter: return 'Marker Counter';
+      case LeaderboardType.markerCounter: return 'Birdie Tree';
     }
   }
 

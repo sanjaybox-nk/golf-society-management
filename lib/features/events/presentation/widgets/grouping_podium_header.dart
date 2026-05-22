@@ -22,12 +22,14 @@ class PodiumEntry {
 
 class GroupingPodiumHeader extends ConsumerWidget {
   final List<PodiumEntry> entries;
-  final Function(int groupIndex)? onTap; // [NEW] Callback for scrolling
+  final Function(int groupIndex)? onTap;
+  final bool isStableford;
 
   const GroupingPodiumHeader({
     super.key,
     required this.entries,
     this.onTap,
+    this.isStableford = false,
   });
 
   @override
@@ -39,20 +41,23 @@ class GroupingPodiumHeader extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: entries.asMap().entries.map((item) {
-              final idx = item.key;
-              final entry = item.value;
-              return Expanded(
-                child: Padding(
-                  padding: EdgeInsets.only(
-                    left: idx == 0 ? 0 : AppSpacing.sm,
-                    right: idx == entries.length - 1 ? 0 : AppSpacing.sm,
-                  ),
-                  child: _buildPodiumCard(context, ref, entry),
-                ),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              const gap = AppSpacing.sm;
+              final cardWidth = (constraints.maxWidth - gap * (entries.length - 1)) / entries.length;
+              final widgets = <Widget>[];
+              for (int i = 0; i < entries.length; i++) {
+                if (i > 0) widgets.add(const SizedBox(width: gap));
+                widgets.add(SizedBox(
+                  width: cardWidth,
+                  child: _buildPodiumCard(context, ref, entries[i]),
+                ));
+              }
+              return Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: widgets,
               );
-            }).toList(),
+            },
           ),
         ],
       ),
@@ -98,47 +103,61 @@ class GroupingPodiumHeader extends ConsumerWidget {
               overflow: TextOverflow.ellipsis,
             ),
             const SizedBox(height: AppSpacing.lg),
-            FittedBox(
-              fit: BoxFit.scaleDown,
-              alignment: Alignment.center,
-              child: Column(
-                children: [
-                  Text(
-                    entry.score,
-                    style: AppTypography.displayHeading.copyWith(
-                      fontSize: 32,
-                      fontWeight: AppTypography.weightBlack,
-                      color: Color(config.effectivePointsColor),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Text(
+                  entry.score,
+                  style: AppTypography.displayHeading.copyWith(
+                    fontSize: 32,
+                    fontWeight: AppTypography.weightBlack,
+                    color: Color(config.effectivePointsColor),
+                  ),
+                ),
+                if (isStableford)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 4, left: 2),
+                    child: Text(
+                      'pts',
+                      style: AppTypography.micro.copyWith(
+                        fontSize: 10,
+                        fontWeight: AppTypography.weightBold,
+                        color: Color(config.effectivePointsColor),
+                      ),
                     ),
                   ),
-                  if (entry.tieBreakLabel != null)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 2),
-                      child: Text(
-                        entry.tieBreakLabel!.toUpperCase(),
-                        style: AppTypography.micro.copyWith(
-                          color: (isDark ? AppColors.pureWhite : AppColors.dark900).withValues(alpha: 0.4),
-                          fontWeight: AppTypography.weightBold,
-                          letterSpacing: 1.0,
-                        ),
-                      ),
-                    ),
-                  if (entry.formatLabel != null)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 6),
-                      child: Text(
-                        entry.formatLabel!.toUpperCase(),
-                        style: AppTypography.micro.copyWith(
-                          fontSize: 8,
-                          color: AppColors.dark300,
-                          fontWeight: AppTypography.weightExtraBold,
-                          letterSpacing: 0.5,
-                        ),
-                      ),
-                    ),
-                ],
-              ),
+              ],
             ),
+            // Always reserve tiebreak height so BEST label stays aligned
+            SizedBox(
+              height: 16,
+              child: entry.tieBreakLabel != null
+                  ? Text(
+                      entry.tieBreakLabel!.toUpperCase(),
+                      textAlign: TextAlign.center,
+                      style: AppTypography.micro.copyWith(
+                        color: (isDark ? AppColors.pureWhite : AppColors.dark900)
+                            .withValues(alpha: 0.4),
+                        fontWeight: AppTypography.weightBold,
+                        letterSpacing: 1.0,
+                      ),
+                    )
+                  : null,
+            ),
+            if (entry.formatLabel != null)
+              Padding(
+                padding: const EdgeInsets.only(top: AppSpacing.xs),
+                child: Text(
+                  entry.formatLabel!.toUpperCase(),
+                  style: AppTypography.micro.copyWith(
+                    fontSize: 8,
+                    color: AppColors.dark300,
+                    fontWeight: AppTypography.weightExtraBold,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+              ),
           ],
         ),
       ),

@@ -150,13 +150,13 @@ class _SurveyListCard extends ConsumerWidget {
                 children: [
                   Text(
                     'Created ${DateFormat('MMM d, yyyy').format(survey.createdAt)}',
-                    style: AppTypography.caption.copyWith(color: AppColors.dark300),
+                    style: AppTypography.micro.copyWith(color: AppColors.dark300),
                   ),
                   if (survey.deadline != null) ...[
                     const SizedBox(height: 4),
                     Text(
                       'Expires ${DateFormat('MMM d, yyyy').format(survey.deadline!)}',
-                      style: AppTypography.caption.copyWith(
+                      style: AppTypography.micro.copyWith(
                         color: isExpired ? StatusColors.negative : AppColors.dark300,
                       ),
                     ),

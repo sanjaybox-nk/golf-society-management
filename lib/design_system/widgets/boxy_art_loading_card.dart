@@ -59,7 +59,7 @@ class BoxyArtLoadingCard extends ConsumerWidget {
           Text(
             message!,
             textAlign: TextAlign.center,
-            style: AppTypography.caption.copyWith(
+            style: AppTypography.micro.copyWith(
               color: isDark ? AppColors.dark300 : AppColors.dark400,
               height: 1.4,
             ),

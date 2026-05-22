@@ -152,7 +152,8 @@ class _VerticalHoleScoringListState extends ConsumerState<VerticalHoleScoringLis
     final isStableford = rules.format == CompetitionFormat.stableford;
 
     final int totalCards = (isSelfMarking ? 1 : 0) + effectiveTargetIds.length;
-    final double containerHeight = 120.0 + (totalCards * 155.0);
+    final double buttonAllowance = widget.onMarkerSelectionTap != null ? 70.0 : 0.0;
+    final double containerHeight = 120.0 + (totalCards * 155.0) + buttonAllowance;
 
     // Event-level lock applies to all cards — scoring is closed for everyone.
     final bool isEventLocked = widget.event.status == EventStatus.completed ||
@@ -275,14 +276,14 @@ class _VerticalHoleScoringListState extends ConsumerState<VerticalHoleScoringLis
                         );
                       }(),
                     ],
-                    if (widget.onMarkerSelectionTap != null && !isLocked) ...[
+                    if (widget.onMarkerSelectionTap != null) ...[
                       const SizedBox(height: AppSpacing.standard),
                       BoxyArtButton(
                         title: 'Add / Remove Card',
                         icon: Icons.person_add_rounded,
                         isTinted: true,
                         fullWidth: true,
-                        onTap: widget.onMarkerSelectionTap,
+                        onTap: isLocked ? null : widget.onMarkerSelectionTap,
                       ),
                     ],
                   ],

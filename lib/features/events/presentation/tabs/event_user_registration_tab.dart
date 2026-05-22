@@ -193,7 +193,7 @@ class EventRegistrationUserTab extends ConsumerWidget {
           title: 'Registration Stats',
           topPadding: 0,
         ),
-        RegistrationStatsCard(event: event, isCompact: false, showAdminMetrics: isAdminMode),
+        RegistrationStatsCard(event: event),
 
         // PLAYING MEMBERS
         if (itemViewModels.any((vm) => vm.status == RegistrationStatus.confirmed && vm.item.isGuest == false)) ...[

@@ -183,7 +183,7 @@ class _SystemRoleMembersScreenState extends ConsumerState<SystemRoleMembersScree
                 ),
                 Text(
                   member.role.displayName,
-                  style: AppTypography.caption.copyWith(
+                  style: AppTypography.micro.copyWith(
                     color: isDark ? AppColors.dark300 : AppColors.dark500,
                     height: 1.0,
                   ),

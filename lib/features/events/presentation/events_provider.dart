@@ -11,7 +11,7 @@ import '../../admin/data/seasons_repository.dart';
 import '../../admin/data/firestore_seasons_repository.dart';
 import '../../admin/data/leaderboard_templates_repository.dart';
 
-enum EventFilter { season, social }
+enum EventFilter { season, social, leaderboard }
 
 /// Member Events tab filter — isolated from admin tab state.
 final eventFilterProvider = NotifierProvider<EventFilterNotifier, EventFilter>(EventFilterNotifier.new);
@@ -176,6 +176,23 @@ final adminUpcomingSeasonEventsProvider = Provider<AsyncValue<List<GolfEvent>>>(
 
 final adminPastSeasonEventsProvider = Provider<AsyncValue<List<GolfEvent>>>((ref) {
   return ref.watch(adminSeasonEventsProvider).when(
+    data: (events) => AsyncValue.data(DateUtils.filterPast(events)),
+    loading: () => const AsyncValue.loading(),
+    error: (e, s) => AsyncValue.error(e, s),
+  );
+});
+
+// All-events upcoming/past (includes social) — used by events screen
+final adminUpcomingEventsProvider = Provider<AsyncValue<List<GolfEvent>>>((ref) {
+  return ref.watch(adminEventsProvider).when(
+    data: (events) => AsyncValue.data(DateUtils.filterUpcoming(events)),
+    loading: () => const AsyncValue.loading(),
+    error: (e, s) => AsyncValue.error(e, s),
+  );
+});
+
+final adminPastEventsProvider = Provider<AsyncValue<List<GolfEvent>>>((ref) {
+  return ref.watch(adminEventsProvider).when(
     data: (events) => AsyncValue.data(DateUtils.filterPast(events)),
     loading: () => const AsyncValue.loading(),
     error: (e, s) => AsyncValue.error(e, s),

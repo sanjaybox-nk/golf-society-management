@@ -84,7 +84,7 @@ class HandicapSystemSelectionScreen extends ConsumerWidget {
                                       const SizedBox(height: 2),
                                       Text(
                                         _getDescription(system),
-                                        style: AppTypography.caption.copyWith(
+                                        style: AppTypography.micro.copyWith(
                                           color: isDark ? AppColors.dark300 : AppColors.dark400,
                                         ),
                                       ),

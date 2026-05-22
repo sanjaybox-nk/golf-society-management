@@ -83,7 +83,7 @@ class _BoxyArtMetricInputState extends ConsumerState<BoxyArtMetricInput> {
                 const SizedBox(height: 4),
                 Text(
                   widget.subtitle!,
-                  style: AppTypography.caption.copyWith(
+                  style: AppTypography.micro.copyWith(
                     color: isDark ? AppColors.dark300 : AppColors.dark400,
                     fontWeight: AppTypography.weightMedium,
                   ),

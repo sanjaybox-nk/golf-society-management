@@ -121,6 +121,7 @@ class ThemeController extends Notifier<SocietyConfig> {
   Future<void> setIconOpacity(double opacity) => _updateConfig(state.copyWith(iconOpacity: opacity));
   Future<void> setStartingBalance(double balance) => _updateConfig(state.copyWith(startingBalance: balance));
   Future<void> setSocialMemberFee(double fee) => _updateConfig(state.copyWith(socialMemberFee: fee));
+  Future<void> setSocialRenewalOpen(bool open) => _updateConfig(state.copyWith(socialRenewalOpen: open));
 
   Future<void> addLedgerEntry(FinancialEntry entry) => _updateConfig(state.copyWith(ledgerEntries: [...state.ledgerEntries, entry]));
   Future<void> updateLedgerEntry(FinancialEntry entry) => _updateConfig(state.copyWith(ledgerEntries: state.ledgerEntries.map((item) => item.id == entry.id ? entry : item).toList()));

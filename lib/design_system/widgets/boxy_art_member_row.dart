@@ -27,6 +27,7 @@ class BoxyArtMemberRow extends ConsumerWidget {
   
   // Status/Traits
   final bool isGuest;
+  final bool isSocialMember;
   final bool isCaptain;
   final bool hasMemberGuest; 
   final bool needsBuggy;
@@ -71,6 +72,7 @@ class BoxyArtMemberRow extends ConsumerWidget {
     this.thruLabel,
     this.ranking,
     this.isGuest = false,
+    this.isSocialMember = false,
     this.isCaptain = false,
     this.hasMemberGuest = false,
     this.isWinner = false,
@@ -144,6 +146,10 @@ class BoxyArtMemberRow extends ConsumerWidget {
               // Guest — bottom right
               if (isGuest)
                 const Positioned(bottom: -4, right: -4, child: BoxyArtGuestBadge(size: 18)),
+
+              // Social member — bottom right
+              if (isSocialMember && !isGuest)
+                const Positioned(bottom: -4, right: -4, child: _MemberBadge(icon: Icons.people_rounded, color: AppColors.guestPurple)),
             ],
           ),
 

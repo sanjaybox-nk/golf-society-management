@@ -359,8 +359,8 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
                       ),
                       child: BoxyArtTabBar<int>(
                         tabs: const [
-                          ModernFilterTab(label: 'Scorecard', value: 1),
                           ModernFilterTab(label: 'Scoring', value: 0),
+                          ModernFilterTab(label: 'Scorecard', value: 1),
                         ],
                         selectedValue: selectedScoringTab,
                         onTabSelected: (val) => ref.read(eventScoringTabProvider.notifier).set(val),

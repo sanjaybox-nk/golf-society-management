@@ -104,7 +104,7 @@ class GroupingStrategySelectionScreen extends ConsumerWidget {
                               const SizedBox(height: 2),
                               Text(
                                 strategy.description,
-                                style: AppTypography.caption.copyWith(
+                                style: AppTypography.micro.copyWith(
                                   color: isDark ? AppColors.dark300 : AppColors.dark400,
                                   height: 1.3,
                                 ),

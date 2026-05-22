@@ -165,7 +165,7 @@ class MemberSeeder {
           address: address,
           bio: i >= 74 ? 'Demo member for ${currentStatus.name} status testing.' : (systemRole == MemberRole.socialMember ? 'Social member — attends society events and follows the season.' : bio),
           avatarUrl: avatarUrl,
-          allowSocialEventsOnly: false,
+          allowSocialEventsOnly: systemRole == MemberRole.socialMember,
           accountCredit: initialCredit,
           handicapHistory: history,
           isFoundingMember: (i < 5) || (i == 83), // First 5 + one who left

@@ -28,6 +28,7 @@ class _MarkerCounterControlState extends ConsumerState<MarkerCounterControl>
   late TextEditingController _bestNController;
   late LeaderboardScope _scope;
   bool _isSaving = false;
+  bool _showMarkersError = false;
 
   @override
   void initState() {
@@ -52,8 +53,6 @@ class _MarkerCounterControlState extends ConsumerState<MarkerCounterControl>
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     return Form(
       key: _formKey,
       child: Column(
@@ -71,7 +70,6 @@ class _MarkerCounterControlState extends ConsumerState<MarkerCounterControl>
                   prefixIcon: Icon(Icons.park_rounded),
                   validator: (v) => (v == null || v.isEmpty) ? 'Required' : null,
                 ),
-                const BoxyArtDivider(),
                 buildScopeSelector(
                   value: _scope,
                   onChanged: (v) => setState(() => _scope = v as LeaderboardScope),
@@ -89,67 +87,46 @@ class _MarkerCounterControlState extends ConsumerState<MarkerCounterControl>
           BoxyArtCard(
             child: BoxyArtFormColumn(
               children: [
-                // Target marker chips
-                BoxyArtFormColumn(
-                  spacing: AppSpacing.md,
-                  children: [
-                    Text(
-                      'TARGET MARKERS',
-                      style: AppTypography.labelStrong.copyWith(
-                        color: theme.colorScheme.onSurface,
-                        letterSpacing: 1.0,
-                      ),
-                    ),
-                    Wrap(
-                      spacing: AppSpacing.sm,
-                      runSpacing: AppSpacing.sm,
-                      children: MarkerType.values.map((type) {
-                        final isSelected = _targetTypes.contains(type);
-                        final labelText = formatEnum(type.name);
-                        
-                        return ChoiceChip(
-                          label: Text(labelText),
-                          selected: isSelected,
-                          onSelected: (selected) {
-                            setState(() {
-                              if (selected) {
-                                _targetTypes.add(type);
-                              } else if (_targetTypes.length > 1) {
-                                _targetTypes.remove(type);
-                              }
-                            });
-                          },
-                          selectedColor: theme.colorScheme.primary,
-                          backgroundColor: isDarkMode ? AppColors.dark600 : AppColors.lightHeader,
-                          labelStyle: AppTypography.label.copyWith(
-                            color: isSelected
-                                ? AppColors.pureWhite
-                                : (isDarkMode ? AppColors.dark200 : AppColors.dark500),
-                            fontWeight: isSelected ? AppTypography.weightBlack : AppTypography.weightBold,
-                            fontSize: AppTypography.sizeLabel,
-                          ),
-                          side: isSelected
-                              ? BorderSide.none
-                              : BorderSide(
-                                  color: isDarkMode ? AppColors.dark500 : AppColors.dark100,
-                                  width: 1,
-                                ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(ref.watch(themeControllerProvider).pillRadius),
-                          ),
-                          showCheckmark: false,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: AppSpacing.sm,
-                            vertical: 3,
-                          ),
-                          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                        );
-                      }).toList(),
-                    ),
-                  ],
+                BoxyArtDropdownField<MarkerRankingMethod>(
+                  label: 'Ranking Basis',
+                  prefixIcon: const Icon(Icons.sort_rounded),
+                  value: _rankingMethod,
+                  items: MarkerRankingMethod.values
+                      .map((v) => DropdownMenuItem(
+                            value: v,
+                            child: Text(formatEnum(v.name)),
+                          ))
+                      .toList(),
+                  onChanged: (v) => setState(() {
+                    _rankingMethod = v!;
+                    _showMarkersError = false;
+                  }),
                 ),
-
-                const BoxyArtDivider(),
+                if (_rankingMethod == MarkerRankingMethod.count)
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'TARGET MARKERS',
+                        style: AppTypography.micro.copyWith(
+                          color: isDarkMode ? AppColors.dark200 : AppColors.dark400,
+                          fontWeight: AppTypography.weightBold,
+                          letterSpacing: AppTypography.lsLabel,
+                        ),
+                      ),
+                      const SizedBox(height: AppSpacing.sm),
+                      _markerGrid(AppSpacing.xs),
+                      if (_showMarkersError) ...[
+                        const SizedBox(height: AppSpacing.xs),
+                        Text(
+                          'Select at least one marker type.',
+                          style: AppTypography.micro.copyWith(
+                            color: Theme.of(context).colorScheme.error,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
                 BoxyArtDropdownField<HoleFilter>(
                   label: 'Hole Filter',
                   prefixIcon: const Icon(Icons.adjust_rounded),
@@ -162,20 +139,6 @@ class _MarkerCounterControlState extends ConsumerState<MarkerCounterControl>
                       .toList(),
                   onChanged: (v) => setState(() => _holeFilter = v!),
                 ),
-                const BoxyArtDivider(),
-                BoxyArtDropdownField<MarkerRankingMethod>(
-                  label: 'Ranking Basis',
-                  prefixIcon: const Icon(Icons.sort_rounded),
-                  value: _rankingMethod,
-                  items: MarkerRankingMethod.values
-                      .map((v) => DropdownMenuItem(
-                            value: v,
-                            child: Text(formatEnum(v.name)),
-                          ))
-                      .toList(),
-                  onChanged: (v) => setState(() => _rankingMethod = v!),
-                ),
-                const BoxyArtDivider(),
                 BoxyArtFormColumn(
                   spacing: AppSpacing.sm,
                   children: [
@@ -210,6 +173,43 @@ class _MarkerCounterControlState extends ConsumerState<MarkerCounterControl>
     );
   }
 
+  Widget _markerGrid(double gap) {
+    final types = MarkerType.values;
+    final rows = <Widget>[];
+    for (int i = 0; i < types.length; i += 2) {
+      if (rows.isNotEmpty) rows.add(SizedBox(height: gap));
+      final slice = types.sublist(i, (i + 2).clamp(0, types.length));
+      final cells = <Widget>[];
+      for (int j = 0; j < 2; j++) {
+        if (j > 0) cells.add(SizedBox(width: gap));
+        if (j < slice.length) {
+          final type = slice[j];
+          final isSelected = _targetTypes.contains(type);
+          cells.add(Expanded(
+            child: BoxyArtButton(
+              title: type == MarkerType.two ? "TWO'S" : formatEnum(type.name),
+              isTinted: isSelected,
+              isGhost: !isSelected,
+              isSmall: true,
+              onTap: () => setState(() {
+                if (isSelected) {
+                  _targetTypes = {..._targetTypes}..remove(type);
+                } else {
+                  _targetTypes = {..._targetTypes, type};
+                  _showMarkersError = false;
+                }
+              }),
+            ),
+          ));
+        } else {
+          cells.add(const Expanded(child: SizedBox.shrink()));
+        }
+      }
+      rows.add(Row(children: cells));
+    }
+    return Column(children: rows);
+  }
+
   List<(String, String)> _ruleRows() {
     final typeNames = _targetTypes.map((e) => formatEnum(e.name)).join(', ');
     final holeDesc = _holeFilter == HoleFilter.all
@@ -233,6 +233,11 @@ class _MarkerCounterControlState extends ConsumerState<MarkerCounterControl>
 
   void _save() {
     if (!_formKey.currentState!.validate()) return;
+    final isCountMode = _rankingMethod == MarkerRankingMethod.count;
+    if (isCountMode && _targetTypes.isEmpty) {
+      setState(() => _showMarkersError = true);
+      return;
+    }
 
     setState(() => _isSaving = true);
 
@@ -240,7 +245,7 @@ class _MarkerCounterControlState extends ConsumerState<MarkerCounterControl>
       id: widget.existingConfig?.id ?? const Uuid().v4(),
       name: _nameController.text.trim(),
       scope: _scope,
-      targetTypes: _targetTypes,
+      targetTypes: isCountMode ? _targetTypes : MarkerType.values.toSet(),
       holeFilter: _holeFilter,
       rankingMethod: _rankingMethod,
       bestN: int.tryParse(_bestNController.text) ?? 0,

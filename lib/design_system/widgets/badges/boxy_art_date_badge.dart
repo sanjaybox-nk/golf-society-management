@@ -39,7 +39,7 @@ class BoxyArtDateBadge extends ConsumerWidget {
         children: [
           Text(
             DateFormat('MMM').format(date).toUpperCase(),
-            style: AppTypography.caption.copyWith(
+            style: AppTypography.micro.copyWith(
               fontSize: AppTypography.sizeMicroSmall,
               color: effectiveTextColor,
               fontWeight: AppTypography.weightBold,

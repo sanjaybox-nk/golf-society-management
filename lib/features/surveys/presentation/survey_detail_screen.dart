@@ -108,7 +108,7 @@ class _SurveyDetailScreenState extends ConsumerState<SurveyDetailScreen> {
                                         survey.deadline != null 
                                           ? (isExpired ? 'Closed: ${DateFormat('d MMM').format(survey.deadline!)}' : 'Closes: ${DateFormat('d MMM').format(survey.deadline!)}') 
                                           : 'Open',
-                                        style: AppTypography.caption.copyWith(
+                                        style: AppTypography.micro.copyWith(
                                           color: isExpired ? StatusColors.negative : (isDark ? AppColors.dark150 : AppColors.dark700),
                                         ),
                                       ),
@@ -147,7 +147,7 @@ class _SurveyDetailScreenState extends ConsumerState<SurveyDetailScreen> {
                           Expanded(
                             child: Text(
                               'This survey is now closed. Your feedback is appreciated, but new responses can no longer be submitted.',
-                              style: AppTypography.caption.copyWith(
+                              style: AppTypography.micro.copyWith(
                                 color: StatusColors.negative,
                                 fontWeight: AppTypography.weightSemibold,
                               ),

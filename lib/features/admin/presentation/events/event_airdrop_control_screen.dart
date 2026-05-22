@@ -65,7 +65,7 @@ class EventAirdropControlScreen extends ConsumerWidget {
                               ..add(EventAward(id: const Uuid().v4(), label: 'New Award', value: 0));
                             _updateEvent(ref, event, awards: updatedAwards);
                           },
-                          isGhost: true,
+                          isTinted: true,
                         ),
                       ],
                     ],

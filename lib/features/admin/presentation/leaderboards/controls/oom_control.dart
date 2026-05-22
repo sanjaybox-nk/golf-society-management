@@ -82,7 +82,6 @@ class _OrderOfMeritControlState extends State<OrderOfMeritControl>
                   prefixIcon: Icon(Icons.emoji_events_rounded),
                   validator: (v) => (v == null || v.isEmpty) ? 'Required' : null,
                 ),
-                const BoxyArtDivider(),
                 buildScopeSelector(
                   value: _scope,
                   onChanged: (v) => setState(() => _scope = v as LeaderboardScope),
@@ -112,7 +111,6 @@ class _OrderOfMeritControlState extends State<OrderOfMeritControl>
                       .toList(),
                   onChanged: (v) => setState(() => _metric = v!),
                 ),
-                const BoxyArtDivider(),
                 BoxyArtDropdownField<ScoringType>(
                   label: 'Scoring Type',
                   prefixIcon: const Icon(Icons.calculate_rounded),
@@ -146,31 +144,40 @@ class _OrderOfMeritControlState extends State<OrderOfMeritControl>
                     keyboardType: TextInputType.number,
                     prefixIcon: Icon(Icons.star_outline_rounded),
                   ),
-                  const BoxyArtDivider(),
-                  BoxyArtFormColumn(
-                    spacing: AppSpacing.md,
-                    children: (_positionPoints.entries.toList()
-                        ..sort((a, b) => a.key.compareTo(b.key)))
-                        .map((e) => buildPointRow(
-                              position: e.key,
-                              points: e.value,
-                              onChanged: (pos, val) =>
-                                  setState(() => _positionPoints[pos] = val),
-                              onRemove: (pos) {
-                                setState(() {
-                                  _positionPoints.remove(pos);
-                                  // Re-index remaining positions to "slide up"
-                                  final sortedPoints = _positionPoints.entries.toList()
-                                    ..sort((a, b) => a.key.compareTo(b.key));
-                                  
-                                  final newPoints = <int, int>{};
-                                  for (int i = 0; i < sortedPoints.length; i++) {
-                                    newPoints[i + 1] = sortedPoints[i].value;
-                                  }
-                                  _positionPoints = newPoints;
-                                });
-                              },
-                            )).toList(),
+                  BoxyArtCard(
+                    padding: EdgeInsets.zero,
+                    child: Column(
+                      children: () {
+                        final sorted = _positionPoints.entries.toList()
+                          ..sort((a, b) => a.key.compareTo(b.key));
+                        final widgets = <Widget>[];
+                        for (int i = 0; i < sorted.length; i++) {
+                          final e = sorted[i];
+                          widgets.add(buildPointRow(
+                            position: e.key,
+                            points: e.value,
+                            onChanged: (pos, val) =>
+                                setState(() => _positionPoints[pos] = val),
+                            onRemove: (pos) {
+                              setState(() {
+                                _positionPoints.remove(pos);
+                                final reindexed = _positionPoints.entries.toList()
+                                  ..sort((a, b) => a.key.compareTo(b.key));
+                                final newPoints = <int, int>{};
+                                for (int j = 0; j < reindexed.length; j++) {
+                                  newPoints[j + 1] = reindexed[j].value;
+                                }
+                                _positionPoints = newPoints;
+                              });
+                            },
+                          ));
+                          if (i < sorted.length - 1) {
+                            widgets.add(const BoxyArtDivider(verticalPadding: 0));
+                          }
+                        }
+                        return widgets;
+                      }(),
+                    ),
                   ),
                   buildAddButton(
                     label: 'Add next position',

@@ -458,7 +458,7 @@ class AdminSettingsHubScreen extends ConsumerWidget {
                 const SizedBox(height: 2),
                 Text(
                   subtitle,
-                  style: AppTypography.caption.copyWith(
+                  style: AppTypography.micro.copyWith(
                     color: isDark ? AppColors.dark200 : AppColors.dark400,
                     fontWeight: AppTypography.weightMedium,
                   ),

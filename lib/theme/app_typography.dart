@@ -14,7 +14,7 @@ class AppTypography {
 
   // Legacy Size Aliases
   static const double sizeLargeDisplay = sizeDisplay;
-  static const double sizeBodySmall = sizeLabel;
+  static const double sizeBodySmall = 14.0;
   static const double sizeLabelStrong = sizeLabel;
   static const double sizeButton = sizeLabel;
   static const double sizeCaption = sizeMicro;
@@ -116,24 +116,18 @@ class AppTypography {
 
   static TextStyle get micro => _getStyle(
     fontSize: sizeMicro,
-    fontWeight: weightBold,
-    letterSpacing: lsMicro,
-    height: 1.0,
-  );
-
-  static TextStyle get bodySmall => _getStyle(
-    fontSize: sizeLabel,
     fontWeight: weightMedium,
     letterSpacing: lsStandard,
     height: 1.4,
   );
 
-  static TextStyle get caption => _getStyle(
-    fontSize: sizeMicro,
+  static TextStyle get bodySmall => _getStyle(
+    fontSize: sizeBodySmall,
     fontWeight: weightMedium,
     letterSpacing: lsStandard,
-    height: 1.0,
+    height: 1.4,
   );
+
 
   static TextStyle get metricValue => _getStyle(
     fontSize: sizeMetric,
@@ -168,9 +162,10 @@ class AppTypography {
   static TextStyle get displaySmall => label;
   static TextStyle get labelStrong => label;
   static TextStyle get captionStrong => label;
-  static TextStyle get help => caption;
-  static TextStyle get helper => caption;
+  static TextStyle get help => micro;
+  static TextStyle get helper => micro;
   static TextStyle get microSmall => micro;
+  static TextStyle get microStrong => micro.copyWith(fontWeight: weightBold);
   static TextStyle get nano => micro;
   static TextStyle get displayUI => headline;
   static TextStyle get ribbonHeader => label;

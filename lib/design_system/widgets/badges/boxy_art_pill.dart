@@ -306,6 +306,7 @@ class BoxyArtStatusPill extends StatelessWidget {
   final IconData? customActionIcon;
   final VoidCallback? onToggle;
   final bool hasHorizontalMargin;
+  final bool showActionIcon;
 
   const BoxyArtStatusPill({
     super.key,
@@ -316,6 +317,7 @@ class BoxyArtStatusPill extends StatelessWidget {
     this.customActionIcon,
     this.onToggle,
     this.hasHorizontalMargin = true,
+    this.showActionIcon = true,
   });
 
   @override
@@ -330,6 +332,7 @@ class BoxyArtStatusPill extends StatelessWidget {
       onTap: onToggle,
       customActionIcon: customActionIcon,
       hasHorizontalMargin: hasHorizontalMargin,
+      showBackground: showActionIcon,
     );
   }
 }

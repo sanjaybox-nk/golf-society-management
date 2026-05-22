@@ -272,7 +272,7 @@ class _StrategyOption extends ConsumerWidget {
                   const SizedBox(height: 2),
                   Text(
                     description, 
-                    style: AppTypography.caption.copyWith(
+                    style: AppTypography.micro.copyWith(
                       color: isDark ? AppColors.dark200 : AppColors.dark400,
                       height: 1.2,
                     ),

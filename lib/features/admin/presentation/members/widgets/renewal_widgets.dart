@@ -5,6 +5,9 @@ import 'package:golf_society/domain/models/member.dart';
 
 import '../controllers/renewal_controller.dart';
 
+bool _isSocialMember(Member m) =>
+    m.role == MemberRole.socialMember || m.status == MemberStatus.social;
+
 class MemberRenewalTile extends ConsumerWidget {
   final Member member;
 
@@ -13,7 +16,10 @@ class MemberRenewalTile extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final selectedIds = ref.watch(selectedMemberIdsProvider);
+    final upgradeIds = ref.watch(socialUpgradeIdsProvider);
     final isSelected = selectedIds.contains(member.id);
+    final isSocial = _isSocialMember(member);
+    final isUpgrading = upgradeIds.contains(member.id);
     final controller = ref.read(renewalControllerProvider.notifier);
 
     Color renewalColor;
@@ -84,8 +90,17 @@ class MemberRenewalTile extends ConsumerWidget {
             ),
             const SizedBox(width: AppSpacing.lg),
             Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.end,
               children: [
+                if (isSocial)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: AppSpacing.xs),
+                    child: BoxyArtPill.status(
+                      label: isUpgrading ? 'UPGRADING' : 'SOCIAL',
+                      color: isUpgrading ? AppColors.lime500 : AppColors.guestPurple,
+                      hasHorizontalMargin: false,
+                    ),
+                  ),
                 if (member.renewalStatus == MemberRenewalStatus.renew) ...[
                   BoxyArtStatusPill(
                     isPaid: member.hasPaid,
@@ -98,13 +113,12 @@ class MemberRenewalTile extends ConsumerWidget {
                       padding: const EdgeInsets.only(top: AppSpacing.xs),
                       child: BoxyArtStatusPill(
                         isPaid: false,
-                        paidLabel: '', 
+                        paidLabel: '',
                         dueLabel: member.nudgeCount > 0 ? 'Nudge (${member.nudgeCount})' : 'Nudge',
                         color: AppColors.dark400,
                         customActionIcon: Icons.notifications_active_rounded,
                         onToggle: () async {
                           await controller.nudgeMember(member);
-                          
                           if (context.mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(content: Text('Payment reminder sent to ${member.firstName}')),
@@ -113,10 +127,23 @@ class MemberRenewalTile extends ConsumerWidget {
                         },
                       ),
                     ),
+                  if (isSocial)
+                    Padding(
+                      padding: const EdgeInsets.only(top: AppSpacing.xs),
+                      child: BoxyArtStatusPill(
+                        isPaid: isUpgrading,
+                        paidLabel: 'Full Member',
+                        dueLabel: 'Upgrade?',
+                        color: AppColors.guestPurple,
+                        onToggle: () => ref
+                            .read(socialUpgradeIdsProvider.notifier)
+                            .toggle(member.id),
+                      ),
+                    ),
                 ] else
                   BoxyArtStatusPill(
                     isPaid: false,
-                    paidLabel: '', 
+                    paidLabel: '',
                     dueLabel: renewalLabel,
                     color: renewalColor,
                     onToggle: null,
@@ -257,6 +284,45 @@ class RenewalSettingsContent extends ConsumerWidget {
                   ),
                 ],
               ),
+              if (themeConfig.enableSocialMembership) ...[
+                const BoxyArtDivider(verticalPadding: AppSpacing.xl),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'SOCIAL MEMBER RENEWAL',
+                            style: AppTypography.micro.copyWith(
+                              fontWeight: AppTypography.weightBold,
+                              letterSpacing: AppTypography.lsLabel,
+                              color: AppColors.dark400,
+                            ),
+                          ),
+                          const SizedBox(height: AppSpacing.xs),
+                          Text(
+                            'Open renewal to social members once full members have renewed.',
+                            style: AppTypography.micro.copyWith(
+                              color: AppColors.dark400,
+                              fontWeight: AppTypography.weightRegular,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: AppSpacing.lg),
+                    Switch.adaptive(
+                      value: themeConfig.socialRenewalOpen,
+                      onChanged: themeConfig.isRenewalActive
+                          ? (val) => notifier.setSocialRenewalOpen(val)
+                          : null,
+                      activeThumbColor: AppColors.lime500,
+                      activeTrackColor: AppColors.lime500.withValues(alpha: 0.25),
+                    ),
+                  ],
+                ),
+              ],
               const BoxyArtDivider(verticalPadding: AppSpacing.xl),
               Row(
                 children: [

@@ -144,7 +144,7 @@ class _CommitteeRolesScreenState extends ConsumerState<CommitteeRolesScreen> {
                   const SizedBox(height: 2),
                   Text(
                     description,
-                    style: AppTypography.caption.copyWith(
+                    style: AppTypography.micro.copyWith(
                       color: isDark ? AppColors.dark200 : AppColors.dark400,
                     ),
                   ),

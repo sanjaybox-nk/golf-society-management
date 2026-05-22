@@ -389,7 +389,7 @@ class ModernScoringView extends StatelessWidget {
               const SizedBox(width: AppSpacing.sm),
               Text(
                 label,
-                style: AppTypography.caption.copyWith(
+                style: AppTypography.micro.copyWith(
                   fontWeight: AppTypography.weightBlack,
                   letterSpacing: 0.5,
                   color: isSelected

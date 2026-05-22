@@ -196,8 +196,8 @@ class _SocietyCutsSettingsScreenState extends ConsumerState<SocietyCutsSettingsS
                         BoxyArtDivider(verticalPadding: AppSpacing.sm),
                         const SizedBox(height: AppSpacing.sm),
                         BoxyArtSwitchField(
-                          label: 'Invitationals',
-                          subtitle: 'Podium finishes in invitational events trigger automated cuts',
+                          label: 'Non-Season Events',
+                          subtitle: 'Podium finishes in non-season events trigger automated cuts',
                           value: config.societyCutFilterInvitational,
                           onChanged: (v) => ref.read(themeControllerProvider.notifier).setSocietyCutFilterInvitational(v),
                           labelColor: theme.colorScheme.onSurface,

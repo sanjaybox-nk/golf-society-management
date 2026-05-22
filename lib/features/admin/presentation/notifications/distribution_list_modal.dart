@@ -198,7 +198,7 @@ class _DistributionListModalState extends ConsumerState<DistributionListModal> {
           Center(
             child: Text(
               'No members selected yet',
-              style: AppTypography.caption.copyWith(color: AppColors.textTertiary),
+              style: AppTypography.micro.copyWith(color: AppColors.textTertiary),
             ),
           ),
         
@@ -227,7 +227,7 @@ class _DistributionListModalState extends ConsumerState<DistributionListModal> {
                     if (filtered.isEmpty) {
                       return Padding(
                         padding: const EdgeInsets.all(AppSpacing.md),
-                        child: Text('No results found', style: AppTypography.caption),
+                        child: Text('No results found', style: AppTypography.micro),
                       );
                     }
 

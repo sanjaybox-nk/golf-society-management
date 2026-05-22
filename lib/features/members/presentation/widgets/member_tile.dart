@@ -67,20 +67,39 @@ class MemberTile extends ConsumerWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            BoxyArtAvatar(
-              url: member.avatarUrl,
-              initials: (member.firstName.isNotEmpty ? member.firstName[0] : '') + (member.lastName.isNotEmpty ? member.lastName[0] : ''),
-              radius: 32,
-              isCircle: true,
-              borderColor: Colors.transparent, 
-              borderWidth: 0,
+            Stack(
+              clipBehavior: Clip.none,
+              children: [
+                BoxyArtAvatar(
+                  url: member.avatarUrl,
+                  initials: (member.firstName.isNotEmpty ? member.firstName[0] : '') + (member.lastName.isNotEmpty ? member.lastName[0] : ''),
+                  radius: 32,
+                  isCircle: true,
+                  borderColor: Colors.transparent,
+                  borderWidth: 0,
+                ),
+                if (member.role == MemberRole.socialMember || member.status == MemberStatus.social)
+                  Positioned(
+                    bottom: -2,
+                    right: -2,
+                    child: Container(
+                      padding: const EdgeInsets.all(3),
+                      decoration: BoxDecoration(
+                        color: AppColors.guestPurple,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: AppColors.pureWhite, width: 1.5),
+                      ),
+                      child: const Icon(Icons.people_rounded, size: 10, color: AppColors.pureWhite),
+                    ),
+                  ),
+              ],
             ),
             if (member.joinedDate != null) ...[
               const SizedBox(height: 4),
               FittedBox(
                 child: Text(
                   'Since ${member.joinedDate!.year}',
-                  style: AppTypography.caption.copyWith(
+                  style: AppTypography.micro.copyWith(
                     color: theme.brightness == Brightness.dark ? AppColors.dark200 : AppColors.dark800,
                     fontSize: 9, 
                   ),

@@ -23,6 +23,8 @@ class EventAdminVerifyScreen extends ConsumerStatefulWidget {
 }
 
 class _EventAdminVerifyScreenState extends ConsumerState<EventAdminVerifyScreen> {
+  DateTime? _lastReminderSent;
+
   @override
   Widget build(BuildContext context) {
     final eventAsync = ref.watch(eventProvider(widget.eventId));
@@ -83,8 +85,13 @@ class _EventAdminVerifyScreenState extends ConsumerState<EventAdminVerifyScreen>
         (s.status == ScorecardStatus.finalScore || s.status == ScorecardStatus.reviewed)).length;
     final int fieldCount = scorecards.length - verifiedCount - conflictCount - readyCount;
 
-    final bool isLocked = event.isScoringLocked;
-    final bool isPublished = event.isStatsReleased;
+    final bool hasPending = (fieldCount + readyCount + conflictCount) > 0;
+
+    String? lastSentNote;
+    if (_lastReminderSent != null) {
+      final mins = DateTime.now().difference(_lastReminderSent!).inMinutes;
+      lastSentNote = mins < 1 ? 'Just sent' : 'Last sent ${mins}m ago';
+    }
 
     return BoxyArtCard(
       padding: const EdgeInsets.all(AppSpacing.standard),
@@ -107,44 +114,52 @@ class _EventAdminVerifyScreenState extends ConsumerState<EventAdminVerifyScreen>
           const SizedBox(height: AppSpacing.lg),
           const Divider(height: 1),
           const SizedBox(height: AppSpacing.md),
-          _ActionRow(
-            label: isPublished ? 'Unpublish' : 'Publish',
-            description: isPublished
-                ? 'Hide standings from members'
-                : 'Make final standings visible to all members',
-            onTap: () => _togglePublish(ref, event),
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          _ActionRow(
-            label: isLocked ? 'Unlock' : 'Lock',
-            description: isLocked
-                ? 'Re-open scores for editing'
-                : 'Finalise all scorecards — no further changes allowed',
-            onTap: () => _toggleLock(ref, event),
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          _ActionRow(
-            label: 'Remind',
-            description: 'Notify members who have not yet submitted their scorecard',
-            onTap: () => ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Reminders sent to players with incomplete scorecards.')),
-            ),
+          _RemindAction(
+            hasPending: hasPending,
+            lastSentNote: lastSentNote,
+            onTap: hasPending ? () => _sendReminders(context, ref, event, scorecards) : null,
           ),
         ],
       ),
     );
   }
 
-  Future<void> _togglePublish(WidgetRef ref, GolfEvent event) async {
-    await ref.read(eventsRepositoryProvider).updateEvent(
-      event.copyWith(isStatsReleased: !event.isStatsReleased),
-    );
-  }
+  Future<void> _sendReminders(BuildContext context, WidgetRef ref, GolfEvent event, List<Scorecard> scorecards) async {
+    final approvedIds = scorecards
+        .where((s) => s.status == ScorecardStatus.approved)
+        .map((s) => s.entryId)
+        .toSet();
 
-  Future<void> _toggleLock(WidgetRef ref, GolfEvent event) async {
-    await ref.read(eventsRepositoryProvider).updateEvent(
-      event.copyWith(isScoringLocked: !event.isScoringLocked),
-    );
+    final pendingMemberIds = event.registrations
+        .where((r) => !approvedIds.contains(r.memberId) && !approvedIds.contains('${r.memberId}_guest'))
+        .map((r) => r.memberId)
+        .whereType<String>()
+        .toList();
+
+    if (pendingMemberIds.isEmpty) return;
+
+    final repo = ref.read(notificationsRepositoryProvider);
+    final now = DateTime.now();
+    for (final memberId in pendingMemberIds) {
+      try {
+        repo.sendNotification(AppNotification(
+          id: '',
+          recipientId: memberId,
+          title: 'Scorecard Reminder',
+          message: 'Please submit your scorecard for ${event.title}. The committee is waiting to close the round.',
+          timestamp: now,
+          category: 'Scoring',
+          eventId: event.id,
+        ));
+      } catch (_) {}
+    }
+
+    setState(() => _lastReminderSent = now);
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Reminder sent to ${pendingMemberIds.length} player${pendingMemberIds.length == 1 ? '' : 's'}.')),
+      );
+    }
   }
 
   Future<void> _confirmUnlock(
@@ -316,11 +331,6 @@ class _VerifyMetric extends StatelessWidget {
         : highlight && value != '0'
             ? AppColors.lime500
             : (isDark ? AppColors.pureWhite : AppColors.dark900);
-    final Color labelColor = isAlert && value != '0'
-        ? AppColors.coral500
-        : highlight && value != '0'
-            ? AppColors.lime500
-            : AppColors.dark400;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
       child: Column(
@@ -329,12 +339,12 @@ class _VerifyMetric extends StatelessWidget {
           Text(
             label.toUpperCase(),
             style: AppTypography.micro.copyWith(
-              color: labelColor,
+              color: AppColors.dark400,
               fontWeight: AppTypography.weightBold,
               letterSpacing: AppTypography.lsLabel,
             ),
           ),
-          const SizedBox(height: AppSpacing.xs),
+          const SizedBox(height: AppSpacing.md),
           Text(
             value,
             style: AppTypography.displaySection.copyWith(
@@ -349,64 +359,51 @@ class _VerifyMetric extends StatelessWidget {
   }
 }
 
-// ── Action row ────────────────────────────────────────────────────────────────
+// ── Remind action ────────────────────────────────────────────────────────────
 
-class _ActionRow extends StatelessWidget {
-  final String label;
-  final String description;
-  final VoidCallback onTap;
+class _RemindAction extends StatelessWidget {
+  final bool hasPending;
+  final String? lastSentNote;
+  final VoidCallback? onTap;
 
-  const _ActionRow({
-    required this.label,
-    required this.description,
+  const _RemindAction({
+    required this.hasPending,
+    required this.lastSentNote,
     required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final shapes = Theme.of(context).extension<AppShapeTokens>();
-    final primary = Theme.of(context).colorScheme.primary;
-    final radius = shapes?.button ?? BorderRadius.circular(8);
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        SizedBox(
-          width: 160,
-          child: Material(
-            color: primary.withValues(alpha: AppColors.opacityLow),
-            borderRadius: radius,
-            child: InkWell(
-              onTap: onTap,
-              borderRadius: radius,
-              highlightColor: primary.withValues(alpha: AppColors.opacitySubtle),
-              splashColor: primary.withValues(alpha: AppColors.opacitySubtle),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
-                child: Center(
-                  child: Text(
-                    label.toUpperCase(),
-                    style: AppTypography.label.copyWith(
-                      fontWeight: AppTypography.weightBold,
-                      color: primary,
-                      letterSpacing: AppTypography.lsLabel,
-                    ),
-                  ),
-                ),
-              ),
-            ),
+        Text(
+          'Nudge members who have not yet submitted their scorecard',
+          style: AppTypography.bodySmall.copyWith(
+            color: AppColors.dark400,
           ),
         ),
-        const SizedBox(width: AppSpacing.standard),
-        Expanded(
-          child: Text(
-            description,
-            style: AppTypography.bodySmall.copyWith(
-              color: isDark ? AppColors.dark200 : AppColors.dark400,
+        const SizedBox(height: AppSpacing.atomic),
+        BoxyArtButton(
+          title: 'REMIND',
+          isTinted: true,
+          isPrimary: false,
+          fullWidth: true,
+          onTap: onTap,
+        ),
+        if (lastSentNote != null) ...[
+          const SizedBox(height: AppSpacing.xs),
+          Text(
+            lastSentNote!,
+            textAlign: TextAlign.center,
+            style: AppTypography.micro.copyWith(
+              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: AppColors.opacitySecondary),
             ),
           ),
-        ),
+        ],
       ],
     );
   }
 }
+
+

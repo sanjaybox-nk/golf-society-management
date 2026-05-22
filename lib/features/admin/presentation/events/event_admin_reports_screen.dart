@@ -307,7 +307,7 @@ class EventAdminReportsScreen extends ConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text('Net position', 
-                    style: AppTypography.caption.copyWith(
+                    style: AppTypography.micro.copyWith(
                       color: AppColors.dark600, 
                       letterSpacing: 1.0,
                       fontWeight: AppTypography.weightBold,

@@ -78,7 +78,7 @@ class CompetitionTemplateGalleryScreen extends ConsumerWidget {
                           const SizedBox(height: 2),
                           Text(
                             'Create a new $gameName from scratch',
-                            style: AppTypography.caption.copyWith(
+                            style: AppTypography.micro.copyWith(
                               color: theme.brightness == Brightness.dark 
                                   ? AppColors.dark200 
                                   : AppColors.dark400,

@@ -577,7 +577,7 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
                                 ),
                                 Text(
                                   'Permits attendance at social events while suspended.',
-                                  style: AppTypography.caption.copyWith(
+                                  style: AppTypography.micro.copyWith(
                                     color: Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha: AppColors.opacityHigh),
                                   ),
                                 ),
@@ -610,7 +610,7 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
                                 ),
                                 Text(
                                   'Grants honorary "Founding Member" recognition badge.',
-                                  style: AppTypography.caption.copyWith(
+                                  style: AppTypography.micro.copyWith(
                                     color: Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha: AppColors.opacityHigh),
                                   ),
                                 ),

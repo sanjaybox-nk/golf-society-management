@@ -33,10 +33,25 @@ class AdminSeasonsScreen extends ConsumerWidget {
               seasonsAsync.when(
                 data: (seasons) {
                   if (seasons.isEmpty) {
-                    return const BoxyArtEmptyCard(
-                      title: 'No Seasons Configured',
-                      message: 'Active fixture calendars and historical archives will populate here once you initialize your first season.',
-                      icon: Icons.calendar_month_rounded,
+                    return Column(
+                      children: [
+                        const BoxyArtEmptyCard(
+                          title: 'No Seasons Configured',
+                          message: 'Active fixture calendars and historical archives will populate here once you initialize your first season.',
+                          icon: Icons.calendar_month_rounded,
+                        ),
+                        const SizedBox(height: AppSpacing.standard),
+                        SizedBox(
+                          width: double.infinity,
+                          child: BoxyArtButton(
+                            title: 'Create New Season',
+                            icon: Icons.add_rounded,
+                            isTinted: true,
+                            fullWidth: true,
+                            onTap: () => context.push('/admin/settings/seasons/new'),
+                          ),
+                        ),
+                      ],
                     );
                   }
                   return Column(
@@ -51,6 +66,8 @@ class AdminSeasonsScreen extends ConsumerWidget {
                         child: BoxyArtButton(
                           title: 'Create New Season',
                           icon: Icons.add_rounded,
+                          isTinted: true,
+                          fullWidth: true,
                           onTap: () => context.push('/admin/settings/seasons/new'),
                         ),
                       ),
@@ -63,7 +80,7 @@ class AdminSeasonsScreen extends ConsumerWidget {
                 ),
                 error: (err, stack) => Center(child: Text('Error: $err')),
               ),
-              const SizedBox(height: 100),
+              const SizedBox(height: AppSpacing.pageBottom),
             ]),
           ),
         ),
@@ -117,8 +134,6 @@ class _SeasonCard extends ConsumerWidget {
               icon: isActive ? Icons.calendar_today_rounded : Icons.archive_outlined,
               color: iconColor,
               isTinted: true,
-              size: 44,
-              iconSize: 22,
               useCircle: false,
             ),
             const SizedBox(width: AppSpacing.lg),
@@ -131,13 +146,13 @@ class _SeasonCard extends ConsumerWidget {
                   Text(
                     season.name.toUpperCase(),
                     style: AppTypography.labelStrong.copyWith(
-                      letterSpacing: 1.0,
+                      letterSpacing: AppTypography.lsLabel,
                     ),
                   ),
-                  const SizedBox(height: 2),
+                  const SizedBox(height: AppSpacing.xs),
                   Text(
                     '${DateFormat('MMM yyyy').format(season.startDate)} - ${DateFormat('MMM yyyy').format(season.endDate)}',
-                    style: AppTypography.caption.copyWith(
+                    style: AppTypography.micro.copyWith(
                       color: isDark ? AppColors.dark300 : AppColors.dark400,
                     ),
                   ),
@@ -153,24 +168,9 @@ class _SeasonCard extends ConsumerWidget {
               ),
             ),
             const SizedBox(width: AppSpacing.sm),
-            // Actions
-            if (isActive && !season.isCurrent)
-              BoxyArtGlassIconButton(
-                icon: Icons.star_outline_rounded,
-                iconSize: 20,
-                onPressed: () => ref.read(seasonsRepositoryProvider).setCurrentSeason(season.id),
-              ),
-
-            if (isActive)
-              BoxyArtGlassIconButton(
-                icon: Icons.lock_outline_rounded,
-                iconSize: 20,
-                onPressed: () => _showCloseSeasonDialog(context, ref),
-                tooltip: 'Close & Lock Season',
-              ),
             Icon(
-              Icons.arrow_forward_ios_rounded, 
-              color: isDark ? AppColors.dark400 : AppColors.dark200, 
+              Icons.arrow_forward_ios_rounded,
+              color: isDark ? AppColors.dark400 : AppColors.dark200,
               size: AppShapes.iconXs,
             ),
           ],
@@ -179,22 +179,4 @@ class _SeasonCard extends ConsumerWidget {
     );
   }
 
-  void _showCloseSeasonDialog(BuildContext context, WidgetRef ref) {
-    // In a real app, we'd prompt for AGM results here.
-    // For this prototype, we'll just close it.
-    showBoxyArtDialog(
-      context: context,
-      title: 'Close Season?',
-      message: 'This will move the season and all its events to the Archive. This cannot be undone.',
-      onConfirm: () async {
-        await ref.read(seasonsRepositoryProvider).closeSeason(season.id, {
-          'captain': 'TBD',
-          'playerOfTheYear': 'TBD',
-          'majorWinners': [],
-        });
-        if (context.mounted) Navigator.of(context, rootNavigator: true).pop();
-      },
-      confirmText: 'Close & Archive',
-    );
-  }
 }

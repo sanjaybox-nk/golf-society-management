@@ -8,6 +8,7 @@ import 'package:golf_society/domain/grouping/tee_group.dart';
 import 'package:golf_society/domain/models/member.dart';
 import '../../../../members/presentation/members_provider.dart';
 import '../../../../competitions/presentation/competitions_provider.dart';
+import '../../../../../features/events/presentation/events_provider.dart';
 
 class AdminVerifyTab extends ConsumerWidget {
   final GolfEvent event;
@@ -101,12 +102,8 @@ class AdminVerifyTab extends ConsumerWidget {
 
             // ── All cards approved ────────────────────────────────────────
             if (allApproved) ...[
-              const BoxyArtEmptyCard(
-                title: 'All Cards Approved',
-                message: 'Every scorecard has been reviewed and confirmed. The event is ready to close.',
-                icon: Icons.verified_user_outlined,
-              ),
-              const SizedBox(height: AppSpacing.xl),
+              _AllApprovedCard(event: event, scorecardsAsync: scorecardsAsync),
+              SizedBox(height: spacing?.cardToLabel ?? AppSpacing.xl),
             ],
 
             // ── Group-ordered single list ─────────────────────────────────
@@ -352,8 +349,8 @@ class AdminVerifyTile extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: 2),
-                  Text(subtitle, style: AppTypography.caption.copyWith(color: isDark ? AppColors.dark200 : AppColors.dark400)),
-                  Text(markerLine, style: AppTypography.caption.copyWith(color: AppColors.dark300, fontSize: 11)),
+                  Text(subtitle, style: AppTypography.micro.copyWith(color: isDark ? AppColors.dark200 : AppColors.dark400)),
+                  Text(markerLine, style: AppTypography.micro.copyWith(color: AppColors.dark300)),
                   if (isDQ || hasConflicts || penalty != 0 || hasAmendments) ...[
                     const SizedBox(height: AppSpacing.xs),
                     Wrap(
@@ -390,5 +387,192 @@ class AdminVerifyTile extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+// ── All Cards Approved completion card ─────────────────────────────────────────
+
+class _AllApprovedCard extends ConsumerStatefulWidget {
+  final GolfEvent event;
+  final AsyncValue<List<Scorecard>> scorecardsAsync;
+
+  const _AllApprovedCard({required this.event, required this.scorecardsAsync});
+
+  @override
+  ConsumerState<_AllApprovedCard> createState() => _AllApprovedCardState();
+}
+
+class _AllApprovedCardState extends ConsumerState<_AllApprovedCard> {
+  bool _closingEvent = false;
+  bool _expanded = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final shapes = Theme.of(context).extension<AppShapeTokens>();
+    final spacing = Theme.of(context).extension<AppSpacingTokens>();
+    final event = widget.event;
+    final isClosed = event.isClosed;
+    final isStandingsReleased = event.standingsVisible;
+    final isStatsReleased = event.isStatsReleased;
+
+    return BoxyArtCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Success state — badge left, text right
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(AppSpacing.atomic),
+                decoration: BoxDecoration(
+                  color: AppColors.lime500.withValues(alpha: AppColors.opacitySubtle),
+                  borderRadius: shapes?.button,
+                ),
+                child: const Icon(Icons.verified_user_outlined, color: AppColors.lime500, size: AppShapes.iconMd),
+              ),
+              const SizedBox(width: AppSpacing.standard),
+              Expanded(
+                child: Text(
+                  'All Cards Approved',
+                  style: AppTypography.body.copyWith(fontWeight: AppTypography.weightBlack),
+                ),
+              ),
+            ],
+          ),
+
+          ...[
+            SizedBox(height: spacing?.cardVerticalPadding ?? AppSpacing.standard),
+
+            // Expandable NEXT STEPS tinted button
+            BoxyArtButton(
+              title: 'NEXT STEPS',
+              icon: _expanded ? Icons.keyboard_arrow_up_rounded : Icons.keyboard_arrow_down_rounded,
+              isTinted: true,
+              isPrimary: false,
+              fullWidth: true,
+              onTap: () => setState(() => _expanded = !_expanded),
+            ),
+
+            // Animated expand/collapse
+            AnimatedSize(
+              duration: AppAnimations.medium,
+              curve: Curves.easeInOut,
+              child: _expanded
+                  ? Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        SizedBox(height: spacing?.cardVerticalPadding ?? AppSpacing.standard),
+                        BoxyArtSwitchTile(
+                          icon: Icons.lock_outline,
+                          label: 'Lock Scoring',
+                          subtitle: event.isScoringLocked
+                              ? 'Scorecards are locked — no further changes'
+                              : 'Lock all scorecards to finalise scores',
+                          value: event.isScoringLocked,
+                          onChanged: (val) => ref.read(eventsRepositoryProvider).updateEvent(
+                            event.copyWith(isScoringLocked: val),
+                          ),
+                        ),
+                        SizedBox(height: spacing?.cardToCard ?? AppSpacing.md),
+                        BoxyArtSwitchTile(
+                          icon: Icons.emoji_events_rounded,
+                          label: 'Release Standings',
+                          subtitle: isStandingsReleased
+                              ? 'Results are visible to members'
+                              : 'Reveal final results — announce at prize-giving when ready',
+                          value: isStandingsReleased,
+                          onChanged: (val) => ref.read(eventsRepositoryProvider).updateEvent(
+                            event.copyWith(isStandingsReleased: val),
+                          ),
+                        ),
+                        SizedBox(height: spacing?.cardToCard ?? AppSpacing.md),
+                        BoxyArtSwitchTile(
+                          icon: Icons.analytics_rounded,
+                          label: 'Release Stats',
+                          subtitle: isStatsReleased
+                              ? 'Performance analytics are visible to members'
+                              : 'Make round analytics available to all members',
+                          value: isStatsReleased,
+                          onChanged: (val) => ref.read(eventsRepositoryProvider).updateEvent(
+                            event.copyWith(isStatsReleased: val),
+                          ),
+                        ),
+                        SizedBox(height: spacing?.cardToCard ?? AppSpacing.md),
+                        isClosed
+                            ? BoxyArtButton(
+                                title: _closingEvent ? 'Reopening…' : 'Reopen Event',
+                                icon: Icons.lock_open_rounded,
+                                isPrimary: false,
+                                fullWidth: true,
+                                onTap: _closingEvent ? null : () => _confirmReopen(context),
+                              )
+                            : BoxyArtButton(
+                                title: _closingEvent ? 'Closing…' : 'Close & Finalise Event',
+                                icon: Icons.lock_rounded,
+                                isPrimary: false,
+                                fullWidth: true,
+                                isDangerous: true,
+                                onTap: _closingEvent ? null : () => _confirmClose(context),
+                              ),
+                      ],
+                    )
+                  : const SizedBox.shrink(),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Future<void> _confirmClose(BuildContext context) async {
+    final scorecards = widget.scorecardsAsync.value ?? [];
+    final pending = scorecards.where((s) => s.status == ScorecardStatus.submitted).length;
+    final message = pending > 0
+        ? 'WARNING: $pending scorecard${pending == 1 ? '' : 's'} still pending review.\n\nClosing will lock them in their current state.'
+        : 'This will lock all scorecards, finalise the results, and mark the event as completed.';
+
+    final confirmed = await showBoxyArtDialog<bool>(
+      context: context,
+      title: 'Close Event?',
+      message: message,
+      confirmText: 'Close & Finalise',
+      isDangerous: true,
+      onCancel: () => Navigator.of(context, rootNavigator: true).pop(false),
+      onConfirm: () => Navigator.of(context, rootNavigator: true).pop(true),
+    );
+
+    if (confirmed == true && mounted) {
+      setState(() => _closingEvent = true);
+      await ref.read(eventsRepositoryProvider).updateEvent(
+        widget.event.copyWith(
+          status: EventStatus.completed,
+          isScoringLocked: true,
+        ),
+      );
+      if (mounted) setState(() => _closingEvent = false);
+    }
+  }
+
+  Future<void> _confirmReopen(BuildContext context) async {
+    final confirmed = await showBoxyArtDialog<bool>(
+      context: context,
+      title: 'Reopen Event?',
+      message: 'This will unlock scorecards and set the event back to in-play. Use this if corrections are needed.',
+      confirmText: 'Reopen',
+      isDangerous: false,
+      onCancel: () => Navigator.of(context, rootNavigator: true).pop(false),
+      onConfirm: () => Navigator.of(context, rootNavigator: true).pop(true),
+    );
+
+    if (confirmed == true && mounted) {
+      setState(() => _closingEvent = true);
+      await ref.read(eventsRepositoryProvider).updateEvent(
+        widget.event.copyWith(
+          status: EventStatus.inPlay,
+          isScoringLocked: false,
+        ),
+      );
+      if (mounted) setState(() => _closingEvent = false);
+    }
   }
 }

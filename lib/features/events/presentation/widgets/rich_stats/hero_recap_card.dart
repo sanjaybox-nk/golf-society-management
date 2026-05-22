@@ -12,6 +12,7 @@ class SocietyHeroRecapCard extends ConsumerWidget {
   final int totalBirdies;
   final int totalEagles;
   final double fieldAvgNet;
+  final bool isStableford;
 
   const SocietyHeroRecapCard({
     super.key,
@@ -24,6 +25,7 @@ class SocietyHeroRecapCard extends ConsumerWidget {
     required this.totalBirdies,
     required this.totalEagles,
     required this.fieldAvgNet,
+    this.isStableford = false,
   });
 
   @override
@@ -71,14 +73,14 @@ class SocietyHeroRecapCard extends ConsumerWidget {
     final heroColor = Color(config.heroTextColor);
     final heroStrong = heroColor.withValues(alpha: AppColors.opacityStrong);
     final heroMuted = heroColor.withValues(alpha: AppColors.opacitySecondary);
-    final heroBg = heroColor.withValues(alpha: AppColors.opacityLow);
-    final heroBorder = heroColor.withValues(alpha: 0.08);
+    final heroBg = Colors.black.withValues(alpha: 0.18);
+    final heroBorder = heroColor.withValues(alpha: 0.35);
 
     // Field metrics — exclude birdies (shown in eclectic row), exclude holes count
     final fieldStats = <_HeroStat>[
       _HeroStat(label: 'PLAYERS', value: '$totalPlayers', icon: Icons.people_rounded),
       if (fieldAvgNet != 0.0)
-        _HeroStat(label: 'AVG NET', value: fieldAvgNet.toStringAsFixed(1), icon: Icons.analytics_rounded)
+        _HeroStat(label: isStableford ? 'AVG PTS' : 'AVG NET', value: isStableford ? '${fieldAvgNet.toStringAsFixed(1)} pts' : fieldAvgNet.toStringAsFixed(1), icon: Icons.analytics_rounded)
       else
         _HeroStat(label: 'FIELD BIRDIES', value: '$totalBirdies', icon: Icons.gps_fixed_rounded),
     ];
@@ -149,7 +151,7 @@ class SocietyHeroRecapCard extends ConsumerWidget {
                         ),
                       ),
                       Text(
-                        vsParLabel,
+                        isStableford ? 'pts' : vsParLabel,
                         style: AppTypography.micro.copyWith(
                           color: heroStrong,
                           fontWeight: AppTypography.weightBold,
@@ -222,7 +224,7 @@ class SocietyHeroRecapCard extends ConsumerWidget {
                 vertical: AppSpacing.atomic,
               ),
               decoration: BoxDecoration(
-                color: heroColor.withValues(alpha: 0.04),
+                color: Colors.black.withValues(alpha: 0.14),
                 borderRadius: shapes?.pill,
                 border: Border.all(color: heroBorder),
               ),
@@ -269,7 +271,7 @@ class SocietyHeroRecapCard extends ConsumerWidget {
     bool dim = false,
   }) {
     final effectiveColor = dim ? heroMuted : heroColor;
-    final effectiveBg = dim ? heroColor.withValues(alpha: 0.03) : heroBg;
+    final effectiveBg = dim ? Colors.black.withValues(alpha: 0.08) : heroBg;
     return Expanded(
       child: Container(
         padding: const EdgeInsets.symmetric(

@@ -721,7 +721,7 @@ class _ComposeNotificationScreenState extends ConsumerState<ComposeNotificationS
              Padding(
                padding: const EdgeInsets.all(AppSpacing.xl),
                child: Center(
-                 child: Text('No saved lists found', style: AppTypography.caption),
+                 child: Text('No saved lists found', style: AppTypography.micro),
                ),
              )
           else
@@ -784,7 +784,7 @@ class _ComposeNotificationScreenState extends ConsumerState<ComposeNotificationS
                   ),
                   Text(
                     subtitle,
-                    style: AppTypography.caption.copyWith(
+                    style: AppTypography.micro.copyWith(
                       color: isDark ? AppColors.dark400 : AppColors.dark300,
                     ),
                   ),

@@ -22,12 +22,13 @@ class LeaderboardTemplateGalleryScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final spacing = theme.extension<AppSpacingTokens>();
-    final typeName = _formatEnum(type.name);
+    final shapes = theme.extension<AppShapeTokens>();
+    final typeName = _getDisplayName(type);
     final templatesAsync = ref.watch(leaderboardTemplatesRepositoryProvider).watchTemplates();
 
     return HeadlessScaffold(
-      title: '$typeName Library',
-      subtitle: isPicker ? 'Assign to current season' : 'Manage format blueprints',
+      title: '$typeName Templates',
+      subtitle: isPicker ? 'Assign to current season' : 'Create leaderboard templates',
       topPill: BoxyArtPill.committee(label: 'ADMIN'),
       actions: const [],
       showBack: true,
@@ -46,55 +47,52 @@ class LeaderboardTemplateGalleryScreen extends ConsumerWidget {
                 StaggeredEntrance(
                   index: 0,
                   child: Padding(
-                    padding: EdgeInsets.only(bottom: spacing?.cardToCard ?? AppSpacing.standard),
-                        child: BoxyArtCard(
-                          onTap: () {
-                            context.push('/admin/settings/leaderboards/create/${type.name}');
-                          },
-                          child: Row(
-                            children: [
-                              BoxyArtIconBadge(
-                                icon: _getFormatIcon(type),
-                                color: _getFormatColor(type),
-                                isTinted: true,
-                                size: 44,
-                                iconSize: 22,
-                                useCircle: false, 
-                              ),
-                              const SizedBox(width: AppSpacing.lg),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      'START BLANK',
-                                      style: AppTypography.labelStrong.copyWith(
-                                        letterSpacing: 1.0,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 2),
-                                    Text(
-                                      'Create a new $typeName from scratch',
-                                      style: AppTypography.caption.copyWith(
-                                        color: theme.brightness == Brightness.dark 
-                                            ? AppColors.dark200 
-                                            : AppColors.dark400,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              Icon(
-                                Icons.add_rounded, 
-                                color: theme.brightness == Brightness.dark 
-                                    ? AppColors.dark400 
-                                    : AppColors.dark200, 
-                                size: AppShapes.iconMd,
-                              ),
-                            ],
+                    padding: const EdgeInsets.only(bottom: AppSpacing.cardToCard),
+                    child: BoxyArtCard(
+                      onTap: () {
+                        context.push('/admin/settings/leaderboards/create/${type.name}');
+                      },
+                      child: Row(
+                        children: [
+                          BoxyArtIconBadge(
+                            icon: _getFormatIcon(type),
+                            color: _getFormatColor(type),
+                            isTinted: true,
+                            size: shapes?.iconBadgeSize ?? AppShapes.iconHero,
+                            iconSize: shapes?.iconBadgeIconSize ?? AppShapes.iconLg,
                           ),
-                        ),
+                          const SizedBox(width: AppSpacing.standard),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'START BLANK',
+                                  style: AppTypography.labelStrong.copyWith(
+                                    letterSpacing: AppTypography.lsLabel,
+                                  ),
+                                ),
+                                const SizedBox(height: AppSpacing.xs),
+                                Text(
+                                  'Create a new $typeName from scratch',
+                                  style: AppTypography.micro.copyWith(
+                                    color: theme.brightness == Brightness.dark
+                                        ? AppColors.dark200
+                                        : AppColors.dark400,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Icon(
+                            Icons.add_rounded,
+                            color: AppColors.dark400,
+                            size: AppShapes.iconMd,
+                          ),
+                        ],
+                      ),
                     ),
+                  ),
                 ),
 
               StreamBuilder<List<LeaderboardConfig>>(
@@ -122,7 +120,7 @@ class LeaderboardTemplateGalleryScreen extends ConsumerWidget {
                         return StaggeredEntrance(
                           index: idx,
                           child: Padding(
-                            padding: EdgeInsets.only(bottom: spacing?.cardToCard ?? AppSpacing.standard),
+                            padding: const EdgeInsets.only(bottom: AppSpacing.cardToCard),
                             child: _buildTemplateCard(context, t, ref),
                           ),
                         );
@@ -193,6 +191,15 @@ class LeaderboardTemplateGalleryScreen extends ConsumerWidget {
     );
   }
   
+  String _getDisplayName(LeaderboardType type) {
+    switch (type) {
+      case LeaderboardType.orderOfMerit: return 'Order of Merit';
+      case LeaderboardType.bestOfSeries: return 'Best of Series';
+      case LeaderboardType.eclectic: return 'Eclectic';
+      case LeaderboardType.markerCounter: return 'Birdie Tree';
+    }
+  }
+
   IconData _getFormatIcon(LeaderboardType type) {
     switch (type) {
       case LeaderboardType.orderOfMerit: return Icons.emoji_events_rounded;

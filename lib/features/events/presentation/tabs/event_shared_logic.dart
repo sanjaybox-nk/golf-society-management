@@ -9,6 +9,7 @@ import 'package:golf_society/domain/models/member.dart';
 import '../../../members/presentation/members_provider.dart';
 import '../../../competitions/presentation/competitions_provider.dart';
 import '../../logic/event_scoring_controller.dart';
+import '../../domain/models/processed_event_data.dart';
 import '../state/marker_selection_provider.dart';
 import '../widgets/grouping_widgets.dart';
 import '../widgets/scorecard_modal.dart';
@@ -188,7 +189,41 @@ class _GroupScoresViewState extends ConsumerState<GroupScoresView> {
     final Map<String, String> scoreMap = { for (var s in data.individualScores) s.playerId : s.result.label };
     final Map<String, int> teamPhcMap = { for (var s in data.individualScores) s.playerId : s.playingHandicap.round() };
     final Map<String, String> thruMap = { for (var s in data.individualScores) if (s.thruLabel != null) s.playerId : s.thruLabel! };
-    final Map<String, String> tieBreakMap = { for (var s in data.individualScores) if (s.tieBreakLabel != null) s.playerId : s.tieBreakLabel! };
+
+    // For stableford: build full B9→B6 chain for tied players
+    final isStableford = widget.rules.format == CompetitionFormat.stableford;
+    final Map<String, String> tieBreakMap;
+    if (isStableford) {
+      const mNames = ['B9', 'B6', 'B3', 'B1'];
+      // Group leaderboard entries by total score to find ties
+      final scoreGroups = <int, List<ProcessedLeaderboardEntry>>{};
+      for (final e in data.leaderboard) {
+        scoreGroups.putIfAbsent(e.score, () => []).add(e);
+      }
+      final built = <String, String>{};
+      for (final e in data.leaderboard) {
+        final tied = (scoreGroups[e.score] ?? [])
+            .where((other) => other.entryId != e.entryId)
+            .toList();
+        if (tied.isEmpty) continue;
+        final myMetrics = e.tieBreakMetrics;
+        int maxDepth = 0;
+        for (final other in tied) {
+          int k = 0;
+          while (k < myMetrics.length && k < other.tieBreakMetrics.length &&
+              myMetrics[k] == other.tieBreakMetrics[k]) k++;
+          if (k > maxDepth) maxDepth = k;
+        }
+        final parts = <String>[];
+        for (int i = 0; i <= maxDepth && i < myMetrics.length && i < mNames.length; i++) {
+          parts.add('${mNames[i]}: ${myMetrics[i]}');
+        }
+        if (parts.isNotEmpty) built[e.entryId] = parts.join(' • ');
+      }
+      tieBreakMap = built;
+    } else {
+      tieBreakMap = { for (var s in data.individualScores) if (s.tieBreakLabel != null) s.playerId : s.tieBreakLabel! };
+    }
     final Map<String, ScoringStatus> statusMap = { for (var s in data.individualScores) s.playerId : s.scoringStatus };
     final Map<String, double> hcMap = { for (var s in data.individualScores) s.playerId : s.handicapIndex };
     final Map<String, bool> winnerMap = { for (var e in data.leaderboard) e.entryId : e.position == 1 };

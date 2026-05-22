@@ -84,7 +84,7 @@ class HomeNotificationCard extends ConsumerWidget {
                         const SizedBox(width: AppSpacing.sm),
                         Text(
                           _formatTimestamp(notification.timestamp),
-                          style: AppTypography.caption.copyWith(
+                          style: AppTypography.micro.copyWith(
                             color: Theme.of(context).textTheme.bodySmall?.color,
                           ),
                         ),

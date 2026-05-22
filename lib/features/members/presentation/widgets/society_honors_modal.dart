@@ -67,7 +67,7 @@ class SocietyHonorsModal extends ConsumerWidget {
                             const SizedBox(height: 2),
                             Text(
                               'One of the original architects of the society.',
-                              style: AppTypography.caption.copyWith(
+                              style: AppTypography.micro.copyWith(
                                 color: AppColors.pureWhite.withValues(alpha: 0.8),
                                 height: 1.3,
                               ),

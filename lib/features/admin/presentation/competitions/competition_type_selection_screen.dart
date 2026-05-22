@@ -203,7 +203,7 @@ class _ModernTypeTile extends StatelessWidget {
                             const SizedBox(width: AppSpacing.xs),
                             Text(
                               bracketText,
-                              style: AppTypography.caption.copyWith(
+                              style: AppTypography.micro.copyWith(
                                 color: isDark ? AppColors.dark300 : AppColors.dark400,
                                 fontWeight: AppTypography.weightBold,
                               ),
@@ -214,7 +214,7 @@ class _ModernTypeTile extends StatelessWidget {
                       const SizedBox(height: 2),
                       Text(
                         subtitle,
-                        style: AppTypography.caption.copyWith(
+                        style: AppTypography.micro.copyWith(
                           color: isDark ? AppColors.dark200 : AppColors.dark400,
                           fontWeight: AppTypography.weightMedium,
                         ),

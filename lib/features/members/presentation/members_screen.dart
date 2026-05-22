@@ -75,11 +75,11 @@ class _MembersScreenState extends ConsumerState<MembersScreen> {
               if (!matchesSearch) return false;
               if (widget.isAdminContext && searchQuery.isNotEmpty) return true;
               if (currentFilter.type == AdminMemberFilter.current) {
-                return m.status == MemberStatus.member || m.status == MemberStatus.active || m.status == MemberStatus.social;
+                return m.status == MemberStatus.member || m.status == MemberStatus.active;
               } else if (currentFilter.type == AdminMemberFilter.committee) {
                 return m.societyRole != null && m.societyRole!.isNotEmpty;
               } else if (currentFilter.type == AdminMemberFilter.other) {
-                return m.status != MemberStatus.member && m.status != MemberStatus.active && m.status != MemberStatus.social;
+                return m.status != MemberStatus.member && m.status != MemberStatus.active;
               } else if (widget.isAdminContext && currentFilter.type == AdminMemberFilter.role) {
                 return m.role == currentFilter.role;
               }
@@ -124,7 +124,7 @@ class _MembersScreenState extends ConsumerState<MembersScreen> {
                 padding: EdgeInsets.only(
                   left: AppSpacing.xl,
                   right: AppSpacing.xl,
-                  top: (currentFilter.type == AdminMemberFilter.other) ? 0 : (spacing?.cardToCard ?? AppSpacing.cardToCard),
+                  top: spacing?.cardToCard ?? AppSpacing.cardToCard,
                 ),
                 sliver: filtered.isEmpty 
                   ? const SliverToBoxAdapter(child: _EmptyMembers())

@@ -4,6 +4,9 @@ import 'package:go_router/go_router.dart';
 
 import 'package:golf_society/design_system/design_system.dart';
 import 'package:golf_society/features/settings/data/society_config_repository.dart';
+import 'package:golf_society/features/events/presentation/events_provider.dart';
+import 'package:golf_society/features/members/presentation/members_provider.dart';
+import 'package:golf_society/features/competitions/services/leaderboard_invoker_service.dart';
 import 'package:golf_society/services/seeding_service.dart';
 
 class AdminOperationsScreen extends ConsumerWidget {
@@ -54,6 +57,13 @@ class AdminOperationsScreen extends ConsumerWidget {
                       title: 'Season Leaderboards',
                       subtitle: 'Track Order of Merit & stat cycles',
                       onTap: () => context.pushNamed('admin-settings-leaderboards'),
+                    ),
+                    const BoxyArtDivider(),
+                    BoxyArtNavTile(
+                      icon: Icons.sync_rounded,
+                      title: 'Sync Standings',
+                      subtitle: 'Recalculate all leaderboard standings',
+                      onTap: () => _syncStandings(context, ref),
                     ),
                   ],
                 ),
@@ -236,6 +246,21 @@ class AdminOperationsScreen extends ConsumerWidget {
                         ref.invalidate(themeControllerProvider);
                       },
                     ),
+                    if (config.enableSocialMembership) ...[
+                      const BoxyArtDivider(),
+                      _buildConfigToggle(
+                        context, ref,
+                        icon: Icons.low_priority_rounded,
+                        title: 'Social Members Golf Waitlist',
+                        subtitle: 'Social members join golf events on waitlist — full members get priority',
+                        value: config.socialMembersGolfWaitlistPriority,
+                        onChanged: (val) async {
+                          final newConfig = config.copyWith(socialMembersGolfWaitlistPriority: val);
+                          await ref.read(societyConfigRepositoryProvider).forceReplaceConfig(newConfig);
+                          ref.invalidate(themeControllerProvider);
+                        },
+                      ),
+                    ],
                   ],
                 ),
               ),
@@ -315,6 +340,13 @@ class AdminOperationsScreen extends ConsumerWidget {
                       ),
                       const BoxyArtDivider(),
                       BoxyArtNavTile(
+                        icon: Icons.leaderboard_rounded,
+                        title: 'Stableford Leaderboard UAT',
+                        subtitle: 'Round 1 complete, Round 2 in-play with last group ready to verify',
+                        onTap: () => _showStablefordLeaderboardUATConfirmation(context, ref),
+                      ),
+                      const BoxyArtDivider(),
+                      BoxyArtNavTile(
                         icon: Icons.cleaning_services_rounded,
                         title: 'Clear Activity Data',
                         subtitle: 'Wipe events & members (keeps branding/templates)',
@@ -362,7 +394,7 @@ Widget _buildConfigToggle(
     padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
     child: Row(
       children: [
-        BoxyArtIconBadge(icon: icon, size: 44, iconSize: 22),
+        BoxyArtIconBadge(icon: icon),
         const SizedBox(width: AppSpacing.lg),
         Expanded(
           child: Column(
@@ -381,7 +413,7 @@ Widget _buildConfigToggle(
               const SizedBox(height: 2),
               Text(
                 subtitle,
-                style: AppTypography.caption.copyWith(
+                style: AppTypography.micro.copyWith(
                   color: isDark ? AppColors.dark200 : AppColors.dark400,
                 ),
               ),
@@ -398,6 +430,38 @@ Widget _buildConfigToggle(
       ],
     ),
   );
+}
+
+// ---------------------------------------------------------------------------
+// Standings sync
+// ---------------------------------------------------------------------------
+
+void _syncStandings(BuildContext context, WidgetRef ref) async {
+  final seasonAsync = ref.read(activeSeasonProvider);
+  final season = seasonAsync.asData?.value;
+  if (season == null) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('No active season found')),
+    );
+    return;
+  }
+  ScaffoldMessenger.of(context).showSnackBar(
+    const SnackBar(content: Text('Syncing standings...')),
+  );
+  try {
+    await ref.read(leaderboardInvokerServiceProvider).recalculateAll(season.id);
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Standings synchronised')),
+      );
+    }
+  } catch (e) {
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Sync failed: $e')),
+      );
+    }
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -418,7 +482,11 @@ void _showClearActivityDialog(BuildContext context, WidgetRef ref) async {
     messenger.showSnackBar(const SnackBar(content: Text('Purging activity data...')));
     try {
       await ref.read(seedingServiceProvider).clearActivityData();
+      ref.invalidate(allMembersProvider);
+      ref.invalidate(eventsProvider);
+      ref.invalidate(activeSeasonProvider);
       messenger.showSnackBar(const SnackBar(content: Text('✅ Activity cleared')));
+      if (context.mounted) context.go('/home');
     } catch (e) {
       messenger.showSnackBar(SnackBar(content: Text('Error: $e')));
     }
@@ -439,7 +507,14 @@ void _showSystemResetDialog(BuildContext context, WidgetRef ref) async {
     messenger.showSnackBar(const SnackBar(content: Text('Wiping system data...')));
     try {
       await ref.read(seedingServiceProvider).clearDemoData();
+
+      // Invalidate after wipe so providers restart their streams against cleared Firestore
+      ref.invalidate(allMembersProvider);
+      ref.invalidate(eventsProvider);
+      ref.invalidate(activeSeasonProvider);
+
       messenger.showSnackBar(const SnackBar(content: Text('✅ System data wiped')));
+      if (context.mounted) context.go('/home');
     } catch (e) {
       messenger.showSnackBar(SnackBar(content: Text('Error: $e')));
     }
@@ -503,6 +578,27 @@ void _showFinalVerificationSeedConfirmation(BuildContext context, WidgetRef ref)
     try {
       await ref.read(seedingServiceProvider).seedFinalVerificationUAT();
       messenger.showSnackBar(const SnackBar(content: Text('✅ Verification UAT Ready')));
+    } catch (e) {
+      messenger.showSnackBar(SnackBar(content: Text('Error: $e')));
+    }
+  }
+}
+
+void _showStablefordLeaderboardUATConfirmation(BuildContext context, WidgetRef ref) async {
+  final confirm = await showBoxyArtDialog<bool>(
+    context: context,
+    title: 'Seed Stableford Leaderboard UAT?',
+    message: 'Creates two Stableford events. Round 1 is fully approved — tap Recalculate Stats to populate leaderboards. Round 2 is in-play with the last group ready for you to verify and close.',
+    confirmText: 'SEED EVENTS',
+    onConfirm: () => Navigator.of(context, rootNavigator: true).pop(true),
+    onCancel: () => Navigator.of(context, rootNavigator: true).pop(false),
+  );
+  if (confirm == true && context.mounted) {
+    final messenger = ScaffoldMessenger.of(context);
+    messenger.showSnackBar(const SnackBar(content: Text('Seeding Stableford UAT...')));
+    try {
+      await ref.read(seedingServiceProvider).seedStablefordLeaderboardUAT();
+      messenger.showSnackBar(const SnackBar(content: Text('✅ Stableford Leaderboard UAT Ready')));
     } catch (e) {
       messenger.showSnackBar(SnackBar(content: Text('Error: $e')));
     }

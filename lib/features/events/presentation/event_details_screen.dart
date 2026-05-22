@@ -225,8 +225,8 @@ class _EventDetailsContent extends ConsumerWidget {
               const Icon(Icons.star_rounded, size: 12, color: AppColors.amber500),
               const SizedBox(width: 4),
               Text(
-                'Invitational event',
-                style: AppTypography.caption.copyWith(
+                'Non-Season event',
+                style: AppTypography.micro.copyWith(
                   color: AppColors.amber500,
                   fontWeight: AppTypography.weightBlack,
                   fontSize: 11,
@@ -243,7 +243,7 @@ class _EventDetailsContent extends ConsumerWidget {
               const SizedBox(width: 4),
               Text(
                 'Social event',
-                style: AppTypography.caption.copyWith(
+                style: AppTypography.micro.copyWith(
                   color: AppColors.coral500,
                   fontWeight: AppTypography.weightBlack,
                   fontSize: 11,
@@ -280,14 +280,16 @@ class _EventDetailsContent extends ConsumerWidget {
       }
     }
 
-    // Social members (by role or status): blocked from golf events always.
-    // Status/role is preserved even if enableSocialMembership is later toggled off —
-    // historical access remains read-only; only new-season registration is affected.
     if ((user.role.isSocialMember || user.status == MemberStatus.social) && !isRegistered) {
       if (event.eventType == EventType.golf) {
-        isRegistrationDisabled = true;
-        buttonTitle = 'Social membership — golf events not available';
+        // Blocked from golf unless admin has granted an override for this event.
+        final hasOverride = event.socialGolfOverrides.contains(user.id);
+        if (!hasOverride) {
+          isRegistrationDisabled = true;
+          buttonTitle = 'Golf access not enabled for this event';
+        }
       }
+      // Social events: always open — no additional guard needed.
     }
 
     return BoxyArtCard(

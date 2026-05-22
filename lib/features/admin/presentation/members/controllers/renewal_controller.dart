@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:golf_society/domain/models/member.dart';
-
+import 'package:golf_society/design_system/theme/theme_controller.dart';
 import 'package:golf_society/features/admin/application/admin_action_service.dart';
 import 'package:golf_society/features/members/presentation/members_provider.dart';
 
@@ -49,10 +49,14 @@ class RenewalController extends Notifier<void> {
     for (final member in selectedMembers) {
       Member updatedMember = member;
 
+      final isUpgradingToFull = _isSocialMember(member) &&
+          ref.read(socialUpgradeIdsProvider).contains(member.id);
+
       switch (member.renewalStatus) {
         case MemberRenewalStatus.renew:
           updatedMember = member.copyWith(
             status: MemberStatus.active,
+            role: isUpgradingToFull ? MemberRole.member : member.role,
             joinedDate: DateTime.now(),
             renewalStatus: MemberRenewalStatus.none,
           );
@@ -77,6 +81,7 @@ class RenewalController extends Notifier<void> {
     }
 
     ref.read(selectedMemberIdsProvider.notifier).clear();
+    ref.read(socialUpgradeIdsProvider.notifier).clear();
     await onComplete();
   }
 
@@ -102,9 +107,35 @@ final renewalControllerProvider = NotifierProvider<RenewalController, void>(
   RenewalController.new,
 );
 
+/// Tracks which social members have the upgrade-to-full toggle on
+class SocialUpgradeIdsNotifier extends Notifier<Set<String>> {
+  @override
+  Set<String> build() => {};
+
+  void toggle(String id) {
+    if (state.contains(id)) {
+      state = {...state}..remove(id);
+    } else {
+      state = {...state, id};
+    }
+  }
+
+  void clear() => state = {};
+}
+
+final socialUpgradeIdsProvider = NotifierProvider<SocialUpgradeIdsNotifier, Set<String>>(
+  SocialUpgradeIdsNotifier.new,
+);
+
+bool _isSocialMember(Member m) =>
+    m.role == MemberRole.socialMember || m.status == MemberStatus.social;
+
 /// Provider for filtered members
 final renewalFilteredMembersProvider = Provider.autoDispose.family<List<Member>, ({RenewalFilter filter, String search})>((ref, arg) {
   final membersAsync = ref.watch(allMembersProvider);
+  final config = ref.watch(themeControllerProvider);
+  final socialRenewalOpen = config.socialRenewalOpen;
+
   return membersAsync.maybeWhen(
     data: (members) {
       // 1. Tab filtering
@@ -121,7 +152,12 @@ final renewalFilteredMembersProvider = Provider.autoDispose.family<List<Member>,
           break;
       }
 
-      // 2. Search filtering
+      // 2. Gate social members unless socialRenewalOpen
+      if (!socialRenewalOpen) {
+        displayMembers = displayMembers.where((m) => !_isSocialMember(m)).toList();
+      }
+
+      // 3. Search filtering
       if (arg.search.isNotEmpty) {
         final query = arg.search.toLowerCase();
         displayMembers = displayMembers.where((m) {
