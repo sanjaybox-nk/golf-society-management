@@ -8,6 +8,7 @@ import 'package:golf_society/features/events/presentation/events_provider.dart';
 import 'package:golf_society/features/members/presentation/members_provider.dart';
 import 'package:golf_society/features/competitions/services/leaderboard_invoker_service.dart';
 import 'package:golf_society/services/seeding_service.dart';
+import 'package:golf_society/domain/models/season.dart' show SeasonStatus;
 
 class AdminOperationsScreen extends ConsumerWidget {
   const AdminOperationsScreen({super.key});
@@ -20,7 +21,7 @@ class AdminOperationsScreen extends ConsumerWidget {
     return HeadlessScaffold(
       title: 'Operations',
       subtitle: 'Admin Console',
-      topPill: BoxyArtPill.committee(label: 'ADMIN'),
+      topPill: BoxyArtIndicator.committee(label: 'ADMIN'),
       slivers: [
         SliverPadding(
           padding: EdgeInsets.only(
@@ -64,6 +65,13 @@ class AdminOperationsScreen extends ConsumerWidget {
                       title: 'Sync Standings',
                       subtitle: 'Recalculate all leaderboard standings',
                       onTap: () => _syncStandings(context, ref),
+                    ),
+                    const BoxyArtDivider(),
+                    BoxyArtNavTile(
+                      icon: Icons.workspaces_rounded,
+                      title: 'Division Templates',
+                      subtitle: 'Create and manage handicap division setups',
+                      onTap: () => context.pushNamed('admin-division-templates'),
                     ),
                   ],
                 ),
@@ -432,6 +440,8 @@ Widget _buildConfigToggle(
   );
 }
 
+
+
 // ---------------------------------------------------------------------------
 // Standings sync
 // ---------------------------------------------------------------------------
@@ -442,6 +452,12 @@ void _syncStandings(BuildContext context, WidgetRef ref) async {
   if (season == null) {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('No active season found')),
+    );
+    return;
+  }
+  if (season.status == SeasonStatus.closed) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Season is closed — standings are frozen')),
     );
     return;
   }

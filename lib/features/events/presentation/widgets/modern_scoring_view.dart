@@ -85,7 +85,7 @@ class ModernScoringView extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
           child: Row(
             children: [
-              BoxyArtPill.type(
+              BoxyArtIndicator.type(
                 label: markingName,
                 icon: Icons.person_outline,
                 isLegend: true,
@@ -194,13 +194,13 @@ class ModernScoringView extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  BoxyArtPill.format(
+                  BoxyArtIndicator.format(
                     label: 'STABLEFORD: $pts pts',
                     isLegend: true,
                   ),
                   if (matchResult != null) ...[
                     const SizedBox(width: AppSpacing.md),
-                    BoxyArtPill.format(
+                    BoxyArtIndicator.format(
                       label: 'MATCH: $matchHoleStatus',
                       isLegend: true,
                     ),
@@ -407,7 +407,7 @@ class ModernScoringView extends StatelessWidget {
   }
 
 
-  /// Builds a tee pill matching BoxyArtPill's exact style, with a coloured
+  /// Builds a tee pill matching BoxyArtIndicator's exact style, with a coloured
   /// dot in place of the icon.
   Widget _buildTeePill(BuildContext context, String teeName) {
     final teeColor = _getTeeColor(teeName);

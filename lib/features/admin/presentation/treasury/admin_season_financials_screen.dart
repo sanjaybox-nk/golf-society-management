@@ -130,7 +130,7 @@ class AdminSeasonFinancialsScreen extends ConsumerWidget {
     return HeadlessScaffold(
       title: 'Season Financials',
       subtitle: 'Rolling P&L',
-      topPill: BoxyArtPill.committee(label: 'ADMIN'),
+      topPill: BoxyArtIndicator.committee(label: 'ADMIN'),
       showBack: true,
       slivers: [
         summaryAsync.when(

@@ -67,6 +67,7 @@ import '../features/admin/presentation/events/event_manual_cuts_screen.dart';
 import '../features/admin/presentation/events/event_registrations_admin_screen.dart';
 import '../features/admin/presentation/events/event_fines_workbench_screen.dart';
 import '../features/admin/presentation/events/event_admin_shell.dart';
+import '../features/guests/presentation/guest_detail_screen.dart';
 import '../features/admin/presentation/notifications/notification_admin_scaffold.dart';
 import '../features/admin/presentation/notifications/admin_audience_hub_screen.dart';
 import '../features/home/presentation/notification_inbox_screen.dart';
@@ -80,6 +81,10 @@ import 'package:golf_society/domain/models/leaderboard_config.dart';
 import 'package:golf_society/domain/models/competition.dart';
 import 'package:golf_society/features/members/presentation/member_details_screen.dart';
 import '../features/admin/presentation/leaderboards/leaderboard_template_gallery_screen.dart';
+import '../features/admin/presentation/seasons/division_template_gallery_screen.dart';
+import '../features/admin/presentation/seasons/division_template_editor_screen.dart';
+import 'package:golf_society/domain/models/member_group_config.dart';
+import 'package:uuid/uuid.dart';
 
 part 'routes/member_routes.dart';
 part 'routes/admin_routes.dart';

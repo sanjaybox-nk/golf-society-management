@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'package:uuid/uuid.dart';
 import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -801,7 +800,7 @@ class SeedingService {
     } else {
       final firestore = FirebaseFirestore.instance;
       final allDocs = await firestore.collection('leaderboard_templates').get();
-      final all = allDocs.docs.map((d) => LeaderboardConfig.fromJson(d.data())).toList();
+      final all = allDocs.docs.map((d) => LeaderboardConfig.fromJson({...d.data(), 'id': d.id})).toList();
       final custom = all.where((t) => !t.id.endsWith('_blueprint')).toList();
       templates = custom.isNotEmpty ? custom : all;
     }
@@ -814,11 +813,7 @@ class SeedingService {
       endDate: DateTime(2026, 4, 30),
       status: SeasonStatus.active,
       isCurrent: true,
-      leaderboards: templates.map((t) => t.copyWith(
-        id: Uuid().v4(), // Instantiate as a unique season subscription
-        scope: LeaderboardScope.seasonOnly,
-        // Name is preserved from 't.name'
-      )).toList(),
+      leaderboardIds: templates.map((t) => t.id).toList(),
     );
 
     try { await repo.deleteSeason(season.id); } catch (_) {}

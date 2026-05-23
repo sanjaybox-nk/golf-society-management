@@ -161,49 +161,121 @@ class _PersonalDetailsFormState extends State<PersonalDetailsForm> {
     }
 
     final spacing = Theme.of(context).extension<AppSpacingTokens>();
+    final colorScheme = Theme.of(context).colorScheme;
+    final rowGap = spacing?.cardToCard ?? AppSpacing.atomic;
+    final phone = '${widget.countryCodeController.text} ${widget.phoneController.text}'.trim();
+    final dateStr = widget.joinedDate != null
+        ? '${widget.joinedDate!.day.toString().padLeft(2, '0')}/${widget.joinedDate!.month.toString().padLeft(2, '0')}/${widget.joinedDate!.year}'
+        : '-';
 
-    return BoxyArtFormColumn(
-      spacing: spacing?.cardToCard ?? AppSpacing.lg,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (widget.bioController.text.isNotEmpty)
-          _buildInfoRow(context, 'Bio', widget.bioController.text),
-        if (widget.nicknameController.text.isNotEmpty)
-          _buildInfoRow(context, 'Nickname', widget.nicknameController.text),
-        _buildInfoRow(context, 'Email', widget.emailController.text),
-        _buildInfoRow(context, 'Phone', '${widget.countryCodeController.text} ${widget.phoneController.text}'),
-        _buildInfoRow(context, 'Address', widget.addressController.text),
-        _buildInfoRow(
-          context,
-          'Member Since', 
-          widget.joinedDate != null ? '${widget.joinedDate!.day.toString().padLeft(2, '0')}/${widget.joinedDate!.month.toString().padLeft(2, '0')}/${widget.joinedDate!.year}' : '-'
+        if (widget.bioController.text.isNotEmpty) ...[
+          _buildPlainInfoRow(context, 'Bio', widget.bioController.text),
+          SizedBox(height: rowGap * 2),
+        ],
+        _buildIconInfoRow(context, Icons.mail_outline_rounded, 'Email', widget.emailController.text),
+        if (phone.isNotEmpty) ...[
+          SizedBox(height: rowGap * 2),
+          _buildIconInfoRow(context, Icons.phone_outlined, 'Phone', phone),
+        ],
+        if (widget.addressController.text.isNotEmpty) ...[
+          SizedBox(height: rowGap * 2),
+          _buildIconInfoRow(context, Icons.location_on_outlined, 'Address', widget.addressController.text),
+        ],
+        Padding(
+          padding: EdgeInsets.symmetric(vertical: spacing?.labelToCard ?? AppSpacing.standard),
+          child: Divider(color: colorScheme.outlineVariant),
         ),
-        if (widget.gender != null)
-          _buildInfoRow(context, 'Gender', widget.gender!),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(child: _buildMetaItem(context, Icons.calendar_today_rounded, 'Member Since', dateStr)),
+            if (widget.gender != null)
+              Expanded(child: _buildMetaItem(context, Icons.person_outline_rounded, 'Gender', widget.gender!)),
+          ],
+        ),
       ],
     );
   }
 
-  Widget _buildInfoRow(BuildContext context, String label, String value) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final spacing = Theme.of(context).extension<AppSpacingTokens>();
-
-    return BoxyArtFormColumn(
-      spacing: spacing?.labelToCard ?? AppSpacing.xs,
+  Widget _buildPlainInfoRow(BuildContext context, String label, String value) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           label.toUpperCase(),
           style: AppTypography.micro.copyWith(
-            color: isDark ? AppColors.dark300 : AppColors.dark400,
+            color: colorScheme.onSurfaceVariant,
             letterSpacing: AppTypography.lsLabel,
           ),
         ),
+        const SizedBox(height: 4),
         Text(
-          value.isEmpty ? '-' : value,
-          style: AppTypography.micro.copyWith(
-            fontSize: 15,
-            color: isDark ? AppColors.dark150 : AppColors.dark600,
-            fontWeight: AppTypography.weightSemibold,
+          value,
+          style: AppTypography.bodySmall.copyWith(color: colorScheme.onSurface),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildIconInfoRow(BuildContext context, IconData icon, String label, String value) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(top: 2),
+          child: Icon(icon, size: 18, color: colorScheme.onSurfaceVariant),
+        ),
+        const SizedBox(width: AppSpacing.standard),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label.toUpperCase(),
+                style: AppTypography.micro.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                  letterSpacing: AppTypography.lsLabel,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                value.isEmpty ? '-' : value,
+                style: AppTypography.bodySmall.copyWith(color: colorScheme.onSurface),
+              ),
+            ],
           ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMetaItem(BuildContext context, IconData icon, String label, String value) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label.toUpperCase(),
+          style: AppTypography.micro.copyWith(
+            color: colorScheme.onSurfaceVariant,
+            letterSpacing: AppTypography.lsLabel,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Row(
+          children: [
+            Icon(icon, size: 14, color: colorScheme.onSurfaceVariant),
+            const SizedBox(width: 5),
+            Text(
+              value,
+              style: AppTypography.bodySmall.copyWith(color: colorScheme.onSurface),
+            ),
+          ],
         ),
       ],
     );

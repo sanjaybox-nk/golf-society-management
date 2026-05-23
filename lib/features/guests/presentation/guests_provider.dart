@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:golf_society/domain/models/guest_profile.dart';
 import 'package:golf_society/features/guests/data/guest_repository.dart';
@@ -13,6 +14,10 @@ class GuestSearchQueryNotifier extends Notifier<String> {
 }
 
 final guestSearchQueryProvider = NotifierProvider<GuestSearchQueryNotifier, String>(GuestSearchQueryNotifier.new);
+
+final guestByIdProvider = Provider.autoDispose.family<GuestProfile?, String>((ref, id) {
+  return ref.watch(allGuestsProvider).value?.firstWhereOrNull((g) => g.id == id);
+});
 
 final filteredGuestsProvider = Provider.autoDispose<AsyncValue<List<GuestProfile>>>((ref) {
   final guestsAsync = ref.watch(allGuestsProvider);

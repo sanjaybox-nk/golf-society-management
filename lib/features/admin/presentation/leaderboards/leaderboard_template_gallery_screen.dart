@@ -29,7 +29,7 @@ class LeaderboardTemplateGalleryScreen extends ConsumerWidget {
     return HeadlessScaffold(
       title: '$typeName Templates',
       subtitle: isPicker ? 'Assign to current season' : 'Create leaderboard templates',
-      topPill: BoxyArtPill.committee(label: 'ADMIN'),
+      topPill: BoxyArtIndicator.committee(label: 'ADMIN'),
       actions: const [],
       showBack: true,
       onBack: () => context.pop(),
@@ -151,6 +151,21 @@ class LeaderboardTemplateGalleryScreen extends ConsumerWidget {
       ),
       confirmDismiss: (direction) async {
         if (isPicker) return false;
+        // Block deletion if any season (active or archived) references this template.
+        final allSeasons = await ref.read(seasonsRepositoryProvider).getSeasons();
+        final usedInSeasons = allSeasons.where((s) => s.leaderboardIds.contains(template.id)).toList();
+        if (usedInSeasons.isNotEmpty) {
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  'Cannot delete — used in: ${usedInSeasons.map((s) => s.name).join(', ')}',
+                ),
+              ),
+            );
+          }
+          return false;
+        }
         return await showBoxyArtDialog<bool>(
           context: context,
           title: 'Delete Template?',
@@ -174,12 +189,7 @@ class LeaderboardTemplateGalleryScreen extends ConsumerWidget {
         showChevron: true,
         onTap: () {
           if (isPicker) {
-             // Create a season-bound instance from the blueprint
-             final newConfig = template.copyWith(
-               id: const Uuid().v4(),
-               scope: LeaderboardScope.seasonOnly,
-             );
-             context.pop(newConfig);
+             context.pop(template);
           } else {
             context.push(
               '/admin/settings/leaderboards/edit/${template.id}',

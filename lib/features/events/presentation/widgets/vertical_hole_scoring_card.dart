@@ -152,7 +152,7 @@ class _PlayerScoringCardState extends ConsumerState<_PlayerScoringCard> {
                     Row(
                       children: [
                         BoxyArtIndicator.hc(label: widget.hc.toStringAsFixed(1), hasHorizontalMargin: false),
-                        BoxyArtIndicator.phc(context: context, label: '${widget.phc}'),
+                        BoxyArtIndicator.phc(label: '${widget.phc}'),
                       ],
                     ),
                     if (widget.markerName != null) ...[

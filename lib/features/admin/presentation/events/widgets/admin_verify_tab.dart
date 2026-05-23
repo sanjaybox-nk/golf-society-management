@@ -117,7 +117,7 @@ class AdminVerifyTab extends ConsumerWidget {
               BoxyArtSectionTitle(
                 title: 'Group ${gi + 1}',
                 isPeeking: true,
-                trailing: BoxyArtPill(
+                trailing: BoxyArtIndicator(
                   label: _formatTeeTime(groups[gi].teeTime),
                   icon: Icons.access_time_filled_rounded,
                   isAction: true,
@@ -356,13 +356,13 @@ class AdminVerifyTile extends StatelessWidget {
                     Wrap(
                       spacing: AppSpacing.sm,
                       children: [
-                        if (isDQ) BoxyArtPill(label: 'DQ', color: AppColors.coral500, isLegend: true, hasHorizontalMargin: false),
-                        if (hasConflicts) BoxyArtPill(label: 'Conflict', color: AppColors.coral500, isLegend: true, hasHorizontalMargin: false),
-                        if (penalty != 0) BoxyArtPill(
+                        if (isDQ) BoxyArtIndicator(label: 'DQ', dotColor: AppColors.coral500, hasHorizontalMargin: false),
+                        if (hasConflicts) BoxyArtIndicator(label: 'Conflict', dotColor: AppColors.coral500, hasHorizontalMargin: false),
+                        if (penalty != 0) BoxyArtIndicator(
                           label: isStableford ? '−$penalty pt${penalty != 1 ? 's' : ''}' : '+$penalty str${penalty != 1 ? 'okes' : 'oke'}',
-                          color: AppColors.amber500, isLegend: true, hasHorizontalMargin: false,
+                          dotColor: AppColors.amber500, hasHorizontalMargin: false,
                         ),
-                        if (hasAmendments) BoxyArtPill(label: 'Amended', color: AppColors.amber500, isLegend: true, hasHorizontalMargin: false),
+                        if (hasAmendments) BoxyArtIndicator(label: 'Amended', dotColor: AppColors.amber500, hasHorizontalMargin: false),
                       ],
                     ),
                   ],

@@ -95,7 +95,7 @@ class MemberRenewalTile extends ConsumerWidget {
                 if (isSocial)
                   Padding(
                     padding: const EdgeInsets.only(bottom: AppSpacing.xs),
-                    child: BoxyArtPill.status(
+                    child: BoxyArtIndicator.status(
                       label: isUpgrading ? 'UPGRADING' : 'SOCIAL',
                       color: isUpgrading ? AppColors.lime500 : AppColors.guestPurple,
                       hasHorizontalMargin: false,

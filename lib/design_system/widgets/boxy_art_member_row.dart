@@ -8,6 +8,7 @@ import 'package:golf_society/features/events/domain/registration_logic.dart';
 class BoxyArtMemberRow extends ConsumerWidget {
   final String name;
   final String? secondaryName;
+  final Color? secondaryNameColor;
   final String initials;
   final String? avatarUrl;
   final List<String>? teamNames; 
@@ -62,6 +63,7 @@ class BoxyArtMemberRow extends ConsumerWidget {
     required this.name,
     this.teamNames,
     this.secondaryName,
+    this.secondaryNameColor,
     required this.initials,
     this.avatarUrl,
     this.handicapIndex,
@@ -116,7 +118,7 @@ class BoxyArtMemberRow extends ConsumerWidget {
     }
 
     final content = Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           // 1. Leading
           Stack(
@@ -156,7 +158,6 @@ class BoxyArtMemberRow extends ConsumerWidget {
           if (showVerticalDivider)
             Container(
               width: 1,
-              height: 44,
               margin: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
               color: varietyPillarColor ?? theme.colorScheme.onSurface.withValues(alpha: AppColors.opacitySubtle),
             )
@@ -190,25 +191,24 @@ class BoxyArtMemberRow extends ConsumerWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
+                if (secondaryName != null) ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    secondaryName!.toUpperCase(),
+                    style: AppTypography.micro.copyWith(
+                      color: secondaryNameColor ?? (isDark ? AppColors.dark200 : AppColors.dark300),
+                      fontWeight: FontWeight.w500,
+                      letterSpacing: 0.1,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
                 const SizedBox(height: AppSpacing.xs),
                 _buildMetadata(context),
-                if (secondaryName != null)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 4),
-                    child: Text(
-                      toTitleCase(secondaryName!),
-                      style: AppTypography.micro.copyWith(
-                        color: isDark ? AppColors.dark200 : AppColors.dark300,
-                        fontWeight: FontWeight.w500,
-                        letterSpacing: 0.1,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
                 if (footer != null)
                   Padding(
-                    padding: const EdgeInsets.only(top: 8),
+                    padding: const EdgeInsets.only(top: 4),
                     child: footer!,
                   ),
               ],
@@ -299,7 +299,6 @@ class BoxyArtMemberRow extends ConsumerWidget {
               ),
             if (playingHandicap != null)
               BoxyArtIndicator.phc(
-                context: context,
                 label: '$playingHandicap${hasSocietyCut ? '*' : ''}',
                 hasHorizontalMargin: false,
               ),

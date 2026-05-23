@@ -115,11 +115,13 @@ This document tracks the remaining work required to take **Golf Society Manageme
         - [x] Added high-fidelity captain indicator (amber shield + background) to team avatars.
         - [x] Unified grouping hub into a single `BoxyArtCard` architecture with internal themed dividers.
     - [x] **Result Verification**: Admin approval workflow.
-- [ ] **Divisions & Groups**
-    - [ ] **Categorization**: Support for both fixed (Strict), tagged (Flexible), and handicap-based (Dynamic) groupings.
-    - [ ] **Management UI**: Dedicated Admin screen for defining society-wide divisions.
-    - [ ] **Member Assignment**: Easy allocation of members to one or more divisions.
-    - [ ] **Per-Division Leaderboards**: Filterable OOM and Eclectic reports targeting specific player categories.
+- [x] **Divisions & Groups — Member Groups System** (Completed 2026-05-23)
+    - [x] **Categorization**: `MemberGroupConfig` model supports `handicap` (auto-split by HC range), `gender` (auto by gender), and `custom` (manual assignment) split types.
+    - [x] **Management UI**: `DivisionTemplateGalleryScreen` + `DivisionTemplateEditorScreen` under Admin → Seasons. Gallery lists all saved `MemberGroupConfig` templates; editor supports naming groups, setting ranges, and manually assigning members.
+    - [x] **Member Assignment**: `_MemberPickerScreen` dialog (uses `showDialog` + `Dialog.fullscreen` to avoid go_router navigator conflict) with search, multi-select, and design-token card style.
+    - [x] **Per-Division Leaderboards**: All four leaderboard types support `groupFilter: String?` (group ID). `LeaderboardInvokerService` filters standings post-calculation using `MemberGroupHelper.memberBelongsToGroup()`.
+    - [x] **Season Linking**: `Season.memberGroupConfigId` links to the active `MemberGroupConfig`. Leaderboard group filter UI uses the season's linked config.
+    - [x] **Old System Removed**: `DivisionConfig`, `DivisionHelper`, `DivisionTemplate` Freezed models deleted and replaced by `MemberGroupConfig` + `MemberGroupHelper`.
 - [x] **Member Hub Modernization (Design 4.x)** (Completed 2026-04-27)
     - [x] **Universal Tokenization**: Purged all legacy `Colors.*` constants in favor of branded `AppColors` tokens across all member-facing interfaces.
     - [x] **Branded Async Patterns**: Standardized loading and error states using `BoxyArtLoadingCard` and `BoxyArtEmptyState` components.
@@ -360,3 +362,9 @@ Cuts follow a dual-accessibility pattern based on administrative context:
 - [x] **Eclectic metric fix**: `EclecticCalculator` respects `EclecticMetric.stableford` vs `strokes`
 - [x] **Marker Counter history/holeScores**: `MarkerCounterCalculator` populates `history` (per-round) and `holeScores` (per-hole, single-type only)
 - [x] **Auto-recalculate on close**: `LeaderboardInvokerService.recalculateAll()` called automatically in `_closeEvent()` in `event_admin_controls_screen.dart`
+
+### Freeze Standings on Season Close ✅ (Completed 2026-05-23)
+- [x] **Final recalc before archive**: `season_form_screen.dart` `_closeSeasonDialog()` runs `recalculateAll(seasonId)` before writing `closeSeason()` to Firestore — standings are current at the exact moment of close.
+- [x] **Recalc guard**: `leaderboard_invoker_service.dart` returns early if `season.status == SeasonStatus.closed` — prevents any future sync from modifying frozen standings.
+- [x] **Admin sync guard**: `admin_operations_screen.dart` "Sync Standings" button checks closed status and shows snackbar ("Season is closed — standings are frozen") instead of invoking recalc.
+- [x] **Frozen UI banners**: Both `season_standings_screen.dart` (hub) and `season_leaderboard_detail_screen.dart` (detail) show an amber lock card when the season is closed. Hub subtitle also changes to "Season closed · standings are final".

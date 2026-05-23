@@ -59,7 +59,7 @@ class _CurrencySelectionScreenState extends ConsumerState<CurrencySelectionScree
     return HeadlessScaffold(
       title: 'Currency',
       subtitle: 'Select society default currency',
-      topPill: BoxyArtPill.committee(label: 'ADMIN'),
+      topPill: BoxyArtIndicator.committee(label: 'ADMIN'),
       showBack: true,
       onBack: () => context.pop(),
       actions: const [],

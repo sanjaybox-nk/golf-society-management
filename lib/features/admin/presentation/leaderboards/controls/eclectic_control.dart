@@ -1,6 +1,5 @@
 import 'package:golf_society/design_system/design_system.dart';
 import 'package:golf_society/domain/models/leaderboard_config.dart';
-import 'package:golf_society/domain/models/division_config.dart';
 import 'package:uuid/uuid.dart';
 import 'base_leaderboard_control.dart';
 
@@ -21,7 +20,7 @@ class _EclecticControlState extends State<EclecticControl>
   late EclecticMetric _metric;
   double _handicapPercentage = 0;
   late LeaderboardScope _scope;
-  Division? _divisionFilter;
+  bool _divisionsEnabled = false;
   bool _isSaving = false;
 
   @override
@@ -32,7 +31,7 @@ class _EclecticControlState extends State<EclecticControl>
     _metric = config?.metric ?? EclecticMetric.strokes;
     _handicapPercentage = (config?.handicapPercentage ?? 0).toDouble();
     _scope = config?.scope ?? LeaderboardScope.seasonOnly;
-    _divisionFilter = config?.divisionFilter;
+    _divisionsEnabled = config?.divisionsEnabled ?? false;
   }
 
   @override
@@ -66,9 +65,9 @@ class _EclecticControlState extends State<EclecticControl>
                   value: _scope,
                   onChanged: (v) => setState(() => _scope = v as LeaderboardScope),
                 ),
-                buildDivisionFilterSelector(
-                  value: _divisionFilter,
-                  onChanged: (v) => setState(() => _divisionFilter = v),
+                buildDivisionsEnabledToggle(
+                  value: _divisionsEnabled,
+                  onChanged: (v) => setState(() => _divisionsEnabled = v),
                 ),
               ],
             ),
@@ -110,7 +109,7 @@ class _EclecticControlState extends State<EclecticControl>
                               letterSpacing: 1.0,
                             ),
                           ),
-                          BoxyArtPill.format(
+                          BoxyArtIndicator.format(
                             label: _handicapPercentage == 0
                                 ? 'None'
                                 : '${_handicapPercentage.toInt()}%',
@@ -189,7 +188,7 @@ class _EclecticControlState extends State<EclecticControl>
       scope: _scope,
       metric: _metric,
       handicapPercentage: _handicapPercentage.toInt(),
-      divisionFilter: _divisionFilter,
+      divisionsEnabled: _divisionsEnabled,
     );
 
     widget.onSave(config);

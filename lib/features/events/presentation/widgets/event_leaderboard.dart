@@ -1,13 +1,21 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:golf_society/domain/models/golf_event.dart';
+import 'package:golf_society/domain/models/member_group_config.dart';
+import 'package:golf_society/domain/groups/member_group_helper.dart';
 import 'package:golf_society/design_system/design_system.dart';
 import 'package:golf_society/domain/models/competition.dart';
 import 'package:golf_society/domain/models/scorecard.dart';
 import 'package:golf_society/domain/models/member.dart';
 import 'package:golf_society/features/matchplay/domain/golf_event_match_extensions.dart';
 import '../../logic/event_scoring_controller.dart';
+import '../../../admin/data/member_group_config_repository.dart';
 import '../../../competitions/presentation/widgets/leaderboard_widget.dart';
+import '../../../events/presentation/events_provider.dart';
 import 'package:collection/collection.dart';
+
+final _eventMemberGroupConfigProvider = FutureProvider.autoDispose
+    .family<MemberGroupConfig?, String>((ref, id) =>
+        ref.read(memberGroupConfigRepositoryProvider).getConfig(id));
 
 class EventLeaderboard extends ConsumerStatefulWidget {
   final GolfEvent event;
@@ -38,8 +46,16 @@ class EventLeaderboard extends ConsumerStatefulWidget {
 }
 
 class _EventLeaderboardState extends ConsumerState<EventLeaderboard> {
+  String? _selectedGroupId;
+
   @override
   Widget build(BuildContext context) {
+    final activeSeason = ref.watch(activeSeasonProvider).value;
+    final memberGroupConfig = activeSeason?.memberGroupConfigId != null
+        ? ref.watch(
+            _eventMemberGroupConfigProvider(activeSeason!.memberGroupConfigId!),
+          ).value
+        : null;
 
     // 1. Subscribe to the Central Scoring Brain
     final data = ref.watch(eventScoringControllerProvider(widget.event.id));
@@ -155,13 +171,39 @@ class _EventLeaderboardState extends ConsumerState<EventLeaderboard> {
        );
     }
 
-    final memberEntries = _recalculatePositions(finalEntries.where((e) => !e.isGuest && memberMap.containsKey(e.teamMemberIds?.firstOrNull ?? e.entryId)).toList(), currentFormat);
-    final guestEntries = _recalculatePositions(finalEntries.where((e) => !memberEntries.any((me) => me.entryId == e.entryId)).toList(), currentFormat);
+    final allMemberEntries = _recalculatePositions(finalEntries.where((e) => !e.isGuest && memberMap.containsKey(e.teamMemberIds?.firstOrNull ?? e.entryId)).toList(), currentFormat);
+    // Apply group filter when active.
+    final memberEntries = (_selectedGroupId == null || memberGroupConfig == null)
+        ? allMemberEntries
+        : _recalculatePositions(
+            allMemberEntries.where((e) {
+              final memberId = e.teamMemberIds?.firstOrNull ?? e.entryId;
+              final member = memberMap[memberId];
+              if (member == null) return false;
+              return MemberGroupHelper.memberBelongsToGroup(
+                memberId, _selectedGroupId!, memberGroupConfig, widget.membersList,
+              );
+            }).toList(),
+            currentFormat,
+          );
+    final guestEntries = _recalculatePositions(finalEntries.where((e) => !allMemberEntries.any((me) => me.entryId == e.entryId)).toList(), currentFormat);
     final bool hasGuests = guestEntries.isNotEmpty;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        if (memberGroupConfig != null) ...[
+          BoxyArtTabBar<String?>(
+            selectedValue: _selectedGroupId,
+            onTabSelected: (v) => setState(() => _selectedGroupId = v),
+            tabs: [
+              const ModernFilterTab(value: null, label: 'All'),
+              for (final g in memberGroupConfig.groups)
+                ModernFilterTab(value: g.id, label: g.name),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.standard),
+        ],
         if (memberEntries.isNotEmpty) ...[
           if (widget.showTitles) ...[
             BoxyArtSectionTitle(

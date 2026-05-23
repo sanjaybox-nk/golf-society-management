@@ -318,11 +318,11 @@ class ScorecardModal {
                                     BoxyArtIndicator.hc(label: entry.handicapIndex.toStringAsFixed(1)),
                                     if (entry.playingHandicap != null) ...[
                                       const SizedBox(width: AppSpacing.md),
-                                      BoxyArtIndicator.phc(context: context, label: '${entry.playingHandicap}'),
+                                      BoxyArtIndicator.phc(label: '${entry.playingHandicap}'),
                                     ],
                                     if (entry.thruLabel != null) ...[
                                       const SizedBox(width: AppSpacing.md),
-                                      BoxyArtPill.status(label: entry.thruLabel!, color: AppColors.lime500, isLegend: true),
+                                      BoxyArtIndicator.status(label: entry.thruLabel!, color: AppColors.lime500, isLegend: true),
                                     ],
                                     const Spacer(),
                                     BoxyArtIndicator.tee(
@@ -361,7 +361,7 @@ class ScorecardModal {
                                   Wrap(
                                     spacing: AppSpacing.atomic,
                                     children: [
-                                      BoxyArtPill.status(label: entry.tieBreakLabel!, color: AppColors.dark400, isLegend: true),
+                                      BoxyArtIndicator.status(label: entry.tieBreakLabel!, color: AppColors.dark400, isLegend: true),
                                     ],
                                   ),
                                 ],

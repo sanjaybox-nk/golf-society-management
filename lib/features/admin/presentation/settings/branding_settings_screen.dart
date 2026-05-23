@@ -15,7 +15,7 @@ class BrandingSettingsScreen extends ConsumerWidget {
     return HeadlessScaffold(
       title: 'Branding',
       subtitle: 'Customize colors and identity',
-      topPill: BoxyArtPill.committee(label: 'ADMIN'),
+      topPill: BoxyArtIndicator.committee(label: 'ADMIN'),
       showBack: true,
       onBack: () => context.pop(),
       actions: const [],

@@ -21,7 +21,7 @@ class _RolesScreenState extends ConsumerState<RolesScreen> {
     return HeadlessScaffold(
       title: 'System Roles',
       subtitle: 'Manage administrative permissions.',
-      topPill: BoxyArtPill.committee(label: 'ADMIN'),
+      topPill: BoxyArtIndicator.committee(label: 'ADMIN'),
       showBack: true,
       actions: const [],
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,

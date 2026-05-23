@@ -53,7 +53,7 @@ class _SocietyCutsSettingsScreenState extends ConsumerState<SocietyCutsSettingsS
     return HeadlessScaffold(
       title: 'Society Cuts',
       subtitle: (config.societyCutMode != SocietyCutMode.off) ? 'Active' : 'Disabled',
-      topPill: BoxyArtPill.committee(label: 'ADMIN'),
+      topPill: BoxyArtIndicator.committee(label: 'ADMIN'),
       showBack: true,
       onBack: () => context.pop(),
       actions: const [],

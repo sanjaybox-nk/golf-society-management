@@ -673,6 +673,14 @@ List<StatefulShellBranch> _buildAdminBranches(Ref ref) => [
                   child: MemberDetailsScreen(id: state.pathParameters['id']!, isAdminContext: true),
                 ),
               ),
+              GoRoute(
+                name: 'admin-guest-detail',
+                path: '/admin/guests/:id',
+                pageBuilder: (context, state) => boxyPage(
+                  state: state,
+                  child: GuestDetailScreen(guestId: state.pathParameters['id']!),
+                ),
+              ),
             ],
           ),
           // 8. Admin Communications
@@ -712,6 +720,48 @@ List<StatefulShellBranch> _buildAdminBranches(Ref ref) => [
                         pageBuilder: (context, state) => boxyPage(state: state,
                           child: const Center(child: Text('Leaderboard Detail Placeholder')),
                         ),
+                      ),
+                    ],
+                  ),
+                  GoRoute(
+                    path: 'divisions/templates',
+                    name: 'admin-division-templates',
+                    pageBuilder: (context, state) => boxyPage(
+                      state: state,
+                      child: DivisionTemplateGalleryScreen(
+                        isPicker: state.uri.queryParameters['picker'] == 'true',
+                      ),
+                    ),
+                    routes: [
+                      GoRoute(
+                        path: 'new',
+                        name: 'admin-division-template-new',
+                        pageBuilder: (context, state) => boxyPage(
+                          state: state,
+                          child: DivisionTemplateEditorScreen(
+                            config: MemberGroupConfig(id: const Uuid().v4(), name: ''),
+                            isNew: true,
+                          ),
+                        ),
+                      ),
+                      GoRoute(
+                        path: ':id',
+                        name: 'admin-division-template-edit',
+                        pageBuilder: (context, state) {
+                          final extra = state.extra as Map<String, dynamic>?;
+                          final config = extra?['config'] as MemberGroupConfig?;
+                          final isInUse = extra?['isInUse'] as bool? ?? false;
+                          return boxyPage(
+                            state: state,
+                            child: config != null
+                                ? DivisionTemplateEditorScreen(
+                                    config: config,
+                                    isNew: false,
+                                    isInUse: isInUse,
+                                  )
+                                : const SizedBox.shrink(),
+                          );
+                        },
                       ),
                     ],
                   ),

@@ -246,10 +246,11 @@ class GroupingCard extends ConsumerWidget {
                     }).length;
                     if (readyCount == 0) return [];
                     return [
-                      BoxyArtPill(
+                      BoxyArtIndicator(
                         label: '$readyCount ready',
                         icon: Icons.check_circle_rounded,
-                        color: AppColors.lime500,
+                        dotColor: AppColors.lime500,
+                        showBackground: true,
                         hasHorizontalMargin: false,
                       ),
                       const SizedBox(width: AppSpacing.sm),
@@ -264,17 +265,17 @@ class GroupingCard extends ConsumerWidget {
                     }).length;
                     if (unsubmittedCount == 0) return [];
                     return [
-                      BoxyArtPill(
+                      BoxyArtIndicator(
                         label: '$unsubmittedCount not submitted',
                         icon: Icons.pending_rounded,
-                        color: AppColors.amber500,
+                        dotColor: AppColors.amber500,
                         isAction: true,
                         hasHorizontalMargin: false,
                       ),
                       const SizedBox(width: AppSpacing.sm),
                     ];
                   }(),
-                  BoxyArtPill(
+                  BoxyArtIndicator(
                     label: _formatTime(context, group.teeTime),
                     icon: Icons.access_time_filled_rounded,
                     isAction: true,
@@ -630,9 +631,9 @@ class GroupingCard extends ConsumerWidget {
                 if (isFourball)
                   Text(rules?.isMatchPlay == true ? 'Match Play (Rel)' : 'Fourball (Pairs)', style: AppTypography.label.copyWith(color: isDark ? AppColors.dark100 : AppColors.dark900, fontWeight: AppTypography.weightBold, fontSize: 12, letterSpacing: -0.2))
                 else if (isScramble)
-                  BoxyArtPill.phc(context: context, label: 'Team: ${displayTotalHandicap.toInt()}', hasHorizontalMargin: false)
+                  BoxyArtIndicator.phc(label: 'Team: ${displayTotalHandicap.toInt()}', hasHorizontalMargin: false)
                 else
-                  BoxyArtPill.phc(context: context, label: 'Total: ${displayTotalHandicap.toInt()}', hasHorizontalMargin: false),
+                  BoxyArtIndicator.phc(label: 'Total: ${displayTotalHandicap.toInt()}', hasHorizontalMargin: false),
               ],
             ),
           ),

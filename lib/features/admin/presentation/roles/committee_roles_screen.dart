@@ -34,7 +34,7 @@ class _CommitteeRolesScreenState extends ConsumerState<CommitteeRolesScreen> {
     return HeadlessScaffold(
       title: 'Committee Roles',
       subtitle: 'Society specific titles',
-      topPill: BoxyArtPill.committee(label: 'ADMIN'),
+      topPill: BoxyArtIndicator.committee(label: 'ADMIN'),
       actions: const [],
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       showBack: true,
@@ -131,9 +131,10 @@ class _CommitteeRolesScreenState extends ConsumerState<CommitteeRolesScreen> {
                     ),
                     if (memberCount > 0) ...[
                       const SizedBox(width: AppSpacing.sm),
-                      BoxyArtPill(
+                      BoxyArtIndicator(
                         label: '$memberCount',
-                        color: theme.primaryColor,
+                        dotColor: theme.primaryColor,
+                        showBackground: true,
                         fontSize: AppTypography.sizeMicroSmall,
                         hasHorizontalMargin: false,
                       ),

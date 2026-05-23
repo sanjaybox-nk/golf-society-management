@@ -72,6 +72,8 @@ class GuestRepository {
     final json = guest.toJson()..remove('id');
     await _ref.doc(guest.id).update(json);
   }
+
+  Future<void> delete(String id) => _ref.doc(id).delete();
 }
 
 final guestRepositoryProvider = Provider<GuestRepository>(

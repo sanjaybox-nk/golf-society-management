@@ -18,7 +18,7 @@ class LeaderboardBadgeRow extends StatelessWidget {
 
     // 1. Basis Pill (Points, Stableford, etc.)
     pills.add(
-      BoxyArtPill.format(
+      BoxyArtIndicator.format(
         label: LeaderboardRuleTranslator.getBasisLabel(config),
         icon: Icons.calculate_rounded,
         isLegend: true,
@@ -34,7 +34,7 @@ class LeaderboardBadgeRow extends StatelessWidget {
     );
     if (bestN > 0) {
       pills.add(
-        BoxyArtPill.format(
+        BoxyArtIndicator.format(
           label: 'Best $bestN',
           icon: Icons.filter_list_rounded,
           isLegend: true,
@@ -42,7 +42,7 @@ class LeaderboardBadgeRow extends StatelessWidget {
       );
     } else if (config is! EclecticConfig) {
       pills.add(
-        BoxyArtPill.format(
+        BoxyArtIndicator.format(
           label: 'All Rounds',
           icon: Icons.all_inclusive_rounded,
           isLegend: true,
@@ -55,7 +55,7 @@ class LeaderboardBadgeRow extends StatelessWidget {
       final c = config as EclecticConfig;
       if (c.handicapPercentage > 0) {
         pills.add(
-          BoxyArtPill.format(
+          BoxyArtIndicator.format(
             label: '${c.handicapPercentage}% Hcp',
             icon: Icons.percent_rounded,
             isLegend: true,
@@ -63,7 +63,7 @@ class LeaderboardBadgeRow extends StatelessWidget {
         );
       } else {
         pills.add(
-          BoxyArtPill.format(
+          BoxyArtIndicator.format(
             label: 'Scratch',
             icon: Icons.shutter_speed_rounded,
             isLegend: true,

@@ -43,7 +43,7 @@ class _SystemRoleMembersScreenState extends ConsumerState<SystemRoleMembersScree
     return HeadlessScaffold(
       title: widget.role.displayName,
       subtitle: 'Manage assignments',
-      topPill: BoxyArtPill.committee(label: 'ADMIN'),
+      topPill: BoxyArtIndicator.committee(label: 'ADMIN'),
       actions: const [],
       showBack: true,
       backgroundColor: theme.scaffoldBackgroundColor,
@@ -237,9 +237,10 @@ class _SystemRoleMembersScreenState extends ConsumerState<SystemRoleMembersScree
                   ),
                 ),
                 const SizedBox(height: 4),
-                BoxyArtPill(
+                BoxyArtIndicator(
                   label: widget.role.displayName,
-                  color: roleColor,
+                  dotColor: roleColor,
+                  showBackground: true,
                   fontSize: AppTypography.sizeMicro,
                   hasHorizontalMargin: false,
                 ),

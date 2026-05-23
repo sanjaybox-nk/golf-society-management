@@ -2,6 +2,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:golf_society/domain/models/member.dart';
+import 'package:golf_society/domain/models/member_group_config.dart';
+import 'package:golf_society/domain/groups/member_group_helper.dart';
 import 'package:golf_society/design_system/design_system.dart';
 import '../members_provider.dart';
 import '../profile_provider.dart';
@@ -14,12 +16,10 @@ class MemberTile extends ConsumerWidget {
   final VoidCallback? onLongPress;
   final Widget? trailing;
   final bool showFeeStatus;
-  final String? secondaryMetricLabel; 
-  final String? secondaryMetricValue;
-  final int? eventCount;
   final bool isAdminContext;
   final bool isEventPaymentContext;
   final VoidCallback? onFeeToggle;
+  final MemberGroupConfig? memberGroupConfig;
 
   const MemberTile({
     super.key,
@@ -30,10 +30,8 @@ class MemberTile extends ConsumerWidget {
     this.showFeeStatus = false,
     this.isEventPaymentContext = false,
     this.onFeeToggle,
-    this.secondaryMetricLabel,
-    this.secondaryMetricValue,
-    this.eventCount,
     this.isAdminContext = false,
+    this.memberGroupConfig,
   });
 
   @override
@@ -44,15 +42,18 @@ class MemberTile extends ConsumerWidget {
     final isAdmin = currentUser.role.hasAdminAccess;
     final canSeeFees = isAdmin && showFeeStatus;
     
-    return BoxyArtMemberRow(
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final leadingWidth = constraints.maxWidth * 0.30;
+        return BoxyArtMemberRow(
       name: member.displayName,
       initials: (member.firstName.isNotEmpty ? member.firstName[0] : '') + (member.lastName.isNotEmpty ? member.lastName[0] : ''),
       avatarUrl: member.avatarUrl,
       handicapIndex: member.handicap,
-      // Design 4.x: Society roles (Captain, etc.) now integrated into secondary metadata
-      secondaryName: member.societyRole?.isNotEmpty == true ? member.societyRole : null,
+      secondaryName: _secondaryLabel(member, isAdminContext),
+      secondaryNameColor: isAdminContext ? _statusAlertColor(member.status) : null,
       onTap: onTap ?? () => context.pushNamed(
-        isAdminContext ? 'admin-member-detail' : 'member-detail', 
+        isAdminContext ? 'admin-member-detail' : 'member-detail',
         pathParameters: {'id': member.id},
       ),
       isSelected: false,
@@ -60,10 +61,9 @@ class MemberTile extends ConsumerWidget {
       showChevron: true,
       showVerticalDivider: true,
       isFoundingMember: member.isFoundingMember,
-      
-      // Leading Slot: Preserving roster-specific metrics (Since / Events)
+
       leading: SizedBox(
-        width: 64,
+        width: leadingWidth,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -78,20 +78,6 @@ class MemberTile extends ConsumerWidget {
                   borderColor: Colors.transparent,
                   borderWidth: 0,
                 ),
-                if (member.role == MemberRole.socialMember || member.status == MemberStatus.social)
-                  Positioned(
-                    bottom: -2,
-                    right: -2,
-                    child: Container(
-                      padding: const EdgeInsets.all(3),
-                      decoration: BoxDecoration(
-                        color: AppColors.guestPurple,
-                        shape: BoxShape.circle,
-                        border: Border.all(color: AppColors.pureWhite, width: 1.5),
-                      ),
-                      child: const Icon(Icons.people_rounded, size: 10, color: AppColors.pureWhite),
-                    ),
-                  ),
               ],
             ),
             if (member.joinedDate != null) ...[
@@ -101,30 +87,29 @@ class MemberTile extends ConsumerWidget {
                   'Since ${member.joinedDate!.year}',
                   style: AppTypography.micro.copyWith(
                     color: theme.brightness == Brightness.dark ? AppColors.dark200 : AppColors.dark800,
-                    fontSize: 9, 
                   ),
                 ),
               ),
             ],
-            const SizedBox(height: 4), 
-            FittedBox(
-              child: Text(
-                '${secondaryMetricLabel ?? 'Events'} ${secondaryMetricValue ?? eventCount ?? '0'}',
-                style: AppTypography.micro.copyWith(
-                  color: theme.brightness == Brightness.dark ? AppColors.dark200 : AppColors.dark800, 
-                  fontSize: 10, 
-                  fontWeight: AppTypography.weightRegular,
-                ),
-              ),
-            ),
           ],
         ),
       ),
       
-      // Footer Slot: Admin Status Pills (Moved here to free up horizontal space for name)
-      footer: Row(
-        mainAxisSize: MainAxisSize.min,
+      footer: (memberGroupConfig != null || canSeeFees) ? Row(
         children: [
+          if (memberGroupConfig != null)
+            Builder(builder: (context) {
+              final group = MemberGroupHelper.groupForMember(member, memberGroupConfig);
+              if (group == null) return const SizedBox.shrink();
+              final isFirst = memberGroupConfig!.groups.isNotEmpty &&
+                  group.id == memberGroupConfig!.groups.first.id;
+              return BoxyArtIndicator(
+                label: group.name,
+                dotColor: isFirst ? AppColors.lime500 : AppColors.amber500,
+                hasHorizontalMargin: false,
+              );
+            }),
+          const Spacer(),
           if (canSeeFees)
             BoxyArtFeePill(
               isPaid: member.hasPaid,
@@ -132,32 +117,49 @@ class MemberTile extends ConsumerWidget {
               onToggle: onFeeToggle ?? () {
                 final repo = ref.read(membersRepositoryProvider);
                 final nextPaidState = !member.hasPaid;
-                
                 final newStatus = nextPaidState && (member.status == MemberStatus.expired || member.status == MemberStatus.gracePeriod)
-                    ? MemberStatus.member 
+                    ? MemberStatus.member
                     : member.status;
-
                 repo.updateMember(member.copyWith(
                   hasPaid: nextPaidState,
                   status: newStatus,
                 ));
               },
             ),
-          if (isAdminContext && member.status != MemberStatus.active && member.status != MemberStatus.member)
-            if (member.status != MemberStatus.expired || isAdminContext)
-              Padding(
-                padding: EdgeInsets.only(left: canSeeFees ? 8 : 0),
-                child: BoxyArtIndicator(
-                  label: member.status.displayName,
-                  dotColor: member.status.color,
-                  hasHorizontalMargin: false,
-                ),
-              ),
         ],
-      ),
+      ) : null,
 
-      // Trailing Slot: Optional custom trailing widgets
       trailing: trailing,
+        );
+      },
     );
   }
+}
+
+Color? _statusAlertColor(MemberStatus status) {
+  switch (status) {
+    case MemberStatus.expired:
+    case MemberStatus.suspended:
+      return AppColors.coral500;
+    case MemberStatus.pending:
+      return AppColors.amber500;
+    default:
+      return null;
+  }
+}
+
+String? _secondaryLabel(Member member, bool isAdmin) {
+  const activeStatuses = {MemberStatus.active, MemberStatus.member};
+  final isSocial = member.role == MemberRole.socialMember || member.status == MemberStatus.social;
+  final role = member.societyRole?.isNotEmpty == true ? member.societyRole! : null;
+  final statusLabel = isAdmin && !activeStatuses.contains(member.status) && !isSocial
+      ? member.status.displayName
+      : null;
+
+  final parts = [
+    ?statusLabel,
+    if (isSocial) 'Social Member',
+    ?role,
+  ];
+  return parts.isEmpty ? null : parts.join(' · ');
 }

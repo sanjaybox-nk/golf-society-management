@@ -210,7 +210,7 @@ abstract class BaseCompetitionControlState<T extends BaseCompetitionControl> ext
                 letterSpacing: 1.0,
               ),
             ),
-            BoxyArtPill.format(
+            BoxyArtIndicator.format(
               label: pct == 0 ? 'None' : '$pct%',
               color: isDark ? AppColors.dark150 : AppColors.dark600,
             ),
@@ -273,7 +273,7 @@ abstract class BaseCompetitionControlState<T extends BaseCompetitionControl> ext
                 letterSpacing: 1.0,
               ),
             ),
-            BoxyArtPill.format(
+            BoxyArtIndicator.format(
               label: valueLabel,
               color: isDark ? AppColors.dark150 : AppColors.dark600,
             ),

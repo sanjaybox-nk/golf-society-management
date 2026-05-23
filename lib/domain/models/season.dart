@@ -1,7 +1,6 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:golf_society/utils/json_converters.dart';
 import 'leaderboard_config.dart';
-import 'division_config.dart';
 
 part 'season.freezed.dart';
 part 'season.g.dart';
@@ -11,7 +10,7 @@ enum SeasonStatus { active, closed }
 @freezed
 abstract class Season with _$Season {
   const Season._();
-  
+
   const factory Season({
     required String id,
     required String name,
@@ -20,8 +19,9 @@ abstract class Season with _$Season {
     @TimestampConverter() required DateTime endDate,
     @Default(SeasonStatus.active) SeasonStatus status,
     @Default(false) bool isCurrent,
-    @Default([]) List<LeaderboardConfig> leaderboards,
-    DivisionConfig? divisionConfig,
+    @Default([]) List<String> leaderboardIds,
+    @Default([]) List<LeaderboardConfig> archivedLeaderboardConfigs,
+    String? memberGroupConfigId,
     @Default({}) Map<String, dynamic> agmData,
   }) = _Season;
 

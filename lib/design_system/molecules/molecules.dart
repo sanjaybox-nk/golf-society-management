@@ -14,7 +14,7 @@ export '../widgets/boxy_art_loading_card.dart';
 // Badges
 export '../widgets/badges/badges.dart';
 export '../widgets/badges/boxy_art_date_badge.dart';
-export '../widgets/badges/boxy_art_pill.dart';
+export '../atoms/indicators/boxy_art_indicator.dart';
 export '../widgets/badges/boxy_art_square_badge.dart';
 
 // Form helpers
@@ -35,6 +35,9 @@ export '../widgets/layout/layout.dart';
 export '../widgets/layout/dividers.dart';
 export '../widgets/layout/section_title.dart';
 export '../widgets/info_rows.dart';
+
+// Selectable option cards
+export 'cards/boxy_art_select_card.dart';
 
 // Navigation primitives
 export '../widgets/navigation.dart';

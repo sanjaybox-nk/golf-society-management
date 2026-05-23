@@ -138,7 +138,7 @@ class _MatchTile extends ConsumerWidget {
             const SizedBox(height: AppSpacing.lg),
             
             // Result Pill
-            BoxyArtPill.status(
+            BoxyArtIndicator.status(
               label: result.status,
               color: _getStatusColor(result.status, theme, match),
               hasHorizontalMargin: false,

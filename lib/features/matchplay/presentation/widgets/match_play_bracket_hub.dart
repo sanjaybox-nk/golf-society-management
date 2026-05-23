@@ -299,7 +299,7 @@ class _MatchupCard extends ConsumerWidget {
             ),
             _buildPlayerRow(p2?.displayName ?? 'BYE', match.team2Ids, result.winningTeamIndex == 1, theme),
             const SizedBox(height: AppSpacing.md),
-            BoxyArtPill.status(
+            BoxyArtIndicator.status(
               label: result.status,
               color: _getStatusColor(result.status).withValues(alpha: 0.1),
             ),

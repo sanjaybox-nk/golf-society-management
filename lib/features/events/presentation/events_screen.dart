@@ -8,10 +8,10 @@ import 'package:golf_society/domain/models/golf_event.dart';
 import 'package:golf_society/domain/models/competition.dart';
 import 'package:golf_society/features/competitions/presentation/competitions_provider.dart';
 import 'package:golf_society/features/competitions/presentation/season_standings_screen.dart';
-import 'package:golf_society/domain/models/leaderboard_config.dart';
 import 'package:golf_society/features/members/presentation/profile_provider.dart';
 import 'package:golf_society/utils/string_utils.dart';
 import 'package:golf_society/utils/date_utils.dart' as utils;
+import 'package:golf_society/features/competitions/presentation/standings/season_leaderboard_configs_provider.dart';
 
 /// Unified events list screen for both member and admin contexts.
 ///
@@ -58,7 +58,7 @@ class EventsScreen extends ConsumerWidget {
     return HeadlessScaffold(
       title: 'Golf Events',
       subtitle: subtitle,
-      topPill: isAdminContext ? BoxyArtPill.committee(label: 'ADMIN') : null,
+      topPill: isAdminContext ? BoxyArtIndicator.committee(label: 'ADMIN') : null,
       showAdminShortcut: false,
       showBack: false,
       leading: isAdminContext
@@ -153,7 +153,17 @@ class EventsScreen extends ConsumerWidget {
             ),
           );
         }
-        if (season.leaderboards.isEmpty) {
+        final leaderboardsAsync = ref.watch(seasonLeaderboardConfigsProvider(season.id));
+        final leaderboards = leaderboardsAsync.value ?? [];
+
+        if (leaderboardsAsync.isLoading) {
+          return const SliverPadding(
+            padding: EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.xl),
+            sliver: SliverToBoxAdapter(child: BoxyArtLoadingCard(useCard: true)),
+          );
+        }
+
+        if (leaderboards.isEmpty) {
           return const SliverPadding(
             padding: EdgeInsets.symmetric(horizontal: AppSpacing.xl),
             sliver: SliverToBoxAdapter(
@@ -165,7 +175,7 @@ class EventsScreen extends ConsumerWidget {
             ),
           );
         }
-        final groups = groupLeaderboards(season.leaderboards);
+        final groups = groupLeaderboards(leaderboards);
         return SliverPadding(
           padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
           sliver: SliverList(
@@ -301,7 +311,7 @@ class _EventRow extends ConsumerWidget {
 
     Widget? statusPill;
     if (isRegistered) {
-      statusPill = BoxyArtPill.status(
+      statusPill = BoxyArtIndicator.status(
         label: 'Confirmed',
         color: AppColors.lime600,
         hasHorizontalMargin: false,
@@ -310,7 +320,7 @@ class _EventRow extends ConsumerWidget {
     } else if (event.isRegistrationOpen) {
       final isFull = event.maxParticipants != null &&
           event.playingCount >= event.maxParticipants!;
-      statusPill = BoxyArtPill.status(
+      statusPill = BoxyArtIndicator.status(
         label: isFull ? 'Register (Waitlist)' : 'Register Now',
         color: isFull ? AppColors.coral500 : primary,
         isAction: true,
@@ -319,7 +329,7 @@ class _EventRow extends ConsumerWidget {
     } else {
       final isPast = utils.DateUtils.isPastEvent(event);
       if (!isPast) {
-        statusPill = BoxyArtPill.status(
+        statusPill = BoxyArtIndicator.status(
           label: 'Registration Closed',
           color: AppColors.dark400,
           hasHorizontalMargin: false,
@@ -331,32 +341,10 @@ class _EventRow extends ConsumerWidget {
     return BoxyArtEventCard(
       event: event,
       onTap: () => context.go('/events/${Uri.encodeComponent(event.id)}'),
-      gameTypePill: _buildGameTypePill(context, ref, event.id, isHighlighted),
+      gameTypePill: _gameTypePill(context, ref, event.id),
       statusPill: statusPill,
       isHighlighted: isHighlighted,
       showSponsorStrip: true,
-    );
-  }
-
-  Widget _buildGameTypePill(BuildContext context, WidgetRef ref, String eventId, bool isHighlighted) {
-    final compAsync = ref.watch(competitionDetailProvider(eventId));
-    return compAsync.when(
-      data: (comp) {
-        if (comp == null) return const SizedBox.shrink();
-        final gameName = comp.rules.gameName;
-        const color = AppColors.dark500;
-        return Text(
-          toTitleCase(gameName),
-          style: AppTypography.label.copyWith(
-            fontSize: 11.0,
-            color: color,
-            fontWeight: AppTypography.weightRegular,
-            letterSpacing: -0.2,
-          ),
-        );
-      },
-      loading: () => const SizedBox.shrink(),
-      error: (e, s) => const SizedBox.shrink(),
     );
   }
 }
@@ -405,28 +393,13 @@ class _AdminEventRow extends ConsumerWidget {
           'admin-event-details',
           pathParameters: {'id': event.id},
         ),
-        gameTypePill: _buildGameTypePill(context, ref, event.id),
-        statusPill: GestureDetector(
-          onTap: () => _showStatusSelector(context, ref, event),
-          child: _buildStatusBadge(context, event),
-        ),
+        gameTypePill: _gameTypePill(context, ref, event.id),
+        statusPill: _buildStatusBadge(context, ref, event),
       ),
     );
   }
 
-  Widget _buildGameTypePill(BuildContext context, WidgetRef ref, String eventId) {
-    final compAsync = ref.watch(competitionDetailProvider(eventId));
-    return compAsync.when(
-      data: (comp) {
-        if (comp == null) return const SizedBox.shrink();
-        return BoxyArtPill.format(label: comp.rules.gameName);
-      },
-      loading: () => const SizedBox.shrink(),
-      error: (e, s) => const SizedBox.shrink(),
-    );
-  }
-
-  Widget _buildStatusBadge(BuildContext context, GolfEvent event) {
+  Widget _buildStatusBadge(BuildContext context, WidgetRef ref, GolfEvent event) {
     final status = event.displayStatus;
     final Color statusColor;
     final String statusText;
@@ -457,63 +430,70 @@ class _AdminEventRow extends ConsumerWidget {
         statusColor = AppColors.lime500;
     }
 
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        BoxyArtPill.status(label: statusText, color: statusColor),
-        const SizedBox(width: AppSpacing.xs),
-        Icon(
-          Icons.keyboard_arrow_down_rounded,
-          size: 16,
-          color: statusColor.withValues(alpha: 0.7),
-        ),
-      ],
+    final isCompleted = status == EventStatus.completed;
+    return BoxyArtIndicator(
+      label: statusText,
+      dotColor: statusColor,
+      showBackground: true,
+      hasHorizontalMargin: false,
+      actionIcon: isCompleted ? Icons.lock_open_rounded : Icons.keyboard_arrow_down_rounded,
+      onTap: isCompleted
+          ? () => _confirmReopen(context, ref, event)
+          : () => _showStatusSelector(context, ref, event),
     );
+  }
+
+  Future<void> _confirmReopen(BuildContext context, WidgetRef ref, GolfEvent event) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => BoxyArtDialog(
+        title: 'Reopen Event?',
+        message: 'This will unlock scoring and set the event back to Live. Use this to correct errors after close.',
+        confirmText: 'Reopen',
+        cancelText: 'Cancel',
+        isDangerous: true,
+        onConfirm: () => Navigator.of(ctx).pop(true),
+        onCancel: () => Navigator.of(ctx).pop(false),
+      ),
+    );
+    if (confirmed == true) {
+      await ref.read(eventsRepositoryProvider).updateEvent(
+        event.copyWith(status: EventStatus.inPlay, isScoringLocked: false),
+      );
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Event reopened')),
+        );
+      }
+    }
   }
 
   void _showStatusSelector(BuildContext context, WidgetRef ref, GolfEvent event) {
     BoxyArtBottomSheet.show(
       context: context,
       title: 'Change Event Status',
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: EventStatus.values.map((s) {
-          final isSelected = event.status == s;
-          String label = toTitleCase(s.name);
-          if (s == EventStatus.inPlay) label = 'Live';
-
+      child: Builder(
+        builder: (context) {
+          final spacing = Theme.of(context).extension<AppSpacingTokens>();
+          final cardGap = spacing?.cardToCard ?? AppSpacing.atomic;
           return Column(
-            children: [
-              ListTile(
-                contentPadding: EdgeInsets.zero,
-                leading: BoxyArtIconBadge(
-                  icon: _getStatusIcon(s),
-                  color: isSelected ? Theme.of(context).primaryColor : AppColors.dark600,
-                  showFill: false,
-                  showBorder: isSelected,
-                  borderColor: isSelected ? Theme.of(context).primaryColor : AppColors.dark300,
-                  iconColor: isSelected ? Theme.of(context).primaryColor : AppColors.dark600,
-                ),
-                title: Text(
-                  label.toUpperCase(),
-                  style: AppTypography.micro.copyWith(
-                    fontWeight: isSelected ? AppTypography.weightExtraBold : AppTypography.weightBold,
-                    color: isSelected ? Theme.of(context).primaryColor : AppColors.dark600,
-                    letterSpacing: 1.0,
-                  ),
-                ),
-                trailing: isSelected
-                    ? Icon(Icons.check_circle_rounded, color: Theme.of(context).primaryColor, size: 22)
-                    : null,
+            mainAxisSize: MainAxisSize.min,
+            children: EventStatus.values.where((s) => s != EventStatus.completed).map((s) {
+              final isSelected = event.status == s;
+              final label = s == EventStatus.inPlay ? 'Live' : toTitleCase(s.name);
+              return BoxyArtSelectCard(
+                icon: _getStatusIcon(s),
+                label: label,
+                isSelected: isSelected,
                 onTap: () {
                   Navigator.pop(context);
                   ref.read(eventsRepositoryProvider).updateEvent(event.copyWith(status: s));
                 },
-              ),
-              const SizedBox(height: AppSpacing.md),
-            ],
+                cardGap: cardGap,
+              );
+            }).toList(),
           );
-        }).toList(),
+        },
       ),
     );
   }
@@ -528,4 +508,24 @@ class _AdminEventRow extends ConsumerWidget {
       case EventStatus.cancelled:  return Icons.cancel_outlined;
     }
   }
+}
+
+Widget _gameTypePill(BuildContext context, WidgetRef ref, String eventId) {
+  final compAsync = ref.watch(competitionDetailProvider(eventId));
+  return compAsync.when(
+    data: (comp) {
+      if (comp == null) return const SizedBox.shrink();
+      return Text(
+        toTitleCase(comp.rules.gameName),
+        style: AppTypography.label.copyWith(
+          fontSize: 11.0,
+          color: AppColors.dark500,
+          fontWeight: AppTypography.weightRegular,
+          letterSpacing: -0.2,
+        ),
+      );
+    },
+    loading: () => const SizedBox.shrink(),
+    error: (e, s) => const SizedBox.shrink(),
+  );
 }

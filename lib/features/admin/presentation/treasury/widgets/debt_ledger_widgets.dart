@@ -32,17 +32,17 @@ class DebtSummaryCard extends ConsumerWidget {
                   child: Text(summary.member.displayName, style: AppTypography.memberName),
                 ),
                 if (summary.netBalance > 0)
-                  BoxyArtPill.status(
+                  BoxyArtIndicator.status(
                     label: 'CREDIT: +£${summary.netBalance.toStringAsFixed(0)}',
                     color: AppColors.lime500,
                   )
                 else if (summary.netBalance < 0)
-                  BoxyArtPill.status(
+                  BoxyArtIndicator.status(
                     label: 'OWES: £${summary.netBalance.abs().toStringAsFixed(0)}',
                     color: AppColors.coral500,
                   )
                 else
-                  BoxyArtPill.status(
+                  BoxyArtIndicator.status(
                     label: 'Settled',
                     color: AppColors.dark300,
                   )

@@ -72,6 +72,37 @@ Shared positions are displayed with an `=` prefix (e.g. `=2`) using `BoxyArtNumb
 ### 3.2c Season Date Filter — Known Gotcha
 The season end date **must include all event dates** that should count towards standings. If any event date falls after the season end date, that event's results are silently excluded from all leaderboard calculations and the standings will appear empty or incomplete. Always extend the season end date past the last scheduled event when configuring a season.
 
+### 3.2d Member Group Filter (May 2026)
+Each leaderboard config supports a `groupFilter: String?` field (a group ID from the season's linked `MemberGroupConfig`). When set, `LeaderboardInvokerService` filters the calculated standings to only include members who belong to that group, using `MemberGroupHelper.memberBelongsToGroup(memberId, groupFilter, groupConfig, members)`. See §3.5 Member Groups for the group system architecture.
+
+### 3.2e Frozen Standings — Season Close (May 2026)
+When a season is archived via the admin season form, standings are frozen in three ways:
+1. A final `recalculateAll(seasonId)` is run before the `closeSeason()` write to Firestore, ensuring standings are up-to-date at the exact moment of close.
+2. `LeaderboardInvokerService.recalculateAll()` returns early if `season.status == SeasonStatus.closed`, preventing any subsequent sync from overwriting frozen standings.
+3. The Admin Operations "Sync Standings" button shows a snackbar and exits if the season is closed.
+
+Both `season_standings_screen.dart` and `season_leaderboard_detail_screen.dart` display an amber lock banner when the season is closed: *"Season closed — standings are final and will not change."*
+
+### 3.5 Member Groups System (May 2026)
+Replaced the old `DivisionConfig` / `DivisionTemplate` system with `MemberGroupConfig` — a flexible, society-defined grouping system.
+
+#### Split types
+| Type | Behaviour |
+|---|---|
+| `handicap` | Members are auto-assigned to a group based on their HC falling within a named range (e.g. 0–12 = "A Division", 12.1–28 = "B Division") |
+| `gender` | Members are auto-split by gender field |
+| `custom` | Admin manually assigns members to named groups via the member picker |
+
+#### Admin screens
+- `DivisionTemplateGalleryScreen` — lists all saved `MemberGroupConfig` templates for the society; accessed from Admin → Seasons
+- `DivisionTemplateEditorScreen` — full editor for a `MemberGroupConfig`: set split type, name groups, configure ranges or manually assign members; opens via `showDialog(Dialog.fullscreen(...))` from the gallery
+
+#### Member picker
+`_MemberPickerScreen` is a plain `StatefulWidget` (not a ConsumerWidget) rendered inside `Dialog.fullscreen()`. It uses `Material + SafeArea + Column` layout (not `HeadlessScaffold`) to avoid constraint issues in dialogs. Supports search, multi-select with check-circle, and confirms with a disabled-until-selection `BoxyArtButton`.
+
+#### Key helper
+`MemberGroupHelper.memberBelongsToGroup(memberId, groupId, config, members)` — returns `true` if the member belongs to the named group under the current config's split type. Used by `LeaderboardInvokerService` for the group filter.
+
 ### 3.3 Leaderboard Edit Controls — Design 4.x (April 2026)
 
 All four leaderboard configuration screens have been refactored to **Design 4.x True Minimal** standards:

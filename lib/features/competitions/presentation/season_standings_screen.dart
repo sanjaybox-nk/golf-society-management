@@ -2,8 +2,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../events/presentation/events_provider.dart';
 import 'standings/standings_providers.dart';
+import 'standings/season_leaderboard_configs_provider.dart';
 import '../../members/presentation/profile_provider.dart';
 import 'package:golf_society/domain/models/leaderboard_config.dart';
+import 'package:golf_society/domain/models/season.dart' show SeasonStatus;
 import 'package:golf_society/design_system/design_system.dart';
 import '../../admin/utils/leaderboard_rule_translator.dart';
 
@@ -37,10 +39,29 @@ class SeasonStandingsScreen extends ConsumerWidget {
             ],
           );
         }
-        
+
+        final actualSeasonId = seasonId ?? season.id;
+        final leaderboardsAsync = ref.watch(seasonLeaderboardConfigsProvider(actualSeasonId));
+        final leaderboards = leaderboardsAsync.value ?? [];
+
+        final isClosed = season.status == SeasonStatus.closed;
         final title = '${season.year} Standings';
-        final leaderboards = season.leaderboards;
-        final subtitle = '${leaderboards.length} Leaderboards Active';
+        final subtitle = isClosed ? 'Season closed · standings are final' : '${leaderboards.length} Leaderboard${leaderboards.length == 1 ? '' : 's'} active';
+
+        if (leaderboardsAsync.isLoading) {
+          return const HeadlessScaffold(
+            title: 'Season Standings',
+            showBack: true,
+            slivers: [
+              SliverPadding(
+                padding: EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.xl),
+                sliver: SliverToBoxAdapter(
+                  child: BoxyArtLoadingCard(useCard: true),
+                ),
+              ),
+            ],
+          );
+        }
 
         if (leaderboards.isEmpty) {
            return HeadlessScaffold(
@@ -71,6 +92,29 @@ class SeasonStandingsScreen extends ConsumerWidget {
               sliver: SliverList(
                 delegate: SliverChildListDelegate([
                   const SizedBox(height: AppSpacing.lg),
+                  if (isClosed) ...[
+                    BoxyArtCard(
+                      backgroundColor: AppColors.amber500.withValues(alpha: 0.1),
+                      border: Border.all(color: AppColors.amber500.withValues(alpha: 0.3)),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppSpacing.standard,
+                        vertical: AppSpacing.md,
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.lock_outline_rounded, size: 16, color: AppColors.amber500),
+                          const SizedBox(width: AppSpacing.md),
+                          Expanded(
+                            child: Text(
+                              'Season closed — standings are final and will not change.',
+                              style: AppTypography.micro.copyWith(color: AppColors.dark400),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.standard),
+                  ],
                   for (final group in groups) ...[
                     BoxyArtSectionTitle(title: group.label, isPeeking: true),
                     for (final config in group.configs)

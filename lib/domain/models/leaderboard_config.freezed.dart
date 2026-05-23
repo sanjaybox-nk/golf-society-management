@@ -46,7 +46,7 @@ LeaderboardConfig _$LeaderboardConfigFromJson(
 /// @nodoc
 mixin _$LeaderboardConfig {
 
- String get id; String get name; LeaderboardScope get scope; Division? get divisionFilter;
+ String get id; String get name; LeaderboardScope get scope; String? get groupFilter; bool get divisionsEnabled;
 /// Create a copy of LeaderboardConfig
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -59,16 +59,16 @@ $LeaderboardConfigCopyWith<LeaderboardConfig> get copyWith => _$LeaderboardConfi
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is LeaderboardConfig&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.scope, scope) || other.scope == scope)&&(identical(other.divisionFilter, divisionFilter) || other.divisionFilter == divisionFilter));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is LeaderboardConfig&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.scope, scope) || other.scope == scope)&&(identical(other.groupFilter, groupFilter) || other.groupFilter == groupFilter)&&(identical(other.divisionsEnabled, divisionsEnabled) || other.divisionsEnabled == divisionsEnabled));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,scope,divisionFilter);
+int get hashCode => Object.hash(runtimeType,id,name,scope,groupFilter,divisionsEnabled);
 
 @override
 String toString() {
-  return 'LeaderboardConfig(id: $id, name: $name, scope: $scope, divisionFilter: $divisionFilter)';
+  return 'LeaderboardConfig(id: $id, name: $name, scope: $scope, groupFilter: $groupFilter, divisionsEnabled: $divisionsEnabled)';
 }
 
 
@@ -79,7 +79,7 @@ abstract mixin class $LeaderboardConfigCopyWith<$Res>  {
   factory $LeaderboardConfigCopyWith(LeaderboardConfig value, $Res Function(LeaderboardConfig) _then) = _$LeaderboardConfigCopyWithImpl;
 @useResult
 $Res call({
- String id, String name, LeaderboardScope scope, Division? divisionFilter
+ String id, String name, LeaderboardScope scope, String? groupFilter, bool divisionsEnabled
 });
 
 
@@ -96,13 +96,14 @@ class _$LeaderboardConfigCopyWithImpl<$Res>
 
 /// Create a copy of LeaderboardConfig
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? scope = null,Object? divisionFilter = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? scope = null,Object? groupFilter = freezed,Object? divisionsEnabled = null,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,scope: null == scope ? _self.scope : scope // ignore: cast_nullable_to_non_nullable
-as LeaderboardScope,divisionFilter: freezed == divisionFilter ? _self.divisionFilter : divisionFilter // ignore: cast_nullable_to_non_nullable
-as Division?,
+as LeaderboardScope,groupFilter: freezed == groupFilter ? _self.groupFilter : groupFilter // ignore: cast_nullable_to_non_nullable
+as String?,divisionsEnabled: null == divisionsEnabled ? _self.divisionsEnabled : divisionsEnabled // ignore: cast_nullable_to_non_nullable
+as bool,
   ));
 }
 
@@ -196,13 +197,13 @@ return markerCounter(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function( String id,  String name,  LeaderboardScope scope,  OOMSource source,  OOMRankingBasis rankingBasis,  Map<int, int> positionPointsMap,  int appearancePoints,  int bestN,  Division? divisionFilter)?  orderOfMerit,TResult Function( String id,  String name,  LeaderboardScope scope,  int bestN,  BestOfMetric metric,  ScoringType scoringType,  TiePolicy tiePolicy,  Map<int, int> positionPointsMap,  int appearancePoints,  Division? divisionFilter)?  bestOfSeries,TResult Function( String id,  String name,  LeaderboardScope scope,  EclecticMetric metric,  int handicapPercentage,  Division? divisionFilter)?  eclectic,TResult Function( String id,  String name,  LeaderboardScope scope,  Set<MarkerType> targetTypes,  HoleFilter holeFilter,  MarkerRankingMethod rankingMethod,  int bestN,  Division? divisionFilter)?  markerCounter,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function( String id,  String name,  LeaderboardScope scope,  OOMSource source,  OOMRankingBasis rankingBasis,  Map<int, int> positionPointsMap,  int appearancePoints,  int bestN,  String? groupFilter,  bool divisionsEnabled)?  orderOfMerit,TResult Function( String id,  String name,  LeaderboardScope scope,  int bestN,  BestOfMetric metric,  ScoringType scoringType,  TiePolicy tiePolicy,  Map<int, int> positionPointsMap,  int appearancePoints,  String? groupFilter,  bool divisionsEnabled)?  bestOfSeries,TResult Function( String id,  String name,  LeaderboardScope scope,  EclecticMetric metric,  int handicapPercentage,  String? groupFilter,  bool divisionsEnabled)?  eclectic,TResult Function( String id,  String name,  LeaderboardScope scope,  Set<MarkerType> targetTypes,  HoleFilter holeFilter,  MarkerRankingMethod rankingMethod,  int bestN,  String? groupFilter,  bool divisionsEnabled)?  markerCounter,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case OrderOfMeritConfig() when orderOfMerit != null:
-return orderOfMerit(_that.id,_that.name,_that.scope,_that.source,_that.rankingBasis,_that.positionPointsMap,_that.appearancePoints,_that.bestN,_that.divisionFilter);case BestOfSeriesConfig() when bestOfSeries != null:
-return bestOfSeries(_that.id,_that.name,_that.scope,_that.bestN,_that.metric,_that.scoringType,_that.tiePolicy,_that.positionPointsMap,_that.appearancePoints,_that.divisionFilter);case EclecticConfig() when eclectic != null:
-return eclectic(_that.id,_that.name,_that.scope,_that.metric,_that.handicapPercentage,_that.divisionFilter);case MarkerCounterConfig() when markerCounter != null:
-return markerCounter(_that.id,_that.name,_that.scope,_that.targetTypes,_that.holeFilter,_that.rankingMethod,_that.bestN,_that.divisionFilter);case _:
+return orderOfMerit(_that.id,_that.name,_that.scope,_that.source,_that.rankingBasis,_that.positionPointsMap,_that.appearancePoints,_that.bestN,_that.groupFilter,_that.divisionsEnabled);case BestOfSeriesConfig() when bestOfSeries != null:
+return bestOfSeries(_that.id,_that.name,_that.scope,_that.bestN,_that.metric,_that.scoringType,_that.tiePolicy,_that.positionPointsMap,_that.appearancePoints,_that.groupFilter,_that.divisionsEnabled);case EclecticConfig() when eclectic != null:
+return eclectic(_that.id,_that.name,_that.scope,_that.metric,_that.handicapPercentage,_that.groupFilter,_that.divisionsEnabled);case MarkerCounterConfig() when markerCounter != null:
+return markerCounter(_that.id,_that.name,_that.scope,_that.targetTypes,_that.holeFilter,_that.rankingMethod,_that.bestN,_that.groupFilter,_that.divisionsEnabled);case _:
   return orElse();
 
 }
@@ -220,13 +221,13 @@ return markerCounter(_that.id,_that.name,_that.scope,_that.targetTypes,_that.hol
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function( String id,  String name,  LeaderboardScope scope,  OOMSource source,  OOMRankingBasis rankingBasis,  Map<int, int> positionPointsMap,  int appearancePoints,  int bestN,  Division? divisionFilter)  orderOfMerit,required TResult Function( String id,  String name,  LeaderboardScope scope,  int bestN,  BestOfMetric metric,  ScoringType scoringType,  TiePolicy tiePolicy,  Map<int, int> positionPointsMap,  int appearancePoints,  Division? divisionFilter)  bestOfSeries,required TResult Function( String id,  String name,  LeaderboardScope scope,  EclecticMetric metric,  int handicapPercentage,  Division? divisionFilter)  eclectic,required TResult Function( String id,  String name,  LeaderboardScope scope,  Set<MarkerType> targetTypes,  HoleFilter holeFilter,  MarkerRankingMethod rankingMethod,  int bestN,  Division? divisionFilter)  markerCounter,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function( String id,  String name,  LeaderboardScope scope,  OOMSource source,  OOMRankingBasis rankingBasis,  Map<int, int> positionPointsMap,  int appearancePoints,  int bestN,  String? groupFilter,  bool divisionsEnabled)  orderOfMerit,required TResult Function( String id,  String name,  LeaderboardScope scope,  int bestN,  BestOfMetric metric,  ScoringType scoringType,  TiePolicy tiePolicy,  Map<int, int> positionPointsMap,  int appearancePoints,  String? groupFilter,  bool divisionsEnabled)  bestOfSeries,required TResult Function( String id,  String name,  LeaderboardScope scope,  EclecticMetric metric,  int handicapPercentage,  String? groupFilter,  bool divisionsEnabled)  eclectic,required TResult Function( String id,  String name,  LeaderboardScope scope,  Set<MarkerType> targetTypes,  HoleFilter holeFilter,  MarkerRankingMethod rankingMethod,  int bestN,  String? groupFilter,  bool divisionsEnabled)  markerCounter,}) {final _that = this;
 switch (_that) {
 case OrderOfMeritConfig():
-return orderOfMerit(_that.id,_that.name,_that.scope,_that.source,_that.rankingBasis,_that.positionPointsMap,_that.appearancePoints,_that.bestN,_that.divisionFilter);case BestOfSeriesConfig():
-return bestOfSeries(_that.id,_that.name,_that.scope,_that.bestN,_that.metric,_that.scoringType,_that.tiePolicy,_that.positionPointsMap,_that.appearancePoints,_that.divisionFilter);case EclecticConfig():
-return eclectic(_that.id,_that.name,_that.scope,_that.metric,_that.handicapPercentage,_that.divisionFilter);case MarkerCounterConfig():
-return markerCounter(_that.id,_that.name,_that.scope,_that.targetTypes,_that.holeFilter,_that.rankingMethod,_that.bestN,_that.divisionFilter);case _:
+return orderOfMerit(_that.id,_that.name,_that.scope,_that.source,_that.rankingBasis,_that.positionPointsMap,_that.appearancePoints,_that.bestN,_that.groupFilter,_that.divisionsEnabled);case BestOfSeriesConfig():
+return bestOfSeries(_that.id,_that.name,_that.scope,_that.bestN,_that.metric,_that.scoringType,_that.tiePolicy,_that.positionPointsMap,_that.appearancePoints,_that.groupFilter,_that.divisionsEnabled);case EclecticConfig():
+return eclectic(_that.id,_that.name,_that.scope,_that.metric,_that.handicapPercentage,_that.groupFilter,_that.divisionsEnabled);case MarkerCounterConfig():
+return markerCounter(_that.id,_that.name,_that.scope,_that.targetTypes,_that.holeFilter,_that.rankingMethod,_that.bestN,_that.groupFilter,_that.divisionsEnabled);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -243,13 +244,13 @@ return markerCounter(_that.id,_that.name,_that.scope,_that.targetTypes,_that.hol
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function( String id,  String name,  LeaderboardScope scope,  OOMSource source,  OOMRankingBasis rankingBasis,  Map<int, int> positionPointsMap,  int appearancePoints,  int bestN,  Division? divisionFilter)?  orderOfMerit,TResult? Function( String id,  String name,  LeaderboardScope scope,  int bestN,  BestOfMetric metric,  ScoringType scoringType,  TiePolicy tiePolicy,  Map<int, int> positionPointsMap,  int appearancePoints,  Division? divisionFilter)?  bestOfSeries,TResult? Function( String id,  String name,  LeaderboardScope scope,  EclecticMetric metric,  int handicapPercentage,  Division? divisionFilter)?  eclectic,TResult? Function( String id,  String name,  LeaderboardScope scope,  Set<MarkerType> targetTypes,  HoleFilter holeFilter,  MarkerRankingMethod rankingMethod,  int bestN,  Division? divisionFilter)?  markerCounter,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function( String id,  String name,  LeaderboardScope scope,  OOMSource source,  OOMRankingBasis rankingBasis,  Map<int, int> positionPointsMap,  int appearancePoints,  int bestN,  String? groupFilter,  bool divisionsEnabled)?  orderOfMerit,TResult? Function( String id,  String name,  LeaderboardScope scope,  int bestN,  BestOfMetric metric,  ScoringType scoringType,  TiePolicy tiePolicy,  Map<int, int> positionPointsMap,  int appearancePoints,  String? groupFilter,  bool divisionsEnabled)?  bestOfSeries,TResult? Function( String id,  String name,  LeaderboardScope scope,  EclecticMetric metric,  int handicapPercentage,  String? groupFilter,  bool divisionsEnabled)?  eclectic,TResult? Function( String id,  String name,  LeaderboardScope scope,  Set<MarkerType> targetTypes,  HoleFilter holeFilter,  MarkerRankingMethod rankingMethod,  int bestN,  String? groupFilter,  bool divisionsEnabled)?  markerCounter,}) {final _that = this;
 switch (_that) {
 case OrderOfMeritConfig() when orderOfMerit != null:
-return orderOfMerit(_that.id,_that.name,_that.scope,_that.source,_that.rankingBasis,_that.positionPointsMap,_that.appearancePoints,_that.bestN,_that.divisionFilter);case BestOfSeriesConfig() when bestOfSeries != null:
-return bestOfSeries(_that.id,_that.name,_that.scope,_that.bestN,_that.metric,_that.scoringType,_that.tiePolicy,_that.positionPointsMap,_that.appearancePoints,_that.divisionFilter);case EclecticConfig() when eclectic != null:
-return eclectic(_that.id,_that.name,_that.scope,_that.metric,_that.handicapPercentage,_that.divisionFilter);case MarkerCounterConfig() when markerCounter != null:
-return markerCounter(_that.id,_that.name,_that.scope,_that.targetTypes,_that.holeFilter,_that.rankingMethod,_that.bestN,_that.divisionFilter);case _:
+return orderOfMerit(_that.id,_that.name,_that.scope,_that.source,_that.rankingBasis,_that.positionPointsMap,_that.appearancePoints,_that.bestN,_that.groupFilter,_that.divisionsEnabled);case BestOfSeriesConfig() when bestOfSeries != null:
+return bestOfSeries(_that.id,_that.name,_that.scope,_that.bestN,_that.metric,_that.scoringType,_that.tiePolicy,_that.positionPointsMap,_that.appearancePoints,_that.groupFilter,_that.divisionsEnabled);case EclecticConfig() when eclectic != null:
+return eclectic(_that.id,_that.name,_that.scope,_that.metric,_that.handicapPercentage,_that.groupFilter,_that.divisionsEnabled);case MarkerCounterConfig() when markerCounter != null:
+return markerCounter(_that.id,_that.name,_that.scope,_that.targetTypes,_that.holeFilter,_that.rankingMethod,_that.bestN,_that.groupFilter,_that.divisionsEnabled);case _:
   return null;
 
 }
@@ -261,7 +262,7 @@ return markerCounter(_that.id,_that.name,_that.scope,_that.targetTypes,_that.hol
 @JsonSerializable()
 
 class OrderOfMeritConfig extends LeaderboardConfig {
-  const OrderOfMeritConfig({required this.id, required this.name, this.scope = LeaderboardScope.seasonOnly, this.source = OOMSource.position, this.rankingBasis = OOMRankingBasis.stableford, final  Map<int, int> positionPointsMap = const {}, this.appearancePoints = 0, this.bestN = 0, this.divisionFilter, final  String? $type}): _positionPointsMap = positionPointsMap,$type = $type ?? 'orderOfMerit',super._();
+  const OrderOfMeritConfig({required this.id, required this.name, this.scope = LeaderboardScope.seasonOnly, this.source = OOMSource.position, this.rankingBasis = OOMRankingBasis.stableford, final  Map<int, int> positionPointsMap = const {}, this.appearancePoints = 0, this.bestN = 0, this.groupFilter, this.divisionsEnabled = false, final  String? $type}): _positionPointsMap = positionPointsMap,$type = $type ?? 'orderOfMerit',super._();
   factory OrderOfMeritConfig.fromJson(Map<String, dynamic> json) => _$OrderOfMeritConfigFromJson(json);
 
 @override final  String id;
@@ -278,7 +279,8 @@ class OrderOfMeritConfig extends LeaderboardConfig {
 
 @JsonKey() final  int appearancePoints;
 @JsonKey() final  int bestN;
-@override final  Division? divisionFilter;
+@override final  String? groupFilter;
+@override@JsonKey() final  bool divisionsEnabled;
 
 @JsonKey(name: 'runtimeType')
 final String $type;
@@ -297,16 +299,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is OrderOfMeritConfig&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.scope, scope) || other.scope == scope)&&(identical(other.source, source) || other.source == source)&&(identical(other.rankingBasis, rankingBasis) || other.rankingBasis == rankingBasis)&&const DeepCollectionEquality().equals(other._positionPointsMap, _positionPointsMap)&&(identical(other.appearancePoints, appearancePoints) || other.appearancePoints == appearancePoints)&&(identical(other.bestN, bestN) || other.bestN == bestN)&&(identical(other.divisionFilter, divisionFilter) || other.divisionFilter == divisionFilter));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is OrderOfMeritConfig&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.scope, scope) || other.scope == scope)&&(identical(other.source, source) || other.source == source)&&(identical(other.rankingBasis, rankingBasis) || other.rankingBasis == rankingBasis)&&const DeepCollectionEquality().equals(other._positionPointsMap, _positionPointsMap)&&(identical(other.appearancePoints, appearancePoints) || other.appearancePoints == appearancePoints)&&(identical(other.bestN, bestN) || other.bestN == bestN)&&(identical(other.groupFilter, groupFilter) || other.groupFilter == groupFilter)&&(identical(other.divisionsEnabled, divisionsEnabled) || other.divisionsEnabled == divisionsEnabled));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,scope,source,rankingBasis,const DeepCollectionEquality().hash(_positionPointsMap),appearancePoints,bestN,divisionFilter);
+int get hashCode => Object.hash(runtimeType,id,name,scope,source,rankingBasis,const DeepCollectionEquality().hash(_positionPointsMap),appearancePoints,bestN,groupFilter,divisionsEnabled);
 
 @override
 String toString() {
-  return 'LeaderboardConfig.orderOfMerit(id: $id, name: $name, scope: $scope, source: $source, rankingBasis: $rankingBasis, positionPointsMap: $positionPointsMap, appearancePoints: $appearancePoints, bestN: $bestN, divisionFilter: $divisionFilter)';
+  return 'LeaderboardConfig.orderOfMerit(id: $id, name: $name, scope: $scope, source: $source, rankingBasis: $rankingBasis, positionPointsMap: $positionPointsMap, appearancePoints: $appearancePoints, bestN: $bestN, groupFilter: $groupFilter, divisionsEnabled: $divisionsEnabled)';
 }
 
 
@@ -317,7 +319,7 @@ abstract mixin class $OrderOfMeritConfigCopyWith<$Res> implements $LeaderboardCo
   factory $OrderOfMeritConfigCopyWith(OrderOfMeritConfig value, $Res Function(OrderOfMeritConfig) _then) = _$OrderOfMeritConfigCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String name, LeaderboardScope scope, OOMSource source, OOMRankingBasis rankingBasis, Map<int, int> positionPointsMap, int appearancePoints, int bestN, Division? divisionFilter
+ String id, String name, LeaderboardScope scope, OOMSource source, OOMRankingBasis rankingBasis, Map<int, int> positionPointsMap, int appearancePoints, int bestN, String? groupFilter, bool divisionsEnabled
 });
 
 
@@ -334,7 +336,7 @@ class _$OrderOfMeritConfigCopyWithImpl<$Res>
 
 /// Create a copy of LeaderboardConfig
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? scope = null,Object? source = null,Object? rankingBasis = null,Object? positionPointsMap = null,Object? appearancePoints = null,Object? bestN = null,Object? divisionFilter = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? scope = null,Object? source = null,Object? rankingBasis = null,Object? positionPointsMap = null,Object? appearancePoints = null,Object? bestN = null,Object? groupFilter = freezed,Object? divisionsEnabled = null,}) {
   return _then(OrderOfMeritConfig(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
@@ -344,8 +346,9 @@ as OOMSource,rankingBasis: null == rankingBasis ? _self.rankingBasis : rankingBa
 as OOMRankingBasis,positionPointsMap: null == positionPointsMap ? _self._positionPointsMap : positionPointsMap // ignore: cast_nullable_to_non_nullable
 as Map<int, int>,appearancePoints: null == appearancePoints ? _self.appearancePoints : appearancePoints // ignore: cast_nullable_to_non_nullable
 as int,bestN: null == bestN ? _self.bestN : bestN // ignore: cast_nullable_to_non_nullable
-as int,divisionFilter: freezed == divisionFilter ? _self.divisionFilter : divisionFilter // ignore: cast_nullable_to_non_nullable
-as Division?,
+as int,groupFilter: freezed == groupFilter ? _self.groupFilter : groupFilter // ignore: cast_nullable_to_non_nullable
+as String?,divisionsEnabled: null == divisionsEnabled ? _self.divisionsEnabled : divisionsEnabled // ignore: cast_nullable_to_non_nullable
+as bool,
   ));
 }
 
@@ -356,7 +359,7 @@ as Division?,
 @JsonSerializable()
 
 class BestOfSeriesConfig extends LeaderboardConfig {
-  const BestOfSeriesConfig({required this.id, required this.name, this.scope = LeaderboardScope.seasonOnly, this.bestN = 8, this.metric = BestOfMetric.stableford, this.scoringType = ScoringType.accumulative, this.tiePolicy = TiePolicy.countback, final  Map<int, int> positionPointsMap = const {}, this.appearancePoints = 0, this.divisionFilter, final  String? $type}): _positionPointsMap = positionPointsMap,$type = $type ?? 'bestOfSeries',super._();
+  const BestOfSeriesConfig({required this.id, required this.name, this.scope = LeaderboardScope.seasonOnly, this.bestN = 8, this.metric = BestOfMetric.stableford, this.scoringType = ScoringType.accumulative, this.tiePolicy = TiePolicy.countback, final  Map<int, int> positionPointsMap = const {}, this.appearancePoints = 0, this.groupFilter, this.divisionsEnabled = false, final  String? $type}): _positionPointsMap = positionPointsMap,$type = $type ?? 'bestOfSeries',super._();
   factory BestOfSeriesConfig.fromJson(Map<String, dynamic> json) => _$BestOfSeriesConfigFromJson(json);
 
 @override final  String id;
@@ -374,7 +377,8 @@ class BestOfSeriesConfig extends LeaderboardConfig {
 }
 
 @JsonKey() final  int appearancePoints;
-@override final  Division? divisionFilter;
+@override final  String? groupFilter;
+@override@JsonKey() final  bool divisionsEnabled;
 
 @JsonKey(name: 'runtimeType')
 final String $type;
@@ -393,16 +397,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is BestOfSeriesConfig&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.scope, scope) || other.scope == scope)&&(identical(other.bestN, bestN) || other.bestN == bestN)&&(identical(other.metric, metric) || other.metric == metric)&&(identical(other.scoringType, scoringType) || other.scoringType == scoringType)&&(identical(other.tiePolicy, tiePolicy) || other.tiePolicy == tiePolicy)&&const DeepCollectionEquality().equals(other._positionPointsMap, _positionPointsMap)&&(identical(other.appearancePoints, appearancePoints) || other.appearancePoints == appearancePoints)&&(identical(other.divisionFilter, divisionFilter) || other.divisionFilter == divisionFilter));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is BestOfSeriesConfig&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.scope, scope) || other.scope == scope)&&(identical(other.bestN, bestN) || other.bestN == bestN)&&(identical(other.metric, metric) || other.metric == metric)&&(identical(other.scoringType, scoringType) || other.scoringType == scoringType)&&(identical(other.tiePolicy, tiePolicy) || other.tiePolicy == tiePolicy)&&const DeepCollectionEquality().equals(other._positionPointsMap, _positionPointsMap)&&(identical(other.appearancePoints, appearancePoints) || other.appearancePoints == appearancePoints)&&(identical(other.groupFilter, groupFilter) || other.groupFilter == groupFilter)&&(identical(other.divisionsEnabled, divisionsEnabled) || other.divisionsEnabled == divisionsEnabled));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,scope,bestN,metric,scoringType,tiePolicy,const DeepCollectionEquality().hash(_positionPointsMap),appearancePoints,divisionFilter);
+int get hashCode => Object.hash(runtimeType,id,name,scope,bestN,metric,scoringType,tiePolicy,const DeepCollectionEquality().hash(_positionPointsMap),appearancePoints,groupFilter,divisionsEnabled);
 
 @override
 String toString() {
-  return 'LeaderboardConfig.bestOfSeries(id: $id, name: $name, scope: $scope, bestN: $bestN, metric: $metric, scoringType: $scoringType, tiePolicy: $tiePolicy, positionPointsMap: $positionPointsMap, appearancePoints: $appearancePoints, divisionFilter: $divisionFilter)';
+  return 'LeaderboardConfig.bestOfSeries(id: $id, name: $name, scope: $scope, bestN: $bestN, metric: $metric, scoringType: $scoringType, tiePolicy: $tiePolicy, positionPointsMap: $positionPointsMap, appearancePoints: $appearancePoints, groupFilter: $groupFilter, divisionsEnabled: $divisionsEnabled)';
 }
 
 
@@ -413,7 +417,7 @@ abstract mixin class $BestOfSeriesConfigCopyWith<$Res> implements $LeaderboardCo
   factory $BestOfSeriesConfigCopyWith(BestOfSeriesConfig value, $Res Function(BestOfSeriesConfig) _then) = _$BestOfSeriesConfigCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String name, LeaderboardScope scope, int bestN, BestOfMetric metric, ScoringType scoringType, TiePolicy tiePolicy, Map<int, int> positionPointsMap, int appearancePoints, Division? divisionFilter
+ String id, String name, LeaderboardScope scope, int bestN, BestOfMetric metric, ScoringType scoringType, TiePolicy tiePolicy, Map<int, int> positionPointsMap, int appearancePoints, String? groupFilter, bool divisionsEnabled
 });
 
 
@@ -430,7 +434,7 @@ class _$BestOfSeriesConfigCopyWithImpl<$Res>
 
 /// Create a copy of LeaderboardConfig
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? scope = null,Object? bestN = null,Object? metric = null,Object? scoringType = null,Object? tiePolicy = null,Object? positionPointsMap = null,Object? appearancePoints = null,Object? divisionFilter = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? scope = null,Object? bestN = null,Object? metric = null,Object? scoringType = null,Object? tiePolicy = null,Object? positionPointsMap = null,Object? appearancePoints = null,Object? groupFilter = freezed,Object? divisionsEnabled = null,}) {
   return _then(BestOfSeriesConfig(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
@@ -441,8 +445,9 @@ as BestOfMetric,scoringType: null == scoringType ? _self.scoringType : scoringTy
 as ScoringType,tiePolicy: null == tiePolicy ? _self.tiePolicy : tiePolicy // ignore: cast_nullable_to_non_nullable
 as TiePolicy,positionPointsMap: null == positionPointsMap ? _self._positionPointsMap : positionPointsMap // ignore: cast_nullable_to_non_nullable
 as Map<int, int>,appearancePoints: null == appearancePoints ? _self.appearancePoints : appearancePoints // ignore: cast_nullable_to_non_nullable
-as int,divisionFilter: freezed == divisionFilter ? _self.divisionFilter : divisionFilter // ignore: cast_nullable_to_non_nullable
-as Division?,
+as int,groupFilter: freezed == groupFilter ? _self.groupFilter : groupFilter // ignore: cast_nullable_to_non_nullable
+as String?,divisionsEnabled: null == divisionsEnabled ? _self.divisionsEnabled : divisionsEnabled // ignore: cast_nullable_to_non_nullable
+as bool,
   ));
 }
 
@@ -453,7 +458,7 @@ as Division?,
 @JsonSerializable()
 
 class EclecticConfig extends LeaderboardConfig {
-  const EclecticConfig({required this.id, required this.name, this.scope = LeaderboardScope.seasonOnly, this.metric = EclecticMetric.strokes, this.handicapPercentage = 0, this.divisionFilter, final  String? $type}): $type = $type ?? 'eclectic',super._();
+  const EclecticConfig({required this.id, required this.name, this.scope = LeaderboardScope.seasonOnly, this.metric = EclecticMetric.strokes, this.handicapPercentage = 0, this.groupFilter, this.divisionsEnabled = false, final  String? $type}): $type = $type ?? 'eclectic',super._();
   factory EclecticConfig.fromJson(Map<String, dynamic> json) => _$EclecticConfigFromJson(json);
 
 @override final  String id;
@@ -461,7 +466,8 @@ class EclecticConfig extends LeaderboardConfig {
 @override@JsonKey() final  LeaderboardScope scope;
 @JsonKey() final  EclecticMetric metric;
 @JsonKey() final  int handicapPercentage;
-@override final  Division? divisionFilter;
+@override final  String? groupFilter;
+@override@JsonKey() final  bool divisionsEnabled;
 
 @JsonKey(name: 'runtimeType')
 final String $type;
@@ -480,16 +486,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is EclecticConfig&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.scope, scope) || other.scope == scope)&&(identical(other.metric, metric) || other.metric == metric)&&(identical(other.handicapPercentage, handicapPercentage) || other.handicapPercentage == handicapPercentage)&&(identical(other.divisionFilter, divisionFilter) || other.divisionFilter == divisionFilter));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is EclecticConfig&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.scope, scope) || other.scope == scope)&&(identical(other.metric, metric) || other.metric == metric)&&(identical(other.handicapPercentage, handicapPercentage) || other.handicapPercentage == handicapPercentage)&&(identical(other.groupFilter, groupFilter) || other.groupFilter == groupFilter)&&(identical(other.divisionsEnabled, divisionsEnabled) || other.divisionsEnabled == divisionsEnabled));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,scope,metric,handicapPercentage,divisionFilter);
+int get hashCode => Object.hash(runtimeType,id,name,scope,metric,handicapPercentage,groupFilter,divisionsEnabled);
 
 @override
 String toString() {
-  return 'LeaderboardConfig.eclectic(id: $id, name: $name, scope: $scope, metric: $metric, handicapPercentage: $handicapPercentage, divisionFilter: $divisionFilter)';
+  return 'LeaderboardConfig.eclectic(id: $id, name: $name, scope: $scope, metric: $metric, handicapPercentage: $handicapPercentage, groupFilter: $groupFilter, divisionsEnabled: $divisionsEnabled)';
 }
 
 
@@ -500,7 +506,7 @@ abstract mixin class $EclecticConfigCopyWith<$Res> implements $LeaderboardConfig
   factory $EclecticConfigCopyWith(EclecticConfig value, $Res Function(EclecticConfig) _then) = _$EclecticConfigCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String name, LeaderboardScope scope, EclecticMetric metric, int handicapPercentage, Division? divisionFilter
+ String id, String name, LeaderboardScope scope, EclecticMetric metric, int handicapPercentage, String? groupFilter, bool divisionsEnabled
 });
 
 
@@ -517,15 +523,16 @@ class _$EclecticConfigCopyWithImpl<$Res>
 
 /// Create a copy of LeaderboardConfig
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? scope = null,Object? metric = null,Object? handicapPercentage = null,Object? divisionFilter = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? scope = null,Object? metric = null,Object? handicapPercentage = null,Object? groupFilter = freezed,Object? divisionsEnabled = null,}) {
   return _then(EclecticConfig(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,scope: null == scope ? _self.scope : scope // ignore: cast_nullable_to_non_nullable
 as LeaderboardScope,metric: null == metric ? _self.metric : metric // ignore: cast_nullable_to_non_nullable
 as EclecticMetric,handicapPercentage: null == handicapPercentage ? _self.handicapPercentage : handicapPercentage // ignore: cast_nullable_to_non_nullable
-as int,divisionFilter: freezed == divisionFilter ? _self.divisionFilter : divisionFilter // ignore: cast_nullable_to_non_nullable
-as Division?,
+as int,groupFilter: freezed == groupFilter ? _self.groupFilter : groupFilter // ignore: cast_nullable_to_non_nullable
+as String?,divisionsEnabled: null == divisionsEnabled ? _self.divisionsEnabled : divisionsEnabled // ignore: cast_nullable_to_non_nullable
+as bool,
   ));
 }
 
@@ -536,7 +543,7 @@ as Division?,
 @JsonSerializable()
 
 class MarkerCounterConfig extends LeaderboardConfig {
-  const MarkerCounterConfig({required this.id, required this.name, this.scope = LeaderboardScope.seasonOnly, required final  Set<MarkerType> targetTypes, this.holeFilter = HoleFilter.all, this.rankingMethod = MarkerRankingMethod.count, this.bestN = 0, this.divisionFilter, final  String? $type}): _targetTypes = targetTypes,$type = $type ?? 'markerCounter',super._();
+  const MarkerCounterConfig({required this.id, required this.name, this.scope = LeaderboardScope.seasonOnly, required final  Set<MarkerType> targetTypes, this.holeFilter = HoleFilter.all, this.rankingMethod = MarkerRankingMethod.count, this.bestN = 0, this.groupFilter, this.divisionsEnabled = false, final  String? $type}): _targetTypes = targetTypes,$type = $type ?? 'markerCounter',super._();
   factory MarkerCounterConfig.fromJson(Map<String, dynamic> json) => _$MarkerCounterConfigFromJson(json);
 
 @override final  String id;
@@ -552,7 +559,8 @@ class MarkerCounterConfig extends LeaderboardConfig {
 @JsonKey() final  HoleFilter holeFilter;
 @JsonKey() final  MarkerRankingMethod rankingMethod;
 @JsonKey() final  int bestN;
-@override final  Division? divisionFilter;
+@override final  String? groupFilter;
+@override@JsonKey() final  bool divisionsEnabled;
 
 @JsonKey(name: 'runtimeType')
 final String $type;
@@ -571,16 +579,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is MarkerCounterConfig&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.scope, scope) || other.scope == scope)&&const DeepCollectionEquality().equals(other._targetTypes, _targetTypes)&&(identical(other.holeFilter, holeFilter) || other.holeFilter == holeFilter)&&(identical(other.rankingMethod, rankingMethod) || other.rankingMethod == rankingMethod)&&(identical(other.bestN, bestN) || other.bestN == bestN)&&(identical(other.divisionFilter, divisionFilter) || other.divisionFilter == divisionFilter));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is MarkerCounterConfig&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.scope, scope) || other.scope == scope)&&const DeepCollectionEquality().equals(other._targetTypes, _targetTypes)&&(identical(other.holeFilter, holeFilter) || other.holeFilter == holeFilter)&&(identical(other.rankingMethod, rankingMethod) || other.rankingMethod == rankingMethod)&&(identical(other.bestN, bestN) || other.bestN == bestN)&&(identical(other.groupFilter, groupFilter) || other.groupFilter == groupFilter)&&(identical(other.divisionsEnabled, divisionsEnabled) || other.divisionsEnabled == divisionsEnabled));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,scope,const DeepCollectionEquality().hash(_targetTypes),holeFilter,rankingMethod,bestN,divisionFilter);
+int get hashCode => Object.hash(runtimeType,id,name,scope,const DeepCollectionEquality().hash(_targetTypes),holeFilter,rankingMethod,bestN,groupFilter,divisionsEnabled);
 
 @override
 String toString() {
-  return 'LeaderboardConfig.markerCounter(id: $id, name: $name, scope: $scope, targetTypes: $targetTypes, holeFilter: $holeFilter, rankingMethod: $rankingMethod, bestN: $bestN, divisionFilter: $divisionFilter)';
+  return 'LeaderboardConfig.markerCounter(id: $id, name: $name, scope: $scope, targetTypes: $targetTypes, holeFilter: $holeFilter, rankingMethod: $rankingMethod, bestN: $bestN, groupFilter: $groupFilter, divisionsEnabled: $divisionsEnabled)';
 }
 
 
@@ -591,7 +599,7 @@ abstract mixin class $MarkerCounterConfigCopyWith<$Res> implements $LeaderboardC
   factory $MarkerCounterConfigCopyWith(MarkerCounterConfig value, $Res Function(MarkerCounterConfig) _then) = _$MarkerCounterConfigCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String name, LeaderboardScope scope, Set<MarkerType> targetTypes, HoleFilter holeFilter, MarkerRankingMethod rankingMethod, int bestN, Division? divisionFilter
+ String id, String name, LeaderboardScope scope, Set<MarkerType> targetTypes, HoleFilter holeFilter, MarkerRankingMethod rankingMethod, int bestN, String? groupFilter, bool divisionsEnabled
 });
 
 
@@ -608,7 +616,7 @@ class _$MarkerCounterConfigCopyWithImpl<$Res>
 
 /// Create a copy of LeaderboardConfig
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? scope = null,Object? targetTypes = null,Object? holeFilter = null,Object? rankingMethod = null,Object? bestN = null,Object? divisionFilter = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? scope = null,Object? targetTypes = null,Object? holeFilter = null,Object? rankingMethod = null,Object? bestN = null,Object? groupFilter = freezed,Object? divisionsEnabled = null,}) {
   return _then(MarkerCounterConfig(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
@@ -617,8 +625,9 @@ as LeaderboardScope,targetTypes: null == targetTypes ? _self._targetTypes : targ
 as Set<MarkerType>,holeFilter: null == holeFilter ? _self.holeFilter : holeFilter // ignore: cast_nullable_to_non_nullable
 as HoleFilter,rankingMethod: null == rankingMethod ? _self.rankingMethod : rankingMethod // ignore: cast_nullable_to_non_nullable
 as MarkerRankingMethod,bestN: null == bestN ? _self.bestN : bestN // ignore: cast_nullable_to_non_nullable
-as int,divisionFilter: freezed == divisionFilter ? _self.divisionFilter : divisionFilter // ignore: cast_nullable_to_non_nullable
-as Division?,
+as int,groupFilter: freezed == groupFilter ? _self.groupFilter : groupFilter // ignore: cast_nullable_to_non_nullable
+as String?,divisionsEnabled: null == divisionsEnabled ? _self.divisionsEnabled : divisionsEnabled // ignore: cast_nullable_to_non_nullable
+as bool,
   ));
 }
 

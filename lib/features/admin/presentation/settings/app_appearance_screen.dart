@@ -14,7 +14,7 @@ class AppAppearanceScreen extends ConsumerWidget {
     return HeadlessScaffold(
       title: 'App Appearance',
       subtitle: 'Customize light and dark mode',
-      topPill: BoxyArtPill.committee(label: 'ADMIN'),
+      topPill: BoxyArtIndicator.committee(label: 'ADMIN'),
       showBack: true,
       onBack: () => context.pop(),
       actions: const [],

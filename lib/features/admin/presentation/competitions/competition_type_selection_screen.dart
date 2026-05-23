@@ -23,7 +23,7 @@ class CompetitionTypeSelectionScreen extends StatelessWidget {
     return HeadlessScaffold(
       title: title,
       actions: [
-        BoxyArtPill.committee(label: 'ADMIN'),
+        BoxyArtIndicator.committee(label: 'ADMIN'),
         const SizedBox(width: AppSpacing.md),
       ],
       showBack: true,

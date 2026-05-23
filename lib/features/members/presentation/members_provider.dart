@@ -6,6 +6,7 @@ import 'package:golf_society/domain/models/leaderboard_config.dart';
 import 'package:collection/collection.dart';
 import '../../events/presentation/events_provider.dart';
 import '../../home/presentation/home_providers.dart';
+import '../../../features/competitions/presentation/standings/season_leaderboard_configs_provider.dart';
 
 import '../data/members_repository.dart';
 import '../data/firestore_members_repository.dart';
@@ -165,14 +166,18 @@ final memberFinancialStatusProvider = Provider.family<AsyncValue<MemberFinancial
 final memberPerformanceProvider = Provider.family<AsyncValue<MemberPerformance>, String>((ref, memberId) {
   final eventsAsync = ref.watch(adminEventsProvider);
   final activeSeasonAsync = ref.watch(activeSeasonProvider);
-  
-  // Find primary OOM for ranking
+
+  // Find primary OOM for ranking via the global template collection
   final activeSeason = activeSeasonAsync.value;
   AsyncValue<List<LeaderboardStanding>> standingsAsync = const AsyncValue.data([]);
-  
-  if (activeSeason != null && activeSeason.leaderboards.isNotEmpty) {
-     final oomConfig = activeSeason.leaderboards.firstWhereOrNull((l) => l is OrderOfMeritConfig) ?? activeSeason.leaderboards.first;
-     standingsAsync = ref.watch(leaderboardStandingsProvider(oomConfig.id));
+
+  if (activeSeason != null && activeSeason.leaderboardIds.isNotEmpty) {
+    final configsAsync = ref.watch(seasonLeaderboardConfigsProvider(activeSeason.id));
+    final configs = configsAsync.value ?? [];
+    if (configs.isNotEmpty) {
+      final oomConfig = configs.firstWhereOrNull((l) => l is OrderOfMeritConfig) ?? configs.first;
+      standingsAsync = ref.watch(leaderboardStandingsProvider(oomConfig.id));
+    }
   }
 
   return eventsAsync.whenData((events) {
@@ -221,26 +226,6 @@ final memberPerformanceProvider = Provider.family<AsyncValue<MemberPerformance>,
       bestPts: bestPts,
       rank: rank,
     );
-  });
-});
-
-// Legacy Simple Stats Provider (Count of confimed event participations)
-final memberStatsProvider = Provider<AsyncValue<Map<String, int>>>((ref) {
-  final eventsAsync = ref.watch(adminEventsProvider);
-
-  return eventsAsync.whenData((events) {
-    final stats = <String, int>{};
-
-    for (final event in events) {
-      if (event.status != EventStatus.cancelled) { // Count all except cancelled
-         for (final reg in event.registrations) {
-           if (reg.isConfirmed && reg.attendingGolf) { 
-              stats[reg.memberId] = (stats[reg.memberId] ?? 0) + 1;
-           }
-         }
-      }
-    }
-    return stats;
   });
 });
 

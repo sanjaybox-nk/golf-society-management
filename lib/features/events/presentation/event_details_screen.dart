@@ -213,7 +213,7 @@ class _EventDetailsContent extends ConsumerWidget {
       runSpacing: 12,
       crossAxisAlignment: WrapCrossAlignment.center,
       children: [
-        BoxyArtPill.status(
+        BoxyArtIndicator.status(
           label: statusText,
           color: statusColor,
           isLegend: true,

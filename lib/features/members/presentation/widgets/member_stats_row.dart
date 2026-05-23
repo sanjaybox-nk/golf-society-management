@@ -27,6 +27,14 @@ class MemberStatsRow extends StatelessWidget {
     return BoxyArtCard(
       child: Row(
         children: [
+          Expanded(
+            child: ModernMetricStat(
+              label: 'Events',
+              value: '$starts',
+              isCompact: true,
+            ),
+          ),
+          SizedBox(width: cardGap),
           if (wins > 0) ...[
             Expanded(
               child: ModernMetricStat(

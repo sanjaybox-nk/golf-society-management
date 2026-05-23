@@ -55,7 +55,7 @@ class EventAdminScorecardEditorScreen extends ConsumerWidget {
     return eventAsync.when(
       data: (event) => HeadlessScaffold(
         title: _getDisplayName(event, playerId),
-        topPill: BoxyArtPill.committee(label: 'ADMIN'),
+        topPill: BoxyArtIndicator.committee(label: 'ADMIN'),
         subtitle: 'Scorecard',
         showBack: true,
  // Nested in EventAdminShell
@@ -121,12 +121,11 @@ class EventAdminScorecardEditorScreen extends ConsumerWidget {
                           children: [
                             BoxyArtIndicator.hc(label: _formatHcp(baseHcp)),
                             const SizedBox(width: AppSpacing.md),
-                            BoxyArtIndicator.phc(context: context, label: '$phc'),
+                            BoxyArtIndicator.phc(label: '$phc'),
                             const Spacer(),
-                            BoxyArtPill(
+                            BoxyArtIndicator(
                               label: playerTeeName,
-                              color: _getTeeColor(playerTeeName, playerTeeConfig.tees),
-                              isLegend: true,
+                              dotColor: _getTeeColor(playerTeeName, playerTeeConfig.tees),
                               hasHorizontalMargin: false,
                             ),
                           ],

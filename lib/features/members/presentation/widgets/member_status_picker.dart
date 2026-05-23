@@ -17,38 +17,35 @@ class MemberStatusPicker extends StatelessWidget {
     BoxyArtBottomSheet.show(
       context: context,
       title: 'Update Member Status',
-      initialChildSize: 0.85,
-      maxChildSize: 0.9,
       child: StatefulBuilder(
         builder: (context, setModalState) {
           final spacing = Theme.of(context).extension<AppSpacingTokens>();
-          final cardGap = spacing?.cardToCard ?? AppSpacing.standard;
+          final cardGap = spacing?.cardToCard ?? AppSpacing.atomic;
 
           return Column(
             mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildStatusPickerOption(context, MemberStatus.member, selectedStatus, (val) {
+              buildStatusOption(context, MemberStatus.member, selectedStatus, (val) {
                 onStatusSelected(val);
                 setModalState(() => selectedStatus = val);
               }, cardGap),
-              _buildStatusPickerOption(context, MemberStatus.pending, selectedStatus, (val) {
+              buildStatusOption(context, MemberStatus.pending, selectedStatus, (val) {
                 onStatusSelected(val);
                 setModalState(() => selectedStatus = val);
               }, cardGap),
-              _buildStatusPickerOption(context, MemberStatus.suspended, selectedStatus, (val) {
+              buildStatusOption(context, MemberStatus.suspended, selectedStatus, (val) {
                 onStatusSelected(val);
                 setModalState(() => selectedStatus = val);
               }, cardGap),
-              _buildStatusPickerOption(context, MemberStatus.expired, selectedStatus, (val) {
+              buildStatusOption(context, MemberStatus.expired, selectedStatus, (val) {
                 onStatusSelected(val);
                 setModalState(() => selectedStatus = val);
               }, cardGap),
-              _buildStatusPickerOption(context, MemberStatus.left, selectedStatus, (val) {
+              buildStatusOption(context, MemberStatus.left, selectedStatus, (val) {
                 onStatusSelected(val);
                 setModalState(() => selectedStatus = val);
               }, cardGap),
-              _buildStatusPickerOption(context, MemberStatus.archived, selectedStatus, (val) {
+              buildStatusOption(context, MemberStatus.archived, selectedStatus, (val) {
                 onStatusSelected(val);
                 setModalState(() => selectedStatus = val);
               }, cardGap),
@@ -60,87 +57,33 @@ class MemberStatusPicker extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
-    return const SizedBox.shrink();
-  }
+  Widget build(BuildContext context) => const SizedBox.shrink();
 
-  static Widget _buildStatusPickerOption(
-    BuildContext context, 
-    MemberStatus status, 
-    MemberStatus currentStatus, 
+  static Widget buildStatusOption(
+    BuildContext context,
+    MemberStatus status,
+    MemberStatus currentStatus,
     ValueChanged<MemberStatus> onStatusSelected,
-    double cardGap,
-  ) {
+    double cardGap, {
+    VoidCallback? onDeselect,
+  }) {
     final isSelected = currentStatus == status;
-    final theme = Theme.of(context);
-    
-    // Normalize "member" vs "active" for display
-    String label = status.displayName;
-    if (status == MemberStatus.member || status == MemberStatus.active) {
-      label = 'Active';
-    }
+    final label = (status == MemberStatus.member || status == MemberStatus.active)
+        ? 'Active'
+        : status.displayName;
 
-    return GestureDetector(
-      onTap: () {
-        onStatusSelected(status);
-        // [Design Feedback] Selection no longer closes the slider automatically
-        // Navigator.pop(context); 
-      },
-      child: BoxyArtCard(
-        margin: EdgeInsets.only(bottom: cardGap),
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.standard,
-          vertical: AppSpacing.md,
-        ),
-        border: isSelected 
-            ? Border.all(color: theme.primaryColor.withValues(alpha: 0.2), width: 1.5) 
-            : Border.all(color: AppColors.dark300.withValues(alpha: 0.1), width: 1.0),
-        backgroundColor: isSelected 
-            ? theme.primaryColor.withValues(alpha: 0.05) 
-            : (theme.brightness == Brightness.dark ? AppColors.dark700 : AppColors.pureWhite),
-        child: Row(
-          children: [
-            BoxyArtIconBadge(
-              icon: _getStatusIcon(status),
-              color: isSelected ? theme.primaryColor : AppColors.dark150,
-              iconColor: isSelected ? theme.primaryColor : (theme.brightness == Brightness.dark ? AppColors.dark150 : AppColors.dark600),
-              isTinted: true,
-              size: 44,
-              iconSize: AppShapes.iconMedium,
-            ),
-            const SizedBox(width: AppSpacing.standard),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    label,
-                    style: AppTypography.labelStrong.copyWith(
-                      color: theme.brightness == Brightness.dark ? AppColors.dark60 : AppColors.dark900,
-                      fontSize: 16,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    _getStatusDescription(status),
-                    style: AppTypography.label.copyWith(
-                      color: theme.brightness == Brightness.dark ? AppColors.dark200 : AppColors.dark400,
-                      fontWeight: AppTypography.weightRegular,
-                      height: 1.3,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            if (isSelected) 
-              Icon(Icons.check_circle_rounded, color: theme.primaryColor, size: AppShapes.iconLg),
-          ],
-        ),
-      ),
+    return BoxyArtSelectCard(
+      icon: _statusIcon(status),
+      label: label,
+      description: _statusDescription(status),
+      isSelected: isSelected,
+      onTap: () => onStatusSelected(status),
+      onDeselect: onDeselect,
+      cardGap: cardGap,
     );
   }
 
-  static String _getStatusDescription(MemberStatus status) {
+  static String _statusDescription(MemberStatus status) {
     switch (status) {
       case MemberStatus.member:
       case MemberStatus.active:
@@ -160,7 +103,7 @@ class MemberStatusPicker extends StatelessWidget {
     }
   }
 
-  static IconData _getStatusIcon(MemberStatus status) {
+  static IconData _statusIcon(MemberStatus status) {
     switch (status) {
       case MemberStatus.member:
       case MemberStatus.active:

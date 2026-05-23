@@ -30,7 +30,7 @@ class DesignPreviewScreen extends ConsumerWidget {
     return HeadlessScaffold(
       title: 'Component Preview',
       subtitle: 'Navigation Variants',
-      topPill: BoxyArtPill.committee(label: 'ADMIN'),
+      topPill: BoxyArtIndicator.committee(label: 'ADMIN'),
       showBack: true,
       slivers: [
         SliverPadding(

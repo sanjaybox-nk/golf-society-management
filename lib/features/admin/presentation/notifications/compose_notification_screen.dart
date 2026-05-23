@@ -608,7 +608,7 @@ class _ComposeNotificationScreenState extends ConsumerState<ComposeNotificationS
                   fontWeight: AppTypography.weightSemibold,
                 ),
               ),
-              BoxyArtPill.status(
+              BoxyArtIndicator.status(
                 label: '$totalCount members',
                 color: AppColors.dark150,
                 textColor: isDark ? AppColors.pureWhite : AppColors.dark800,

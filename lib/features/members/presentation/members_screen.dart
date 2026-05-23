@@ -1,10 +1,21 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:golf_society/design_system/design_system.dart';
 import 'package:golf_society/domain/models/member.dart';
+import 'package:golf_society/domain/models/member_group_config.dart';
+import 'package:golf_society/domain/groups/member_group_helper.dart';
+import 'package:golf_society/features/admin/data/member_group_config_repository.dart';
 import 'package:golf_society/features/members/presentation/widgets/member_tile.dart';
 import 'package:golf_society/features/members/presentation/profile_provider.dart';
 import 'package:golf_society/features/guests/presentation/guests_provider.dart';
 import 'members_provider.dart';
+import '../../events/presentation/events_provider.dart';
+
+final _activeMemberGroupConfigProvider = FutureProvider.autoDispose<MemberGroupConfig?>((ref) async {
+  final season = ref.watch(activeSeasonProvider).value;
+  if (season?.memberGroupConfigId == null) return null;
+  return ref.read(memberGroupConfigRepositoryProvider).getConfig(season!.memberGroupConfigId!);
+});
 
 class MembersScreen extends ConsumerStatefulWidget {
   final bool isAdminContext;
@@ -26,7 +37,7 @@ class _MembersScreenState extends ConsumerState<MembersScreen> {
         : ref.watch(memberSearchQueryProvider)).toLowerCase();
         
     final membersAsync = ref.watch(allMembersProvider);
-    final memberStatsAsync = ref.watch(memberStatsProvider);
+    final memberGroupConfig = ref.watch(_activeMemberGroupConfigProvider).value;
     final spacing = Theme.of(context).extension<AppSpacingTokens>();
 
     return HeadlessScaffold(
@@ -34,7 +45,7 @@ class _MembersScreenState extends ConsumerState<MembersScreen> {
       subtitle: widget.isAdminContext && currentFilter.type == AdminMemberFilter.role && currentFilter.role != null
           ? 'Assign ${currentFilter.role!.displayName}'
           : (widget.isAdminContext ? 'Society Roster' : 'Members Roster'),
-      topPill: widget.isAdminContext ? BoxyArtPill.committee(label: 'ADMIN') : null,
+      topPill: widget.isAdminContext ? BoxyArtIndicator.committee(label: 'ADMIN') : null,
       slivers: [
         // Filter Bar
         SliverToBoxAdapter(
@@ -69,11 +80,29 @@ class _MembersScreenState extends ConsumerState<MembersScreen> {
         ...membersAsync.when(
           data: (members) {
             // Calculate filtered list ONCE
+            const memberVisibleStatuses = {MemberStatus.active, MemberStatus.member, MemberStatus.social};
+
             final filtered = members.where((m) {
+              if (!widget.isAdminContext && !memberVisibleStatuses.contains(m.status)) return false;
+
               final name = '${m.firstName} ${m.lastName} ${m.nickname ?? ''}'.toLowerCase();
-              final matchesSearch = name.contains(searchQuery);
+              final divisionLabel = memberGroupConfig != null
+                  ? (MemberGroupHelper.groupForMember(m, memberGroupConfig)?.name ?? '').toLowerCase()
+                  : '';
+              final handicapStr = m.handicap.toStringAsFixed(1);
+              final email = m.email.toLowerCase();
+              final societyRole = (m.societyRole ?? '').toLowerCase();
+              final statusLabel = m.status.displayName.toLowerCase();
+              final roleLabel = m.role.displayName.toLowerCase();
+              final matchesSearch = name.contains(searchQuery) ||
+                  divisionLabel.contains(searchQuery) ||
+                  handicapStr.contains(searchQuery) ||
+                  email.contains(searchQuery) ||
+                  societyRole.contains(searchQuery) ||
+                  statusLabel.contains(searchQuery) ||
+                  roleLabel.contains(searchQuery);
               if (!matchesSearch) return false;
-              if (widget.isAdminContext && searchQuery.isNotEmpty) return true;
+              if (searchQuery.isNotEmpty) return true;
               if (currentFilter.type == AdminMemberFilter.current) {
                 return m.status == MemberStatus.member || m.status == MemberStatus.active;
               } else if (currentFilter.type == AdminMemberFilter.committee) {
@@ -106,7 +135,7 @@ class _MembersScreenState extends ConsumerState<MembersScreen> {
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
                   child: BoxyArtSearchInput(
-                    hintText: 'Search by name...',
+                    hintText: 'Search by name, status, role, handicap…',
                     initialValue: searchQuery,
                     onChanged: (val) {
                       if (widget.isAdminContext) {
@@ -129,8 +158,8 @@ class _MembersScreenState extends ConsumerState<MembersScreen> {
                 sliver: filtered.isEmpty 
                   ? const SliverToBoxAdapter(child: _EmptyMembers())
                   : (currentFilter.type == AdminMemberFilter.other)
-                    ? _buildGroupedList(sortedMembers, memberStatsAsync, isUserAdmin, currentFilter, spacing)
-                    : _buildFlatList(sortedMembers, memberStatsAsync, isUserAdmin, currentFilter, spacing),
+                    ? _buildGroupedList(sortedMembers, isUserAdmin, currentFilter, spacing, memberGroupConfig)
+                    : _buildFlatList(sortedMembers, isUserAdmin, currentFilter, spacing, memberGroupConfig),
               ),
             ];
           },
@@ -208,40 +237,48 @@ class _MembersScreenState extends ConsumerState<MembersScreen> {
                           : (parts.isNotEmpty ? parts.first[0].toUpperCase() : '?');
                       return Padding(
                         padding: EdgeInsets.only(bottom: isLast ? 0 : (spacing?.cardToCard ?? AppSpacing.cardToCard)),
-                        child: BoxyArtMemberRow(
-                          name: g.name,
-                          secondaryName: g.email,
-                          initials: initials,
-                          handicapIndex: g.handicap,
-                          isGuest: true,
-                          useCard: true,
-                          showChevron: false,
-                          showVerticalDivider: true,
-                          leading: SizedBox(
-                            width: 64,
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                BoxyArtAvatar(
-                                  initials: initials,
-                                  radius: 32,
-                                  isCircle: true,
-                                  borderColor: Colors.transparent,
-                                  borderWidth: 0,
-                                ),
-                                const SizedBox(height: 4),
-                                FittedBox(
-                                  child: Text(
-                                    'Events ${g.eventCount}',
-                                    style: AppTypography.micro.copyWith(
-                                      fontSize: 10,
-                                      fontWeight: AppTypography.weightRegular,
+                        child: LayoutBuilder(
+                          builder: (context, constraints) {
+                            final leadingWidth = constraints.maxWidth * 0.30;
+                            return BoxyArtMemberRow(
+                              name: g.name,
+                              secondaryName: 'Guest',
+                              initials: initials,
+                              handicapIndex: g.handicap,
+                              useCard: true,
+                              showChevron: true,
+                              showVerticalDivider: true,
+                              onTap: () => context.pushNamed('admin-guest-detail', pathParameters: {'id': g.id}),
+                              leading: SizedBox(
+                                width: leadingWidth,
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    BoxyArtAvatar(
+                                      initials: initials,
+                                      radius: 32,
+                                      isCircle: true,
+                                      borderColor: Colors.transparent,
+                                      borderWidth: 0,
                                     ),
-                                  ),
+                                    if (g.lastPlayedAt != null) ...[
+                                      const SizedBox(height: 4),
+                                      FittedBox(
+                                        child: Text(
+                                          'Since ${g.lastPlayedAt!.year}',
+                                          style: AppTypography.micro.copyWith(
+                                            color: Theme.of(context).brightness == Brightness.dark
+                                                ? AppColors.dark200
+                                                : AppColors.dark800,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ],
                                 ),
-                              ],
-                            ),
-                          ),
+                              ),
+                            );
+                          },
                         ),
                       );
                     },
@@ -257,11 +294,11 @@ class _MembersScreenState extends ConsumerState<MembersScreen> {
 
 
   Widget _buildGroupedList(
-    List<Member> sortedMembers, 
-    AsyncValue<Map<String, int>> memberStatsAsync, 
-    bool isUserAdmin, 
+    List<Member> sortedMembers,
+    bool isUserAdmin,
     AdminMemberFilterState currentFilter,
     AppSpacingTokens? spacing,
+    MemberGroupConfig? memberGroupConfig,
   ) {
     final grouped = <MemberStatus, List<Member>>{};
     for (final m in sortedMembers) {
@@ -301,10 +338,9 @@ class _MembersScreenState extends ConsumerState<MembersScreen> {
               ...groupMembers.asMap().entries.map((entry) {
                 final m = entry.value;
                 final isLastGroupMember = entry.key == groupMembers.length - 1;
-                final eventCount = memberStatsAsync.value?[m.id] ?? 0;
                 return Padding(
                   padding: EdgeInsets.only(bottom: isLastGroupMember ? 0 : (spacing?.cardToCard ?? AppSpacing.standard)),
-                  child: _buildMemberItem(context, ref, m, widget.isAdminContext, isUserAdmin, currentFilter, eventCount),
+                  child: _buildMemberItem(context, ref, m, widget.isAdminContext, isUserAdmin, currentFilter, memberGroupConfig),
                 );
               }),
             ],
@@ -316,21 +352,20 @@ class _MembersScreenState extends ConsumerState<MembersScreen> {
   }
 
   Widget _buildFlatList(
-    List<Member> sortedMembers, 
-    AsyncValue<Map<String, int>> memberStatsAsync, 
-    bool isUserAdmin, 
+    List<Member> sortedMembers,
+    bool isUserAdmin,
     AdminMemberFilterState currentFilter,
     AppSpacingTokens? spacing,
+    MemberGroupConfig? memberGroupConfig,
   ) {
     return SliverList(
       delegate: SliverChildBuilderDelegate(
         (context, index) {
           final m = sortedMembers[index];
           final isLast = index == sortedMembers.length - 1;
-          final eventCount = memberStatsAsync.value?[m.id] ?? 0;
           return Padding(
             padding: EdgeInsets.only(bottom: isLast ? 0 : (spacing?.cardToCard ?? AppSpacing.standard)),
-            child: _buildMemberItem(context, ref, m, widget.isAdminContext, isUserAdmin, currentFilter, eventCount),
+            child: _buildMemberItem(context, ref, m, widget.isAdminContext, isUserAdmin, currentFilter, memberGroupConfig),
           );
         },
         childCount: sortedMembers.length,
@@ -339,13 +374,13 @@ class _MembersScreenState extends ConsumerState<MembersScreen> {
   }
 
   Widget _buildMemberItem(
-    BuildContext context, 
-    WidgetRef ref, 
-    Member m, 
-    bool isAdminContext, 
+    BuildContext context,
+    WidgetRef ref,
+    Member m,
+    bool isAdminContext,
     bool isUserAdmin,
     AdminMemberFilterState currentFilter,
-    int eventCount,
+    MemberGroupConfig? memberGroupConfig,
   ) {
     final isAlreadyInRole = m.role == currentFilter.role;
 
@@ -382,7 +417,7 @@ class _MembersScreenState extends ConsumerState<MembersScreen> {
         member: m,
         isAdminContext: isAdminContext,
         showFeeStatus: isAdminContext,
-        eventCount: eventCount,
+        memberGroupConfig: memberGroupConfig,
         trailing: isAdminContext && currentFilter.type == AdminMemberFilter.role && !isAlreadyInRole
             ? BoxyArtButton(
                 title: 'Assign',

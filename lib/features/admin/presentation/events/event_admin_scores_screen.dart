@@ -62,12 +62,12 @@ class _EventAdminScoresScreenState extends ConsumerState<EventAdminScoresScreen>
         return HeadlessScaffold(
           title: 'Event Scores',
           subtitle: event.title,
-          topPill: BoxyArtPill.committee(label: 'ADMIN'),
+          topPill: BoxyArtIndicator.committee(label: 'ADMIN'),
           showBack: true,
           actions: [
             GestureDetector(
               onTap: () => _toggleClose(context, ref, event),
-              child: BoxyArtPill.status(
+              child: BoxyArtIndicator.status(
                 label: statusLabel,
                 color: statusColor,
                 hasHorizontalMargin: false,

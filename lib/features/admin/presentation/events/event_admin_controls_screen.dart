@@ -45,7 +45,7 @@ class _EventAdminControlsScreenState extends ConsumerState<EventAdminControlsScr
         return HeadlessScaffold(
           title: 'Control Tower',
           subtitle: event.title,
-          topPill: BoxyArtPill.committee(label: 'ADMIN'),
+          topPill: BoxyArtIndicator.committee(label: 'ADMIN'),
           showBack: true,
           onBack: () => context.goNamed('admin-events'),
           slivers: [
@@ -156,7 +156,7 @@ class _EventAdminControlsScreenState extends ConsumerState<EventAdminControlsScr
                                     ),
                                   ),
                                   const SizedBox(width: AppSpacing.sm),
-                                  BoxyArtPill.status(
+                                  BoxyArtIndicator.status(
                                     label: event.finalizedStats.isNotEmpty ? 'Ready' : 'Never finalized',
                                     color: event.finalizedStats.isNotEmpty ? Theme.of(context).primaryColor : AppColors.amber500,
                                     isAction: true,

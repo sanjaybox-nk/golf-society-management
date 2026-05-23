@@ -5,7 +5,8 @@ import 'package:golf_society/features/events/logic/event_scoring_processor.dart'
 import 'package:golf_society/features/events/domain/models/processed_event_data.dart';
 import 'package:golf_society/features/events/presentation/state/marker_selection_provider.dart';
 import 'package:golf_society/domain/models/golf_event.dart';
-import 'package:golf_society/domain/divisions/division_helper.dart';
+import 'package:golf_society/domain/groups/member_group_helper.dart';
+import 'package:golf_society/features/admin/data/member_group_config_repository.dart';
 
 import '../../events/presentation/events_provider.dart';
 import '../../competitions/presentation/competitions_provider.dart'; // For scorecardRepositoryProvider
@@ -29,8 +30,20 @@ class LeaderboardInvokerService {
     final seasons = await seasonRepo.getSeasons();
     final season = seasons.firstWhere((s) => s.id == seasonId);
 
-    // Use overrideConfigs if provided (e.g. from a form), otherwise use the ones in the saved season
-    final configs = overrideConfigs ?? season.leaderboards;
+    // Closed seasons have frozen standings — no further recalculation allowed.
+    if (season.status == SeasonStatus.closed) return;
+
+    // Use overrideConfigs if provided (e.g. from a form), otherwise fetch live configs from templates
+    final List<LeaderboardConfig> configs;
+    if (overrideConfigs != null) {
+      configs = overrideConfigs;
+    } else {
+      final templateRepo = ref.read(leaderboardTemplatesRepositoryProvider);
+      final fetched = await Future.wait(
+        season.leaderboardIds.map((id) => templateRepo.getTemplate(id)),
+      );
+      configs = fetched.nonNulls.toList();
+    }
 
     // 2. Fetch All Competitions in Date Range
     final compRepo = ref.read(competitionsRepositoryProvider);
@@ -117,19 +130,23 @@ class LeaderboardInvokerService {
           memberName: memberNames[s.memberId] ?? s.memberName,
         )).toList();
 
-        // Apply division filter if configured
-        final divisionFilter = config.map(
-          orderOfMerit: (c) => c.divisionFilter,
-          bestOfSeries: (c) => c.divisionFilter,
-          eclectic: (c) => c.divisionFilter,
-          markerCounter: (c) => c.divisionFilter,
+        // Apply group filter if configured
+        final groupFilter = config.map(
+          orderOfMerit: (c) => c.groupFilter,
+          bestOfSeries: (c) => c.groupFilter,
+          eclectic: (c) => c.groupFilter,
+          markerCounter: (c) => c.groupFilter,
         );
-        if (divisionFilter != null && season.divisionConfig != null) {
-          namedStandings = namedStandings.where((s) =>
-            DivisionHelper.memberBelongsToDivision(
-              s.memberId, divisionFilter, season.divisionConfig!, members,
-            ),
-          ).toList();
+        if (groupFilter != null && season.memberGroupConfigId != null) {
+          final groupRepo = ref.read(memberGroupConfigRepositoryProvider);
+          final groupConfig = await groupRepo.getConfig(season.memberGroupConfigId!);
+          if (groupConfig != null) {
+            namedStandings = namedStandings.where((s) =>
+              MemberGroupHelper.memberBelongsToGroup(
+                s.memberId, groupFilter, groupConfig, members,
+              ),
+            ).toList();
+          }
         }
 
         // Save

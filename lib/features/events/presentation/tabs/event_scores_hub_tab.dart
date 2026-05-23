@@ -325,7 +325,7 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
                 Center(
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
-                    child: BoxyArtPill.status(
+                    child: BoxyArtIndicator.status(
                       label: headerBadgeText,
                       color: headerBadgeColor,
                       hasHorizontalMargin: false,

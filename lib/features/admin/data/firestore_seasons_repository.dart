@@ -96,10 +96,25 @@ class FirestoreSeasonsRepository implements SeasonsRepository {
 
   @override
   Future<void> closeSeason(String seasonId, Map<String, dynamic> agmData) async {
+    // Snapshot leaderboard configs before archiving so the season is
+    // self-contained even if templates are later edited or deleted.
+    final seasonDoc = await _seasonsRef.doc(seasonId).get();
+    final season = seasonDoc.data();
+    List<Map<String, dynamic>> configSnapshots = [];
+    if (season != null && season.leaderboardIds.isNotEmpty) {
+      final templateCollection = _firestore.collection('leaderboard_templates');
+      for (final id in season.leaderboardIds) {
+        final doc = await templateCollection.doc(id).get();
+        if (doc.exists && doc.data() != null) {
+          configSnapshots.add({...doc.data()!, 'id': doc.id});
+        }
+      }
+    }
     await _seasonsRef.doc(seasonId).update({
       'status': SeasonStatus.closed.name,
       'agmData': agmData,
       'isCurrent': false,
+      'archivedLeaderboardConfigs': configSnapshots,
     });
   }
 

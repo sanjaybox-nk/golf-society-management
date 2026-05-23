@@ -253,7 +253,7 @@ class _AdminSponsorshipHubScreenState extends ConsumerState<AdminSponsorshipHubS
     return HeadlessScaffold(
       title: 'Finance Hub',
       subtitle: 'Society-level income & expenditure',
-      topPill: BoxyArtPill.committee(label: 'ADMIN'),
+      topPill: BoxyArtIndicator.committee(label: 'ADMIN'),
       showBack: true,
       onBack: () {
         if (_formSection != _FormSection.none) {

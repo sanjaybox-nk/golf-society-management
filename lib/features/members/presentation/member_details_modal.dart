@@ -3,7 +3,6 @@ import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:golf_society/services/storage_service.dart';
 import 'package:golf_society/design_system/design_system.dart';
-import 'widgets/member_stats_row.dart';
 
 import 'package:golf_society/constants/country_codes.dart';
 import 'package:golf_society/domain/models/member.dart';
@@ -13,19 +12,22 @@ import 'widgets/member_role_picker.dart';
 import 'widgets/member_status_picker.dart';
 import 'widgets/society_role_picker.dart';
 import 'widgets/personal_details_form.dart';
-import 'widgets/handicap_trend_chart.dart';
 import 'package:golf_society/domain/models/handicap_system.dart';
+import 'package:golf_society/domain/models/guest_profile.dart';
+import 'package:golf_society/features/guests/data/guest_repository.dart';
 
 class MemberDetailsModal extends ConsumerStatefulWidget {
   final Member? member; // Null = New Member
+  final GuestProfile? guestProfile; // Set to render in guest mode
   final bool isNewMember;
   final bool isAdminContext;
   final bool isModal;
 
   const MemberDetailsModal({
-    super.key, 
-    this.member, 
-    this.isNewMember = false, 
+    super.key,
+    this.member,
+    this.guestProfile,
+    this.isNewMember = false,
     this.isAdminContext = false,
     this.isModal = true,
   });
@@ -52,6 +54,8 @@ class MemberDetailsModal extends ConsumerStatefulWidget {
 }
 
 class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
+  bool get _isGuestMode => widget.guestProfile != null;
+
   bool _isEditing = false;
   late TextEditingController _firstController;
   late TextEditingController _lastController;
@@ -109,6 +113,40 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
   }
 
   void _initControllers() {
+    if (_isGuestMode) {
+      final g = widget.guestProfile!;
+      final parts = g.name.trim().split(' ').where((p) => p.isNotEmpty).toList();
+      _firstController = TextEditingController(text: parts.isNotEmpty ? parts.first : '');
+      _lastController = TextEditingController(text: parts.length > 1 ? parts.skip(1).join(' ') : '');
+      _nicknameController = TextEditingController();
+      _emailController = TextEditingController(text: g.email);
+      _addressController = TextEditingController();
+      _bioController = TextEditingController();
+      _handicapController = TextEditingController(text: g.handicap.toStringAsFixed(1));
+      _handicapIdController = TextEditingController();
+      _countryCodeController = TextEditingController(text: '+44');
+      _phoneController = TextEditingController();
+      _status = MemberStatus.member;
+      _hasPaid = false;
+      _role = MemberRole.member;
+      _societyRole = null;
+      _joinedDate = g.firstPlayedAt;
+      _membershipEndDate = null;
+      _allowSocialEventsOnly = false;
+      _isFoundingMember = false;
+      _gender = null;
+      _firstFocusNode = FocusNode();
+      _lastFocusNode = FocusNode();
+      _nicknameFocusNode = FocusNode();
+      _emailFocusNode = FocusNode();
+      _phoneFocusNode = FocusNode();
+      _handicapIdFocusNode = FocusNode();
+      _handicapFocusNode = FocusNode();
+      _addressFocusNode = FocusNode();
+      _bioFocusNode = FocusNode();
+      return;
+    }
+
     final m = widget.member;
     _firstController = TextEditingController(text: m?.firstName ?? '');
     _lastController = TextEditingController(text: m?.lastName ?? '');
@@ -179,6 +217,27 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
   }
 
   Future<void> _save() async {
+    if (_isGuestMode) {
+      setState(() => _isSaving = true);
+      try {
+        final g = widget.guestProfile!;
+        final name = '${_firstController.text.trim()} ${_lastController.text.trim()}'.trim();
+        final hc = double.tryParse(_handicapController.text) ?? g.handicap;
+        await ref.read(guestRepositoryProvider).update(
+          g.copyWith(name: name.isEmpty ? g.name : name, handicap: hc),
+        );
+        if (mounted) Navigator.of(context).pop();
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Error: $e'), backgroundColor: AppColors.coral500),
+          );
+          setState(() => _isSaving = false);
+        }
+      }
+      return;
+    }
+
     if (!_formKey.currentState!.validate()) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -323,7 +382,9 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
     final canAssignRoles = currentUser.role == MemberRole.superAdmin;
     final spacing = Theme.of(context).extension<AppSpacingTokens>();
     
-    String title = widget.isNewMember ? 'New Member' : (_isEditing ? 'Edit Member' : 'Member Detail');
+    String title = _isGuestMode
+        ? (_isEditing ? 'Edit Guest' : 'Guest Profile')
+        : (widget.isNewMember ? 'New Member' : (_isEditing ? 'Edit Member' : 'Member Detail'));
 
     final baseContent = HeadlessScaffold(
       isModal: widget.isModal,
@@ -346,7 +407,7 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
       // Trailing Actions (Edit)
       actions: [
         // Edit Button (Right) - Admin Context or Self-service
-        if (!_isEditing && (widget.isAdminContext || (widget.member?.id == currentUser.id)))
+        if (!_isEditing && (_isGuestMode || widget.isAdminContext || (widget.member?.id == currentUser.id)))
           BoxyArtGlassIconButton(
             icon: Icons.edit_outlined,
             onPressed: () => setState(() => _isEditing = true),
@@ -389,53 +450,20 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
                       onStatusChanged: isAdmin ? (_) => _showStatusPicker() : null,
                       role: _role,
                       onRoleTap: canAssignRoles ? _showRolePicker : null,
-                      societyRole: _societyRole,
-                      onSocietyRoleTap: isAdmin ? _showSocietyRolePicker : null,
+                      societyRole: _isGuestMode ? 'Guest' : _societyRole,
+                      onSocietyRoleTap: isAdmin
+                          ? (_isGuestMode ? _showPromotionSheet : _showSocietyRolePicker)
+                          : null,
                       joinedDate: _joinedDate,
-                      showFeeIndicator: false, // Moved to Renewal Hub list
-                      isAdminContext: widget.isAdminContext,
+                      showFeeIndicator: false,
+                      isAdminContext: _isGuestMode ? false : widget.isAdminContext,
                       isFoundingMember: _isFoundingMember,
                     ),
                   ),
 
                   if (!widget.isNewMember) ...[
                     SizedBox(height: spacing?.cardToLabel ?? AppSpacing.standard),
-                    // 2. Performance Section
-                    const BoxyArtSectionTitle(
-                      title: 'Member Performance',
-                      isPeeking: true,
-                      horizontalPadding: 0,
-                    ),
-                    Consumer(
-                      builder: (context, ref, _) {
-                        final memberId = widget.member?.id;
-                        if (memberId == null) return const SizedBox.shrink();
-                        
-                        return ref.watch(memberPerformanceProvider(memberId)).when(
-                          loading: () => const BoxyArtLoadingCard(
-                            useCard: false,
-                            isCompact: true,
-                            title: 'Fetching performance...',
-                          ),
-                          error: (err, stack) => BoxyArtEmptyState(
-                            title: 'Status Error',
-                            message: err.toString(),
-                            icon: Icons.error_outline_rounded,
-                            isCompact: true,
-                          ),
-                          data: (stats) => MemberStatsRow(
-                            starts: stats.starts,
-                            wins: stats.wins,
-                            top5: stats.top5,
-                            avgPts: stats.avgPts,
-                            bestPts: stats.bestPts,
-                            rank: stats.rank,
-                          ),
-                        );
-                      },
-                    ),
 
-                    // 3. Details Section
                     Consumer(
                       builder: (context, ref, _) {
                         final society = ref.watch(themeControllerProvider);
@@ -443,8 +471,8 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
                         return BoxyArtFormColumn(
                           spacing: 0,
                           children: [
-                            const BoxyArtSectionTitle(
-                              title: 'Membership Details',
+                            BoxyArtSectionTitle(
+                              title: _isGuestMode ? 'Guest Details' : 'Membership Details',
                               followsCard: true,
                               horizontalPadding: 0,
                             ),
@@ -473,22 +501,18 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
                                               hint: system.hintText,
                                             )
                                           : _buildValueDisplay(
-                                              context, 
-                                              system.idLabel.toUpperCase(), 
+                                              context,
+                                              system.idLabel.toUpperCase(),
                                               _handicapIdController.text
                                             ),
                                       ),
                                     ],
                                   ),
-                                  if (widget.member?.handicapHistory.isNotEmpty ?? false) ...[
-                                    const BoxyArtDivider(verticalPadding: AppSpacing.lg),
-                                    BoxyArtHandicapTrend(history: widget.member!.handicapHistory),
-                                  ],
                                   if (_isEditing && isAdmin)
                                     BoxyArtDatePickerField(
                                       label: 'Membership Valid Till',
-                                      value: _membershipEndDate != null 
-                                          ? '${_membershipEndDate!.day.toString().padLeft(2, '0')}/${_membershipEndDate!.month.toString().padLeft(2, '0')}/${_membershipEndDate!.year}' 
+                                      value: _membershipEndDate != null
+                                          ? '${_membershipEndDate!.day.toString().padLeft(2, '0')}/${_membershipEndDate!.month.toString().padLeft(2, '0')}/${_membershipEndDate!.year}'
                                           : 'Tap to select date',
                                       onTap: () async {
                                         final date = await showDatePicker(
@@ -502,16 +526,15 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
                                     )
                                   else
                                     _buildValueDisplay(
-                                      context, 
-                                      'Membership Valid Till', 
-                                      _membershipEndDate != null 
-                                          ? '${_membershipEndDate!.day.toString().padLeft(2, '0')}/${_membershipEndDate!.month.toString().padLeft(2, '0')}/${_membershipEndDate!.year}' 
+                                      context,
+                                      'Membership Valid Till',
+                                      _membershipEndDate != null
+                                          ? '${_membershipEndDate!.day.toString().padLeft(2, '0')}/${_membershipEndDate!.month.toString().padLeft(2, '0')}/${_membershipEndDate!.year}'
                                           : '-'
                                     ),
                                 ],
                               ),
                             ),
-
                           ],
                         );
                       },
@@ -556,7 +579,7 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
                     ),
                   ),
 
-                  if (isAdmin) ...[
+                  if (isAdmin && !_isGuestMode) ...[
                     const BoxyArtSectionTitle(
                       title: 'Administrative Controls',
                       followsCard: true,
@@ -629,7 +652,7 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
                   ],
 
                   // Promote social member to full member
-                  if (isAdmin && (_role == MemberRole.socialMember || widget.member?.status == MemberStatus.social)) ...[
+                  if (!_isGuestMode && isAdmin && (_role == MemberRole.socialMember || widget.member?.status == MemberStatus.social)) ...[
                     const SizedBox(height: AppSpacing.standard),
                     BoxyArtStatusBanner(
                       icon: Icons.people_outline_rounded,
@@ -656,7 +679,7 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
 
                   const SizedBox(height: AppSpacing.section),
 
-                  if (isAdmin && widget.member != null && widget.member!.id != currentUser.id)
+                  if (!_isGuestMode && isAdmin && widget.member != null && widget.member!.id != currentUser.id)
                     BoxyArtButton(
                       title: 'View As This Member',
                       isPrimary: false,
@@ -723,6 +746,87 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
         ),
       ],
     );
+  }
+
+  void _showPromotionSheet() {
+    MemberStatus? selectedStatus;
+
+    BoxyArtBottomSheet.show(
+      context: context,
+      title: 'Promote to Member',
+      child: StatefulBuilder(
+        builder: (context, setModalState) {
+          final spacing = Theme.of(context).extension<AppSpacingTokens>();
+          final cardGap = spacing?.cardToCard ?? AppSpacing.atomic;
+
+          return Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              MemberStatusPicker.buildStatusOption(
+                context, MemberStatus.active, selectedStatus ?? MemberStatus.left,
+                (val) => setModalState(() => selectedStatus = val),
+                cardGap,
+                onDeselect: () => setModalState(() => selectedStatus = null),
+              ),
+              MemberStatusPicker.buildStatusOption(
+                context, MemberStatus.pending, selectedStatus ?? MemberStatus.left,
+                (val) => setModalState(() => selectedStatus = val),
+                cardGap,
+                onDeselect: () => setModalState(() => selectedStatus = null),
+              ),
+              SizedBox(height: spacing?.labelToCard ?? AppSpacing.atomic),
+              BoxyArtButton(
+                title: 'Confirm Promotion',
+                icon: Icons.person_add_rounded,
+                fullWidth: true,
+                onTap: selectedStatus == null ? null : () {
+                  Navigator.of(context).pop();
+                  _executePromotion(selectedStatus!);
+                },
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  Future<void> _executePromotion(MemberStatus status) async {
+    final g = widget.guestProfile!;
+    setState(() => _isSaving = true);
+    try {
+      final firstName = _firstController.text.trim();
+      final lastName = _lastController.text.trim();
+      final hc = double.tryParse(_handicapController.text) ?? g.handicap;
+      final parts = g.name.trim().split(' ').where((p) => p.isNotEmpty).toList();
+
+      final member = Member(
+        id: '',
+        firstName: firstName.isNotEmpty ? firstName : (parts.isNotEmpty ? parts.first : ''),
+        lastName: lastName.isNotEmpty ? lastName : (parts.length > 1 ? parts.skip(1).join(' ') : ''),
+        email: g.email,
+        handicap: hc,
+        handicapId: _handicapIdController.text.trim(),
+        phone: '${_countryCodeController.text}${_phoneController.text.trim()}',
+        address: _addressController.text.trim(),
+        bio: _bioController.text.trim(),
+        status: status,
+        joinedDate: DateTime.now(),
+        role: MemberRole.member,
+      );
+
+      await ref.read(membersRepositoryProvider).addMember(member);
+      await ref.read(guestRepositoryProvider).delete(g.id);
+
+      if (mounted) Navigator.of(context).pop();
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e'), backgroundColor: AppColors.coral500),
+        );
+        setState(() => _isSaving = false);
+      }
+    }
   }
 
   void _showExitConfirmation() {

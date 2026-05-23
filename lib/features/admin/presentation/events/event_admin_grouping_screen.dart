@@ -212,7 +212,7 @@ class _EventAdminGroupingScreenState extends ConsumerState<EventAdminGroupingScr
                 ],
               ),
 
-              topPill: BoxyArtPill.committee(label: 'ADMIN'),
+              topPill: BoxyArtIndicator.committee(label: 'ADMIN'),
 
               showBack: true,
               onBack: () async {
@@ -255,7 +255,7 @@ class _EventAdminGroupingScreenState extends ConsumerState<EventAdminGroupingScr
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (err, _) => HeadlessScaffold(
         title: 'Error',
-        topPill: BoxyArtPill.committee(label: 'ADMIN'),
+        topPill: BoxyArtIndicator.committee(label: 'ADMIN'),
         showBack: true,
         slivers: [
           SliverFillRemaining(

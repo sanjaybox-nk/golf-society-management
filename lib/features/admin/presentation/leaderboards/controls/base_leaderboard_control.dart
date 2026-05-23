@@ -1,7 +1,5 @@
 import 'package:golf_society/design_system/design_system.dart';
 import 'package:golf_society/domain/models/leaderboard_config.dart';
-import 'package:golf_society/domain/models/division_config.dart';
-import 'package:golf_society/domain/divisions/division_helper.dart';
 
 mixin BaseLeaderboardControlMixin<T extends StatefulWidget> on State<T> {
 
@@ -181,31 +179,21 @@ mixin BaseLeaderboardControlMixin<T extends StatefulWidget> on State<T> {
     );
   }
 
-  Widget buildDivisionFilterSelector({
-    required Division? value,
-    required ValueChanged<Division?> onChanged,
+  Widget buildDivisionsEnabledToggle({
+    required bool value,
+    required ValueChanged<bool> onChanged,
   }) {
-    final description = value == null
-        ? 'Includes all members regardless of division.'
-        : 'Only includes ${DivisionHelper.label(value)} members. Requires divisions to be configured on the season.';
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        BoxyArtDropdownField<Division?>(
-          label: 'Division Filter',
-          prefixIcon: const Icon(Icons.workspaces_rounded),
+        BoxyArtSwitchField(
+          label: 'Show Division Tabs',
+          subtitle: 'Members can filter standings by Div 1 / Div 2.',
           value: value,
-          items: [
-            const DropdownMenuItem(value: null, child: Text('ALL MEMBERS')),
-            ...Division.values.map((d) => DropdownMenuItem(
-              value: d,
-              child: Text(DivisionHelper.shortLabel(d)),
-            )),
-          ],
           onChanged: onChanged,
         ),
-        buildInfoBubble(description),
+        if (!value)
+          buildInfoBubble('Enable to let members view standings split by division. Requires divisions to be configured on the season.'),
       ],
     );
   }

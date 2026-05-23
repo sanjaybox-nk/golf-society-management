@@ -35,7 +35,7 @@ class _AdminDebtLedgerScreenState extends ConsumerState<AdminDebtLedgerScreen> {
     return HeadlessScaffold(
       title: 'Central Debt Ledger',
       subtitle: 'Track and Settle Society Finances',
-      topPill: BoxyArtPill.committee(label: 'ADMIN'),
+      topPill: BoxyArtIndicator.committee(label: 'ADMIN'),
       showBack: true,
       onBack: () => context.pop(),
       actions: const [],

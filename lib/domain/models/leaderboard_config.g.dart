@@ -26,10 +26,8 @@ OrderOfMeritConfig _$OrderOfMeritConfigFromJson(Map<String, dynamic> json) =>
           const {},
       appearancePoints: (json['appearancePoints'] as num?)?.toInt() ?? 0,
       bestN: (json['bestN'] as num?)?.toInt() ?? 0,
-      divisionFilter: $enumDecodeNullable(
-        _$DivisionEnumMap,
-        json['divisionFilter'],
-      ),
+      groupFilter: json['groupFilter'] as String?,
+      divisionsEnabled: json['divisionsEnabled'] as bool? ?? false,
       $type: json['runtimeType'] as String?,
     );
 
@@ -45,7 +43,8 @@ Map<String, dynamic> _$OrderOfMeritConfigToJson(OrderOfMeritConfig instance) =>
       ),
       'appearancePoints': instance.appearancePoints,
       'bestN': instance.bestN,
-      'divisionFilter': _$DivisionEnumMap[instance.divisionFilter],
+      'groupFilter': instance.groupFilter,
+      'divisionsEnabled': instance.divisionsEnabled,
       'runtimeType': instance.$type,
     };
 
@@ -64,13 +63,6 @@ const _$OOMSourceEnumMap = {
 const _$OOMRankingBasisEnumMap = {
   OOMRankingBasis.stableford: 'stableford',
   OOMRankingBasis.gross: 'gross',
-};
-
-const _$DivisionEnumMap = {
-  Division.div1: 'div1',
-  Division.div2: 'div2',
-  Division.div1Ladies: 'div1Ladies',
-  Division.div2Ladies: 'div2Ladies',
 };
 
 BestOfSeriesConfig _$BestOfSeriesConfigFromJson(Map<String, dynamic> json) =>
@@ -96,10 +88,8 @@ BestOfSeriesConfig _$BestOfSeriesConfigFromJson(Map<String, dynamic> json) =>
           ) ??
           const {},
       appearancePoints: (json['appearancePoints'] as num?)?.toInt() ?? 0,
-      divisionFilter: $enumDecodeNullable(
-        _$DivisionEnumMap,
-        json['divisionFilter'],
-      ),
+      groupFilter: json['groupFilter'] as String?,
+      divisionsEnabled: json['divisionsEnabled'] as bool? ?? false,
       $type: json['runtimeType'] as String?,
     );
 
@@ -116,7 +106,8 @@ Map<String, dynamic> _$BestOfSeriesConfigToJson(BestOfSeriesConfig instance) =>
         (k, e) => MapEntry(k.toString(), e),
       ),
       'appearancePoints': instance.appearancePoints,
-      'divisionFilter': _$DivisionEnumMap[instance.divisionFilter],
+      'groupFilter': instance.groupFilter,
+      'divisionsEnabled': instance.divisionsEnabled,
       'runtimeType': instance.$type,
     };
 
@@ -149,10 +140,8 @@ EclecticConfig _$EclecticConfigFromJson(Map<String, dynamic> json) =>
           $enumDecodeNullable(_$EclecticMetricEnumMap, json['metric']) ??
           EclecticMetric.strokes,
       handicapPercentage: (json['handicapPercentage'] as num?)?.toInt() ?? 0,
-      divisionFilter: $enumDecodeNullable(
-        _$DivisionEnumMap,
-        json['divisionFilter'],
-      ),
+      groupFilter: json['groupFilter'] as String?,
+      divisionsEnabled: json['divisionsEnabled'] as bool? ?? false,
       $type: json['runtimeType'] as String?,
     );
 
@@ -163,7 +152,8 @@ Map<String, dynamic> _$EclecticConfigToJson(EclecticConfig instance) =>
       'scope': _$LeaderboardScopeEnumMap[instance.scope]!,
       'metric': _$EclecticMetricEnumMap[instance.metric]!,
       'handicapPercentage': instance.handicapPercentage,
-      'divisionFilter': _$DivisionEnumMap[instance.divisionFilter],
+      'groupFilter': instance.groupFilter,
+      'divisionsEnabled': instance.divisionsEnabled,
       'runtimeType': instance.$type,
     };
 
@@ -192,10 +182,8 @@ MarkerCounterConfig _$MarkerCounterConfigFromJson(Map<String, dynamic> json) =>
           ) ??
           MarkerRankingMethod.count,
       bestN: (json['bestN'] as num?)?.toInt() ?? 0,
-      divisionFilter: $enumDecodeNullable(
-        _$DivisionEnumMap,
-        json['divisionFilter'],
-      ),
+      groupFilter: json['groupFilter'] as String?,
+      divisionsEnabled: json['divisionsEnabled'] as bool? ?? false,
       $type: json['runtimeType'] as String?,
     );
 
@@ -211,7 +199,8 @@ Map<String, dynamic> _$MarkerCounterConfigToJson(
   'holeFilter': _$HoleFilterEnumMap[instance.holeFilter]!,
   'rankingMethod': _$MarkerRankingMethodEnumMap[instance.rankingMethod]!,
   'bestN': instance.bestN,
-  'divisionFilter': _$DivisionEnumMap[instance.divisionFilter],
+  'groupFilter': instance.groupFilter,
+  'divisionsEnabled': instance.divisionsEnabled,
   'runtimeType': instance.$type,
 };
 

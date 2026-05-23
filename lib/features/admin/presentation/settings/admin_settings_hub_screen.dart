@@ -17,7 +17,7 @@ class AdminSettingsHubScreen extends ConsumerWidget {
 
     return HeadlessScaffold(
       title: 'Settings Hub',
-      topPill: BoxyArtPill.committee(label: 'ADMIN'),
+      topPill: BoxyArtIndicator.committee(label: 'ADMIN'),
       subtitle: 'System Configuration',
       showBack: true,
       slivers: [

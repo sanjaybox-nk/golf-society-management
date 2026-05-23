@@ -54,7 +54,7 @@ class EventFieldAdminScreen extends ConsumerWidget {
 
         return HeadlessScaffold(
           title: 'Field & Tee Times',
-          topPill: BoxyArtPill.committee(label: 'ADMIN'),
+          topPill: BoxyArtIndicator.committee(label: 'ADMIN'),
           subtitle: event.title,
           showBack: true,
           onBack: () => context.go('/admin/events'),

@@ -115,7 +115,7 @@ class EventHeadlineCard extends ConsumerWidget {
         break;
     }
     
-    return BoxyArtPill.status(
+    return BoxyArtIndicator.status(
       label: statusText,
       color: statusColor,
       isLegend: true,

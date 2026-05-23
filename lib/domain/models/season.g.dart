@@ -16,14 +16,17 @@ _Season _$SeasonFromJson(Map<String, dynamic> json) => _Season(
       $enumDecodeNullable(_$SeasonStatusEnumMap, json['status']) ??
       SeasonStatus.active,
   isCurrent: json['isCurrent'] as bool? ?? false,
-  leaderboards:
-      (json['leaderboards'] as List<dynamic>?)
+  leaderboardIds:
+      (json['leaderboardIds'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toList() ??
+      const [],
+  archivedLeaderboardConfigs:
+      (json['archivedLeaderboardConfigs'] as List<dynamic>?)
           ?.map((e) => LeaderboardConfig.fromJson(e as Map<String, dynamic>))
           .toList() ??
       const [],
-  divisionConfig: json['divisionConfig'] == null
-      ? null
-      : DivisionConfig.fromJson(json['divisionConfig'] as Map<String, dynamic>),
+  memberGroupConfigId: json['memberGroupConfigId'] as String?,
   agmData: json['agmData'] as Map<String, dynamic>? ?? const {},
 );
 
@@ -35,8 +38,11 @@ Map<String, dynamic> _$SeasonToJson(_Season instance) => <String, dynamic>{
   'endDate': const TimestampConverter().toJson(instance.endDate),
   'status': _$SeasonStatusEnumMap[instance.status]!,
   'isCurrent': instance.isCurrent,
-  'leaderboards': instance.leaderboards.map((e) => e.toJson()).toList(),
-  'divisionConfig': instance.divisionConfig?.toJson(),
+  'leaderboardIds': instance.leaderboardIds,
+  'archivedLeaderboardConfigs': instance.archivedLeaderboardConfigs
+      .map((e) => e.toJson())
+      .toList(),
+  'memberGroupConfigId': instance.memberGroupConfigId,
   'agmData': instance.agmData,
 };
 

@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$Season {
 
- String get id; String get name; int get year;@TimestampConverter() DateTime get startDate;@TimestampConverter() DateTime get endDate; SeasonStatus get status; bool get isCurrent; List<LeaderboardConfig> get leaderboards; DivisionConfig? get divisionConfig; Map<String, dynamic> get agmData;
+ String get id; String get name; int get year;@TimestampConverter() DateTime get startDate;@TimestampConverter() DateTime get endDate; SeasonStatus get status; bool get isCurrent; List<String> get leaderboardIds; List<LeaderboardConfig> get archivedLeaderboardConfigs; String? get memberGroupConfigId; Map<String, dynamic> get agmData;
 /// Create a copy of Season
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $SeasonCopyWith<Season> get copyWith => _$SeasonCopyWithImpl<Season>(this as Sea
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Season&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.year, year) || other.year == year)&&(identical(other.startDate, startDate) || other.startDate == startDate)&&(identical(other.endDate, endDate) || other.endDate == endDate)&&(identical(other.status, status) || other.status == status)&&(identical(other.isCurrent, isCurrent) || other.isCurrent == isCurrent)&&const DeepCollectionEquality().equals(other.leaderboards, leaderboards)&&(identical(other.divisionConfig, divisionConfig) || other.divisionConfig == divisionConfig)&&const DeepCollectionEquality().equals(other.agmData, agmData));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Season&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.year, year) || other.year == year)&&(identical(other.startDate, startDate) || other.startDate == startDate)&&(identical(other.endDate, endDate) || other.endDate == endDate)&&(identical(other.status, status) || other.status == status)&&(identical(other.isCurrent, isCurrent) || other.isCurrent == isCurrent)&&const DeepCollectionEquality().equals(other.leaderboardIds, leaderboardIds)&&const DeepCollectionEquality().equals(other.archivedLeaderboardConfigs, archivedLeaderboardConfigs)&&(identical(other.memberGroupConfigId, memberGroupConfigId) || other.memberGroupConfigId == memberGroupConfigId)&&const DeepCollectionEquality().equals(other.agmData, agmData));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,year,startDate,endDate,status,isCurrent,const DeepCollectionEquality().hash(leaderboards),divisionConfig,const DeepCollectionEquality().hash(agmData));
+int get hashCode => Object.hash(runtimeType,id,name,year,startDate,endDate,status,isCurrent,const DeepCollectionEquality().hash(leaderboardIds),const DeepCollectionEquality().hash(archivedLeaderboardConfigs),memberGroupConfigId,const DeepCollectionEquality().hash(agmData));
 
 @override
 String toString() {
-  return 'Season(id: $id, name: $name, year: $year, startDate: $startDate, endDate: $endDate, status: $status, isCurrent: $isCurrent, leaderboards: $leaderboards, divisionConfig: $divisionConfig, agmData: $agmData)';
+  return 'Season(id: $id, name: $name, year: $year, startDate: $startDate, endDate: $endDate, status: $status, isCurrent: $isCurrent, leaderboardIds: $leaderboardIds, archivedLeaderboardConfigs: $archivedLeaderboardConfigs, memberGroupConfigId: $memberGroupConfigId, agmData: $agmData)';
 }
 
 
@@ -48,11 +48,11 @@ abstract mixin class $SeasonCopyWith<$Res>  {
   factory $SeasonCopyWith(Season value, $Res Function(Season) _then) = _$SeasonCopyWithImpl;
 @useResult
 $Res call({
- String id, String name, int year,@TimestampConverter() DateTime startDate,@TimestampConverter() DateTime endDate, SeasonStatus status, bool isCurrent, List<LeaderboardConfig> leaderboards, DivisionConfig? divisionConfig, Map<String, dynamic> agmData
+ String id, String name, int year,@TimestampConverter() DateTime startDate,@TimestampConverter() DateTime endDate, SeasonStatus status, bool isCurrent, List<String> leaderboardIds, List<LeaderboardConfig> archivedLeaderboardConfigs, String? memberGroupConfigId, Map<String, dynamic> agmData
 });
 
 
-$DivisionConfigCopyWith<$Res>? get divisionConfig;
+
 
 }
 /// @nodoc
@@ -65,7 +65,7 @@ class _$SeasonCopyWithImpl<$Res>
 
 /// Create a copy of Season
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? year = null,Object? startDate = null,Object? endDate = null,Object? status = null,Object? isCurrent = null,Object? leaderboards = null,Object? divisionConfig = freezed,Object? agmData = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? year = null,Object? startDate = null,Object? endDate = null,Object? status = null,Object? isCurrent = null,Object? leaderboardIds = null,Object? archivedLeaderboardConfigs = null,Object? memberGroupConfigId = freezed,Object? agmData = null,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
@@ -74,25 +74,14 @@ as int,startDate: null == startDate ? _self.startDate : startDate // ignore: cas
 as DateTime,endDate: null == endDate ? _self.endDate : endDate // ignore: cast_nullable_to_non_nullable
 as DateTime,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as SeasonStatus,isCurrent: null == isCurrent ? _self.isCurrent : isCurrent // ignore: cast_nullable_to_non_nullable
-as bool,leaderboards: null == leaderboards ? _self.leaderboards : leaderboards // ignore: cast_nullable_to_non_nullable
-as List<LeaderboardConfig>,divisionConfig: freezed == divisionConfig ? _self.divisionConfig : divisionConfig // ignore: cast_nullable_to_non_nullable
-as DivisionConfig?,agmData: null == agmData ? _self.agmData : agmData // ignore: cast_nullable_to_non_nullable
+as bool,leaderboardIds: null == leaderboardIds ? _self.leaderboardIds : leaderboardIds // ignore: cast_nullable_to_non_nullable
+as List<String>,archivedLeaderboardConfigs: null == archivedLeaderboardConfigs ? _self.archivedLeaderboardConfigs : archivedLeaderboardConfigs // ignore: cast_nullable_to_non_nullable
+as List<LeaderboardConfig>,memberGroupConfigId: freezed == memberGroupConfigId ? _self.memberGroupConfigId : memberGroupConfigId // ignore: cast_nullable_to_non_nullable
+as String?,agmData: null == agmData ? _self.agmData : agmData // ignore: cast_nullable_to_non_nullable
 as Map<String, dynamic>,
   ));
 }
-/// Create a copy of Season
-/// with the given fields replaced by the non-null parameter values.
-@override
-@pragma('vm:prefer-inline')
-$DivisionConfigCopyWith<$Res>? get divisionConfig {
-    if (_self.divisionConfig == null) {
-    return null;
-  }
 
-  return $DivisionConfigCopyWith<$Res>(_self.divisionConfig!, (value) {
-    return _then(_self.copyWith(divisionConfig: value));
-  });
-}
 }
 
 
@@ -174,10 +163,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String name,  int year, @TimestampConverter()  DateTime startDate, @TimestampConverter()  DateTime endDate,  SeasonStatus status,  bool isCurrent,  List<LeaderboardConfig> leaderboards,  DivisionConfig? divisionConfig,  Map<String, dynamic> agmData)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String name,  int year, @TimestampConverter()  DateTime startDate, @TimestampConverter()  DateTime endDate,  SeasonStatus status,  bool isCurrent,  List<String> leaderboardIds,  List<LeaderboardConfig> archivedLeaderboardConfigs,  String? memberGroupConfigId,  Map<String, dynamic> agmData)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Season() when $default != null:
-return $default(_that.id,_that.name,_that.year,_that.startDate,_that.endDate,_that.status,_that.isCurrent,_that.leaderboards,_that.divisionConfig,_that.agmData);case _:
+return $default(_that.id,_that.name,_that.year,_that.startDate,_that.endDate,_that.status,_that.isCurrent,_that.leaderboardIds,_that.archivedLeaderboardConfigs,_that.memberGroupConfigId,_that.agmData);case _:
   return orElse();
 
 }
@@ -195,10 +184,10 @@ return $default(_that.id,_that.name,_that.year,_that.startDate,_that.endDate,_th
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String name,  int year, @TimestampConverter()  DateTime startDate, @TimestampConverter()  DateTime endDate,  SeasonStatus status,  bool isCurrent,  List<LeaderboardConfig> leaderboards,  DivisionConfig? divisionConfig,  Map<String, dynamic> agmData)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String name,  int year, @TimestampConverter()  DateTime startDate, @TimestampConverter()  DateTime endDate,  SeasonStatus status,  bool isCurrent,  List<String> leaderboardIds,  List<LeaderboardConfig> archivedLeaderboardConfigs,  String? memberGroupConfigId,  Map<String, dynamic> agmData)  $default,) {final _that = this;
 switch (_that) {
 case _Season():
-return $default(_that.id,_that.name,_that.year,_that.startDate,_that.endDate,_that.status,_that.isCurrent,_that.leaderboards,_that.divisionConfig,_that.agmData);case _:
+return $default(_that.id,_that.name,_that.year,_that.startDate,_that.endDate,_that.status,_that.isCurrent,_that.leaderboardIds,_that.archivedLeaderboardConfigs,_that.memberGroupConfigId,_that.agmData);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -215,10 +204,10 @@ return $default(_that.id,_that.name,_that.year,_that.startDate,_that.endDate,_th
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String name,  int year, @TimestampConverter()  DateTime startDate, @TimestampConverter()  DateTime endDate,  SeasonStatus status,  bool isCurrent,  List<LeaderboardConfig> leaderboards,  DivisionConfig? divisionConfig,  Map<String, dynamic> agmData)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String name,  int year, @TimestampConverter()  DateTime startDate, @TimestampConverter()  DateTime endDate,  SeasonStatus status,  bool isCurrent,  List<String> leaderboardIds,  List<LeaderboardConfig> archivedLeaderboardConfigs,  String? memberGroupConfigId,  Map<String, dynamic> agmData)?  $default,) {final _that = this;
 switch (_that) {
 case _Season() when $default != null:
-return $default(_that.id,_that.name,_that.year,_that.startDate,_that.endDate,_that.status,_that.isCurrent,_that.leaderboards,_that.divisionConfig,_that.agmData);case _:
+return $default(_that.id,_that.name,_that.year,_that.startDate,_that.endDate,_that.status,_that.isCurrent,_that.leaderboardIds,_that.archivedLeaderboardConfigs,_that.memberGroupConfigId,_that.agmData);case _:
   return null;
 
 }
@@ -230,7 +219,7 @@ return $default(_that.id,_that.name,_that.year,_that.startDate,_that.endDate,_th
 @JsonSerializable()
 
 class _Season extends Season {
-  const _Season({required this.id, required this.name, required this.year, @TimestampConverter() required this.startDate, @TimestampConverter() required this.endDate, this.status = SeasonStatus.active, this.isCurrent = false, final  List<LeaderboardConfig> leaderboards = const [], this.divisionConfig, final  Map<String, dynamic> agmData = const {}}): _leaderboards = leaderboards,_agmData = agmData,super._();
+  const _Season({required this.id, required this.name, required this.year, @TimestampConverter() required this.startDate, @TimestampConverter() required this.endDate, this.status = SeasonStatus.active, this.isCurrent = false, final  List<String> leaderboardIds = const [], final  List<LeaderboardConfig> archivedLeaderboardConfigs = const [], this.memberGroupConfigId, final  Map<String, dynamic> agmData = const {}}): _leaderboardIds = leaderboardIds,_archivedLeaderboardConfigs = archivedLeaderboardConfigs,_agmData = agmData,super._();
   factory _Season.fromJson(Map<String, dynamic> json) => _$SeasonFromJson(json);
 
 @override final  String id;
@@ -240,14 +229,21 @@ class _Season extends Season {
 @override@TimestampConverter() final  DateTime endDate;
 @override@JsonKey() final  SeasonStatus status;
 @override@JsonKey() final  bool isCurrent;
- final  List<LeaderboardConfig> _leaderboards;
-@override@JsonKey() List<LeaderboardConfig> get leaderboards {
-  if (_leaderboards is EqualUnmodifiableListView) return _leaderboards;
+ final  List<String> _leaderboardIds;
+@override@JsonKey() List<String> get leaderboardIds {
+  if (_leaderboardIds is EqualUnmodifiableListView) return _leaderboardIds;
   // ignore: implicit_dynamic_type
-  return EqualUnmodifiableListView(_leaderboards);
+  return EqualUnmodifiableListView(_leaderboardIds);
 }
 
-@override final  DivisionConfig? divisionConfig;
+ final  List<LeaderboardConfig> _archivedLeaderboardConfigs;
+@override@JsonKey() List<LeaderboardConfig> get archivedLeaderboardConfigs {
+  if (_archivedLeaderboardConfigs is EqualUnmodifiableListView) return _archivedLeaderboardConfigs;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_archivedLeaderboardConfigs);
+}
+
+@override final  String? memberGroupConfigId;
  final  Map<String, dynamic> _agmData;
 @override@JsonKey() Map<String, dynamic> get agmData {
   if (_agmData is EqualUnmodifiableMapView) return _agmData;
@@ -269,16 +265,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Season&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.year, year) || other.year == year)&&(identical(other.startDate, startDate) || other.startDate == startDate)&&(identical(other.endDate, endDate) || other.endDate == endDate)&&(identical(other.status, status) || other.status == status)&&(identical(other.isCurrent, isCurrent) || other.isCurrent == isCurrent)&&const DeepCollectionEquality().equals(other._leaderboards, _leaderboards)&&(identical(other.divisionConfig, divisionConfig) || other.divisionConfig == divisionConfig)&&const DeepCollectionEquality().equals(other._agmData, _agmData));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Season&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.year, year) || other.year == year)&&(identical(other.startDate, startDate) || other.startDate == startDate)&&(identical(other.endDate, endDate) || other.endDate == endDate)&&(identical(other.status, status) || other.status == status)&&(identical(other.isCurrent, isCurrent) || other.isCurrent == isCurrent)&&const DeepCollectionEquality().equals(other._leaderboardIds, _leaderboardIds)&&const DeepCollectionEquality().equals(other._archivedLeaderboardConfigs, _archivedLeaderboardConfigs)&&(identical(other.memberGroupConfigId, memberGroupConfigId) || other.memberGroupConfigId == memberGroupConfigId)&&const DeepCollectionEquality().equals(other._agmData, _agmData));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,year,startDate,endDate,status,isCurrent,const DeepCollectionEquality().hash(_leaderboards),divisionConfig,const DeepCollectionEquality().hash(_agmData));
+int get hashCode => Object.hash(runtimeType,id,name,year,startDate,endDate,status,isCurrent,const DeepCollectionEquality().hash(_leaderboardIds),const DeepCollectionEquality().hash(_archivedLeaderboardConfigs),memberGroupConfigId,const DeepCollectionEquality().hash(_agmData));
 
 @override
 String toString() {
-  return 'Season(id: $id, name: $name, year: $year, startDate: $startDate, endDate: $endDate, status: $status, isCurrent: $isCurrent, leaderboards: $leaderboards, divisionConfig: $divisionConfig, agmData: $agmData)';
+  return 'Season(id: $id, name: $name, year: $year, startDate: $startDate, endDate: $endDate, status: $status, isCurrent: $isCurrent, leaderboardIds: $leaderboardIds, archivedLeaderboardConfigs: $archivedLeaderboardConfigs, memberGroupConfigId: $memberGroupConfigId, agmData: $agmData)';
 }
 
 
@@ -289,11 +285,11 @@ abstract mixin class _$SeasonCopyWith<$Res> implements $SeasonCopyWith<$Res> {
   factory _$SeasonCopyWith(_Season value, $Res Function(_Season) _then) = __$SeasonCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String name, int year,@TimestampConverter() DateTime startDate,@TimestampConverter() DateTime endDate, SeasonStatus status, bool isCurrent, List<LeaderboardConfig> leaderboards, DivisionConfig? divisionConfig, Map<String, dynamic> agmData
+ String id, String name, int year,@TimestampConverter() DateTime startDate,@TimestampConverter() DateTime endDate, SeasonStatus status, bool isCurrent, List<String> leaderboardIds, List<LeaderboardConfig> archivedLeaderboardConfigs, String? memberGroupConfigId, Map<String, dynamic> agmData
 });
 
 
-@override $DivisionConfigCopyWith<$Res>? get divisionConfig;
+
 
 }
 /// @nodoc
@@ -306,7 +302,7 @@ class __$SeasonCopyWithImpl<$Res>
 
 /// Create a copy of Season
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? year = null,Object? startDate = null,Object? endDate = null,Object? status = null,Object? isCurrent = null,Object? leaderboards = null,Object? divisionConfig = freezed,Object? agmData = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? year = null,Object? startDate = null,Object? endDate = null,Object? status = null,Object? isCurrent = null,Object? leaderboardIds = null,Object? archivedLeaderboardConfigs = null,Object? memberGroupConfigId = freezed,Object? agmData = null,}) {
   return _then(_Season(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
@@ -315,26 +311,15 @@ as int,startDate: null == startDate ? _self.startDate : startDate // ignore: cas
 as DateTime,endDate: null == endDate ? _self.endDate : endDate // ignore: cast_nullable_to_non_nullable
 as DateTime,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as SeasonStatus,isCurrent: null == isCurrent ? _self.isCurrent : isCurrent // ignore: cast_nullable_to_non_nullable
-as bool,leaderboards: null == leaderboards ? _self._leaderboards : leaderboards // ignore: cast_nullable_to_non_nullable
-as List<LeaderboardConfig>,divisionConfig: freezed == divisionConfig ? _self.divisionConfig : divisionConfig // ignore: cast_nullable_to_non_nullable
-as DivisionConfig?,agmData: null == agmData ? _self._agmData : agmData // ignore: cast_nullable_to_non_nullable
+as bool,leaderboardIds: null == leaderboardIds ? _self._leaderboardIds : leaderboardIds // ignore: cast_nullable_to_non_nullable
+as List<String>,archivedLeaderboardConfigs: null == archivedLeaderboardConfigs ? _self._archivedLeaderboardConfigs : archivedLeaderboardConfigs // ignore: cast_nullable_to_non_nullable
+as List<LeaderboardConfig>,memberGroupConfigId: freezed == memberGroupConfigId ? _self.memberGroupConfigId : memberGroupConfigId // ignore: cast_nullable_to_non_nullable
+as String?,agmData: null == agmData ? _self._agmData : agmData // ignore: cast_nullable_to_non_nullable
 as Map<String, dynamic>,
   ));
 }
 
-/// Create a copy of Season
-/// with the given fields replaced by the non-null parameter values.
-@override
-@pragma('vm:prefer-inline')
-$DivisionConfigCopyWith<$Res>? get divisionConfig {
-    if (_self.divisionConfig == null) {
-    return null;
-  }
 
-  return $DivisionConfigCopyWith<$Res>(_self.divisionConfig!, (value) {
-    return _then(_self.copyWith(divisionConfig: value));
-  });
-}
 }
 
 // dart format on

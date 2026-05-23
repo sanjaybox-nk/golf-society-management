@@ -188,7 +188,6 @@ class RegistrationCard extends ConsumerWidget {
                                 if (hasStatus && hasPHC) const SizedBox(width: AppSpacing.md),
                                 if (hasPHC) 
                                   BoxyArtIndicator.phc(
-                                    context: context,
                                     label: '$playingHandicap${hasSocietyCut ? '*' : ''}',
                                     hasHorizontalMargin: false,
                                     fontSize: 11.0,

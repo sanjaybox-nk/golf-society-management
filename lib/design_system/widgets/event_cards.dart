@@ -51,7 +51,7 @@ class BoxyArtEventCard extends ConsumerWidget {
     if (showStatus && statusPill != null) {
       activePill = statusPill;
     } else if (statusPill == null && event.status == EventStatus.inPlay && event.occursToday) {
-      activePill = BoxyArtPill.status(
+      activePill = BoxyArtIndicator.status(
         label: 'Live',
         color: theme.colorScheme.error,
         isAction: true,

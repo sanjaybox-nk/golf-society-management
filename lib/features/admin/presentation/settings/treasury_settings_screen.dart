@@ -35,7 +35,7 @@ class _TreasurySettingsScreenState extends ConsumerState<TreasurySettingsScreen>
     return HeadlessScaffold(
       title: 'Treasury Settings',
       subtitle: 'Balances & membership fees',
-      topPill: BoxyArtPill.committee(label: 'ADMIN'),
+      topPill: BoxyArtIndicator.committee(label: 'ADMIN'),
       showBack: true,
       onBack: () => Navigator.of(context).pop(),
       slivers: [

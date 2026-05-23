@@ -17,7 +17,7 @@ class AdminSeasonsScreen extends ConsumerWidget {
     return HeadlessScaffold(
       title: 'Seasons',
       subtitle: 'Archive and setup event seasons',
-      topPill: BoxyArtPill.committee(label: 'ADMIN'),
+      topPill: BoxyArtIndicator.committee(label: 'ADMIN'),
 
       showBack: true,
       onBack: () => context.pop(),

@@ -35,7 +35,7 @@ class _AdminMemberRenewalScreenState extends ConsumerState<AdminMemberRenewalScr
     return HeadlessScaffold(
       title: 'Renewal Hub',
       subtitle: 'Manage season renewals',
-      topPill: BoxyArtPill.committee(label: 'ADMIN'),
+      topPill: BoxyArtIndicator.committee(label: 'ADMIN'),
       showBack: true,
       onBack: () => context.pop(),
       pinnedBottom: selectedIds.isNotEmpty

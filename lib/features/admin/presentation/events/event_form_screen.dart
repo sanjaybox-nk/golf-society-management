@@ -43,7 +43,7 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
         return HeadlessScaffold(
         title: state.eventId != null ? 'Event Settings' : 'Create Event',
         subtitle: state.eventId != null ? (state.initialEvent?.title ?? 'Update Details') : 'Create a new society event',
-        topPill: BoxyArtPill.committee(label: 'ADMIN'),
+        topPill: BoxyArtIndicator.committee(label: 'ADMIN'),
         leadingWidth: 70,
         leading: Center(
           child: BoxyArtGlassIconButton(

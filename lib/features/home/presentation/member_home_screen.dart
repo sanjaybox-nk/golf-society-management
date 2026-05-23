@@ -371,7 +371,7 @@ class MemberHomeScreen extends ConsumerWidget {
                                     mainAxisSize: MainAxisSize.min,
                                     crossAxisAlignment: CrossAxisAlignment.end,
                                     children: [
-                                      BoxyArtPill.status(
+                                      BoxyArtIndicator.status(
                                         label: 'POLL',
                                         color: Color(societyConfig.primaryColor),
                                         isAction: true,

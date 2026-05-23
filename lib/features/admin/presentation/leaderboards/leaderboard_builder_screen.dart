@@ -58,7 +58,7 @@ class LeaderboardBuilderScreen extends ConsumerWidget {
 
     return HeadlessScaffold(
       title: _formatEnum(effectiveType.name),
-      topPill: BoxyArtPill.committee(label: 'ADMIN'),
+      topPill: BoxyArtIndicator.committee(label: 'ADMIN'),
       subtitle: effectiveConfig != null ? 'Edit configuration' : 'New configuration',
       showBack: true,
       onBack: () => context.pop(),

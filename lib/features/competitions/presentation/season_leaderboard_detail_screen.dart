@@ -6,30 +6,59 @@ import 'package:golf_society/domain/models/leaderboard_standing.dart';
 import '../../members/presentation/profile_provider.dart';
 import '../../members/presentation/members_provider.dart';
 import 'package:golf_society/domain/models/leaderboard_config.dart';
-import 'package:golf_society/domain/divisions/division_helper.dart';
+import 'package:golf_society/domain/models/season.dart' show SeasonStatus;
+import 'package:golf_society/domain/groups/member_group_helper.dart';
+import 'package:golf_society/domain/models/member_group_config.dart';
 import 'package:golf_society/design_system/design_system.dart';
 import '../../admin/utils/leaderboard_rule_translator.dart';
+import '../../admin/data/member_group_config_repository.dart';
+import '../../events/presentation/events_provider.dart' show leaderboardTemplatesRepositoryProvider;
 
-class SeasonLeaderboardDetailScreen extends ConsumerWidget {
+final _memberGroupConfigProvider = FutureProvider.autoDispose
+    .family<MemberGroupConfig?, String?>((ref, configId) async {
+  if (configId == null) return null;
+  return ref.read(memberGroupConfigRepositoryProvider).getConfig(configId);
+});
+
+final _leaderboardConfigProvider = FutureProvider.autoDispose
+    .family<LeaderboardConfig?, String>((ref, leaderboardId) async {
+  return ref.read(leaderboardTemplatesRepositoryProvider).getTemplate(leaderboardId);
+});
+
+class SeasonLeaderboardDetailScreen extends ConsumerStatefulWidget {
   final String leaderboardId;
   final String? seasonId;
 
   const SeasonLeaderboardDetailScreen({
-    super.key, 
-    required this.leaderboardId, 
+    super.key,
+    required this.leaderboardId,
     this.seasonId,
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final seasonAsync = seasonId != null 
-        ? ref.watch(seasonByIdProvider(seasonId!))
+  ConsumerState<SeasonLeaderboardDetailScreen> createState() =>
+      _SeasonLeaderboardDetailScreenState();
+}
+
+class _SeasonLeaderboardDetailScreenState
+    extends ConsumerState<SeasonLeaderboardDetailScreen> {
+  String? _selectedGroupId;
+
+  @override
+  Widget build(BuildContext context) {
+    final seasonAsync = widget.seasonId != null
+        ? ref.watch(seasonByIdProvider(widget.seasonId!))
         : ref.watch(activeSeasonProvider);
     final currentUser = ref.watch(effectiveUserProvider);
     final currentUserId = currentUser.id;
+    final memberGroupConfig = ref.watch(
+      _memberGroupConfigProvider(seasonAsync.value?.memberGroupConfigId),
+    ).value;
+    final selectedGroupId = _selectedGroupId;
+    final members = ref.watch(allMembersProvider).value ?? [];
 
     // Use provided seasonId or fall back to active season ID
-    final actualSeasonId = seasonId ?? seasonAsync.value?.id;
+    final actualSeasonId = widget.seasonId ?? seasonAsync.value?.id;
 
     if (actualSeasonId == null) {
       return const HeadlessScaffold(
@@ -43,29 +72,86 @@ class SeasonLeaderboardDetailScreen extends ConsumerWidget {
       );
     }
 
-    final standingsAsync = ref.watch(leaderboardStandingsProvider((seasonId: actualSeasonId, leaderboardId: leaderboardId)));
+    final standingsAsync = ref.watch(leaderboardStandingsProvider((seasonId: actualSeasonId, leaderboardId: widget.leaderboardId)));
+
+    final configAsync = ref.watch(_leaderboardConfigProvider(widget.leaderboardId));
 
     return seasonAsync.when(
       data: (season) {
-        final config = season?.leaderboards.firstWhereOrNull((l) => l.id == leaderboardId);
+        final config = configAsync.value;
         final title = config?.name ?? 'Standings';
         final subtitle = season?.name.toUpperCase() ?? 'SEASON STANDINGS';
+
+        final isClosed = season?.status == SeasonStatus.closed;
 
         return HeadlessScaffold(
           title: title,
           subtitle: subtitle,
           showBack: true,
           slivers: [
+            if (isClosed)
+              SliverPadding(
+                padding: const EdgeInsets.fromLTRB(AppSpacing.xl, 0, AppSpacing.xl, AppSpacing.standard),
+                sliver: SliverToBoxAdapter(
+                  child: BoxyArtCard(
+                    backgroundColor: AppColors.amber500.withValues(alpha: 0.1),
+                    border: Border.all(color: AppColors.amber500.withValues(alpha: 0.3)),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.standard,
+                      vertical: AppSpacing.md,
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.lock_outline_rounded, size: 16, color: AppColors.amber500),
+                        const SizedBox(width: AppSpacing.md),
+                        Expanded(
+                          child: Text(
+                            'Season closed — standings are final.',
+                            style: AppTypography.micro.copyWith(color: AppColors.dark400),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
             standingsAsync.when(
               data: (standings) {
-                final positions = _calculatePositions(standings);
-                final podiumStandings = standings.where((s) => s.points > 0).toList();
+                // Apply group filter only when leaderboard opts into groups.
+                final filteredStandings = (selectedGroupId == null || memberGroupConfig == null || config?.divisionsEnabled != true)
+                    ? standings
+                    : standings.where((s) {
+                        final m = members.firstWhereOrNull((m) => m.id == s.memberId);
+                        if (m == null) return false;
+                        return MemberGroupHelper.memberBelongsToGroup(
+                          s.memberId, selectedGroupId, memberGroupConfig, members,
+                        );
+                      }).toList();
+                final positions = _calculatePositions(filteredStandings);
+                final podiumStandings = filteredStandings.where((s) => s.points > 0).toList();
                 final podiumPositions = [
                   for (int i = 0; i < positions.length; i++)
-                    if (standings[i].points > 0) positions[i],
+                    if (filteredStandings[i].points > 0) positions[i],
                 ];
                 return SliverMainAxisGroup(
                   slivers: [
+                    // Group tab bar — only when config is active AND leaderboard opts in.
+                    if (memberGroupConfig != null && config?.divisionsEnabled == true)
+                      SliverPadding(
+                        padding: const EdgeInsets.fromLTRB(AppSpacing.xl, 0, AppSpacing.xl, AppSpacing.standard),
+                        sliver: SliverToBoxAdapter(
+                          child: BoxyArtTabBar<String?>(
+                            selectedValue: selectedGroupId,
+                            onTabSelected: (v) => setState(() => _selectedGroupId = v),
+                            tabs: [
+                              const ModernFilterTab(value: null, label: 'All'),
+                              for (final g in memberGroupConfig.groups)
+                                ModernFilterTab(value: g.id, label: g.name),
+                            ],
+                          ),
+                        ),
+                      ),
+
                     if (podiumStandings.isNotEmpty) ...[
                       SliverToBoxAdapter(
                         child: _PodiumHeader(
@@ -78,7 +164,7 @@ class SeasonLeaderboardDetailScreen extends ConsumerWidget {
                       const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.cardToCard)),
                     ],
 
-                    if (standings.isEmpty)
+                    if (filteredStandings.isEmpty)
                       const SliverPadding(
                         padding: EdgeInsets.symmetric(horizontal: AppSpacing.xl),
                         sliver: SliverToBoxAdapter(
@@ -93,7 +179,7 @@ class SeasonLeaderboardDetailScreen extends ConsumerWidget {
                       SliverList(
                         delegate: SliverChildBuilderDelegate(
                           (context, index) {
-                            final standing = standings[index];
+                            final standing = filteredStandings[index];
                             return Padding(
                               padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.xs),
                               child: _StandingRow(
@@ -102,11 +188,11 @@ class SeasonLeaderboardDetailScreen extends ConsumerWidget {
                                 isShared: _isSharedPosition(positions, index),
                                 isMe: standing.memberId == currentUserId,
                                 config: config,
-                                divisionConfig: season?.divisionConfig,
+                                memberGroupConfig: memberGroupConfig,
                               ),
                             );
                           },
-                          childCount: standings.length,
+                          childCount: filteredStandings.length,
                         ),
                       ),
                       if (config != null)
@@ -374,7 +460,7 @@ class _PodiumSpot extends StatelessWidget {
                             child: Text(
                               _initials(standing.memberName),
                               style: AppTypography.displayHero.copyWith(
-                                fontSize: isWinner ? AppTypography.sizeDisplay : AppTypography.sizeHeadline,
+                                fontSize: AppTypography.sizeHeadline,
                                 fontWeight: AppTypography.weightHeavy,
                                 color: isMe ? primary : rankColor,
                               ),
@@ -399,16 +485,19 @@ class _PodiumSpot extends StatelessWidget {
         ),
         const SizedBox(height: AppSpacing.lg),
         
-        // Name & Points with High-Contrast Typography
-        Text(
-          standing.memberName, 
-          textAlign: TextAlign.center, 
-          style: AppTypography.labelStrong.copyWith(
-            fontSize: isWinner ? AppTypography.sizeLabel : AppTypography.sizeMicro,
-            color: isMe ? primary : null,
+        // Fixed height reserves space for up to 2 lines — keeps all three spots aligned.
+        SizedBox(
+          height: 36,
+          child: Text(
+            standing.memberName,
+            textAlign: TextAlign.center,
+            style: AppTypography.labelStrong.copyWith(
+              fontSize: AppTypography.sizeLabel,
+              color: isMe ? primary : null,
+            ),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
           ),
-          maxLines: 2, 
-          overflow: TextOverflow.ellipsis,
         ),
         const SizedBox(height: AppSpacing.xs),
         Text(
@@ -455,7 +544,7 @@ class _StandingRow extends ConsumerWidget {
   final bool isShared;
   final bool isMe;
   final LeaderboardConfig? config;
-  final DivisionConfig? divisionConfig;
+  final MemberGroupConfig? memberGroupConfig;
 
   const _StandingRow({
     required this.standing,
@@ -463,7 +552,7 @@ class _StandingRow extends ConsumerWidget {
     required this.isShared,
     required this.isMe,
     this.config,
-    this.divisionConfig,
+    this.memberGroupConfig,
   });
 
   @override
@@ -473,17 +562,17 @@ class _StandingRow extends ConsumerWidget {
     final members = ref.watch(allMembersProvider).value ?? [];
     final member = members.firstWhereOrNull((m) => m.id == standing.memberId);
 
-    // Show division pill when leaderboard is not already filtered to one division
-    final configDivisionFilter = config?.map(
-      orderOfMerit: (c) => c.divisionFilter,
-      bestOfSeries: (c) => c.divisionFilter,
-      eclectic: (c) => c.divisionFilter,
-      markerCounter: (c) => c.divisionFilter,
+    // Show group pill when leaderboard is not already filtered to one group
+    final configGroupFilter = config?.map(
+      orderOfMerit: (c) => c.groupFilter,
+      bestOfSeries: (c) => c.groupFilter,
+      eclectic: (c) => c.groupFilter,
+      markerCounter: (c) => c.groupFilter,
     );
-    final memberDivision = divisionConfig != null && member != null
-        ? DivisionHelper.assignDivision(member, divisionConfig)
+    final memberGroup = memberGroupConfig != null && member != null
+        ? MemberGroupHelper.groupForMember(member, memberGroupConfig)
         : null;
-    final showDivisionPill = memberDivision != null && configDivisionFilter == null;
+    final showGroupPill = memberGroup != null && configGroupFilter == null;
 
     return BoxyArtCard(
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.lg),
@@ -526,10 +615,11 @@ class _StandingRow extends ConsumerWidget {
                       letterSpacing: AppTypography.lsLabel,
                     ),
                   ),
-                if (showDivisionPill)
-                  BoxyArtPill.status(
-                    label: DivisionHelper.shortLabel(memberDivision!),
-                    color: memberDivision == Division.div1 || memberDivision == Division.div1Ladies
+                if (showGroupPill)
+                  BoxyArtIndicator(
+                    label: memberGroup!.name,
+                    dotColor: memberGroupConfig!.groups.isNotEmpty &&
+                            memberGroup.id == memberGroupConfig!.groups.first.id
                         ? AppColors.lime500
                         : AppColors.amber500,
                     hasHorizontalMargin: false,

@@ -93,7 +93,7 @@ class _SurveyEditorScreenState extends ConsumerState<SurveyEditorScreen> {
 
         return HeadlessScaffold(
           title: widget.surveyId == null ? 'New survey' : 'Edit survey',
-          topPill: BoxyArtPill.committee(label: 'ADMIN'),
+          topPill: BoxyArtIndicator.committee(label: 'ADMIN'),
           subtitle: 'Configure society feedback',
           showBack: true, // [NEW] Enable back navigation
           actions: const [

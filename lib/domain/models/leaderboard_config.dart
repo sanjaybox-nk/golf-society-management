@@ -1,5 +1,4 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
-import 'division_config.dart';
 
 part 'leaderboard_config.freezed.dart';
 part 'leaderboard_config.g.dart';
@@ -31,7 +30,8 @@ abstract class LeaderboardConfig with _$LeaderboardConfig {
     @Default({}) Map<int, int> positionPointsMap,
     @Default(0) int appearancePoints,
     @Default(0) int bestN,
-    Division? divisionFilter,
+    String? groupFilter,
+    @Default(false) bool divisionsEnabled,
   }) = OrderOfMeritConfig;
 
   const factory LeaderboardConfig.bestOfSeries({
@@ -44,7 +44,8 @@ abstract class LeaderboardConfig with _$LeaderboardConfig {
     @Default(TiePolicy.countback) TiePolicy tiePolicy,
     @Default({}) Map<int, int> positionPointsMap,
     @Default(0) int appearancePoints,
-    Division? divisionFilter,
+    String? groupFilter,
+    @Default(false) bool divisionsEnabled,
   }) = BestOfSeriesConfig;
 
   const factory LeaderboardConfig.eclectic({
@@ -53,7 +54,8 @@ abstract class LeaderboardConfig with _$LeaderboardConfig {
     @Default(LeaderboardScope.seasonOnly) LeaderboardScope scope,
     @Default(EclecticMetric.strokes) EclecticMetric metric,
     @Default(0) int handicapPercentage,
-    Division? divisionFilter,
+    String? groupFilter,
+    @Default(false) bool divisionsEnabled,
   }) = EclecticConfig;
 
   const factory LeaderboardConfig.markerCounter({
@@ -64,7 +66,8 @@ abstract class LeaderboardConfig with _$LeaderboardConfig {
     @Default(HoleFilter.all) HoleFilter holeFilter,
     @Default(MarkerRankingMethod.count) MarkerRankingMethod rankingMethod,
     @Default(0) int bestN,
-    Division? divisionFilter,
+    String? groupFilter,
+    @Default(false) bool divisionsEnabled,
   }) = MarkerCounterConfig;
 
   factory LeaderboardConfig.fromJson(Map<String, dynamic> json) =>

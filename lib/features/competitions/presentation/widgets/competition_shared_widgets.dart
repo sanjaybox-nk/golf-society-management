@@ -22,7 +22,7 @@ class CompetitionBadgeRow extends StatelessWidget {
 
     // 1. Format Pill (Stroke Play, Match Play, etc.)
     pills.add(
-      BoxyArtPill.format(
+      BoxyArtIndicator.format(
         label: rules.isMatchPlay ? rules.gameName : rules.format.name,
         isLegend: true,
       ),
@@ -31,7 +31,7 @@ class CompetitionBadgeRow extends StatelessWidget {
     // 1.5. Match Play Overlay Pill
     if (rules.hasMatchPlayOverlay) {
       pills.add(
-        BoxyArtPill.status(
+        BoxyArtIndicator.status(
           label: 'MATCH PLAY ENABLED',
           color: AppColors.lime500,
           isLegend: true,
@@ -41,7 +41,7 @@ class CompetitionBadgeRow extends StatelessWidget {
 
     // 2. Scoring Pill (Net or Gross)
     pills.add(
-      BoxyArtPill.format(
+      BoxyArtIndicator.format(
         label: rules.scoringType,
         isLegend: true,
       ),
@@ -49,7 +49,7 @@ class CompetitionBadgeRow extends StatelessWidget {
 
     // 3. Allowance Pill (e.g., 95% HCP)
     pills.add(
-      BoxyArtPill.format(
+      BoxyArtIndicator.format(
         label: rules.defaultAllowanceLabel,
         isLegend: true,
       ),
@@ -57,7 +57,7 @@ class CompetitionBadgeRow extends StatelessWidget {
 
     // 4. Mode Pill (Singles, Pairs, Team)
     pills.add(
-      BoxyArtPill.format(
+      BoxyArtIndicator.format(
         label: rules.modeLabel,
         isLegend: true,
       ),
@@ -69,7 +69,7 @@ class CompetitionBadgeRow extends StatelessWidget {
         rules.subtype != CompetitionSubtype.foursomes &&
         rules.subtype != CompetitionSubtype.fourball) {
       pills.add(
-        BoxyArtPill.status(
+        BoxyArtIndicator.status(
           label: 'Capped @ ${rules.handicapCap.toInt()} HCP',
           color: AppColors.coral400,
           isLegend: true,
@@ -86,7 +86,7 @@ class CompetitionBadgeRow extends StatelessWidget {
               MaxScoreType.fixed         => 'Max: ${rules.maxScoreConfig?.value ?? 5} Strokes',
             };
       pills.add(
-        BoxyArtPill.status(
+        BoxyArtIndicator.status(
           label: pickUpLabel,
           color: rules.pickUpBehaviour == PickUpBehaviour.disqualify
               ? AppColors.coral500

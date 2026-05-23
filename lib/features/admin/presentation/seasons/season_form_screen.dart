@@ -6,10 +6,21 @@ import 'package:golf_society/utils/string_utils.dart';
 
 import 'package:golf_society/domain/models/season.dart';
 import 'package:golf_society/domain/models/leaderboard_config.dart';
-import 'package:golf_society/domain/models/division_config.dart';
 import '../../../events/presentation/events_provider.dart';
-import '../../../members/presentation/members_provider.dart';
 import '../../utils/leaderboard_rule_translator.dart';
+import '../../data/member_group_config_repository.dart';
+import 'package:golf_society/domain/models/member_group_config.dart';
+import '../../services/leaderboard_invoker_service.dart' show leaderboardInvokerServiceProvider;
+
+final _assignedTemplatesProvider =
+    StreamProvider.autoDispose.family<List<LeaderboardConfig>, List<String>>((ref, ids) {
+  if (ids.isEmpty) return Stream.value([]);
+  return ref.watch(leaderboardTemplatesRepositoryProvider).watchTemplatesByIds(ids);
+});
+
+final _memberGroupConfigsProvider = StreamProvider<List<MemberGroupConfig>>((ref) {
+  return ref.watch(memberGroupConfigRepositoryProvider).watchConfigs();
+});
 
 class SeasonFormScreen extends ConsumerStatefulWidget {
   final Season? season;
@@ -30,15 +41,12 @@ class _SeasonFormScreenState extends ConsumerState<SeasonFormScreen> {
   late DateTime _startDate;
   late DateTime _endDate;
   late SeasonStatus _status;
-  late List<LeaderboardConfig> _leaderboards;
+  late List<String> _leaderboardIds;
   bool _isSaving = false;
   bool _isCurrent = false;
 
-  // Divisions
   bool _divisionsEnabled = false;
-  late TextEditingController _thresholdController;
-  bool _genderSeparated = false;
-  late List<String> _voluntaryDiv1MemberIds;
+  String? _memberGroupConfigId;
 
   @override
   void initState() {
@@ -50,19 +58,15 @@ class _SeasonFormScreenState extends ConsumerState<SeasonFormScreen> {
     _endDate = s?.endDate ?? DateTime(DateTime.now().year, 12, 31);
     _status = s?.status ?? SeasonStatus.active;
     _isCurrent = s?.isCurrent ?? false;
-    _leaderboards = List.from(s?.leaderboards ?? []);
-    final dc = s?.divisionConfig;
-    _divisionsEnabled = dc != null;
-    _thresholdController = TextEditingController(text: (dc?.threshold ?? 12.0).toString());
-    _genderSeparated = dc?.genderSeparated ?? false;
-    _voluntaryDiv1MemberIds = List.from(dc?.voluntaryDiv1MemberIds ?? []);
+    _leaderboardIds = List.from(s?.leaderboardIds ?? []);
+    _memberGroupConfigId = s?.memberGroupConfigId;
+    _divisionsEnabled = _memberGroupConfigId != null;
   }
 
   @override
   void dispose() {
     _nameController.dispose();
     _yearController.dispose();
-    _thresholdController.dispose();
     super.dispose();
   }
 
@@ -71,7 +75,7 @@ class _SeasonFormScreenState extends ConsumerState<SeasonFormScreen> {
     return HeadlessScaffold(
       title: widget.season == null ? 'Create Season' : 'Edit Season',
       subtitle: (widget.season?.name != null) ? widget.season!.name : 'Configure season properties',
-      topPill: BoxyArtPill.committee(label: 'ADMIN'),
+      topPill: BoxyArtIndicator.committee(label: 'ADMIN'),
       showBack: true,
       onBack: () => context.pop(),
       actions: const [],
@@ -227,9 +231,10 @@ class _SeasonFormScreenState extends ConsumerState<SeasonFormScreen> {
   }
 
   Widget _buildDivisionsSection() {
-    final members = ref.watch(allMembersProvider).value ?? [];
-    final threshold = double.tryParse(_thresholdController.text) ?? 12.0;
-    final voluntaryMembers = members.where((m) => _voluntaryDiv1MemberIds.contains(m.id)).toList();
+    final configsAsync = ref.watch(_memberGroupConfigsProvider);
+    final selectedConfig = configsAsync.value
+        ?.where((c) => c.id == _memberGroupConfigId)
+        .firstOrNull;
 
     return BoxyArtCard(
       padding: EdgeInsets.zero,
@@ -237,150 +242,48 @@ class _SeasonFormScreenState extends ConsumerState<SeasonFormScreen> {
         children: [
           BoxyArtSwitchTile(
             icon: Icons.workspaces_rounded,
-            label: 'Enable Divisions',
-            subtitle: 'Split members into Div 1 and Div 2 based on handicap.',
+            label: 'Enable Member Groups',
+            subtitle: 'Split members into groups for standings filtering.',
             value: _divisionsEnabled,
-            onChanged: (v) => setState(() => _divisionsEnabled = v),
+            onChanged: (v) => setState(() {
+              _divisionsEnabled = v;
+              if (!v) _memberGroupConfigId = null;
+            }),
           ),
           if (_divisionsEnabled) ...[
             const BoxyArtDivider(),
-            Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.xl,
-                vertical: AppSpacing.lg,
+            if (selectedConfig != null)
+              BoxyArtNavTile(
+                icon: Icons.workspaces_rounded,
+                title: selectedConfig.name,
+                subtitle: '${selectedConfig.groups.map((g) => g.name).join(' · ')} · Tap to change',
+                onTap: _pickConfig,
+              )
+            else
+              BoxyArtNavTile(
+                icon: Icons.add_rounded,
+                title: 'Select Group Config',
+                subtitle: 'Pick a config from the gallery',
+                onTap: _pickConfig,
               ),
-              child: BoxyArtFormColumn(
-                children: [
-                  BoxyArtInputField(
-                    label: 'Handicap threshold (Div 1 ≤ this)',
-                    controller: _thresholdController,
-                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                    onChanged: (_) => setState(() {}),
-                  ),
-                  BoxyArtSwitchField(
-                    label: 'Separate by gender',
-                    subtitle: 'Creates Div 1 Men, Div 2 Men, Div 1 Ladies, Div 2 Ladies.',
-                    value: _genderSeparated,
-                    onChanged: (v) => setState(() => _genderSeparated = v),
-                  ),
-                ],
-              ),
-            ),
-            const BoxyArtDivider(),
-            // Voluntary Div 1 upgrades
-            if (voluntaryMembers.isNotEmpty)
-              Column(
-                children: voluntaryMembers.asMap().entries.map((entry) {
-                  final m = entry.value;
-                  final isLast = entry.key == voluntaryMembers.length - 1;
-                  return Column(
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: AppSpacing.xl,
-                          vertical: AppSpacing.md,
-                        ),
-                        child: Row(
-                          children: [
-                            BoxyArtAvatar(
-                              url: m.avatarUrl,
-                              initials: '${m.firstName[0]}${m.lastName[0]}',
-                              radius: 18,
-                              isCircle: true,
-                            ),
-                            const SizedBox(width: AppSpacing.md),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    '${m.firstName} ${m.lastName}',
-                                    style: AppTypography.labelStrong,
-                                  ),
-                                  Text(
-                                    'Plays in Div 1 · HC capped at $threshold',
-                                    style: AppTypography.micro.copyWith(
-                                      color: AppColors.dark400,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            BoxyArtGlassIconButton(
-                              icon: Icons.remove_circle_outline_rounded,
-                              iconSize: 18,
-                              onPressed: () => setState(() =>
-                                  _voluntaryDiv1MemberIds.remove(m.id)),
-                            ),
-                          ],
-                        ),
-                      ),
-                      if (!isLast) const BoxyArtDivider(),
-                    ],
-                  );
-                }).toList(),
-              ),
-            Padding(
-              padding: const EdgeInsets.all(AppSpacing.lg),
-              child: BoxyArtButton(
-                title: 'Grant Div 1 Voluntary Upgrade',
-                icon: Icons.person_add_rounded,
-                isTinted: true,
-                fullWidth: true,
-                onTap: () => _showVoluntaryUpgradePicker(members, threshold),
-              ),
-            ),
           ],
         ],
       ),
     );
   }
 
-  void _showVoluntaryUpgradePicker(List members, double threshold) {
-    final eligible = members.where((m) =>
-        m.handicap > threshold && !_voluntaryDiv1MemberIds.contains(m.id)).toList();
-
-    BoxyArtBottomSheet.show(
-      context: context,
-      title: 'Grant Div 1 Upgrade',
-      child: eligible.isEmpty
-          ? Padding(
-              padding: const EdgeInsets.all(AppSpacing.xl),
-              child: Text(
-                'All Div 2 members have already been granted an upgrade.',
-                style: AppTypography.body.copyWith(color: AppColors.dark400),
-                textAlign: TextAlign.center,
-              ),
-            )
-          : Column(
-              mainAxisSize: MainAxisSize.min,
-              children: eligible.map<Widget>((m) => ListTile(
-                contentPadding: EdgeInsets.zero,
-                leading: BoxyArtAvatar(
-                  url: m.avatarUrl,
-                  initials: '${m.firstName[0]}${m.lastName[0]}',
-                  radius: 22,
-                  isCircle: true,
-                ),
-                title: Text(
-                  '${m.firstName} ${m.lastName}',
-                  style: AppTypography.labelStrong,
-                ),
-                subtitle: Text(
-                  'HC ${m.handicap.toStringAsFixed(1)} · will be capped at $threshold',
-                  style: AppTypography.micro.copyWith(color: AppColors.dark400),
-                ),
-                onTap: () {
-                  Navigator.pop(context);
-                  setState(() => _voluntaryDiv1MemberIds.add(m.id));
-                },
-              )).toList(),
-            ),
+  Future<void> _pickConfig() async {
+    final result = await context.pushNamed<MemberGroupConfig>(
+      'admin-division-templates',
+      queryParameters: {'picker': 'true'},
     );
+    if (result != null) {
+      setState(() => _memberGroupConfigId = result.id);
+    }
   }
 
   Widget _buildLeaderboardsList() {
-    if (_leaderboards.isEmpty) {
+    if (_leaderboardIds.isEmpty) {
       return BoxyArtCard(
         padding: const EdgeInsets.all(AppSpacing.x2l),
         child: Center(
@@ -412,101 +315,103 @@ class _SeasonFormScreenState extends ConsumerState<SeasonFormScreen> {
       );
     }
 
-    return BoxyArtCard(
-      padding: EdgeInsets.zero,
-      child: Column(
-        children: _leaderboards.asMap().entries.map((entry) {
-          final idx = entry.key;
-          final l = entry.value;
-          final isLast = idx == _leaderboards.length - 1;
-          
-          return Column(
-            children: [
-              Dismissible(
-                key: ValueKey(l.id),
-                direction: DismissDirection.endToStart,
-                background: Container(
-                  color: AppColors.coral500,
-                  alignment: Alignment.centerRight,
-                  padding: const EdgeInsets.only(right: AppSpacing.xl),
-                  child: const Icon(Icons.delete_outline_rounded, color: Colors.white),
-                ),
-                confirmDismiss: (_) async {
-                  return await showBoxyArtDialog<bool>(
-                    context: context,
-                    title: 'Remove Leaderboard?',
-                    message: 'This will remove "${l.name}" from the season and clear its calculated standings. This cannot be undone.',
-                    confirmText: 'REMOVE',
-                    isDangerous: true,
-                    onCancel: () => Navigator.of(context, rootNavigator: true).pop(false),
-                    onConfirm: () async {
-                      Navigator.of(context, rootNavigator: true).pop(true);
-                    },
-                  );
-                },
-                onDismissed: (_) {
-                  setState(() => _leaderboards.removeWhere((item) => item.id == l.id));
-                },
-                child: InkWell(
-                  onTap: () => _editLeaderboard(l),
+    final configsAsync = ref.watch(_assignedTemplatesProvider(_leaderboardIds));
+
+    return configsAsync.when(
+      loading: () => const BoxyArtCard(
+        padding: EdgeInsets.all(AppSpacing.x2l),
+        child: Center(child: CircularProgressIndicator()),
+      ),
+      error: (_, __) => const SizedBox.shrink(),
+      data: (configs) => BoxyArtCard(
+        padding: EdgeInsets.zero,
+        child: Column(
+          children: configs.asMap().entries.map((entry) {
+            final idx = entry.key;
+            final l = entry.value;
+            final isLast = idx == configs.length - 1;
+
+            return Column(
+              children: [
+                Dismissible(
+                  key: ValueKey(l.id),
+                  direction: DismissDirection.endToStart,
+                  background: Container(
+                    color: AppColors.coral500,
+                    alignment: Alignment.centerRight,
+                    padding: const EdgeInsets.only(right: AppSpacing.xl),
+                    child: const Icon(Icons.delete_outline_rounded, color: Colors.white),
+                  ),
+                  confirmDismiss: (_) async {
+                    return await showBoxyArtDialog<bool>(
+                      context: context,
+                      title: 'Remove Leaderboard?',
+                      message: 'This will remove "${l.name}" from the season and clear its calculated standings. This cannot be undone.',
+                      confirmText: 'REMOVE',
+                      isDangerous: true,
+                      onCancel: () => Navigator.of(context, rootNavigator: true).pop(false),
+                      onConfirm: () async {
+                        Navigator.of(context, rootNavigator: true).pop(true);
+                      },
+                    );
+                  },
+                  onDismissed: (_) {
+                    setState(() => _leaderboardIds = _leaderboardIds.where((i) => i != l.id).toList());
+                  },
                   child: Padding(
                     padding: const EdgeInsets.all(AppSpacing.standard),
-                  child: Row(
-                    children: [
-                    BoxyArtIconBadge(
-                      icon: l.map(
-                        orderOfMerit: (_) => Icons.format_list_numbered_rounded,
-                        bestOfSeries: (_) => Icons.stars_rounded,
-                        eclectic: (_) => Icons.grid_on_rounded,
-                        markerCounter: (_) => Icons.park_rounded,
-                      ),
-                      color: Theme.of(context).colorScheme.primary,
-                      isTinted: true,
-                    ),
-                    const SizedBox(width: AppSpacing.standard),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(l.name, style: AppTypography.cardTitle),
-                          const SizedBox(height: 2),
-                          Text(
-                            _getFormatConfigSummary(l),
-                            style: AppTypography.micro.copyWith(color: AppColors.dark400),
-                            overflow: TextOverflow.ellipsis,
+                    child: Row(
+                      children: [
+                        BoxyArtIconBadge(
+                          icon: l.map(
+                            orderOfMerit: (_) => Icons.format_list_numbered_rounded,
+                            bestOfSeries: (_) => Icons.stars_rounded,
+                            eclectic: (_) => Icons.grid_on_rounded,
+                            markerCounter: (_) => Icons.park_rounded,
                           ),
-                          const SizedBox(height: AppSpacing.sm),
-                          BoxyArtIndicator(
-                            label: switch (l.scope) {
-                              LeaderboardScope.global => 'GLOBAL',
-                              LeaderboardScope.invitationalsOnly => 'NON-SEASON',
-                              LeaderboardScope.seasonOnly => 'SEASON LONG',
-                            },
-                            dotColor: switch (l.scope) {
-                              LeaderboardScope.global => AppColors.lime500,
-                              LeaderboardScope.invitationalsOnly => AppColors.amber500,
-                              LeaderboardScope.seasonOnly => AppColors.teamA,
-                            },
-                            hasHorizontalMargin: false,
+                          color: Theme.of(context).colorScheme.primary,
+                          isTinted: true,
+                        ),
+                        const SizedBox(width: AppSpacing.standard),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(l.name, style: AppTypography.cardTitle),
+                              const SizedBox(height: 2),
+                              Text(
+                                LeaderboardRuleTranslator.translate(l),
+                                style: AppTypography.micro.copyWith(color: AppColors.dark400),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              const SizedBox(height: AppSpacing.sm),
+                              BoxyArtIndicator(
+                                label: switch (l.scope) {
+                                  LeaderboardScope.global => 'GLOBAL',
+                                  LeaderboardScope.invitationalsOnly => 'NON-SEASON',
+                                  LeaderboardScope.seasonOnly => 'SEASON LONG',
+                                },
+                                dotColor: switch (l.scope) {
+                                  LeaderboardScope.global => AppColors.lime500,
+                                  LeaderboardScope.invitationalsOnly => AppColors.amber500,
+                                  LeaderboardScope.seasonOnly => AppColors.teamA,
+                                },
+                                hasHorizontalMargin: false,
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
-                  ],
+                  ),
                 ),
-              ),
-              ),
-              ),
-              if (!isLast) const BoxyArtDivider(),
-            ],
-          );
-        }).toList(),
+                if (!isLast) const BoxyArtDivider(),
+              ],
+            );
+          }).toList(),
+        ),
       ),
     );
-  }
-
-  String _getFormatConfigSummary(LeaderboardConfig config) {
-    return LeaderboardRuleTranslator.translate(config);
   }
 
   void _showTemplateSelector() async {
@@ -515,25 +420,10 @@ class _SeasonFormScreenState extends ConsumerState<SeasonFormScreen> {
     );
 
     if (result != null && mounted) {
-      setState(() {
-        _leaderboards.add(result);
-      });
-    }
-  }
-
-  void _editLeaderboard(LeaderboardConfig config) async {
-    final result = await context.push<LeaderboardConfig>(
-      '/admin/leaderboards/edit/local',
-      extra: config,
-    );
-
-    if (result != null && mounted) {
-      setState(() {
-        final index = _leaderboards.indexWhere((l) => l.id == config.id);
-        if (index != -1) {
-          _leaderboards[index] = result;
-        }
-      });
+      final id = result.id;
+      if (id.isNotEmpty && !_leaderboardIds.contains(id)) {
+        setState(() => _leaderboardIds = [..._leaderboardIds, id]);
+      }
     }
   }
 
@@ -555,27 +445,35 @@ class _SeasonFormScreenState extends ConsumerState<SeasonFormScreen> {
     }
   }
 
-  void _closeSeasonDialog() {
-    showBoxyArtDialog(
+  Future<void> _closeSeasonDialog() async {
+    final confirmed = await showBoxyArtDialog<bool>(
       context: context,
       title: 'Close Season?',
-      message: 'This will move "${widget.season!.name}" and all its events to the Archive. This cannot be undone.',
+      message: 'Final standings will be calculated and frozen. The season moves to the Archive. This cannot be undone.',
       confirmText: 'ARCHIVE',
       cancelText: 'CANCEL',
       isDangerous: true,
-      onCancel: () => Navigator.of(context, rootNavigator: true).pop(),
-      onConfirm: () async {
-        await ref.read(seasonsRepositoryProvider).closeSeason(widget.season!.id, {
-          'captain': 'TBD',
-          'playerOfTheYear': 'TBD',
-          'majorWinners': [],
-        });
-        if (mounted) {
-          Navigator.of(context, rootNavigator: true).pop();
-          context.pop();
-        }
-      },
+      onCancel: () => Navigator.of(context, rootNavigator: true).pop(false),
+      onConfirm: () => Navigator.of(context, rootNavigator: true).pop(true),
     );
+    if (confirmed != true || !mounted) return;
+
+    final messenger = ScaffoldMessenger.of(context);
+    messenger.showSnackBar(const SnackBar(content: Text('Calculating final standings…')));
+
+    try {
+      await ref.read(leaderboardInvokerServiceProvider).recalculateAll(widget.season!.id);
+    } catch (_) {
+      // Don't block the close if recalc fails — standings may already be correct
+    }
+
+    if (!mounted) return;
+    await ref.read(seasonsRepositoryProvider).closeSeason(widget.season!.id, {
+      'captain': 'TBD',
+      'playerOfTheYear': 'TBD',
+      'majorWinners': [],
+    });
+    if (mounted) context.pop();
   }
 
   Future<void> _save() async {
@@ -591,14 +489,8 @@ class _SeasonFormScreenState extends ConsumerState<SeasonFormScreen> {
       endDate: _endDate,
       status: _status,
       isCurrent: _isCurrent,
-      leaderboards: _leaderboards,
-      divisionConfig: _divisionsEnabled
-          ? DivisionConfig(
-              threshold: double.tryParse(_thresholdController.text) ?? 12.0,
-              genderSeparated: _genderSeparated,
-              voluntaryDiv1MemberIds: _voluntaryDiv1MemberIds,
-            )
-          : null,
+      leaderboardIds: _leaderboardIds,
+      memberGroupConfigId: _divisionsEnabled ? _memberGroupConfigId : null,
     );
 
     if (widget.season == null) {

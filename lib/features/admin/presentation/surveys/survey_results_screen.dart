@@ -27,7 +27,7 @@ class SurveyResultsScreen extends ConsumerWidget {
 
         return HeadlessScaffold(
           title: 'Survey Results',
-          topPill: BoxyArtPill.committee(label: 'ADMIN'),
+          topPill: BoxyArtIndicator.committee(label: 'ADMIN'),
           subtitle: survey.title,
           showBack: true, // [NEW] Enable back navigation
           slivers: [

@@ -61,31 +61,44 @@ final homeNotificationsProvider = StreamProvider<List<AppNotification>>((ref) {
   return repository.watchNotifications(user.id);
 });
 
+/// Resolves the ordered list of LeaderboardConfig objects for the active season
+/// by reading from the global template collection.
+final _activeSeasonLeaderboardConfigsProvider = StreamProvider<List<LeaderboardConfig>>((ref) {
+  final activeSeasonAsync = ref.watch(activeSeasonProvider);
+  final season = activeSeasonAsync.value;
+  if (season == null || season.leaderboardIds.isEmpty) return Stream.value([]);
+  return ref.watch(leaderboardTemplatesRepositoryProvider).watchTemplatesByIds(season.leaderboardIds);
+});
+
 // Active Leaderboard Standings for Home (e.g., top 3 of the main OOM)
 final homeSeasonLeaderboardProvider = Provider<AsyncValue<List<Map<String, dynamic>>>>((ref) {
   final activeSeasonAsync = ref.watch(activeSeasonProvider);
-  
+
   // If still loading or error, propagate that state
   if (activeSeasonAsync is AsyncLoading) return const AsyncValue.loading();
   if (activeSeasonAsync is AsyncError) return AsyncValue.error(activeSeasonAsync.error!, activeSeasonAsync.stackTrace!);
 
-  final season = activeSeasonAsync.value;
-  if (season == null || season.leaderboards.isEmpty) {
+  final configsAsync = ref.watch(_activeSeasonLeaderboardConfigsProvider);
+  if (configsAsync is AsyncLoading) return const AsyncValue.loading();
+  if (configsAsync is AsyncError) return AsyncValue.error(configsAsync.error!, configsAsync.stackTrace!);
+
+  final leaderboards = configsAsync.value ?? [];
+  if (leaderboards.isEmpty) {
     return const AsyncValue.data(<Map<String, dynamic>>[]);
   }
-    
+
   // Find the main Order of Merit config
-  final oomConfig = season.leaderboards.firstWhere(
+  final oomConfig = leaderboards.firstWhere(
     (l) => l is OrderOfMeritConfig,
-    orElse: () => season.leaderboards.first,
+    orElse: () => leaderboards.first,
   );
-    
+
   final standingsAsync = ref.watch(leaderboardStandingsProvider(oomConfig.id));
-    
+
   return standingsAsync.whenData((standings) {
     final currentMember = ref.watch(effectiveUserProvider);
     final memberIndex = standings.indexWhere((s) => s.memberId == currentMember.id);
-    
+
     // If user is in Top 3 or not found, just show Top 3
     if (memberIndex == -1 || memberIndex < 3) {
       return standings.take(3).map((s) => {
@@ -94,21 +107,21 @@ final homeSeasonLeaderboardProvider = Provider<AsyncValue<List<Map<String, dynam
         'position': standings.indexOf(s) + 1,
       }).toList();
     }
-    
+
     // "Sandwich" Logic: Show Top 2 + current member
     final result = standings.take(2).map((s) => {
       'name': s.memberName,
       'points': s.points.round(),
       'position': standings.indexOf(s) + 1,
     }).toList();
-    
+
     final s = standings[memberIndex];
     result.add({
       'name': s.memberName,
       'points': s.points.round(),
       'position': memberIndex + 1,
     });
-    
+
     return result;
   });
 });
@@ -116,25 +129,29 @@ final homeSeasonLeaderboardProvider = Provider<AsyncValue<List<Map<String, dynam
 // Member's personal standing for the primary seasonal competition
 final homeMemberStandingProvider = Provider<AsyncValue<Map<String, dynamic>?>>((ref) {
   final activeSeasonAsync = ref.watch(activeSeasonProvider);
-  
+
   if (activeSeasonAsync is AsyncLoading) return const AsyncValue.loading();
   if (activeSeasonAsync is AsyncError) return AsyncValue.error(activeSeasonAsync.error!, activeSeasonAsync.stackTrace!);
 
-  final season = activeSeasonAsync.value;
-  if (season == null || season.leaderboards.isEmpty) return const AsyncValue.data(null);
-    
-  final oomConfig = season.leaderboards.firstWhere(
+  final configsAsync = ref.watch(_activeSeasonLeaderboardConfigsProvider);
+  if (configsAsync is AsyncLoading) return const AsyncValue.loading();
+  if (configsAsync is AsyncError) return AsyncValue.error(configsAsync.error!, configsAsync.stackTrace!);
+
+  final leaderboards = configsAsync.value ?? [];
+  if (leaderboards.isEmpty) return const AsyncValue.data(null);
+
+  final oomConfig = leaderboards.firstWhere(
     (l) => l is OrderOfMeritConfig,
-    orElse: () => season.leaderboards.first,
+    orElse: () => leaderboards.first,
   );
-    
+
   final standingsAsync = ref.watch(leaderboardStandingsProvider(oomConfig.id));
   final currentMember = ref.watch(effectiveUserProvider);
 
   return standingsAsync.whenData((standings) {
     final index = standings.indexWhere((s) => s.memberId == currentMember.id);
     if (index == -1) return null;
-    
+
     return {
       'standing': standings[index],
       'rank': index + 1,

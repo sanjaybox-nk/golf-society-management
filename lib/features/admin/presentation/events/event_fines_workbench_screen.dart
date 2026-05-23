@@ -141,7 +141,7 @@ class _EventFinesWorkbenchScreenState extends ConsumerState<EventFinesWorkbenchS
 
         return HeadlessScaffold(
           title: 'Fine Workbench',
-          topPill: BoxyArtPill.committee(label: 'ADMIN'),
+          topPill: BoxyArtIndicator.committee(label: 'ADMIN'),
           subtitle: event.title,
           showBack: true,
           onBack: () => context.pop(),

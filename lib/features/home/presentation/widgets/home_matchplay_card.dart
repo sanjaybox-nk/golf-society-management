@@ -36,7 +36,7 @@ class _MatchPlayMatchupCard extends ConsumerWidget {
         children: [
           Row(
             children: [
-              BoxyArtPill.status(
+              BoxyArtIndicator.status(
                 label: 'MATCH PLAY',
                 color: AppColors.lime500,
                 isLegend: true,

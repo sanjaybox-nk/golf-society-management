@@ -15,7 +15,7 @@ class SocietyIdentityScreen extends ConsumerWidget {
     return HeadlessScaffold(
       title: 'Society Identity',
       subtitle: 'Manage branding and assets',
-      topPill: BoxyArtPill.committee(label: 'ADMIN'),
+      topPill: BoxyArtIndicator.committee(label: 'ADMIN'),
       showBack: true,
       onBack: () => context.pop(),
       slivers: [

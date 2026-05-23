@@ -144,7 +144,7 @@ class _PlatformContentEditorScreenState
     return HeadlessScaffold(
       title: 'Platform Content',
       subtitle: 'Default notification messages',
-      topPill: BoxyArtPill.committee(label: 'ADMIN'),
+      topPill: BoxyArtIndicator.committee(label: 'ADMIN'),
       showBack: true,
       onBack: () => context.pop(),
       pinnedBottom: _isDirty ? _buildSaveBar() : null,

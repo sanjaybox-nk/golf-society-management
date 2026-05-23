@@ -101,7 +101,7 @@ class _MatchPlayDrawManagerScreenState extends ConsumerState<MatchPlayDrawManage
     return HeadlessScaffold(
       title: 'Match Play Hub',
       subtitle: state.name.isNotEmpty ? state.name : 'Tournament Manager',
-      topPill: BoxyArtPill.committee(label: 'ADMIN'),
+      topPill: BoxyArtIndicator.committee(label: 'ADMIN'),
       showBack: true,
       actions: [
         BoxyArtGlassIconButton(

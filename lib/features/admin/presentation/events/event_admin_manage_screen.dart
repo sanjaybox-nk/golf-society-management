@@ -35,7 +35,7 @@ class _EventAdminManageScreenState extends ConsumerState<EventAdminManageScreen>
         return HeadlessScaffold(
           title: 'Event Controls',
           subtitle: event.title,
-          topPill: BoxyArtPill.committee(label: 'ADMIN'),
+          topPill: BoxyArtIndicator.committee(label: 'ADMIN'),
           showBack: true,
           onBack: () => context.goNamed('admin-events'),
           slivers: [
@@ -607,7 +607,7 @@ class _FinancialCategoryCardState extends State<_FinancialCategoryCard> {
                     Flexible(child: Text(item.label, style: AppTypography.bodySmall.copyWith(color: textColor))),
                     if (item.isPaid == false) ...[
                       const SizedBox(width: AppSpacing.xs),
-                      BoxyArtPill(label: 'UNPAID', color: AppColors.amber500),
+                      BoxyArtIndicator(label: 'UNPAID', dotColor: AppColors.amber500, showBackground: true),
                     ],
                   ],
                 ),

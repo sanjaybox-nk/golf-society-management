@@ -17,7 +17,7 @@ class HandicapSystemSelectionScreen extends ConsumerWidget {
     return HeadlessScaffold(
       title: 'Handicap System',
       subtitle: 'Select calculation provider',
-      topPill: BoxyArtPill.committee(label: 'ADMIN'),
+      topPill: BoxyArtIndicator.committee(label: 'ADMIN'),
       showBack: true,
       onBack: () => context.pop(),
       actions: const [],

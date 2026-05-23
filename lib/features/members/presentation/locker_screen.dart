@@ -12,8 +12,16 @@ import 'package:golf_society/features/members/presentation/widgets/member_cuts_c
 import 'package:golf_society/features/members/presentation/widgets/handicap_trend_chart.dart';
 import '../../home/presentation/home_providers.dart';
 import '../../events/presentation/events_provider.dart';
-import 'package:golf_society/domain/divisions/division_helper.dart';
+import 'package:golf_society/domain/groups/member_group_helper.dart';
+import 'package:golf_society/features/admin/data/member_group_config_repository.dart';
+import 'package:golf_society/domain/models/member_group_config.dart';
 import 'widgets/society_honors_modal.dart';
+
+final _lockerGroupConfigProvider = FutureProvider.autoDispose<MemberGroupConfig?>((ref) async {
+  final season = ref.watch(activeSeasonProvider).value;
+  if (season?.memberGroupConfigId == null) return null;
+  return ref.read(memberGroupConfigRepositoryProvider).getConfig(season!.memberGroupConfigId!);
+});
 
 class LockerScreen extends ConsumerWidget {
   const LockerScreen({super.key});
@@ -98,7 +106,13 @@ class LockerScreen extends ConsumerWidget {
               if (user.handicapId != null)
                 Builder(builder: (context) {
                   final season = ref.watch(activeSeasonProvider).value;
-                  final division = DivisionHelper.assignDivision(user, season?.divisionConfig);
+                  final groupConfig = ref.watch(_lockerGroupConfigProvider).value;
+                  final group = groupConfig != null
+                      ? MemberGroupHelper.groupForMember(user, groupConfig)
+                      : null;
+                  final isFirstGroup = group != null && groupConfig != null &&
+                      groupConfig.groups.isNotEmpty &&
+                      group.id == groupConfig.groups.first.id;
                   return BoxyArtCard(
                     child: Column(
                       children: [
@@ -107,13 +121,11 @@ class LockerScreen extends ConsumerWidget {
                           user.handicap.toStringAsFixed(1),
                           style: AppTypography.displayHero.copyWith(color: primary),
                         ),
-                        if (division != null) ...[
+                        if (group != null) ...[
                           const SizedBox(height: AppSpacing.md),
-                          BoxyArtPill.status(
-                            label: DivisionHelper.label(division),
-                            color: division == Division.div1 || division == Division.div1Ladies
-                                ? AppColors.lime500
-                                : AppColors.amber500,
+                          BoxyArtIndicator.status(
+                            label: group.name,
+                            color: isFirstGroup ? AppColors.lime500 : AppColors.amber500,
                             isAction: false,
                           ),
                         ],

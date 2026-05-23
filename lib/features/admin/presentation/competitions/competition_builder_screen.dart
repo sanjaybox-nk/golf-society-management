@@ -85,7 +85,7 @@ class CompetitionBuilderScreen extends ConsumerWidget {
       title: isTemplate
           ? (compToUse != null ? 'Edit Template' : 'Create Template')
           : 'Create $gameName game',
-      topPill: BoxyArtPill.committee(label: 'ADMIN'),
+      topPill: BoxyArtIndicator.committee(label: 'ADMIN'),
       subtitle: isTemplate 
           ? 'Edit saved game template' 
           : (compToUse != null ? 'Event customisation' : 'New competition setup'),

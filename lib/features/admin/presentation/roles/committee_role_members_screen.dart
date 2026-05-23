@@ -231,9 +231,10 @@ class _CommitteeRoleMembersScreenState extends ConsumerState<CommitteeRoleMember
                   ),
                 ),
                 const SizedBox(height: 4),
-                BoxyArtPill(
+                BoxyArtIndicator(
                   label: widget.role,
-                  color: theme.primaryColor,
+                  dotColor: theme.primaryColor,
+                  showBackground: true,
                   fontSize: AppTypography.sizeMicro,
                   hasHorizontalMargin: false,
                 ),

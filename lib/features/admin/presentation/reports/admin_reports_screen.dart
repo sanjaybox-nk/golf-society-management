@@ -12,7 +12,7 @@ class AdminReportsScreen extends ConsumerWidget {
     return HeadlessScaffold(
       title: 'Society Reports',
       subtitle: 'Analytics and Data Export',
-      topPill: BoxyArtPill.committee(label: 'ADMIN'),
+      topPill: BoxyArtIndicator.committee(label: 'ADMIN'),
       showBack: true,
       onBack: () => context.pop(),
       slivers: [

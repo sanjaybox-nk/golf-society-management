@@ -144,7 +144,7 @@ class _EventScorecardViewState extends ConsumerState<EventScorecardView> {
               Row(
                 children: [
                   BoxyArtIndicator.hc(label: _formatHcp(displayBaseHcp), hasHorizontalMargin: false),
-                  BoxyArtIndicator.phc(context: context, label: '$displayPlayingHcp${hasSocietyCutActual ? '*' : ''}'),
+                  BoxyArtIndicator.phc(label: '$displayPlayingHcp${hasSocietyCutActual ? '*' : ''}'),
                 ],
               ),
               if (displayScoring?.thruLabel != null)

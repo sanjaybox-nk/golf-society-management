@@ -37,7 +37,7 @@ class _EventAdminVerifyScreenState extends ConsumerState<EventAdminVerifyScreen>
         return HeadlessScaffold(
           title: 'Verify Scorecards',
           subtitle: event.title,
-          topPill: BoxyArtPill.committee(label: 'ADMIN'),
+          topPill: BoxyArtIndicator.committee(label: 'ADMIN'),
           showBack: true,
           onBack: () => context.goNamed('admin-event-scores', pathParameters: {'id': widget.eventId}),
           slivers: [
