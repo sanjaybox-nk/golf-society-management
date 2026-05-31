@@ -62,7 +62,7 @@ class EventStatsTab extends ConsumerWidget {
         onBack: () => context.go('/events'),
         slivers: [
           SliverFillRemaining(
-            child: BoxyArtEmptyState(
+            child: BoxyArtEmptyCard(
               title: 'Could not load statistics',
               message: err.toString(),
               icon: Icons.error_outline_rounded,
@@ -103,13 +103,15 @@ class _EventStatsContentState extends ConsumerState<_EventStatsContent> {
 
     final currentFormat = widget.comp?.rules.format ?? CompetitionFormat.stableford;
     final isStableford = currentFormat == CompetitionFormat.stableford;
+    final isFourball = widget.comp?.rules.subtype == CompetitionSubtype.fourball;
 
     final myScoreEntry = data.individualScores.firstWhereOrNull(
       (s) => s.playerId.replaceFirst('_guest', '') == currentUserId,
     );
 
     final myLbEntry = data.leaderboard.firstWhereOrNull(
-      (e) => e.entryId.replaceFirst('_guest', '') == currentUserId,
+      (e) => e.entryId.replaceFirst('_guest', '') == currentUserId ||
+          e.teamMemberIds.contains(currentUserId),
     );
 
     final statsReleased = widget.event.isStatsReleased == true ||
@@ -197,6 +199,25 @@ class _EventStatsContentState extends ConsumerState<_EventStatsContent> {
       back9AvgVal = (trends?['back9Avg'] as num?)?.toDouble() ?? 0;
       if (trends?['stablefordBuckets'] != null) {
         stablefordBuckets = Map<String, int>.from(trends!['stablefordBuckets']);
+      }
+      // For Fourball, re-bucket using pair best-ball scores — individual buckets
+      // count 17 players while only 8 pairs compete, causing a misleading chart.
+      if (isFourball && isStableford) {
+        stablefordBuckets = {'<20': 0, '20-25': 0, '26-30': 0, '31-35': 0, '36+': 0};
+        for (final entry in data.leaderboard) {
+          final pts = entry.score;
+          if (pts < 20) {
+            stablefordBuckets['<20'] = stablefordBuckets['<20']! + 1;
+          } else if (pts <= 25) {
+            stablefordBuckets['20-25'] = stablefordBuckets['20-25']! + 1;
+          } else if (pts <= 30) {
+            stablefordBuckets['26-30'] = stablefordBuckets['26-30']! + 1;
+          } else if (pts <= 35) {
+            stablefordBuckets['31-35'] = stablefordBuckets['31-35']! + 1;
+          } else {
+            stablefordBuckets['36+'] = stablefordBuckets['36+']! + 1;
+          }
+        }
       }
       if (trends?['parTypeAverages'] != null) {
         parTypeAverages = Map<int, double>.from(
@@ -340,7 +361,9 @@ class _EventStatsContentState extends ConsumerState<_EventStatsContent> {
                   }
                 }
 
-                final int bestX = widget.comp?.rules.teamBestXCount ?? 2;
+                final String formatLabel = isFourball
+                    ? 'Best Pair'
+                    : 'Best ${widget.comp?.rules.teamBestXCount ?? 2}';
 
                 podiumEntries.add(PodiumEntry(
                   name: 'Group ${group.index + 1}',
@@ -348,7 +371,7 @@ class _EventStatsContentState extends ConsumerState<_EventStatsContent> {
                   rank: i + 1,
                   groupIndex: group.index,
                   tieBreakLabel: tieLabel,
-                  formatLabel: 'Best $bestX',
+                  formatLabel: formatLabel,
                 ));
               }
 
@@ -380,7 +403,7 @@ class _EventStatsContentState extends ConsumerState<_EventStatsContent> {
             SizedBox(height: spacing?.cardToCard ?? AppSpacing.md),
             StaggeredEntrance(
               index: 3,
-              child: StablefordDistributionChart(bucketCounts: stablefordBuckets),
+              child: StablefordDistributionChart(bucketCounts: stablefordBuckets, isFourball: isFourball),
             ),
           ],
           if (allScorecards.any((s) => s.holeTags.isNotEmpty)) ...[
@@ -404,7 +427,7 @@ class _EventStatsContentState extends ConsumerState<_EventStatsContent> {
             child: SplitPerformanceCard(
               front9Avg: front9AvgVal,
               back9Avg: back9AvgVal,
-              isStableford: isStableford,
+              isStableford: false, // field values are avg gross totals for front/back 9
             ),
           ),
           SizedBox(height: spacing?.cardToCard ?? AppSpacing.md),
@@ -554,7 +577,9 @@ class _EventStatsContentState extends ConsumerState<_EventStatsContent> {
             _buildPersonalRecap(
               context: context,
               myScoreEntry: myScoreEntry,
-              holePoints: myLbEntry?.holePoints ?? [],
+              holePoints: isFourball
+                  ? (myScoreEntry.result.holePoints)
+                  : (myLbEntry?.holePoints ?? []),
               myPosition: myLbEntry?.position,
               fieldHoleAvgs: holeAverages,
               fieldParTypeAvgs: parTypeAverages,
@@ -567,6 +592,9 @@ class _EventStatsContentState extends ConsumerState<_EventStatsContent> {
               awardWinners: awardWinNames,
               registrations: widget.event.registrations,
               isStableford: isStableford,
+              isFourball: isFourball,
+              pairScore: isFourball ? myLbEntry?.score : null,
+              pairScoreLabel: isFourball ? myLbEntry?.scoreLabel : null,
             ),
         ],
       ],
@@ -628,6 +656,9 @@ class _EventStatsContentState extends ConsumerState<_EventStatsContent> {
     required Map<String, String> awardWinners,
     required List<EventRegistration> registrations,
     required bool isStableford,
+    bool isFourball = false,
+    int? pairScore,
+    String? pairScoreLabel,
   }) {
     final holes = courseConfig.holes;
     final myName = myScoreEntry.playerName;
@@ -729,9 +760,10 @@ class _EventStatsContentState extends ConsumerState<_EventStatsContent> {
           _PersonalSummaryBar(
             position: myPosition,
             totalPlayers: 0,
-            score: myScoreEntry.result.score,
-            scoreLabel: myScoreEntry.result.label,
+            score: isFourball ? (pairScore ?? myScoreEntry.result.score) : myScoreEntry.result.score,
+            scoreLabel: isFourball ? (pairScoreLabel ?? myScoreEntry.result.label) : myScoreEntry.result.label,
             isStableford: isStableford,
+            isFourball: isFourball,
           ),
           SizedBox(height: spacing?.cardToCard ?? AppSpacing.md),
         ],
@@ -780,6 +812,7 @@ class _EventStatsContentState extends ConsumerState<_EventStatsContent> {
           holePoints: holePoints,
           holes: holes,
           isStableford: isStableford,
+          isFourball: isFourball,
         ),
         SizedBox(height: spacing?.cardToCard ?? AppSpacing.md),
 
@@ -805,14 +838,14 @@ class _EventStatsContentState extends ConsumerState<_EventStatsContent> {
         PersonalBenchmarkingCard(myAverages: myParTypeAverages, fieldAverages: fieldParTypeAvgs),
         SizedBox(height: spacing?.cardToCard ?? AppSpacing.md),
         NetComparisonCard(
-          myNet: myScoreEntry.result.score,
+          myNet: isFourball ? (pairScore ?? myScoreEntry.result.score) : myScoreEntry.result.score,
           fieldAvgNet: fieldAvgNet,
           isStableford: isStableford,
         ),
         SizedBox(height: spacing?.cardToCard ?? AppSpacing.md),
-        ConsistencyStatCard(myVariance: myVariance, fieldAvgVariance: fieldAvgVariance),
+        ConsistencyStatCard(myVariance: myVariance, fieldAvgVariance: fieldAvgVariance, isFourball: isFourball),
         SizedBox(height: spacing?.cardToCard ?? AppSpacing.md),
-        BounceBackStatCard(myRate: myBounceBackRate, fieldRate: fieldAvgBounceBackRate),
+        BounceBackStatCard(myRate: myBounceBackRate, fieldRate: fieldAvgBounceBackRate, isFourball: isFourball),
         SizedBox(height: spacing?.cardToCard ?? AppSpacing.md),
         HoleNemesisComparison(
           myHardestHoleIdx: myHardestIdx,
@@ -846,6 +879,7 @@ class _PersonalSummaryBar extends ConsumerWidget {
   final int score;
   final String scoreLabel;
   final bool isStableford;
+  final bool isFourball;
 
   const _PersonalSummaryBar({
     required this.position,
@@ -853,6 +887,7 @@ class _PersonalSummaryBar extends ConsumerWidget {
     required this.score,
     required this.scoreLabel,
     required this.isStableford,
+    this.isFourball = false,
   });
 
   @override
@@ -898,7 +933,7 @@ class _PersonalSummaryBar extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Text(
-                  isStableford ? 'YOUR POINTS' : 'YOUR SCORE',
+                  isStableford ? (isFourball ? 'PAIR POINTS' : 'YOUR POINTS') : 'YOUR SCORE',
                   style: AppTypography.micro.copyWith(
                     color: muted,
                     fontWeight: AppTypography.weightBold,

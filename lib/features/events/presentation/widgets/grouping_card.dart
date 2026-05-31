@@ -55,6 +55,8 @@ class GroupingCard extends ConsumerWidget {
   final Map<int, ProcessedGroupResult>? computedGroupResults; // [NEW] Centralized group results lookup
   final bool isEventClosed;
   final Function(String entryId, String markerEntryId, String playerName, String markerName)? onUnlockCard;
+  final Map<String, String>? teamAssignments;
+  final Map<String, String>? matchStatusMap;
 
   const GroupingCard({
     super.key,
@@ -91,6 +93,8 @@ class GroupingCard extends ConsumerWidget {
     this.computedGroupResults,
     this.isEventClosed = false,
     this.onUnlockCard,
+    this.teamAssignments,
+    this.matchStatusMap,
   });
 
   @override
@@ -106,13 +110,34 @@ class GroupingCard extends ConsumerWidget {
       final isScramble = rules!.format == CompetitionFormat.scramble;
       final isFoursomes = rules!.subtype == CompetitionSubtype.foursomes;
 
-      if (isScramble || isFoursomes) {
-        final List<double> indices = group.players.map((p) => p.handicapIndex).toList();
-        displayTotalHandicap = HandicapCalculator.calculateTeamHandicap(
-          individualIndices: indices,
-          rules: rules!,
-          courseConfig: courseConfig ?? const CourseConfig(),
-        ).toDouble();
+      if (isScramble) {
+        final teamSize = rules!.teamSize.clamp(1, group.players.length);
+        final hasSubTeams = teamSize < group.players.length && teamSize > 1;
+        if (hasSubTeams) {
+          // Multiple sub-teams per tee group — sum each team's handicap separately
+          for (int i = 0; i < group.players.length; i += teamSize) {
+            final chunk = group.players.skip(i).take(teamSize).map((p) => p.handicapIndex).toList();
+            if (chunk.isNotEmpty) {
+              displayTotalHandicap += HandicapCalculator.calculateTeamHandicap(
+                individualIndices: chunk, rules: rules!, courseConfig: courseConfig ?? const CourseConfig(),
+              );
+            }
+          }
+        } else {
+          final List<double> indices = group.players.map((p) => p.handicapIndex).toList();
+          displayTotalHandicap = HandicapCalculator.calculateTeamHandicap(
+            individualIndices: indices,
+            rules: rules!,
+            courseConfig: courseConfig ?? const CourseConfig(),
+          ).toDouble();
+        }
+      } else if (isFoursomes) {
+        // Two pairs — sum each pair's team handicap separately
+        final pairA = group.players.take(2).map((p) => p.handicapIndex).toList();
+        final pairB = group.players.skip(2).take(2).map((p) => p.handicapIndex).toList();
+        final hcA = pairA.isNotEmpty ? HandicapCalculator.calculateTeamHandicap(individualIndices: pairA, rules: rules!, courseConfig: courseConfig ?? const CourseConfig()) : 0;
+        final hcB = pairB.isNotEmpty ? HandicapCalculator.calculateTeamHandicap(individualIndices: pairB, rules: rules!, courseConfig: courseConfig ?? const CourseConfig()) : 0;
+        displayTotalHandicap = (hcA + hcB).toDouble();
       } else {
         for (var p in group.players) {
           final id = p.isGuest ? '${p.registrationMemberId}_guest' : p.registrationMemberId;
@@ -127,6 +152,7 @@ class GroupingCard extends ConsumerWidget {
     final isStableford = rules?.format == CompetitionFormat.stableford;
     final isScramble = rules?.format == CompetitionFormat.scramble;
     final isFourball = rules?.subtype == CompetitionSubtype.fourball;
+    final isFoursomes = rules?.subtype == CompetitionSubtype.foursomes;
     final int bestX = rules?.teamBestXCount ?? 2;
     final isMatchPlay = rules?.isMatchPlay ?? false;
 
@@ -227,13 +253,29 @@ class GroupingCard extends ConsumerWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                'Group ${group.index + 1}',
-                style: AppTypography.displaySection.copyWith(
-                  color: isDark ? AppColors.pureWhite : AppColors.dark900,
-                  fontWeight: AppTypography.weightExtraBold,
-                  fontSize: AppTypography.sizeHeadline,
-                ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Group ${group.index + 1}',
+                    style: AppTypography.displaySection.copyWith(
+                      color: isDark ? AppColors.pureWhite : AppColors.dark900,
+                      fontWeight: AppTypography.weightExtraBold,
+                      fontSize: AppTypography.sizeHeadline,
+                    ),
+                  ),
+                  if ((isFourball || isFoursomes) && !isMatchPlay) ...[
+                    const SizedBox(height: 2),
+                    Text(
+                      isFourball ? 'Fourball (Pairs)' : 'Foursomes (Pairs)',
+                      style: AppTypography.micro.copyWith(
+                        color: isDark ? AppColors.dark200 : AppColors.dark400,
+                        letterSpacing: AppTypography.lsLabel,
+                      ),
+                    ),
+                  ],
+                ],
               ),
               Row(
                 children: [
@@ -303,7 +345,7 @@ class GroupingCard extends ConsumerWidget {
                   child: Column(
                     children: [
                 ...() {
-            Widget buildParticipantTile(TeeGroupParticipant p, String id, String? side, {bool useCard = true}) {
+            Widget buildParticipantTile(TeeGroupParticipant p, String id, String? side, {bool useCard = true, int? pairTeamHC}) {
               final bool hasGuestInGroupP = !p.isGuest && group.players.any((other) => other.isGuest && other.registrationMemberId == p.registrationMemberId);
               final sc = scorecardMap?[id];
               final bool readyForApproval = isAdmin &&
@@ -312,6 +354,15 @@ class GroupingCard extends ConsumerWidget {
                   sc.verifiedByPlayer &&
                   sc.verifiedByMarker &&
                   sc.conflictedHoles.isEmpty;
+              final teamLabel = teamAssignments?[p.registrationMemberId];
+              final String? rawMatchStatus = matchStatusMap?[id];
+              final String? rawPrimaryScore = scoreMap?[id];
+              final bool isPureMatchPlay = rules?.format == CompetitionFormat.matchPlay;
+              final bool isOverlay = !isPureMatchPlay && rawMatchStatus != null;
+              final String? tileScoreDisplay = isScoreMode
+                  ? (isOverlay ? rawPrimaryScore : (rawMatchStatus ?? rawPrimaryScore))
+                  : null;
+              final String? tileSubScoreDisplay = (isScoreMode && isOverlay) ? rawMatchStatus : null;
               final tile = GroupingPlayerTile(
                 player: p,
                 group: group,
@@ -327,9 +378,8 @@ class GroupingCard extends ConsumerWidget {
                 isSelected: isSelected?.call(p) ?? false,
                 onAction: onAction,
                 isScoreMode: isScoreMode,
-                scoreDisplay: isScoreMode
-                    ? (playerMatchResults[id]?.status ?? scoreMap?[id])
-                    : null,
+                scoreDisplay: tileScoreDisplay,
+                subScoreDisplay: tileSubScoreDisplay,
                 isWinner: isScoreMode ? (internalWinnerMap[id] ?? false) : false,
                 thruLabel: isScoreMode ? (thruMap?[id]) : null,
                 tieBreakLabel: isScoreMode ? (tieBreakMap?[id]) : null,
@@ -341,10 +391,12 @@ class GroupingCard extends ConsumerWidget {
                 matchSide: side,
                 useCard: useCard,
                 isStableford: rules?.format == CompetitionFormat.stableford,
-                phcOverride: (isScramble || rules?.subtype == CompetitionSubtype.foursomes)
-                    ? displayTotalHandicap.toInt()
-                    : (isScoreMode ? relativePhcMap[id] : null),
+                phcOverride: pairTeamHC ??
+                    (isScramble
+                        ? displayTotalHandicap.toInt()
+                        : (isScoreMode ? relativePhcMap[id] : null)),
                 isEventClosed: isEventClosed,
+                teamLabel: teamLabel,
               );
               final bool isCardLocked = isAdmin && sc != null &&
                   (sc.status == ScorecardStatus.finalScore ||
@@ -428,6 +480,276 @@ class GroupingCard extends ConsumerWidget {
 
             // [NEW] Unified Team Format Check (Scramble, Fourball, etc)
             if (rules?.isUnifiedTeamFormat == true) {
+              final isFourballPairs = rules?.subtype == CompetitionSubtype.fourball ||
+                  rules?.subtype == CompetitionSubtype.foursomes;
+
+              if (isFourballPairs && players.length >= 2) {
+                // Render as 2 pairs (positions 0+1 vs 2+3) with a divider between them
+                final pairA = players.take(2).toList();
+                final pairB = players.skip(2).take(2).toList();
+                final result = <Widget>[];
+
+                // Score mode: pair-level tiles showing best-ball combined score
+                if (isScoreMode && computedEntries != null && isFourball) {
+                  final pointsColor = Color(config.effectivePointsColor);
+                  final hPad = spacing?.cardHorizontalPadding ?? AppSpacing.md;
+                  final vPad = spacing?.cardVerticalPadding ?? 12.0;
+
+                  Widget buildPairScoreTile(List<TeeGroupParticipant> pair) {
+                    final ids = pair
+                        .map((p) => p.isGuest
+                            ? '${p.registrationMemberId}_guest'
+                            : p.registrationMemberId)
+                        .toList();
+                    final entry = computedEntries![ids.join('_')];
+                    return BoxyArtCard(
+                      padding: EdgeInsets.zero,
+                      showShadow: true,
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 4,
+                            decoration: const BoxDecoration(
+                              color: Colors.transparent,
+                              borderRadius: BorderRadius.only(
+                                topLeft: Radius.circular(18),
+                                bottomLeft: Radius.circular(18),
+                              ),
+                            ),
+                          ),
+                          Expanded(
+                            child: Padding(
+                              padding: EdgeInsets.only(
+                                left: AppSpacing.sm,
+                                right: hPad,
+                                top: vPad,
+                                bottom: vPad,
+                              ),
+                              child: IntrinsicHeight(
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                                  children: [
+                                    Column(
+                                      mainAxisSize: MainAxisSize.max,
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        BoxyArtAvatar(
+                                          url: pair[0].isGuest ? null : memberMap[pair[0].registrationMemberId]?.avatarUrl,
+                                          initials: pair[0].name.isNotEmpty ? pair[0].name[0].toUpperCase() : '?',
+                                          radius: 20,
+                                        ),
+                                        if (pair.length > 1)
+                                          Padding(
+                                            padding: const EdgeInsets.only(bottom: 6),
+                                            child: BoxyArtAvatar(
+                                              url: pair[1].isGuest ? null : memberMap[pair[1].registrationMemberId]?.avatarUrl,
+                                              initials: pair[1].name.isNotEmpty ? pair[1].name[0].toUpperCase() : '?',
+                                              radius: 20,
+                                            ),
+                                          ),
+                                      ],
+                                    ),
+                                    Container(
+                                      width: 1,
+                                      margin: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+                                      color: isDark ? AppColors.dark500 : AppColors.lightBorder,
+                                    ),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          for (int i = 0; i < pair.length; i++) ...[
+                                            if (i > 0) const SizedBox(height: 6),
+                                            Text(
+                                              pair[i].name,
+                                              style: AppTypography.memberName.copyWith(
+                                                color: isDark ? AppColors.pureWhite : AppColors.dark900,
+                                              ),
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                            const SizedBox(height: 2),
+                                            Wrap(
+                                              spacing: 6,
+                                              runSpacing: 2,
+                                              children: [
+                                                if (hcMap?[ids[i]] != null)
+                                                  BoxyArtIndicator.hc(
+                                                    label: hcMap![ids[i]]!.toStringAsFixed(1),
+                                                    hasHorizontalMargin: false,
+                                                  ),
+                                                if (phcMap?[ids[i]] != null)
+                                                  BoxyArtIndicator.phc(
+                                                    label: '${phcMap![ids[i]]}',
+                                                    hasHorizontalMargin: false,
+                                                  ),
+                                              ],
+                                            ),
+                                          ],
+                                        ],
+                                      ),
+                                    ),
+                                    const SizedBox(width: AppSpacing.sm),
+                                    if (entry != null)
+                                      RichText(
+                                        text: TextSpan(
+                                          children: [
+                                            TextSpan(
+                                              text: entry.scoreLabel,
+                                              style: AppTypography.displaySection.copyWith(
+                                                color: pointsColor,
+                                                fontSize: 24,
+                                                fontWeight: AppTypography.weightBlack,
+                                                height: 1.0,
+                                              ),
+                                            ),
+                                            if (isStableford)
+                                              TextSpan(
+                                                text: ' pts',
+                                                style: AppTypography.label.copyWith(
+                                                  fontSize: 13,
+                                                  fontWeight: AppTypography.weightExtraBold,
+                                                  color: pointsColor.withValues(alpha: AppColors.opacityHigh),
+                                                ),
+                                              ),
+                                          ],
+                                        ),
+                                      )
+                                    else
+                                      Text(
+                                        '-',
+                                        style: AppTypography.body.copyWith(
+                                          color: isDark ? AppColors.dark200 : AppColors.dark400,
+                                        ),
+                                      ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+
+                  result.add(buildPairScoreTile(pairA));
+                  if (pairB.isNotEmpty) {
+                    result.add(Padding(
+                      padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+                      child: Center(
+                        child: Text(
+                          'v',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: AppTypography.weightExtraBold,
+                            color: (isDark ? AppColors.pureWhite : AppColors.dark900)
+                                .withValues(alpha: 0.5),
+                          ),
+                        ),
+                      ),
+                    ));
+                    result.add(buildPairScoreTile(pairB));
+                  }
+                  return result;
+                }
+
+                // For Foursomes, show each pair's team HC on their tiles so
+                // the numbers are consistent with the group total.
+                final isFoursomedPairs = rules?.subtype == CompetitionSubtype.foursomes && rules != null;
+                final pairATeamHC = isFoursomedPairs && pairA.isNotEmpty
+                    ? HandicapCalculator.calculateTeamHandicap(
+                        individualIndices: pairA.map((p) => p.handicapIndex).toList(),
+                        rules: rules!,
+                        courseConfig: courseConfig ?? const CourseConfig(),
+                      )
+                    : null;
+                final pairBTeamHC = isFoursomedPairs && pairB.isNotEmpty
+                    ? HandicapCalculator.calculateTeamHandicap(
+                        individualIndices: pairB.map((p) => p.handicapIndex).toList(),
+                        rules: rules!,
+                        courseConfig: courseConfig ?? const CourseConfig(),
+                      )
+                    : null;
+
+                for (final p in pairA) {
+                  final id = p.isGuest ? '${p.registrationMemberId}_guest' : p.registrationMemberId;
+                  final tile = buildParticipantTile(p, id, null, useCard: true, pairTeamHC: pairATeamHC);
+                  result.add(isAdmin ? _wrapWithDraggable(context, p, tile) : tile);
+                  result.add(SizedBox(height: spacing?.cardToCard ?? AppSpacing.md));
+                }
+
+                if (pairB.isNotEmpty) {
+                  result.add(Padding(
+                    padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+                    child: Center(
+                      child: Text(
+                        'v',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: AppTypography.weightExtraBold,
+                          color: (isDark ? AppColors.pureWhite : AppColors.dark900).withValues(alpha: 0.5),
+                        ),
+                      ),
+                    ),
+                  ));
+
+                  for (int i = 0; i < pairB.length; i++) {
+                    final p = pairB[i];
+                    final id = p.isGuest ? '${p.registrationMemberId}_guest' : p.registrationMemberId;
+                    final tile = buildParticipantTile(p, id, null, useCard: true, pairTeamHC: pairBTeamHC);
+                    result.add(isAdmin ? _wrapWithDraggable(context, p, tile) : tile);
+                    if (i < pairB.length - 1) result.add(SizedBox(height: spacing?.cardToCard ?? AppSpacing.md));
+                  }
+                }
+
+                return result;
+              }
+
+              // Scramble with sub-teams (e.g. 2-man scramble in groups of 4)
+              if (isScramble && rules != null) {
+                final teamSize = rules!.teamSize.clamp(1, players.length);
+                final hasSubTeams = teamSize < players.length && teamSize > 1;
+                if (hasSubTeams) {
+                  final result = <Widget>[];
+                  final teams = <List<TeeGroupParticipant>>[];
+                  for (int i = 0; i < players.length; i += teamSize) {
+                    teams.add(players.skip(i).take(teamSize).toList());
+                  }
+                  for (int t = 0; t < teams.length; t++) {
+                    final team = teams[t];
+                    final teamHC = team.isNotEmpty
+                        ? HandicapCalculator.calculateTeamHandicap(
+                            individualIndices: team.map((p) => p.handicapIndex).toList(),
+                            rules: rules!,
+                            courseConfig: courseConfig ?? const CourseConfig(),
+                          )
+                        : null;
+                    for (int i = 0; i < team.length; i++) {
+                      final p = team[i];
+                      final id = p.isGuest ? '${p.registrationMemberId}_guest' : p.registrationMemberId;
+                      final tile = buildParticipantTile(p, id, null, useCard: true, pairTeamHC: teamHC);
+                      result.add(isAdmin ? _wrapWithDraggable(context, p, tile) : tile);
+                      result.add(SizedBox(height: spacing?.cardToCard ?? AppSpacing.md));
+                    }
+                    if (t < teams.length - 1) {
+                      result.add(Padding(
+                        padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+                        child: Center(
+                          child: Text('v', style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: AppTypography.weightExtraBold,
+                            color: (isDark ? AppColors.pureWhite : AppColors.dark900).withValues(alpha: 0.5),
+                          )),
+                        ),
+                      ));
+                    }
+                  }
+                  return result;
+                }
+              }
+
+              // 4-man scramble and other unified formats — flat list
               return players.asMap().entries.map((entry) {
                 final p = entry.value;
                 final id = p.isGuest ? '${p.registrationMemberId}_guest' : p.registrationMemberId;
@@ -471,10 +793,11 @@ class GroupingCard extends ConsumerWidget {
                       padding: const EdgeInsets.only(bottom: 8.0, top: 4.0),
                       child: Text(
                         'MATCH $matchIndex',
-                        style: AppTypography.micro.copyWith(
-                          color: (isDark ? AppColors.pureWhite : AppColors.dark900).withValues(alpha: 0.6),
-                          fontWeight: AppTypography.weightExtraBold,
+                        style: AppTypography.label.copyWith(
+                          color: isDark ? AppColors.dark200 : AppColors.dark500,
+                          fontWeight: AppTypography.weightHeavy,
                           letterSpacing: 1.5,
+                          fontSize: AppTypography.sizeMicro,
                         ),
                       ),
                     ),
@@ -616,9 +939,9 @@ class GroupingCard extends ConsumerWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                if (showScoring && isScoreMode && groupResult != null && !isMatchPlay)
+                if (showScoring && isScoreMode && groupResult != null && !isMatchPlay && !isFourball)
                   Text(
-                    isScramble 
+                    isScramble
                         ? 'Team Total: ${groupResult.label}'
                         : 'Group Total (Best $bestX): ${groupResult.label}',
                     style: AppTypography.label.copyWith(
@@ -628,8 +951,8 @@ class GroupingCard extends ConsumerWidget {
                     ),
                   ),
                 const Spacer(),
-                if (isFourball)
-                  Text(rules?.isMatchPlay == true ? 'Match Play (Rel)' : 'Fourball (Pairs)', style: AppTypography.label.copyWith(color: isDark ? AppColors.dark100 : AppColors.dark900, fontWeight: AppTypography.weightBold, fontSize: 12, letterSpacing: -0.2))
+                if (isMatchPlay)
+                  Text('Match Play (Rel)', style: AppTypography.label.copyWith(color: isDark ? AppColors.dark100 : AppColors.dark900, fontWeight: AppTypography.weightBold, fontSize: 12, letterSpacing: -0.2))
                 else if (isScramble)
                   BoxyArtIndicator.phc(label: 'Team: ${displayTotalHandicap.toInt()}', hasHorizontalMargin: false)
                 else

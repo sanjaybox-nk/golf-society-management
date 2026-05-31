@@ -225,11 +225,13 @@ class ParTypeBreakdown extends StatelessWidget {
 class ConsistencyStatCard extends StatelessWidget {
   final double myVariance;
   final double fieldAvgVariance;
+  final bool isFourball;
 
   const ConsistencyStatCard({
     super.key,
     required this.myVariance,
     required this.fieldAvgVariance,
+    this.isFourball = false,
   });
 
   @override
@@ -288,6 +290,15 @@ class ConsistencyStatCard extends StatelessWidget {
               ),
             ],
           ),
+          if (isFourball) ...[
+            const SizedBox(height: AppSpacing.atomic),
+            Text(
+              'Your individual hole-by-hole variance — not the pair total.',
+              style: AppTypography.bodySmall.copyWith(
+                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: AppColors.opacitySecondary),
+              ),
+            ),
+          ],
         ],
       ),
     );
@@ -310,7 +321,11 @@ class NetComparisonCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final shapes = Theme.of(context).extension<AppShapeTokens>();
     final diff = myNet - fieldAvgNet;
-    final better = diff < 0;
+    // Stableford: more points = better. Medal: lower net-to-par = better.
+    final better = isStableford ? diff > 0 : diff < 0;
+    final diffLabel = isStableford
+        ? '${diff >= 0 ? "+" : ""}${diff.toStringAsFixed(1)} pts'
+        : '${better ? "-" : "+"}${diff.abs().toStringAsFixed(1)}';
 
     return BoxyArtCard(
       child: Row(
@@ -320,7 +335,7 @@ class NetComparisonCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'NET VS FIELD AVG',
+                  isStableford ? 'SCORE VS FIELD AVG' : 'NET VS FIELD AVG',
                   style: AppTypography.label.copyWith(
                     color: Theme.of(context).colorScheme.onSurface,
                     fontWeight: AppTypography.weightHeavy,
@@ -355,7 +370,7 @@ class NetComparisonCard extends StatelessWidget {
               borderRadius: shapes?.pill,
             ),
             child: Text(
-              '${better ? "-" : "+"}${diff.abs().toStringAsFixed(1)}',
+              diffLabel,
               style: AppTypography.label.copyWith(
                 fontWeight: AppTypography.weightSemibold,
                 color: better ? AppColors.lime500 : AppColors.coral500,
@@ -371,11 +386,13 @@ class NetComparisonCard extends StatelessWidget {
 class BounceBackStatCard extends StatelessWidget {
   final double myRate;
   final double fieldRate;
+  final bool isFourball;
 
   const BounceBackStatCard({
     super.key,
     required this.myRate,
     required this.fieldRate,
+    this.isFourball = false,
   });
 
   @override
@@ -385,56 +402,70 @@ class BounceBackStatCard extends StatelessWidget {
     final color = better ? AppColors.teamA : AppColors.textSecondary;
 
     return BoxyArtCard(
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            padding: const EdgeInsets.all(AppSpacing.atomic),
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: AppColors.opacitySubtle),
-              borderRadius: shapes?.button,
-            ),
-            child: Icon(Icons.replay_circle_filled, color: color, size: AppShapes.iconMd),
-          ),
-          const SizedBox(width: AppSpacing.atomic),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'BOUNCE BACK RATE',
-                  style: AppTypography.label.copyWith(
-                    color: Theme.of(context).colorScheme.onSurface,
-                    fontWeight: AppTypography.weightHeavy,
-                    letterSpacing: AppTypography.lsLabel,
-                  ),
-                ),
-                const SizedBox(height: AppSpacing.xs),
-                Text(
-                  '${(myRate * 100).toStringAsFixed(0)}%',
-                  style: AppTypography.displayLocker.copyWith(
-                    fontWeight: AppTypography.weightBlack,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
+          Row(
             children: [
-              Text(
-                'FIELD AVG',
-                style: AppTypography.micro.copyWith(
-                  color: Theme.of(context).colorScheme.onSurface,
+              Container(
+                padding: const EdgeInsets.all(AppSpacing.atomic),
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: AppColors.opacitySubtle),
+                  borderRadius: shapes?.button,
+                ),
+                child: Icon(Icons.replay_circle_filled, color: color, size: AppShapes.iconMd),
+              ),
+              const SizedBox(width: AppSpacing.atomic),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'BOUNCE BACK RATE',
+                      style: AppTypography.label.copyWith(
+                        color: Theme.of(context).colorScheme.onSurface,
+                        fontWeight: AppTypography.weightHeavy,
+                        letterSpacing: AppTypography.lsLabel,
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.xs),
+                    Text(
+                      '${(myRate * 100).toStringAsFixed(0)}%',
+                      style: AppTypography.displayLocker.copyWith(
+                        fontWeight: AppTypography.weightBlack,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              Text(
-                '${(fieldRate * 100).toStringAsFixed(0)}%',
-                style: AppTypography.micro.copyWith(
-                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: AppColors.opacityHigh),
-                ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    'FIELD AVG',
+                    style: AppTypography.micro.copyWith(
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
+                  ),
+                  Text(
+                    '${(fieldRate * 100).toStringAsFixed(0)}%',
+                    style: AppTypography.micro.copyWith(
+                      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: AppColors.opacityHigh),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
+          if (isFourball) ...[
+            const SizedBox(height: AppSpacing.atomic),
+            Text(
+              'Your individual recovery rate — how often you bounced back after a bogey or worse.',
+              style: AppTypography.bodySmall.copyWith(
+                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: AppColors.opacitySecondary),
+              ),
+            ),
+          ],
         ],
       ),
     );
@@ -446,6 +477,7 @@ class RoundHoleGrid extends StatelessWidget {
   final List<int?> holePoints;
   final List<dynamic> holes;
   final bool isStableford;
+  final bool isFourball;
 
   const RoundHoleGrid({
     super.key,
@@ -453,6 +485,7 @@ class RoundHoleGrid extends StatelessWidget {
     required this.holePoints,
     required this.holes,
     this.isStableford = false,
+    this.isFourball = false,
   });
 
   @override
@@ -474,6 +507,17 @@ class RoundHoleGrid extends StatelessWidget {
               ),
             ),
           ),
+          if (isFourball && isStableford) ...[
+            const SizedBox(height: AppSpacing.xs),
+            Center(
+              child: Text(
+                'Your individual points — not the pair\'s best-ball score',
+                style: AppTypography.bodySmall.copyWith(
+                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: AppColors.opacitySecondary),
+                ),
+              ),
+            ),
+          ],
           const SizedBox(height: AppSpacing.standard),
           _buildHalfRow(context, 'FRONT 9', 0, 9, shapes, sc),
           const SizedBox(height: AppSpacing.atomic),

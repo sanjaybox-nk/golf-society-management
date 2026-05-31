@@ -11,11 +11,15 @@ class BoxyArtMemberRow extends ConsumerWidget {
   final Color? secondaryNameColor;
   final String initials;
   final String? avatarUrl;
-  final List<String>? teamNames; 
-  
+  final String? partnerAvatarUrl;
+  final String? partnerInitials;
+  final List<String>? teamNames;
+  final List<double>? individualHandicapIndices;
+  final List<int>? individualPlayingHandicaps;
+
   // Leading element type
   final Widget? leading;
-  
+
   // Metadata
   final double? handicapIndex;
   final int? playingHandicap;
@@ -25,6 +29,8 @@ class BoxyArtMemberRow extends ConsumerWidget {
   // Trailing
   final String? score;
   final Color? scoreColor;
+  final String? subScore;
+  final Color? subScoreColor;
   
   // Status/Traits
   final bool isGuest;
@@ -39,8 +45,9 @@ class BoxyArtMemberRow extends ConsumerWidget {
   final bool isFoundingMember;
   
   // Custom Slots
-  final Widget? trailing; 
-  final Widget? footer; // [NEW] Bottom-aligned content to free up horizontal space
+  final Widget? trailing;
+  final Widget? footer;
+  final Widget? rankingBadge;
   
   // Variety Pillar for grouping behavior signaling
   final Color? varietyPillarColor;
@@ -62,14 +69,20 @@ class BoxyArtMemberRow extends ConsumerWidget {
     super.key,
     required this.name,
     this.teamNames,
+    this.individualHandicapIndices,
+    this.individualPlayingHandicaps,
     this.secondaryName,
     this.secondaryNameColor,
     required this.initials,
     this.avatarUrl,
+    this.partnerAvatarUrl,
+    this.partnerInitials,
     this.handicapIndex,
     this.playingHandicap,
     this.score,
     this.scoreColor,
+    this.subScore,
+    this.subScoreColor,
     this.tieBreakLabel,
     this.thruLabel,
     this.ranking,
@@ -92,6 +105,7 @@ class BoxyArtMemberRow extends ConsumerWidget {
     this.leading,
     this.trailing,
     this.footer,
+    this.rankingBadge,
     this.teeName,
     this.teeColor,
     this.onTeeTap,
@@ -125,7 +139,9 @@ class BoxyArtMemberRow extends ConsumerWidget {
             clipBehavior: Clip.none,
             children: [
               leading ?? _buildAvatar(context),
-              if (ranking != null)
+              if (rankingBadge != null)
+                Positioned(top: -2, left: -2, child: rankingBadge!)
+              else if (ranking != null)
                 Positioned(
                   top: -2,
                   left: -2,
@@ -170,18 +186,48 @@ class BoxyArtMemberRow extends ConsumerWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 if (teamNames != null && teamNames!.isNotEmpty)
-                  ...teamNames!.map((tName) => Padding(
-                    padding: const EdgeInsets.only(bottom: 2),
-                    child: Text(
-                      toTitleCase(tName),
-                      style: AppTypography.memberName.copyWith(
-                        color: isDark ? AppColors.pureWhite : AppColors.dark900,
-                        fontSize: teamNames!.length > 2 ? 14 : 16,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ))
+                  ...() {
+                    final hasPerMember = individualHandicapIndices != null || individualPlayingHandicaps != null;
+                    return teamNames!.asMap().entries.expand((e) {
+                      final i = e.key;
+                      final tName = e.value;
+                      return [
+                        if (i > 0 && hasPerMember) const SizedBox(height: 6),
+                        Padding(
+                          padding: EdgeInsets.only(bottom: hasPerMember ? 0 : 2),
+                          child: Text(
+                            toTitleCase(tName),
+                            style: AppTypography.memberName.copyWith(
+                              color: isDark ? AppColors.pureWhite : AppColors.dark900,
+                              fontSize: teamNames!.length > 2 ? 14 : 16,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        if (hasPerMember)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 2, bottom: 2),
+                            child: Wrap(
+                              spacing: 6,
+                              runSpacing: 2,
+                              children: [
+                                if (i < (individualHandicapIndices?.length ?? 0))
+                                  BoxyArtIndicator.hc(
+                                    label: individualHandicapIndices![i].toStringAsFixed(1),
+                                    hasHorizontalMargin: false,
+                                  ),
+                                if (i < (individualPlayingHandicaps?.length ?? 0))
+                                  BoxyArtIndicator.phc(
+                                    label: '${individualPlayingHandicaps![i]}',
+                                    hasHorizontalMargin: false,
+                                  ),
+                              ],
+                            ),
+                          ),
+                      ];
+                    }).toList();
+                  }()
                 else
                   Text(
                     toTitleCase(cleanGuestName(name)),
@@ -204,8 +250,10 @@ class BoxyArtMemberRow extends ConsumerWidget {
                     overflow: TextOverflow.ellipsis,
                   ),
                 ],
-                const SizedBox(height: AppSpacing.xs),
-                _buildMetadata(context),
+                if (individualHandicapIndices == null && individualPlayingHandicaps == null) ...[
+                  const SizedBox(height: AppSpacing.xs),
+                  _buildMetadata(context),
+                ],
                 if (footer != null)
                   Padding(
                     padding: const EdgeInsets.only(top: 4),
@@ -276,6 +324,28 @@ class BoxyArtMemberRow extends ConsumerWidget {
   }
 
   Widget _buildAvatar(BuildContext context) {
+    if (partnerInitials != null) {
+      // Pair layout: fill card height so each avatar aligns with its name row
+      return Column(
+        mainAxisSize: MainAxisSize.max,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          BoxyArtAvatar(
+            url: avatarUrl,
+            initials: extractInitials(initials),
+            radius: 20,
+          ),
+          Padding(
+            padding: const EdgeInsets.only(bottom: 6),
+            child: BoxyArtAvatar(
+              url: partnerAvatarUrl,
+              initials: extractInitials(partnerInitials!),
+              radius: 20,
+            ),
+          ),
+        ],
+      );
+    }
     return BoxyArtAvatar(
       url: avatarUrl,
       initials: extractInitials(initials),
@@ -369,6 +439,20 @@ class BoxyArtMemberRow extends ConsumerWidget {
                             ),
                           ),
                       ],
+                    ),
+                  ),
+                ),
+              if (subScore != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 2),
+                  child: Text(
+                    subScore!,
+                    textAlign: TextAlign.end,
+                    style: metaStyle.copyWith(
+                      fontSize: 11,
+                      fontWeight: AppTypography.weightBold,
+                      color: subScoreColor ?? AppColors.dark400,
+                      letterSpacing: 0.2,
                     ),
                   ),
                 ),

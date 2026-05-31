@@ -79,7 +79,9 @@ class SharedTournamentLogic {
       final isMatchPlay = (comp?.rules.isMatchPlay ?? false) || event.matches.isNotEmpty;
       
       final String? playerId = processedEntry.teamMemberIds.firstOrNull;
+      final String? partnerId = processedEntry.teamMemberIds.length > 1 ? processedEntry.teamMemberIds[1] : null;
       final member = playerId != null ? memberMap[playerId] : null;
+      final partnerMember = partnerId != null ? memberMap[partnerId] : null;
 
       String? hostName;
       bool hasGuest = false;
@@ -104,6 +106,7 @@ class SharedTournamentLogic {
         hasGuest: hasGuest,
         initials: (comp?.rules.isUnifiedTeamFormat ?? false) ? (processedEntry.teamMemberNames.firstOrNull ?? processedEntry.playerName) : processedEntry.playerName,
         avatarUrl: member?.avatarUrl,
+        partnerAvatarUrl: partnerMember?.avatarUrl,
         hostName: hostName,
         hasSocietyCut: processedEntry.hasSocietyCut,
         holeScores: processedEntry.holeScores,
@@ -187,6 +190,15 @@ class _GroupScoresViewState extends ConsumerState<GroupScoresView> {
     final data = scoringData;
     
     final Map<String, String> scoreMap = { for (var s in data.individualScores) s.playerId : s.result.label };
+    final Map<String, String> matchStatusMap = {
+      for (var e in data.leaderboard)
+        if (e.matchStatus != null)
+          e.entryId: e.matchStatus!
+              .replaceAll('WIN', 'Won')
+              .replaceAll('LOSS', 'Lost')
+              .replaceAll('HALVED', 'Halved'),
+    };
+
     final Map<String, int> teamPhcMap = { for (var s in data.individualScores) s.playerId : s.playingHandicap.round() };
     final Map<String, String> thruMap = { for (var s in data.individualScores) if (s.thruLabel != null) s.playerId : s.thruLabel! };
 
@@ -194,7 +206,7 @@ class _GroupScoresViewState extends ConsumerState<GroupScoresView> {
     final isStableford = widget.rules.format == CompetitionFormat.stableford;
     final Map<String, String> tieBreakMap;
     if (isStableford) {
-      const mNames = ['B9', 'B6', 'B3', 'B1'];
+      const mNames = ['B9', 'B6', 'B3', 'B1', 'F9', 'F6', 'F3', 'F1'];
       // Group leaderboard entries by total score to find ties
       final scoreGroups = <int, List<ProcessedLeaderboardEntry>>{};
       for (final e in data.leaderboard) {
@@ -214,11 +226,9 @@ class _GroupScoresViewState extends ConsumerState<GroupScoresView> {
               myMetrics[k] == other.tieBreakMetrics[k]) k++;
           if (k > maxDepth) maxDepth = k;
         }
-        final parts = <String>[];
-        for (int i = 0; i <= maxDepth && i < myMetrics.length && i < mNames.length; i++) {
-          parts.add('${mNames[i]}: ${myMetrics[i]}');
+        if (maxDepth < myMetrics.length && maxDepth < mNames.length) {
+          built[e.entryId] = '${mNames[maxDepth]}: ${myMetrics[maxDepth]}';
         }
-        if (parts.isNotEmpty) built[e.entryId] = parts.join(' • ');
       }
       tieBreakMap = built;
     } else {
@@ -291,6 +301,7 @@ class _GroupScoresViewState extends ConsumerState<GroupScoresView> {
                 isAdmin: widget.isAdmin,
                 isScoreMode: true,
                 scoreMap: scoreMap,
+                matchStatusMap: matchStatusMap.isNotEmpty ? matchStatusMap : null,
                 scorecardMap: {for (var s in widget.scorecards) s.entryId: s},
                 winnerMap: winnerMap,
                 phcMap: teamPhcMap,

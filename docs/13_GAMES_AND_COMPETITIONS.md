@@ -38,6 +38,16 @@ The primary driver of the scoring logic.
 -   **Aggregation**: `Total Sum`, `Single Best`, or `Stableford Sum`.
 -   **Tie-Breaks**: Standard countback methods (`Back 9`, `Back 6`, `Back 3`, `Back 1`).
 
+### Tie Break Rules by Format (Finalised May 2026)
+
+| Format | Tie break |
+|---|---|
+| Stableford | Countback only (back 9 → 6 → 3 → 1). Playoff option not available. |
+| Stroke Play (Medal) | Countback OR playoff — admin selects at competition setup. |
+| Max Score | Countback only. |
+| Match Play | Always playoff. Hardcoded — no admin choice. |
+| Pairs | Countback only. Playoff excluded. |
+
 ## 3. Season Leaderboards
 
 The system supports long-term season standings with various calculation engines.
@@ -187,6 +197,23 @@ The event leaderboard provides a real-time view of the field with advanced prese
     - **Auto (Follow Global)**: (Default) The competition dynamically inherits the society's current global policy.
 - **Visual Consistency**: Guests retain their "G" badge for easy identification.
 
+### 4.3a Fourball (Betterball) Pair Display
+
+When a competition uses `CompetitionSubtype.fourball`, leaderboard and group entries display **pair cards** rather than individual rows.
+
+**Pair avatar layout**: Both players' avatars are shown in a stacked vertical column on the left side of the card. The first avatar aligns with the first name; the second is raised 6 px from the card bottom edge to align with the second name row. This is handled by `BoxyArtMemberRow` when `partnerInitials` is non-null — the avatar column uses `MainAxisSize.max` + `MainAxisAlignment.spaceBetween` inside the `IntrinsicHeight` row, with `Padding(bottom: 6)` on the partner avatar. The same layout is replicated in `GroupingCard.buildPairScoreTile` for the Groups tab.
+
+Fields threaded for pair display:
+- `LeaderboardEntry.partnerAvatarUrl` — second member avatar URL
+- `BoxyArtMemberRow.partnerAvatarUrl` / `partnerInitials` — trigger stacked avatar rendering
+- Data flows: `event_leaderboard.dart` → `LeaderboardEntry` → `leaderboard_widget.dart` → `BoxyArtMemberRow`
+- Same pattern in `event_shared_logic.dart` → `GroupingCard.buildPairScoreTile`
+
+**Stats tab behaviour for Fourball**:
+- **Society tab — score distribution**: Rebucketed from `data.leaderboard` (pair entries) not from the analysis engine's individual count. Chart title reads "PAIR SCORE DISTRIBUTION" and footer uses "pairs" not "players". This avoids the 17-vs-16 discrepancy where the engine counts all individual scorecards (odd-field case: 17 individuals → 8 pairs).
+- **Personal tab — hole grid and split**: Uses the *individual* player's `holePoints` from `data.individualScores`, not the pair's best-ball points. A subtitle under "YOUR ROUND" states "Your individual points — not the pair's best-ball score" (Stableford only).
+- **Consistency / BounceBack cards**: Show a footnote when `isFourball` is true, clarifying the stats are based on the player's individual scores.
+
 ### 4.4 Unified Scorecard View (Universal Parity)
 All player entries on the leaderboard and admin scoring lists share a unified "Universal Parity" layout:
 - **Unified Action**: Tapping a player opens the `ScorecardModal` or the `EventAdminScorecardEditorScreen`.
@@ -282,6 +309,17 @@ The rules are presented via the `CompetitionRulesCard`, which uses a **Hardened 
 - **Specifics**: Only shown if non-default (e.g., [4 Drives], [Cap: 18], [Single Best], [Stableford Base]).
 
 ## 9. Match Play Management (Design 4.x)
+
+### Overlay Architecture (May 2026)
+
+The match play overlay is attached at the **event level**, not inside individual game builder controls.
+
+- `buildOverlaySection()` has been removed from all game builder controls (Stableford, Stroke, Max Score, Scramble, Pairs).
+- "Add Match Play Overlay" button on the event screen routes directly to the match play season gallery — bypasses the format picker.
+- "Remove Overlay" requires a confirmation dialog.
+- When the event is `inPlay` or `completed`, both the Customize and Remove buttons are hidden on both primary and secondary competition cards.
+
+For full match play architecture including grouping logic, three models (Ryder Cup, season-long knockout, overlay progression), and the UAT plan, see `docs/16_MATCHPLAY_AND_TEAM_STRATEGY.md`.
 
 Introduced in April 2026, the Match Play management system provides a professional-grade administrative workflow for specialized tournaments.
 

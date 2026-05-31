@@ -93,8 +93,9 @@ class ScoringTypeDistributionChart extends StatelessWidget {
 
 class StablefordDistributionChart extends StatelessWidget {
   final Map<String, int> bucketCounts;
+  final bool isFourball;
 
-  const StablefordDistributionChart({super.key, required this.bucketCounts});
+  const StablefordDistributionChart({super.key, required this.bucketCounts, this.isFourball = false});
 
   @override
   Widget build(BuildContext context) {
@@ -108,7 +109,7 @@ class StablefordDistributionChart extends StatelessWidget {
         children: [
           Center(
             child: Text(
-              'STABLEFORD DISTRIBUTION',
+              isFourball ? 'PAIR SCORE DISTRIBUTION' : 'STABLEFORD DISTRIBUTION',
               style: AppTypography.label.copyWith(
                 color: Theme.of(context).colorScheme.onSurface,
                 fontWeight: AppTypography.weightHeavy,
@@ -162,7 +163,9 @@ class StablefordDistributionChart extends StatelessWidget {
           ),
           const SizedBox(height: AppSpacing.standard),
           Text(
-            'Counts how many players finished within each point range.',
+            isFourball
+                ? 'Counts how many pairs finished within each point range.'
+                : 'Counts how many players finished within each point range.',
             style: AppTypography.bodySmall.copyWith(
               color: Theme.of(context).colorScheme.onSurface.withValues(alpha: AppColors.opacitySecondary),
             ),

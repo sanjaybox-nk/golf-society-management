@@ -66,12 +66,16 @@ class _EventLeaderboardState extends ConsumerState<EventLeaderboard> {
     final memberMap = {for (final m in widget.membersList) m.id: m};
 
     final isMatchPlay = (widget.comp?.rules.isMatchPlay ?? false) || widget.event.matches.isNotEmpty;
+    // Overlay: match play is secondary to the primary format (stableford/stroke)
+    final bool isOverlay = isMatchPlay && currentFormat != CompetitionFormat.matchPlay;
     final bool isCompleted = widget.event.status == EventStatus.completed;
 
     // 2. Map Processed Data to UI-friendly LeaderboardEntry
     final List<LeaderboardEntry> finalEntries = data.leaderboard.map<LeaderboardEntry>((e) {
       final String? playerId = e.teamMemberIds.firstOrNull;
+      final String? partnerId = e.teamMemberIds.length > 1 ? e.teamMemberIds[1] : null;
       final member = playerId != null ? memberMap[playerId] : null;
+      final partnerMember = partnerId != null ? memberMap[partnerId] : null;
 
       String? hostName;
       bool hasGuest = false;
@@ -92,16 +96,25 @@ class _EventLeaderboardState extends ConsumerState<EventLeaderboard> {
       return LeaderboardEntry(
         entryId: e.entryId,
         playerName: displayName,
-        score: isMatchPlay ? matchLead : e.score,
-        scoreLabel: isMatchPlay ? matchStatus : e.scoreLabel,
+        score: isOverlay ? e.score : (isMatchPlay ? matchLead : e.score),
+        scoreLabel: isOverlay ? e.scoreLabel : (isMatchPlay ? matchStatus : e.scoreLabel),
+        subScoreLabel: isOverlay ? matchStatus : null,
+        subScoreColor: isOverlay ? _matchStatusColor(matchStatus) : null,
         handicap: (e.handicapIndex ?? 0.0).round(),
         handicapIndex: e.handicapIndex ?? 0.0,
         playingHandicap: e.individualPlayingHandicaps.firstOrNull,
+        individualHandicaps: e.teamMemberIds.length > 1
+            ? e.teamMemberIds.map((id) => memberMap[id]?.handicap ?? e.handicapIndex ?? 0.0).toList()
+            : null,
+        individualPlayingHandicaps: e.teamMemberIds.length > 1 && e.individualPlayingHandicaps.isNotEmpty
+            ? e.individualPlayingHandicaps
+            : null,
         holesPlayed: e.holesPlayed,
         isGuest: e.isGuest,
         hasGuest: hasGuest,
         initials: isUnified ? (e.teamMemberNames.firstOrNull ?? displayName) : displayName,
         avatarUrl: member?.avatarUrl,
+        partnerAvatarUrl: partnerMember?.avatarUrl,
         hostName: hostName,
         hasSocietyCut: e.hasSocietyCut,
         holeScores: e.holeScores,
@@ -119,7 +132,7 @@ class _EventLeaderboardState extends ConsumerState<EventLeaderboard> {
         tieBreakMetrics: e.tieBreakMetrics,
         scoringStatus: e.scoringStatus,
         mode: widget.comp?.rules.mode ?? CompetitionMode.singles,
-        isCaptain: isUnified,
+        isCaptain: false,
         teeName: e.teeName,
         teeColor: AppColors.getTeeColor(e.teeName, widget.event.courseConfig.tees),
         absoluteScore: e.absoluteScore,
@@ -127,8 +140,8 @@ class _EventLeaderboardState extends ConsumerState<EventLeaderboard> {
       );
     }).toList();
 
-    // 2.5 Sort by Margin if Matchplay
-    if (isMatchPlay) {
+    // Pure match play: sort by match lead. Overlay keeps primary format sort from processor.
+    if (isMatchPlay && !isOverlay) {
       finalEntries.sort((a, b) => b.score.compareTo(a.score));
     }
 
@@ -281,5 +294,12 @@ class _EventLeaderboardState extends ConsumerState<EventLeaderboard> {
       if (m1[i] != m2[i]) return false;
     }
     return true;
+  }
+
+  Color? _matchStatusColor(String? status) {
+    if (status == null) return null;
+    final s = status.toUpperCase();
+    if (s.contains('WIN') || s.contains(' UP')) return AppColors.lime700;
+    return AppColors.coral500;
   }
 }

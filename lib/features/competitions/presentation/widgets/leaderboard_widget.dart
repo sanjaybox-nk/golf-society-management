@@ -46,8 +46,8 @@ class LeaderboardWidget extends StatelessWidget {
           final tiedWith = tiedGroups[entry.score] ?? [];
           if (tiedWith.length > 1) {
             if (isStableford) {
-              // Build B9→B6→B3→B1 chain, showing down to the first level that differs
-              const mNames = ['B9', 'B6', 'B3', 'B1'];
+              // Build B9→B6→B3→B1→F9→F6→F3→F1 chain, showing down to the first level that differs
+              const mNames = ['B9', 'B6', 'B3', 'B1', 'F9', 'F6', 'F3', 'F1'];
               final myMetrics = entry.tieBreakMetrics ?? <int>[];
 
               int findFirstDiff(List<int> a, List<int> b) {
@@ -67,11 +67,9 @@ class LeaderboardWidget extends StatelessWidget {
                 if (d > maxDepth) maxDepth = d;
               }
 
-              final parts = <String>[];
-              for (int i = 0; i <= maxDepth && i < myMetrics.length && i < mNames.length; i++) {
-                parts.add('${mNames[i]}: ${myMetrics[i]}');
+              if (maxDepth < myMetrics.length && maxDepth < mNames.length) {
+                differentiatorChain = '${mNames[maxDepth]}: ${myMetrics[maxDepth]}';
               }
-              differentiatorChain = parts.isEmpty ? null : parts.join(' • ');
             } else {
               List<String> getSegments(LeaderboardEntry e) =>
                   (e.tieBreakDetails ?? e.tieBreakLabel ?? '').split(RegExp(r'[,•]')).map((s) => s.trim()).toList();
@@ -103,22 +101,29 @@ class LeaderboardWidget extends StatelessWidget {
         final theme = Theme.of(context);
         final spacing = theme.extension<AppSpacingTokens>();
 
+        final bool isPair = entry.teamMemberNames != null && entry.teamMemberNames!.length > 1;
         return Padding(
           padding: EdgeInsets.only(bottom: spacing?.cardToCard ?? AppSpacing.md),
           child: BoxyArtMemberRow(
             name: entry.playerName,
-            teamNames: (entry.teamMemberNames != null && entry.teamMemberNames!.length > 1) 
-                ? entry.teamMemberNames 
-                : null,
-            secondaryName: (entry.teamMemberNames != null && entry.teamMemberNames!.length > 1)
-                ? null // Handled by teamNames
-                : ((entry.isGuest && entry.hostName != null) ? 'Guest of ${entry.hostName}' : null),
+            teamNames: isPair ? entry.teamMemberNames : null,
+            individualHandicapIndices: isPair ? entry.individualHandicaps : null,
+            individualPlayingHandicaps: isPair ? entry.individualPlayingHandicaps : null,
+            secondaryName: isPair
+                ? null
+                : (entry.isGuest && entry.hostName != null ? 'Guest of ${entry.hostName}' : null),
             initials: entry.initials ?? entry.playerName,
             avatarUrl: entry.avatarUrl,
-            handicapIndex: entry.handicapIndex,
-            playingHandicap: entry.playingHandicap,
+            partnerAvatarUrl: isPair ? entry.partnerAvatarUrl : null,
+            partnerInitials: isPair && entry.teamMemberNames != null && entry.teamMemberNames!.length > 1
+                ? entry.teamMemberNames![1]
+                : null,
+            handicapIndex: isPair ? null : entry.handicapIndex,
+            playingHandicap: isPair ? null : entry.playingHandicap,
             score: rawScore,
             scoreColor: null,
+            subScore: entry.subScoreLabel,
+            subScoreColor: entry.subScoreColor,
             tieBreakLabel: isMatchPlay ? null : differentiatorChain,
             thruLabel: entry.thruLabel,
             ranking: entry.position,
@@ -157,6 +162,7 @@ class LeaderboardEntry {
   final bool isGuest;
   final bool hasGuest; // [NEW] Member who brought a guest
   final String? avatarUrl; // [NEW] Profile Picture Link
+  final String? partnerAvatarUrl; // [NEW] Second member avatar for pairs
   final String? hostName; // [NEW] Member who brought this guest
   final String? secondaryPlayerName; // [NEW] For Pairs/Teams
   final List<String>? teamMemberNames; // [NEW] For larger teams (Scramble etc)
@@ -180,13 +186,15 @@ class LeaderboardEntry {
   final Color? teeColor; // [NEW]
   final int? absoluteScore; // [NEW]
   final String? absoluteScoreLabel; // [NEW]
+  final String? subScoreLabel; // secondary score for overlay formats (e.g. match play result on Stableford overlay)
+  final Color? subScoreColor;
   final int position;
 
   LeaderboardEntry({
     required this.entryId,
-    required this.playerName, 
+    required this.playerName,
     this.initials,
-    required this.score, 
+    required this.score,
     this.scoreLabel,
     required this.handicap,
     this.handicapIndex = 0.0,
@@ -198,6 +206,7 @@ class LeaderboardEntry {
     this.isGuest = false,
     this.hasGuest = false,
     this.avatarUrl,
+    this.partnerAvatarUrl,
     this.hostName,
     this.secondaryPlayerName,
     this.teamMemberNames,
@@ -221,6 +230,8 @@ class LeaderboardEntry {
     this.teeColor,
     this.absoluteScore,
     this.absoluteScoreLabel,
+    this.subScoreLabel,
+    this.subScoreColor,
     this.position = 0,
     this.scoringStatus = ScoringStatus.ok,
   });
@@ -240,6 +251,7 @@ class LeaderboardEntry {
     bool? isGuest,
     bool? hasGuest,
     String? avatarUrl,
+    String? partnerAvatarUrl,
     String? hostName,
     String? secondaryPlayerName,
     List<String>? teamMemberNames,
@@ -266,6 +278,8 @@ class LeaderboardEntry {
     Color? teeColor,
     int? absoluteScore,
     String? absoluteScoreLabel,
+    String? subScoreLabel,
+    Color? subScoreColor,
   }) {
     return LeaderboardEntry(
       entryId: entryId ?? this.entryId,
@@ -282,6 +296,7 @@ class LeaderboardEntry {
       isGuest: isGuest ?? this.isGuest,
       hasGuest: hasGuest ?? this.hasGuest,
       avatarUrl: avatarUrl ?? this.avatarUrl,
+      partnerAvatarUrl: partnerAvatarUrl ?? this.partnerAvatarUrl,
       hostName: hostName ?? this.hostName,
       secondaryPlayerName: secondaryPlayerName ?? this.secondaryPlayerName,
       teamMemberNames: teamMemberNames ?? this.teamMemberNames,
@@ -301,6 +316,8 @@ class LeaderboardEntry {
       teeColor: teeColor ?? this.teeColor,
       absoluteScore: absoluteScore ?? this.absoluteScore,
       absoluteScoreLabel: absoluteScoreLabel ?? this.absoluteScoreLabel,
+      subScoreLabel: subScoreLabel ?? this.subScoreLabel,
+      subScoreColor: subScoreColor ?? this.subScoreColor,
       position: position ?? this.position,
       scoringStatus: scoringStatus ?? this.scoringStatus,
       holeNetScores: holeNetScores ?? this.holeNetScores,

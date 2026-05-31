@@ -206,6 +206,7 @@ The unified row for displaying members across the application.
 - **`initials`**: Explicit initials for the avatar (overrides name-derived initials).
 - **`useCard`**: Whether to wrap in a `BoxyArtCard` (default: true). Set to `false` for internal list items.
 - **`showChevron`**: Toggle the right-aligned interaction chevron.
+- **`partnerAvatarUrl`** / **`partnerInitials`**: (Pairs/Fourball) When `partnerInitials` is non-null, the avatar area switches from a single circle to a stacked vertical column — first avatar top-aligned, second avatar with `Padding(bottom: 6)` so it aligns with the second name row. The column uses `MainAxisSize.max` + `MainAxisAlignment.spaceBetween` inside the `IntrinsicHeight` parent row. Avatar radius shrinks from 24 to 20 in pair mode. Partner initials are passed directly (not extracted from the full name) so a single capital letter is sufficient.
 
 ### `BoxyArtIndicator` (Modern Handicap & Status Standards)
 The authoritative component for handicap and interactive status display. 
