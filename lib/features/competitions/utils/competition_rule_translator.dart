@@ -9,7 +9,7 @@ class CompetitionRuleTranslator {
     
     switch (rules.format) {
       case CompetitionFormat.stableford:
-        parts.add('A $modeStr Stableford competition where you earn points based on your net score relative to par (2 points for a net par).');
+        parts.add('An $modeStr Stableford competition where you earn points based on your net score relative to par (2 points for a net par).');
         break;
       case CompetitionFormat.stroke:
         parts.add('A standard $modeStr Strokeplay event where every shot counts.');
@@ -35,21 +35,15 @@ class CompetitionRuleTranslator {
         parts.add('A team scramble format where the best shot is selected each time.');
         break;
       case CompetitionFormat.matchPlay:
-        parts.add('A $modeStr Match Play competition where scores are compared hole-by-hole.');
+        parts.add('An $modeStr Match Play competition where scores are compared hole-by-hole.');
         break;
     }
 
-    // 1.5. Match Play Overlay
-    if (rules.isMatchPlay) {
-      if (rules.subtype == CompetitionSubtype.ryderCup) {
-        parts.add('Includes a Ryder Cup style team overlay where matches between sides contribute to an overall team points total.');
-      } else if (rules.subtype == CompetitionSubtype.teamMatchPlay) {
-        parts.add('Includes a team-based match play overlay where individual matches are aggregated for a team result.');
-      } else if (rules.subtype == CompetitionSubtype.matchPlaySeason) {
-        parts.add('This is part of a season-long match play knockout tournament.');
-      } else {
-        parts.add('Includes a Match Play overlay where you play against your opponent hole-by-hole.');
-      }
+    // 1.5. Match Play context — only when match play is added on top of another format
+    if (rules.subtype == CompetitionSubtype.matchPlaySeason) {
+      parts.add('This is part of a season-long match play knockout tournament.');
+    } else if (rules.hasMatchPlayOverlay) {
+      parts.add('Includes a Match Play overlay where you play against your opponent hole-by-hole.');
     }
 
     // 2. Handicap Details

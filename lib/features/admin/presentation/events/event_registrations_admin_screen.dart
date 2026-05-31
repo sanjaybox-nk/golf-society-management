@@ -3,12 +3,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:golf_society/design_system/design_system.dart';
 import 'package:golf_society/domain/models/golf_event.dart';
 import 'package:golf_society/domain/models/event_registration.dart';
+import 'package:golf_society/domain/models/notification.dart';
 import '../../../events/presentation/events_provider.dart';
 import '../../../members/presentation/members_provider.dart';
 import '../../../events/domain/registration_logic.dart';
 import 'package:golf_society/domain/models/member.dart';
 import '../../../events/presentation/widgets/registration_card.dart';
 import '../../../events/presentation/widgets/registration_stats_card.dart';
+import 'package:golf_society/features/home/presentation/home_providers.dart';
 
 
 class EventRegistrationsAdminScreen extends ConsumerWidget {
@@ -545,10 +547,26 @@ class EventRegistrationsAdminScreen extends ConsumerWidget {
     EventRegistrationsAdminScreen._updateRegistration(ref, event, updated);
   }
 
-  static void _togglePaid(WidgetRef ref, GolfEvent event, EventRegistration reg, bool isGuest) {
-    // Note: Membership fee paid is member.hasPaid. Event fee is reg.hasPaid.
-    final updated = reg.copyWith(hasPaid: !reg.hasPaid);
+  static void _togglePaid(WidgetRef ref, GolfEvent event, EventRegistration reg, bool isGuest) async {
+    final newHasPaid = !reg.hasPaid;
+    final updated = reg.copyWith(
+      hasPaid: newHasPaid,
+      isConfirmed: newHasPaid,
+    );
     EventRegistrationsAdminScreen._updateRegistration(ref, event, updated);
+
+    if (newHasPaid) {
+      await ref.read(notificationsRepositoryProvider).sendNotification(AppNotification(
+        id: '',
+        recipientId: reg.memberId,
+        title: 'You\'re Confirmed!',
+        message: 'Your place at ${event.title} has been confirmed. See you on the course!',
+        timestamp: DateTime.now(),
+        category: 'Registration',
+        eventId: event.id,
+        actionUrl: '/events/${event.id}',
+      ));
+    }
   }
 
   static void _updateRegistration(WidgetRef ref, GolfEvent event, EventRegistration updated) {

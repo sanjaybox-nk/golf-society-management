@@ -86,6 +86,8 @@ abstract class CompetitionRules with _$CompetitionRules {
     @Default(SeedingLogic.random) SeedingLogic seedingLogic,
     @Default(MatchPlayProgression.bracketed) MatchPlayProgression progressionMode,
     @Default(false) bool hasMatchPlayOverlay, // [NEW] Treat Match Play as an overlay feature
+    String? teamAName,
+    String? teamBName,
   }) = _CompetitionRules;
 
   factory CompetitionRules.fromJson(Map<String, dynamic> json) =>
@@ -185,6 +187,13 @@ extension CompetitionRulesX on CompetitionRules {
     return mode;
   }
 
+  // Fourball and Foursomes always use pairs (2 players per team slot), regardless of the
+  // stored teamSize default. Scoring and grouping processors must use this, not raw teamSize.
+  int get effectiveTeamSize {
+    if (subtype == CompetitionSubtype.fourball || subtype == CompetitionSubtype.foursomes) return 2;
+    return teamSize;
+  }
+
   String get modeLabel {
     if (format == CompetitionFormat.scramble) {
       return '$teamSize-MAN TEAM';
@@ -215,15 +224,17 @@ extension CompetitionRulesX on CompetitionRules {
     };
   }
 
-  bool get isMatchPlay => (hasMatchPlayOverlay == true) || 
-      subtype == CompetitionSubtype.ryderCup || 
-      subtype == CompetitionSubtype.teamMatchPlay || 
+  bool get isMatchPlay => (hasMatchPlayOverlay == true) ||
+      format == CompetitionFormat.matchPlay ||
+      subtype == CompetitionSubtype.ryderCup ||
+      subtype == CompetitionSubtype.teamMatchPlay ||
       subtype == CompetitionSubtype.matchPlaySeason;
 
-  /// Returns true if this competition requires a seeded draw/match definitions 
+  /// Returns true if this competition requires a seeded draw/match definitions
   /// before grouping can be finalized.
-  bool get isTournamentStyleGrouping => 
-      subtype == CompetitionSubtype.ryderCup || 
-      subtype == CompetitionSubtype.teamMatchPlay || 
+  bool get isTournamentStyleGrouping =>
+      format == CompetitionFormat.matchPlay ||
+      subtype == CompetitionSubtype.ryderCup ||
+      subtype == CompetitionSubtype.teamMatchPlay ||
       subtype == CompetitionSubtype.matchPlaySeason;
 }

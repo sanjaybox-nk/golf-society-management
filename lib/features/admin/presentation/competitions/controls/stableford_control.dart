@@ -20,6 +20,7 @@ class _StablefordControlState extends BaseCompetitionControlState<StablefordCont
   bool _isGross = false;
   bool _applyCapToIndex = false;
   int _teamBestXCount = 1;
+  HandicapMode _handicapMode = HandicapMode.whs;
 
   @override
   CompetitionFormat get format => CompetitionFormat.stableford;
@@ -38,6 +39,7 @@ class _StablefordControlState extends BaseCompetitionControlState<StablefordCont
       _applyCapToIndex = widget.competition!.rules.applyCapToIndex;
       _teamBestXCount = widget.competition!.rules.teamBestXCount;
       _useMixedTeeAdjustment = widget.competition!.rules.useMixedTeeAdjustment;
+      _handicapMode = widget.competition!.rules.handicapMode;
     }
   }
 
@@ -56,7 +58,7 @@ class _StablefordControlState extends BaseCompetitionControlState<StablefordCont
                 _allowance,
                 (val) => setState(() => _allowance = val),
                 disabled: _isGross,
-                hint: "Fraction of course handicap applied (95% is WHS default).",
+                hint: "WHS standard: 95% for singles Stableford, 85% for Betterball, 50% for Foursomes.",
               ),
               const BoxyArtDivider(),
               buildCapSlider(_handicapCap, (val) => setState(() => _handicapCap = val)),
@@ -76,6 +78,17 @@ class _StablefordControlState extends BaseCompetitionControlState<StablefordCont
                 onChanged: (val) => setState(() => _useMixedTeeAdjustment = val),
               ),
               const BoxyArtDivider(),
+              BoxyArtDropdownField<HandicapMode>(
+                label: 'Handicap System',
+                value: _handicapMode,
+                items: const [
+                  DropdownMenuItem(value: HandicapMode.whs, child: Text('WHS (Slope & Rating Adjusted)')),
+                  DropdownMenuItem(value: HandicapMode.local, child: Text('Local (Handicap Index Only)')),
+                ],
+                onChanged: (val) { if (val != null) setState(() => _handicapMode = val); },
+              ),
+              buildInfoBubble('WHS applies slope and course rating to calculate playing handicap. Local uses the raw index with no course correction.'),
+              const BoxyArtDivider(),
               BoxyArtSwitchField(
                 label: 'Gross Scoring',
                 subtitle: 'Handicap is ignored; points vs par only.',
@@ -91,17 +104,10 @@ class _StablefordControlState extends BaseCompetitionControlState<StablefordCont
         BoxyArtCard(
           padding: const EdgeInsets.all(AppSpacing.xl),
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              BoxyArtDropdownField<TieBreakMethod>(
-                label: 'Tie Break Method',
-                value: _tieBreak,
-                items: const [
-                  DropdownMenuItem(value: TieBreakMethod.back9, child: Text('Standard (Back 9-6-3-1)')),
-                  DropdownMenuItem(value: TieBreakMethod.playoff, child: Text('Playoff (Manual Result)')),
-                ],
-                onChanged: (val) { if (val != null) setState(() => _tieBreak = val); },
-              ),
-              buildInfoBubble('Standard compares last holes in reverse. Playoff is sudden-death.'),
+              buildInfoRow('Tie Break Method', 'Standard (Back 9-6-3-1)'),
+              buildInfoBubble('Stableford always uses countback — back 9, back 6, back 3, then back 1.'),
             ],
           ),
         ),
@@ -147,9 +153,9 @@ class _StablefordControlState extends BaseCompetitionControlState<StablefordCont
             onChanged: (val) { if (val != null) setState(() => _teamBestXCount = val); },
           ),
         ),
-        
-        // ── OVERLAYS ──────────────────────────────────────────
-        buildOverlaySection(),
+
+        buildTeamSection(),
+
       ],
     );
   }
@@ -159,7 +165,7 @@ class _StablefordControlState extends BaseCompetitionControlState<StablefordCont
     return CompetitionRules(
       format: CompetitionFormat.stableford,
       subtype: _isGross ? CompetitionSubtype.grossStableford : CompetitionSubtype.none,
-      mode: CompetitionMode.singles,
+      mode: isTeams ? CompetitionMode.teams : CompetitionMode.singles,
       handicapAllowance: _allowance,
       handicapCap: _handicapCap,
       tieBreak: _tieBreak,
@@ -169,7 +175,9 @@ class _StablefordControlState extends BaseCompetitionControlState<StablefordCont
       applyCapToIndex: _applyCapToIndex,
       teamBestXCount: _teamBestXCount,
       useMixedTeeAdjustment: _useMixedTeeAdjustment,
-      hasMatchPlayOverlay: hasMatchPlayOverlay,
+      handicapMode: _isGross ? HandicapMode.none : _handicapMode,
+      teamAName: isTeams ? teamAName : null,
+      teamBName: isTeams ? teamBName : null,
     );
   }
 }

@@ -4,7 +4,17 @@ import 'package:golf_society/design_system/design_system.dart';
 import 'base_competition_control.dart';
 
 class MatchPlayControl extends BaseCompetitionControl {
-  const MatchPlayControl({super.key, super.competition, super.competitionId, super.isTemplate});
+  final CompetitionSubtype? initialSubtype;
+  final bool isOverlay;
+
+  const MatchPlayControl({
+    super.key,
+    super.competition,
+    super.competitionId,
+    super.isTemplate,
+    this.initialSubtype,
+    this.isOverlay = false,
+  });
 
   @override
   ConsumerState<MatchPlayControl> createState() => _MatchPlayControlState();
@@ -20,7 +30,7 @@ class _MatchPlayControlState extends BaseCompetitionControlState<MatchPlayContro
   CompetitionMode _seasonMode = CompetitionMode.singles;
 
   @override
-  CompetitionFormat get format => CompetitionFormat.stableford;
+  CompetitionFormat get format => CompetitionFormat.matchPlay;
 
   @override
   void initState() {
@@ -35,7 +45,11 @@ class _MatchPlayControlState extends BaseCompetitionControlState<MatchPlayContro
       _progression = rules.progressionMode;
       _seasonMode = rules.mode;
     } else {
+      if (widget.initialSubtype != null) {
+        _subtype = widget.initialSubtype!;
+      }
       _updateDefaultAllowance();
+      name = CompetitionRules(format: CompetitionFormat.matchPlay, subtype: _subtype).gameName;
     }
   }
 
@@ -49,54 +63,12 @@ class _MatchPlayControlState extends BaseCompetitionControlState<MatchPlayContro
 
   @override
   Widget buildSpecificFields(BuildContext context) {
-    var effectiveSubtype = _subtype;
-    if (effectiveSubtype != CompetitionSubtype.none &&
-        effectiveSubtype != CompetitionSubtype.matchPlaySeason &&
-        effectiveSubtype != CompetitionSubtype.fourball &&
-        effectiveSubtype != CompetitionSubtype.foursomes &&
-        effectiveSubtype != CompetitionSubtype.ryderCup &&
-        effectiveSubtype != CompetitionSubtype.teamMatchPlay) {
-      effectiveSubtype = CompetitionSubtype.none;
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted && _subtype != CompetitionSubtype.none) {
-          setState(() => _subtype = CompetitionSubtype.none);
-        }
-      });
-    }
+    final isSeason = _subtype == CompetitionSubtype.matchPlaySeason;
 
     return BoxyArtFormColumn(
       children: [
-        // ── MATCH FORMAT ──────────────────────────────────────
-        const BoxyArtSectionTitle(title: 'MATCH FORMAT'),
-        BoxyArtCard(
-          child: BoxyArtFormColumn(
-            children: [
-              BoxyArtDropdownField<CompetitionSubtype>(
-                label: 'Format',
-                value: effectiveSubtype,
-                items: const [
-                  DropdownMenuItem(value: CompetitionSubtype.none, child: Text('Singles Match Play')),
-                  DropdownMenuItem(value: CompetitionSubtype.matchPlaySeason, child: Text('Season Tournament')),
-                  DropdownMenuItem(value: CompetitionSubtype.ryderCup, child: Text('Ryder Cup (Team)')),
-                  DropdownMenuItem(value: CompetitionSubtype.teamMatchPlay, child: Text('Team Match Play')),
-                ],
-                onChanged: (val) {
-                  if (val != null) {
-                    setState(() {
-                      _subtype = val;
-                      _updateDefaultAllowance();
-                    });
-                  }
-                },
-              ),
-              buildInfoBubble(_getFormatDescription(effectiveSubtype)),
-              const BoxyArtDivider(),
-              buildInfoCard(_getFormatRules(effectiveSubtype)),
-            ],
-          ),
-        ),
-
-        if (_subtype == CompetitionSubtype.matchPlaySeason) ...[
+        if (isSeason) ...[
+          // ── TOURNAMENT SETTINGS ────────────────────────────────
           const BoxyArtSectionTitle(title: 'TOURNAMENT SETTINGS'),
           BoxyArtCard(
             child: BoxyArtFormColumn(
@@ -144,6 +116,16 @@ class _MatchPlayControlState extends BaseCompetitionControlState<MatchPlayContro
               ],
             ),
           ),
+        ] else ...[
+          // ── HOW IT WORKS ──────────────────────────────────────
+          const BoxyArtSectionTitle(title: 'HOW IT WORKS'),
+          buildInfoCard([
+            ('Goal', 'Win more holes than your opponent across 18.'),
+            ('Scoring', 'Lowest score on a hole wins it and goes \'1-up\'.'),
+            ('Concessions', 'You can concede a putt or hole to speed up play.'),
+            ('Result', 'Match ends when holes up > holes remaining (e.g. 3 & 2).'),
+            ('Handicap', 'Lower index gives strokes on the SI-ranked holes.'),
+          ]),
         ],
 
         // ── HANDICAP ──────────────────────────────────────────
@@ -162,55 +144,28 @@ class _MatchPlayControlState extends BaseCompetitionControlState<MatchPlayContro
             ],
           ),
         ),
+
+        if (!isSeason)
+          buildTeamSection(),
       ],
     );
   }
 
-  String _getFormatDescription(CompetitionSubtype subtype) {
-    switch (subtype) {
-      case CompetitionSubtype.none:
-        return 'One player vs one player. Win a hole, go 1-up. First to win more holes than remain wins the match.';
-      case CompetitionSubtype.matchPlaySeason:
-        return 'Tournament series played over a season. Supports knockout brackets or divisional round-robin play.';
-      case CompetitionSubtype.ryderCup:
-        return 'Team event: points are accumulated from individual singles, fourball, and foursomes matches.';
-      case CompetitionSubtype.teamMatchPlay:
-        return 'Two teams face off. Combined match points from individual contests determine the winning team.';
-      default:
-        return 'Standard match play format.';
-    }
-  }
-
-  List<(String, String)> _getFormatRules(CompetitionSubtype subtype) {
-    if (subtype == CompetitionSubtype.ryderCup || subtype == CompetitionSubtype.teamMatchPlay) {
-      return [
-        ('Points', 'Win = 1 pt, Halve = ½ pt, Loss = 0 pt per match.'),
-        ('Sessions', 'Admin configures which session types are played (Singles, Fourball, Foursomes).'),
-        ('Concessions', 'Putts and holes may be conceded to speed play.'),
-        ('Result', 'Team with most points wins; >50% needed for outright victory.'),
-      ];
-    }
-    return [
-      ('Goal', 'Win more holes than your opponent across 18.'),
-      ('Scoring', 'Lowest score on a hole wins it and goes \'1-up\'.'),
-      ('Concessions', 'You can concede a putt or hole to speed up play.'),
-      ('Result', 'Match ends when holes up > holes remaining (e.g. 3 & 2).'),
-      ('Handicap', 'Lower index gives strokes on the SI-ranked holes.'),
-    ];
-  }
-
   @override
   CompetitionRules buildRules() {
-    CompetitionMode mode = _subtype == CompetitionSubtype.matchPlaySeason ? _seasonMode : CompetitionMode.singles;
-
-    if (_subtype == CompetitionSubtype.fourball || _subtype == CompetitionSubtype.foursomes) {
+    final CompetitionMode mode;
+    if (_subtype == CompetitionSubtype.matchPlaySeason) {
+      mode = _seasonMode;
+    } else if (_subtype == CompetitionSubtype.fourball || _subtype == CompetitionSubtype.foursomes) {
       mode = CompetitionMode.pairs;
-    } else if (_subtype == CompetitionSubtype.ryderCup || _subtype == CompetitionSubtype.teamMatchPlay) {
-      mode = CompetitionMode.teams;
+    } else {
+      mode = isTeams ? CompetitionMode.teams : CompetitionMode.singles;
     }
 
+    final bool isSinglesTeam = _subtype == CompetitionSubtype.none && isTeams;
+
     return CompetitionRules(
-      format: CompetitionFormat.stableford, // Season matches use stableford for underlying score
+      format: CompetitionFormat.matchPlay,
       subtype: _subtype,
       mode: mode,
       handicapAllowance: _allowance,
@@ -220,7 +175,9 @@ class _MatchPlayControlState extends BaseCompetitionControlState<MatchPlayContro
       tournamentFormat: _tournamentFormat,
       seedingLogic: _seedingLogic,
       progressionMode: _progression,
-      hasMatchPlayOverlay: true,
+      hasMatchPlayOverlay: widget.isOverlay,
+      teamAName: isSinglesTeam ? teamAName : null,
+      teamBName: isSinglesTeam ? teamBName : null,
     );
   }
 

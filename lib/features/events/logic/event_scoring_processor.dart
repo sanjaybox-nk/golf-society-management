@@ -241,19 +241,29 @@ class EventScoringProcessor {
     }).toList();
 
     // 1.5 [NEW] Refine tie-break labels for ALL individual scores (v4.x consistency)
+    final bool strokeCountback = rules.format == CompetitionFormat.stroke && rules.tieBreak == TieBreakMethod.back9;
+
     final Map<int, List<List<int>>> scoreToMetricsMap = {};
     for (var p in individualScores) {
       if (p.scoringStatus == ScoringStatus.ok && p.result.holesPlayed > 0) {
         scoreToMetricsMap[p.result.score] ??= [];
-        scoreToMetricsMap[p.result.score]!.add(ScoringUtils.calculateTieBreakMetrics(p.result));
+        scoreToMetricsMap[p.result.score]!.add(
+          strokeCountback
+              ? ScoringUtils.calculateStrokeCountbackMetrics(p.result)
+              : ScoringUtils.calculateTieBreakMetrics(p.result),
+        );
       }
     }
 
     final List<ProcessedPlayerScore> refinedIndividualScores = syncedIndividualScores.map((p) {
-      // Countback labels only apply to Stableford — medal/stroke ties are joint positions
-      final label = rules.format == CompetitionFormat.stroke
-          ? null
-          : ScoringUtils.calculateTieBreakLabel(p.result, scoreToMetricsMap[p.result.score]);
+      final String? label;
+      if (strokeCountback) {
+        label = ScoringUtils.calculateStrokeTieBreakLabel(p.result, scoreToMetricsMap[p.result.score]);
+      } else if (rules.format == CompetitionFormat.stroke) {
+        label = null;
+      } else {
+        label = ScoringUtils.calculateTieBreakLabel(p.result, scoreToMetricsMap[p.result.score]);
+      }
       return p.copyWith(tieBreakLabel: label);
     }).toList();
 
@@ -343,10 +353,14 @@ class EventScoringProcessor {
         
         if (scoreCompare != 0) return scoreCompare;
 
-        // 3. Tie-break (Countback) — Stableford only; medal/stroke ties are left equal
-        if (currentFormat != CompetitionFormat.stroke) {
-          final aMetrics = ScoringUtils.calculateTieBreakMetrics(a.result);
-          final bMetrics = ScoringUtils.calculateTieBreakMetrics(b.result);
+        // 3. Tie-break (Countback) — Stableford always; stroke when countback is enabled
+        if (currentFormat != CompetitionFormat.stroke || strokeCountback) {
+          final aMetrics = strokeCountback
+              ? ScoringUtils.calculateStrokeCountbackMetrics(a.result)
+              : ScoringUtils.calculateTieBreakMetrics(a.result);
+          final bMetrics = strokeCountback
+              ? ScoringUtils.calculateStrokeCountbackMetrics(b.result)
+              : ScoringUtils.calculateTieBreakMetrics(b.result);
           for (int i = 0; i < aMetrics.length; i++) {
             final mCompare = strategy.compareScores(aMetrics[i], bMetrics[i]);
             if (mCompare != 0) return mCompare;
@@ -373,15 +387,19 @@ class EventScoringProcessor {
         int pos = i + 1;
         
         // Share position on equal score.
-        // Stableford: also requires tiebreak metrics to match (countback already split them in sort).
-        // Stroke/medal: equal score = equal position — no countback splitting.
+        // Stableford/stroke-countback: share only if metrics also match (sort already split divergent pairs).
+        // Stroke without countback: equal score = shared position.
         if (i > 0) {
           final prev = sortedIndividual[i - 1];
           if (p.result.score == prev.result.score) {
-            final sharePosition = currentFormat == CompetitionFormat.stroke ||
+            final sharePosition = (currentFormat == CompetitionFormat.stroke && !strokeCountback) ||
                 const ListEquality().equals(
-                  ScoringUtils.calculateTieBreakMetrics(p.result),
-                  ScoringUtils.calculateTieBreakMetrics(prev.result),
+                  strokeCountback
+                      ? ScoringUtils.calculateStrokeCountbackMetrics(p.result)
+                      : ScoringUtils.calculateTieBreakMetrics(p.result),
+                  strokeCountback
+                      ? ScoringUtils.calculateStrokeCountbackMetrics(prev.result)
+                      : ScoringUtils.calculateTieBreakMetrics(prev.result),
                 );
             if (sharePosition) pos = leaderboard.last.position;
           }
@@ -427,7 +445,9 @@ class EventScoringProcessor {
           holePoints: p.result.holePoints,
           hasSocietyCut: p.appliedSocietyCut != 0,
           position: pos,
-          tieBreakMetrics: ScoringUtils.calculateTieBreakMetrics(p.result),
+          tieBreakMetrics: strokeCountback
+              ? ScoringUtils.calculateStrokeCountbackMetrics(p.result)
+              : ScoringUtils.calculateTieBreakMetrics(p.result),
           handicapIndex: p.handicapIndex,
           tieBreakLabel: p.tieBreakLabel,
           thruLabel: p.thruLabel,
@@ -449,7 +469,7 @@ class EventScoringProcessor {
       final List<ProcessedLeaderboardEntry> teamEntries = [];
       final isFourball = rules.subtype == CompetitionSubtype.fourball;
       final isFoursomes = rules.subtype == CompetitionSubtype.foursomes;
-      final teamSize = rules.teamSize;
+      final teamSize = rules.effectiveTeamSize;
 
       for (var group in groups) {
          for (int i = 0; i < group.players.length; i += teamSize) {
@@ -591,38 +611,43 @@ class EventScoringProcessor {
        }).whereType<ScoringResult>().toList();
 
         if (groupIndividualResults.isNotEmpty) {
-          final groupResult = ScoringCalculator.calculateGroupResult(
-            individualResults: groupIndividualResults,
-            rules: rules,
-            bestX: rules.teamBestXCount,
-          );
-
           int? sideAScore;
           int? sideBScore;
           String? sideALabel;
           String? sideBLabel;
 
+          ScoringResult? sideARes;
+          ScoringResult? sideBRes;
+
           if (isSplitTeam && groupIndividualResults.length >= 2) {
-             // Side A (Players 0-1)
              final sideAResults = groupIndividualResults.take(2).toList();
-             final sideARes = isScramblePairs 
-                ? sideAResults.first // Scramble pairs already have 1 result usually, but safeguard
+             sideARes = isScramblePairs
+                ? sideAResults.first
                 : ScoringCalculator.calculateBestBall(individualResults: sideAResults, holes: event.courseConfig.holes, format: rules.format);
-             
              sideAScore = sideARes.score;
              sideALabel = sideARes.label;
 
-             // Side B (Players 2-3)
              if (groupIndividualResults.length >= 4) {
                 final sideBResults = groupIndividualResults.skip(2).take(2).toList();
-                final sideBRes = isScramblePairs
+                sideBRes = isScramblePairs
                    ? sideBResults.first
                    : ScoringCalculator.calculateBestBall(individualResults: sideBResults, holes: event.courseConfig.holes, format: rules.format);
-                
                 sideBScore = sideBRes.score;
                 sideBLabel = sideBRes.label;
              }
           }
+
+          // For Fourball, rank groups by their best pair's score — not a sum of individuals.
+          final List<ScoringResult> rankingResults = isFourballRule && sideARes != null
+              ? [sideARes, if (sideBRes != null) sideBRes]
+              : groupIndividualResults;
+          final int rankingBestX = isFourballRule ? 1 : rules.teamBestXCount;
+
+          final groupResult = ScoringCalculator.calculateGroupResult(
+            individualResults: rankingResults,
+            rules: rules,
+            bestX: rankingBestX,
+          );
 
           groupRankings.add(ProcessedGroupResult(
             groupIndex: group.index,

@@ -121,20 +121,6 @@ class EventLogisticsSection extends ConsumerWidget {
                       }
                     },
                   ),
-                  
-                  // Standard Field: Tee Interval
-                  BoxyArtFormField(
-                    label: 'Tee Interval',
-                    initialValue: state.teeOffInterval.toString(),
-                    keyboardType: TextInputType.number,
-                    suffixText: 'mins',
-                    onChanged: (v) {
-                      final val = int.tryParse(v);
-                      if (val != null) {
-                        ref.read(eventFormNotifierProvider.notifier).updateTeeOffInterval(val.clamp(5, 20));
-                      }
-                    },
-                  ),
 
                   BoxyArtSwitchField(
                     label: 'Non-Season Event',

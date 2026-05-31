@@ -10,52 +10,81 @@ import 'package:uuid/uuid.dart';
 class MatchPlayDrawService {
   static const _uuid = Uuid();
 
-  /// Generates a complete knockout draw with byes if necessary
+  /// Generates a complete knockout draw with byes if necessary.
+  /// When [teamAssignments] is provided (memberId → 'A'|'B'), every first-round
+  /// match is guaranteed to be Team A vs Team B — no same-team pairings.
   static List<MatchDefinition> generateKnockoutDraw({
     required List<MatchPlayEntrant> entrants,
     required SeedingType seedingType,
     required MatchRoundType startRound,
+    Map<String, String> teamAssignments = const {},
   }) {
-    final List<MatchPlayEntrant> sortedEntrants = List.from(entrants);
+    List<MatchPlayEntrant?> slots;
 
-    // 1. Order entrants based on seeding type
-    if (seedingType == SeedingType.random) {
-      sortedEntrants.shuffle();
-    } else {
-      // Sort by seed if provided, then by qualifying score
-      sortedEntrants.sort((a, b) {
+    if (teamAssignments.isNotEmpty) {
+      // Split into per-team pools keyed by first player ID
+      final teamA = entrants.where((e) {
+        final id = e.playerIds.firstOrNull;
+        return id != null && teamAssignments[id] == 'A';
+      }).toList();
+      final teamB = entrants.where((e) {
+        final id = e.playerIds.firstOrNull;
+        return id != null && teamAssignments[id] == 'B';
+      }).toList();
+
+      int comparator(MatchPlayEntrant a, MatchPlayEntrant b) {
         if (a.seed != null && b.seed != null) return a.seed!.compareTo(b.seed!);
         if (a.seed != null) return -1;
         if (b.seed != null) return 1;
         return (b.qualifyingScore ?? 0).compareTo(a.qualifyingScore ?? 0);
-      });
-    }
+      }
 
-    // 2. Determine field size (next power of 2)
-    final entrantCount = sortedEntrants.length;
-    int fieldSize = 2;
-    while (fieldSize < entrantCount) {
-      fieldSize *= 2;
-    }
+      if (seedingType == SeedingType.random) {
+        teamA.shuffle();
+        teamB.shuffle();
+      } else {
+        teamA.sort(comparator);
+        teamB.sort(comparator);
+      }
 
-    
-    // 3. Create Slots (Seeds vs Byes)
-    // In a standard R&A draw:
-    // Slot 1: Seed 1
-    // Slot 2: ... 
-    // Byes are distributed according to traditional charts.
-    // For simplicity, we distribute byes evenly top/bottom.
-    
-    final slots = List<MatchPlayEntrant?>.filled(fieldSize, null);
-    
-    // Simple distribution for now: Fill entrants first, remaining slots are byes
-    for (int i = 0; i < entrantCount; i++) {
+      // Interleave: slot[2i] = A[i], slot[2i+1] = B[i]
+      // so each match pair is guaranteed A vs B.
+      final int pairCount = max(teamA.length, teamB.length);
+      int fieldSize = 2;
+      while (fieldSize < pairCount * 2) { fieldSize *= 2; }
+
+      slots = List<MatchPlayEntrant?>.filled(fieldSize, null);
+      for (int i = 0; i < pairCount; i++) {
+        slots[i * 2]     = i < teamA.length ? teamA[i] : null;
+        slots[i * 2 + 1] = i < teamB.length ? teamB[i] : null;
+      }
+    } else {
+      // Standard single-pool draw
+      final sortedEntrants = List<MatchPlayEntrant>.from(entrants);
+      if (seedingType == SeedingType.random) {
+        sortedEntrants.shuffle();
+      } else {
+        sortedEntrants.sort((a, b) {
+          if (a.seed != null && b.seed != null) return a.seed!.compareTo(b.seed!);
+          if (a.seed != null) return -1;
+          if (b.seed != null) return 1;
+          return (b.qualifyingScore ?? 0).compareTo(a.qualifyingScore ?? 0);
+        });
+      }
+
+      final entrantCount = sortedEntrants.length;
+      int fieldSize = 2;
+      while (fieldSize < entrantCount) { fieldSize *= 2; }
+
+      slots = List<MatchPlayEntrant?>.filled(fieldSize, null);
+      for (int i = 0; i < entrantCount; i++) {
         slots[i] = sortedEntrants[i];
+      }
     }
 
-    // 4. Build Matches for the starting round
+    // Build matches from interleaved slots
     final List<MatchDefinition> matches = [];
-    final int matchCount = fieldSize ~/ 2;
+    final int matchCount = slots.length ~/ 2;
 
     for (int i = 0; i < matchCount; i++) {
       final e1 = slots[i * 2];
@@ -63,7 +92,7 @@ class MatchPlayDrawService {
 
       matches.add(MatchDefinition(
         id: _uuid.v4(),
-        type: MatchType.singles, // Default, can be updated based on entrant list
+        type: MatchType.singles,
         team1Ids: e1?.playerIds ?? [],
         team2Ids: e2?.playerIds ?? [],
         team1Name: e1?.name,
@@ -74,10 +103,77 @@ class MatchPlayDrawService {
       ));
     }
 
-    // 5. Build Placeholder matches for future rounds
-    _buildFutureRounds(matches, startRound, fieldSize);
+    _buildFutureRounds(matches, startRound, slots.length);
 
     return matches;
+  }
+
+  /// Generates all round-robin group stage matches for every division.
+  ///
+  /// Each match gets:
+  ///   round = MatchRoundType.group
+  ///   groupId = division letter ("A", "B", …)
+  ///   bracketOrder = round index within the group stage (0-based), so
+  ///                  the caller can link each round to a specific event.
+  static List<MatchDefinition> generateGroupStageMatches({
+    required Map<String, List<String>> divisions,
+    required List<MatchPlayEntrant> entrants,
+  }) {
+    final entrantMap = {for (final e in entrants) e.id: e};
+    final List<MatchDefinition> matches = [];
+
+    for (final entry in divisions.entries) {
+      final divisionId = entry.key;
+      final rounds = _roundRobinSchedule(entry.value);
+
+      for (int roundIndex = 0; roundIndex < rounds.length; roundIndex++) {
+        for (final pair in rounds[roundIndex]) {
+          final e1 = entrantMap[pair.$1];
+          final e2 = entrantMap[pair.$2];
+
+          matches.add(MatchDefinition(
+            id: _uuid.v4(),
+            type: MatchType.singles,
+            team1Ids: e1?.playerIds ?? [pair.$1],
+            team2Ids: e2?.playerIds ?? [pair.$2],
+            team1Name: e1?.name,
+            team2Name: e2?.name,
+            round: MatchRoundType.group,
+            groupId: divisionId,
+            bracketOrder: roundIndex,
+          ));
+        }
+      }
+    }
+
+    return matches;
+  }
+
+  /// Standard round-robin rotation algorithm (Berger tables).
+  /// Returns one list of matchups per round. Odd player counts get a bye that
+  /// is silently dropped — the bye player sits out that round.
+  static List<List<(String, String)>> _roundRobinSchedule(List<String> playerIds) {
+    final players = List<String>.from(playerIds);
+    if (players.length % 2 != 0) players.add('__bye__');
+
+    final n = players.length;
+    final rounds = <List<(String, String)>>[];
+
+    for (int round = 0; round < n - 1; round++) {
+      final pairs = <(String, String)>[];
+      for (int i = 0; i < n ~/ 2; i++) {
+        final p1 = players[i];
+        final p2 = players[n - 1 - i];
+        if (p1 != '__bye__' && p2 != '__bye__') pairs.add((p1, p2));
+      }
+      rounds.add(pairs);
+
+      // Rotate all positions except the first (fixed anchor)
+      final last = players.removeAt(n - 1);
+      players.insert(1, last);
+    }
+
+    return rounds;
   }
 
   /// Generates divisions for Group Stage

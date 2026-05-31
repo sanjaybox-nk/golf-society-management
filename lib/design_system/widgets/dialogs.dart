@@ -58,8 +58,8 @@ class BoxyArtDialog extends ConsumerWidget {
             if (message != null || content != null)
               content ?? Text(
                 message!,
-                style: AppTypography.body.copyWith(
-                  color: isDark ? AppColors.dark60 : AppColors.dark900,
+                style: AppTypography.label.copyWith(
+                  color: isDark ? AppColors.dark200 : AppColors.dark400,
                   fontWeight: AppTypography.weightRegular,
                   height: 1.5,
                 ),

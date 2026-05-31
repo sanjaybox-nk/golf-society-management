@@ -84,9 +84,11 @@ class EventRegistrationUserTab extends ConsumerWidget {
     {bool isAdminMode = false}
   ) {
     if (event.registrations.isEmpty) {
-      final String emptyText = event.showRegistrationButton 
-          ? 'Registration Open' 
-          : 'Registration not open yet';
+      final String emptyText = event.showRegistrationButton
+          ? 'Registration Open'
+          : event.isTargetedRegistration
+              ? 'Registration open to selected members'
+              : 'Registration not open yet';
           
       return Center(
         child: Padding(

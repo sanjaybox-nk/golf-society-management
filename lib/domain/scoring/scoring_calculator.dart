@@ -402,29 +402,32 @@ class ScoringCalculator {
     }
 
     final int numHoles = holes.length;
-    final holeNetScores = List<int?>.from(individualResults.first.holeNetScores);
-    final holePoints = List<int?>.from(individualResults.first.holePoints);
-    final combinedHoleScores = List<int?>.from(individualResults.first.holeScores);
-    int maxHolesPlayed = individualResults.first.holesPlayed;
+    final holeNetScores = List<int?>.filled(numHoles, null);
+    final holePoints = List<int?>.filled(numHoles, null);
+    final combinedHoleScores = List<int?>.filled(numHoles, null);
+    int maxHolesPlayed = 0;
 
-    for (int i = 1; i < individualResults.length; i++) {
-      final res = individualResults[i];
+    for (final res in individualResults) {
       if (res.holesPlayed > maxHolesPlayed) maxHolesPlayed = res.holesPlayed;
-      
+
       for (int h = 0; h < numHoles; h++) {
+        if (h >= res.holePoints.length) continue;
         final p = res.holePoints[h];
-        final n = res.holeNetScores[h];
-        
+        final n = h < res.holeNetScores.length ? res.holeNetScores[h] : null;
+        final s = h < res.holeScores.length ? res.holeScores[h] : null;
+
         if (p != null) {
           if (format == CompetitionFormat.stableford) {
             if (holePoints[h] == null || p > holePoints[h]!) holePoints[h] = p;
           } else {
-             // For stroke play, "best ball" usually means the lowest net score
-             if (holeNetScores[h] == null || (n != null && n < holeNetScores[h]!)) {
-               holeNetScores[h] = n;
-               holePoints[h] = p; // Re-sync relative to par
-             }
+            if (holeNetScores[h] == null || (n != null && n < holeNetScores[h]!)) {
+              holeNetScores[h] = n;
+              holePoints[h] = p;
+            }
           }
+        }
+        if (s != null && (combinedHoleScores[h] == null || s < combinedHoleScores[h]!)) {
+          combinedHoleScores[h] = s;
         }
       }
     }

@@ -77,6 +77,7 @@ class ScorecardModal {
     List<String>? matchPlayResults;
     String? matchPlaySummary;
     int? conclusionHole;
+    int? matchPlayStrokesReceived;
     if (comp != null && comp.rules.isMatchPlay == true) {
       final myIds = entry.teamMemberIds ?? [entry.entryId];
       List<String>? myGroupIds;
@@ -118,6 +119,7 @@ class ScorecardModal {
             rules: comp.rules,
             baseRating: event.courseConfig.rating ?? 72.0,
           );
+          matchPlayStrokesReceived = strokesReceived[entry.entryId];
           final virtualMatch = MatchDefinition(
             id: 'virtual_modal_${entry.entryId}',
             type: comp.rules.subtype == CompetitionSubtype.fourball ? MatchType.fourball : MatchType.foursomes,
@@ -319,6 +321,20 @@ class ScorecardModal {
                                     if (entry.playingHandicap != null) ...[
                                       const SizedBox(width: AppSpacing.md),
                                       BoxyArtIndicator.phc(label: '${entry.playingHandicap}'),
+                                      (() {
+                                        final allowance = comp?.rules.handicapAllowance ?? 1.0;
+                                        if (allowance < 0.999) {
+                                          return Row(mainAxisSize: MainAxisSize.min, children: [
+                                            const SizedBox(width: AppSpacing.sm),
+                                            BoxyArtIndicator.status(
+                                              label: '${(allowance * 100).round()}%',
+                                              color: AppColors.amber500,
+                                              isLegend: true,
+                                            ),
+                                          ]);
+                                        }
+                                        return const SizedBox.shrink();
+                                      })(),
                                     ],
                                     if (entry.thruLabel != null) ...[
                                       const SizedBox(width: AppSpacing.md),
@@ -387,6 +403,50 @@ class ScorecardModal {
 
                       // [NEW] Logic for Team/Pairs Display
                       List<CourseScoreRow> additionalRows = [];
+
+                      // Fourball: show each player's individual row when in Team View,
+                      // with a lime dot on holes where their score counted for the team.
+                      if (comp.rules.subtype == CompetitionSubtype.fourball &&
+                          focusedPlayerId == 'team' &&
+                          entry.individualHolePoints != null &&
+                          entry.teamMemberIds != null) {
+                        final isStablefordFmt = comp.rules.format == CompetitionFormat.stableford;
+                        final ids = entry.teamMemberIds!;
+                        final names = entry.teamMemberNames ?? [];
+                        for (int pIdx = 0; pIdx < ids.length && pIdx < 2; pIdx++) {
+                          final pPoints = entry.individualHolePoints?.elementAtOrNull(pIdx);
+                          final pNetScores = entry.individualHoleNetScores?.elementAtOrNull(pIdx);
+                          final pScores = entry.individualHoleScores?.elementAtOrNull(pIdx) ?? List.filled(18, null);
+                          final otherPoints = entry.individualHolePoints?.elementAtOrNull(1 - pIdx);
+                          final otherNetScores = entry.individualHoleNetScores?.elementAtOrNull(1 - pIdx);
+
+                          final countingHoles = <int>{};
+                          for (int h = 0; h < 18; h++) {
+                            if (isStablefordFmt) {
+                              final mine = pPoints?.elementAtOrNull(h);
+                              final other = otherPoints?.elementAtOrNull(h);
+                              if (mine != null && mine > 0 && (other == null || mine > other || (mine == other && pIdx == 0))) {
+                                countingHoles.add(h);
+                              }
+                            } else {
+                              final mine = pNetScores?.elementAtOrNull(h);
+                              final other = otherNetScores?.elementAtOrNull(h);
+                              if (mine != null && (other == null || mine < other || (mine == other && pIdx == 0))) {
+                                countingHoles.add(h);
+                              }
+                            }
+                          }
+                          additionalRows.add(CourseScoreRow(
+                            id: ids[pIdx],
+                            playerName: names.elementAtOrNull(pIdx) ?? 'Player ${pIdx + 1}',
+                            scores: pScores,
+                            netScores: pNetScores?.toList(),
+                            points: pPoints?.toList(),
+                            countingHoles: countingHoles.isNotEmpty ? countingHoles : null,
+                          ));
+                        }
+                      }
+
                       List<int?>? bestBallPoints;
                       
                       final isFourball = comp.rules.subtype == CompetitionSubtype.fourball;
@@ -438,12 +498,14 @@ class ScorecardModal {
                                holePars: event.courseConfig.holes.map((h) => h.par).toList(),
                                holeSIs: event.courseConfig.holes.map((h) => h.si).toList(),
                                holeDistances: event.courseConfig.holes.map((h) => h.yardage ?? 0).toList(),
+                               playerHandicap: entry.playingHandicap,
                                mainRowLabel: focusedPlayerId == 'team' ? (isFourball ? 'BEST BALL' : 'TEAM') : 'Strokes',
-                               additionalRows: additionalRows, 
+                               additionalRows: additionalRows,
                                overrideTotalPoints: totalPoints,
                                matchPlayResults: matchPlayResults,
                                conclusionHole: conclusionHole,
                                holeTags: liveScorecard?.holeTags ?? actualScorecard.holeTags,
+                               matchPlayStrokesReceived: matchPlayStrokesReceived,
                              );
                           })(),
                           const SizedBox(height: AppSpacing.x2l),
@@ -493,10 +555,11 @@ class ScorecardModal {
     // If it's not a Team game, not Match Play, and not showing Scramble attributions, 
     // then showing a "Group Score" summary of the SAME player is redundant.
     final bool isTeamGame = teamPoints != null || (mode != null && mode != CompetitionMode.singles);
-    final bool hasMatchPlay = matchPlayResults != null;
     final bool hasScrambleAttributions = isScramble && (scorecard?.shotAttributions.isNotEmpty ?? false);
 
-    if (!isTeamGame && !hasMatchPlay && !hasScrambleAttributions) {
+    // Singles match play: the MATCH row in the grid + RESULT stat in the footer
+    // already show all per-hole and overall information — this section is redundant.
+    if (!isTeamGame && !hasScrambleAttributions) {
       return const SizedBox.shrink();
     }
 

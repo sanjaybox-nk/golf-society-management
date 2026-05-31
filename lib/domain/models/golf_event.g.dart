@@ -163,6 +163,11 @@ _GolfEvent _$GolfEventFromJson(Map<String, dynamic> json) => _GolfEvent(
           .toList() ??
       const [],
   showRegistrationButton: json['showRegistrationButton'] as bool? ?? true,
+  targetedRegistrationIds:
+      (json['targetedRegistrationIds'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toList() ??
+      const [],
   teeOffInterval: (json['teeOffInterval'] as num?)?.toInt() ?? 10,
   isGroupingPublished: json['isGroupingPublished'] as bool? ?? false,
   isMultiDay: json['isMultiDay'] as bool? ?? false,
@@ -275,6 +280,7 @@ Map<String, dynamic> _$GolfEventToJson(
   'notes': instance.notes.map((e) => e.toJson()).toList(),
   'galleryUrls': instance.galleryUrls,
   'showRegistrationButton': instance.showRegistrationButton,
+  'targetedRegistrationIds': instance.targetedRegistrationIds,
   'teeOffInterval': instance.teeOffInterval,
   'isGroupingPublished': instance.isGroupingPublished,
   'isMultiDay': instance.isMultiDay,

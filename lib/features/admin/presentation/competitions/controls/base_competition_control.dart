@@ -31,9 +31,13 @@ abstract class BaseCompetitionControlState<T extends BaseCompetitionControl> ext
   String name = '';
   bool _isSaving = false;
   bool hasMatchPlayOverlay = false;
+  bool isTeams = false;
+  String teamAName = 'Team A';
+  String teamBName = 'Team B';
   
   // To be implemented by subclasses
   CompetitionFormat get format;
+  CompetitionSubtype get subtype => CompetitionSubtype.none;
   Widget buildSpecificFields(BuildContext context);
   CompetitionRules buildRules();
   Future<void> onBeforeSave() async {} // Optional hook for subclasses
@@ -51,11 +55,14 @@ abstract class BaseCompetitionControlState<T extends BaseCompetitionControl> ext
       startDate = DateTime.now();
       endDate = DateTime.now().add(const Duration(days: 1));
       // For new ones, we can use the format's default name
-      name = CompetitionRules(format: format).gameName;
+      name = CompetitionRules(format: format, subtype: subtype).gameName;
     }
     
     if (c != null) {
       hasMatchPlayOverlay = c.rules.hasMatchPlayOverlay;
+      isTeams = c.rules.mode == CompetitionMode.teams;
+      teamAName = c.rules.teamAName ?? 'Team A';
+      teamBName = c.rules.teamBName ?? 'Team B';
     }
   }
 
@@ -99,7 +106,7 @@ abstract class BaseCompetitionControlState<T extends BaseCompetitionControl> ext
                   onTap: _isSaving ? null : _save,
                   isLoading: _isSaving,
                   fullWidth: true,
-                  backgroundColor: Theme.of(context).primaryColor,
+                  backgroundColor: Color(ref.read(visualTokensProvider).primaryColor),
                   textColor: AppColors.pureWhite,
                 ),
               ),
@@ -309,11 +316,12 @@ abstract class BaseCompetitionControlState<T extends BaseCompetitionControl> ext
 
   /// Tinted info card with a list of (label, description) rows.
   Widget buildInfoCard(List<(String, String)> rows) {
+    final primary = Color(ref.read(visualTokensProvider).primaryColor);
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.primary.withValues(alpha: AppColors.opacityLow),
+        color: primary.withValues(alpha: AppColors.opacityLow),
         borderRadius: AppShapes.md,
       ),
       child: BoxyArtFormColumn(
@@ -325,7 +333,8 @@ abstract class BaseCompetitionControlState<T extends BaseCompetitionControl> ext
 
   /// Single label + description row inside an info card.
   Widget buildInfoRow(String label, String value, {bool isBold = false}) {
-    final theme = Theme.of(context);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primary = Color(ref.read(visualTokensProvider).primaryColor);
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -335,7 +344,7 @@ abstract class BaseCompetitionControlState<T extends BaseCompetitionControl> ext
             label.toUpperCase(),
             style: AppTypography.micro.copyWith(
               fontWeight: AppTypography.weightBold,
-              color: theme.colorScheme.primary,
+              color: primary,
               letterSpacing: 1.0,
             ),
           ),
@@ -346,7 +355,7 @@ abstract class BaseCompetitionControlState<T extends BaseCompetitionControl> ext
             style: AppTypography.label.copyWith(
               height: 1.3,
               fontWeight: isBold ? AppTypography.weightBold : AppTypography.weightRegular,
-              color: theme.textTheme.bodyMedium?.color,
+              color: isDark ? AppColors.dark60 : AppColors.dark900,
             ),
           ),
         ),
@@ -354,6 +363,46 @@ abstract class BaseCompetitionControlState<T extends BaseCompetitionControl> ext
     );
   }
   
+  /// Team play mode toggle + optional team name fields.
+  Widget buildTeamSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const BoxyArtSectionTitle(title: 'PLAY MODE'),
+        BoxyArtCard(
+          padding: const EdgeInsets.all(AppSpacing.xl),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              BoxyArtSwitchField(
+                label: 'Team Play Mode',
+                subtitle: 'Players compete as two named teams instead of individually.',
+                value: isTeams,
+                onChanged: (val) => setState(() => isTeams = val),
+              ),
+              if (isTeams) ...[
+                const BoxyArtDivider(),
+                ModernTextField(
+                  label: 'Team A Name',
+                  initialValue: teamAName,
+                  onChanged: (val) => teamAName = val,
+                  icon: Icons.group_rounded,
+                ),
+                const SizedBox(height: AppSpacing.md),
+                ModernTextField(
+                  label: 'Team B Name',
+                  initialValue: teamBName,
+                  onChanged: (val) => teamBName = val,
+                  icon: Icons.group_rounded,
+                ),
+              ],
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
   /// Standardised Match Play overlay toggle.
   Widget buildOverlaySection() {
     return Column(

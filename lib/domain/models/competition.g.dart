@@ -99,6 +99,8 @@ _CompetitionRules _$CompetitionRulesFromJson(
       ) ??
       MatchPlayProgression.bracketed,
   hasMatchPlayOverlay: json['hasMatchPlayOverlay'] as bool? ?? false,
+  teamAName: json['teamAName'] as String?,
+  teamBName: json['teamBName'] as String?,
 );
 
 Map<String, dynamic> _$CompetitionRulesToJson(
@@ -133,6 +135,8 @@ Map<String, dynamic> _$CompetitionRulesToJson(
   'seedingLogic': _$SeedingLogicEnumMap[instance.seedingLogic]!,
   'progressionMode': _$MatchPlayProgressionEnumMap[instance.progressionMode]!,
   'hasMatchPlayOverlay': instance.hasMatchPlayOverlay,
+  'teamAName': instance.teamAName,
+  'teamBName': instance.teamBName,
 };
 
 const _$CompetitionFormatEnumMap = {

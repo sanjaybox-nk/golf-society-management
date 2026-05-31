@@ -17,6 +17,9 @@ class TournamentWizardState {
   final bool isPublished;
   final String? notes;
   final List<MatchDefinition> draftMatches;
+  final Map<String, String> teamAssignments;
+  final Map<String, List<String>> divisions;
+  final int entrantsPerDivision;
 
   TournamentWizardState({
     this.type = TournamentType.knockout,
@@ -30,6 +33,9 @@ class TournamentWizardState {
     this.isPublished = false,
     this.notes,
     this.draftMatches = const [],
+    this.teamAssignments = const <String, String>{},
+    this.divisions = const <String, List<String>>{},
+    this.entrantsPerDivision = 4,
   });
 
   TournamentWizardState copyWith({
@@ -44,6 +50,9 @@ class TournamentWizardState {
     bool? isPublished,
     String? notes,
     List<MatchDefinition>? draftMatches,
+    Map<String, String>? teamAssignments,
+    Map<String, List<String>>? divisions,
+    int? entrantsPerDivision,
   }) {
     return TournamentWizardState(
       type: type ?? this.type,
@@ -57,6 +66,9 @@ class TournamentWizardState {
       isPublished: isPublished ?? this.isPublished,
       notes: notes ?? this.notes,
       draftMatches: draftMatches ?? this.draftMatches,
+      teamAssignments: teamAssignments ?? this.teamAssignments,
+      divisions: divisions ?? this.divisions,
+      entrantsPerDivision: entrantsPerDivision ?? this.entrantsPerDivision,
     );
   }
 }
@@ -72,7 +84,9 @@ class TournamentWizardNotifier extends Notifier<TournamentWizardState> {
   void setProgression(MatchPlayProgression mode) => state = state.copyWith(progressionMode: mode);
   void setPublished(bool isPublished) => state = state.copyWith(isPublished: isPublished);
   void setNotes(String? notes) => state = state.copyWith(notes: notes);
-  
+  void setTeamAssignments(Map<String, String> assignments) =>
+      state = state.copyWith(teamAssignments: Map<String, String>.from(assignments));
+
   /// Batch-initializes all tournament configuration in a SINGLE state update.
   /// Use this instead of calling individual setters to prevent multiple rebuild cycles.
   void initializeFromEvent({
@@ -84,8 +98,10 @@ class TournamentWizardNotifier extends Notifier<TournamentWizardState> {
     required List<MatchPlayEntrant> entrants,
     bool isPublished = false,
     String? notes,
-    Map<MatchRoundType, DateTime> roundCutoffs = const {},
-    List<MatchDefinition> matches = const [],
+    Map<MatchRoundType, DateTime> roundCutoffs = const <MatchRoundType, DateTime>{},
+    List<MatchDefinition> matches = const <MatchDefinition>[],
+    Map<String, String> teamAssignments = const <String, String>{},
+    Map<String, List<String>> divisions = const <String, List<String>>{},
   }) {
     state = TournamentWizardState(
       name: name,
@@ -99,6 +115,8 @@ class TournamentWizardNotifier extends Notifier<TournamentWizardState> {
       draftMatches: matches,
       step: state.step,
       roundCutoffs: roundCutoffs,
+      teamAssignments: teamAssignments,
+      divisions: divisions,
     );
   }
 
@@ -168,12 +186,10 @@ class TournamentWizardNotifier extends Notifier<TournamentWizardState> {
       final ids2 = teamIndex2 == 1 ? m2.team1Ids : m2.team2Ids;
       final name2 = teamIndex2 == 1 ? m2.team1Name : m2.team2Name;
 
-      // Update match 1
       matches[idx1] = teamIndex1 == 1
           ? m1.copyWith(team1Ids: ids2, team1Name: name2)
           : m1.copyWith(team2Ids: ids2, team2Name: name2);
 
-      // Update match 2
       matches[idx2] = teamIndex2 == 1
           ? m2.copyWith(team1Ids: ids1, team1Name: name1)
           : m2.copyWith(team2Ids: ids1, team2Name: name1);
@@ -193,15 +209,26 @@ class TournamentWizardNotifier extends Notifier<TournamentWizardState> {
   }
 
   void generateDraft() {
-     List<MatchDefinition> generatedMatches = [];
-     if (state.type == TournamentType.knockout || state.type == TournamentType.singleRound) {
-        generatedMatches = MatchPlayDrawService.generateKnockoutDraw(
-          entrants: state.entrants,
-          seedingType: state.seedingType,
-          startRound: _getStartRound(state.entrants.length),
-        );
-     }
-     state = state.copyWith(draftMatches: generatedMatches);
+    if (state.type == TournamentType.divisionsPlusKnockout) {
+      final divisions = MatchPlayDrawService.generateDivisions(
+        entrants: state.entrants,
+        entrantsPerDivision: state.entrantsPerDivision,
+        seedingType: state.seedingType,
+      );
+      final matches = MatchPlayDrawService.generateGroupStageMatches(
+        divisions: divisions,
+        entrants: state.entrants,
+      );
+      state = state.copyWith(draftMatches: matches, divisions: divisions);
+    } else {
+      final matches = MatchPlayDrawService.generateKnockoutDraw(
+        entrants: state.entrants,
+        seedingType: state.seedingType,
+        startRound: _getStartRound(state.entrants.length),
+        teamAssignments: state.teamAssignments,
+      );
+      state = state.copyWith(draftMatches: matches);
+    }
   }
 
   void propagateWinners(List<MatchDefinition> currentMatches) {
@@ -219,24 +246,14 @@ class TournamentWizardNotifier extends Notifier<TournamentWizardState> {
 
   MatchPlayTournament finalize({String? tournamentId}) {
     const uuid = Uuid();
-    List<MatchDefinition> generatedMatches = state.draftMatches;
-    Map<String, List<String>> divisions = {};
+    List<MatchDefinition> matches = state.draftMatches;
+    Map<String, List<String>> divisions = state.divisions;
 
-    // If no draft exists, generate on the fly (legacy/fallback)
-    if (generatedMatches.isEmpty) {
-      if (state.type == TournamentType.divisionsPlusKnockout) {
-        divisions = MatchPlayDrawService.generateDivisions(
-          entrants: state.entrants,
-          entrantsPerDivision: 4,
-          seedingType: state.seedingType,
-        );
-      } else {
-        generatedMatches = MatchPlayDrawService.generateKnockoutDraw(
-          entrants: state.entrants,
-          seedingType: state.seedingType,
-          startRound: _getStartRound(state.entrants.length),
-        );
-      }
+    // Fallback: generate on the fly if no draft (e.g. first-time save without hitting Generate Draw)
+    if (matches.isEmpty) {
+      generateDraft();
+      matches = state.draftMatches;
+      divisions = state.divisions;
     }
 
     return MatchPlayTournament(
@@ -246,7 +263,7 @@ class TournamentWizardNotifier extends Notifier<TournamentWizardState> {
       seedingType: state.seedingType,
       entrants: state.entrants,
       divisions: divisions,
-      matches: generatedMatches,
+      matches: matches,
       roundCutoffs: state.roundCutoffs,
       isPublished: state.isPublished,
       notes: state.notes,

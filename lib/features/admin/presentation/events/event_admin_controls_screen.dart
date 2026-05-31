@@ -1,12 +1,11 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:golf_society/design_system/design_system.dart';
+import 'package:golf_society/features/admin/presentation/events/widgets/registration_control_sheet.dart';
 import '../../../events/presentation/events_provider.dart';
 import '../../../competitions/presentation/competitions_provider.dart';
 import 'package:golf_society/domain/models/scorecard.dart';
 import '../../../events/logic/event_analysis_engine.dart';
-import '../../../admin/providers/admin_ui_providers.dart';
-import 'package:golf_society/domain/grouping/grouping_service.dart';
 import 'package:golf_society/features/members/presentation/members_provider.dart';
 import 'package:golf_society/domain/models/member.dart';
 import 'package:golf_society/domain/models/competition.dart';
@@ -38,7 +37,6 @@ class _EventAdminControlsScreenState extends ConsumerState<EventAdminControlsScr
         _optimisticToggles.removeWhere((key, val) {
           if (key == 'isStatsReleased') return val == event.isStatsReleased;
           if (key == 'isGroupingPublished') return val == event.isGroupingPublished;
-          if (key == 'showRegistrationButton') return val == event.showRegistrationButton;
           return false;
         });
 
@@ -63,17 +61,15 @@ class _EventAdminControlsScreenState extends ConsumerState<EventAdminControlsScr
                     padding: EdgeInsets.zero,
                     child: Column(
                       children: [
-                        BoxyArtSwitchTile(
+                        BoxyArtNavTile(
                           icon: Icons.app_registration_rounded,
-                          label: 'Show Registration Button',
-                          subtitle: 'Make the event visible and joinable on the member home screen.',
-                          value: _optimisticToggles['showRegistrationButton'] ?? (event.showRegistrationButton == true),
-                          onChanged: (val) {
-                            setState(() => _optimisticToggles['showRegistrationButton'] = val);
-                            ref.read(eventsRepositoryProvider).updateEvent(
-                              event.copyWith(showRegistrationButton: val),
-                            );
-                          },
+                          title: 'Registration Access',
+                          subtitle: event.showRegistrationButton
+                              ? 'Open to all members'
+                              : event.isTargetedRegistration
+                                  ? 'Targeted — ${event.targetedRegistrationIds.length} member(s)'
+                                  : 'Closed',
+                          onTap: () => RegistrationControlSheet.show(context, event),
                         ),
                         const BoxyArtDivider(),
                         BoxyArtSwitchTile(
@@ -121,17 +117,7 @@ class _EventAdminControlsScreenState extends ConsumerState<EventAdminControlsScr
                   ),
                   BoxyArtCard(
                     padding: EdgeInsets.zero,
-                    child: Column(
-                      children: [
-                        BoxyArtSwitchTile(
-                          icon: Icons.lock_person_outlined,
-                          label: 'Lock Grouping',
-                          subtitle: 'Prevent accidental changes to the tee sheet while editing.',
-                          value: ref.watch(groupingIsLockedProvider) ?? (event.grouping['locked'] ?? false),
-                          onChanged: (val) => _handleLockToggle(event, val),
-                        ),
-                        const BoxyArtDivider(),
-                        Padding(
+                    child: Padding(
                           padding: EdgeInsets.symmetric(
                             horizontal: spacing?.cardHorizontalPadding ?? AppSpacing.xl,
                             vertical: spacing?.cardVerticalPadding ?? AppSpacing.xl,
@@ -167,8 +153,6 @@ class _EventAdminControlsScreenState extends ConsumerState<EventAdminControlsScr
                             ],
                           ),
                         ),
-                      ],
-                    ),
                   ),
 
                   // 4. Administrative Hub
@@ -383,7 +367,7 @@ class _EventAdminControlsScreenState extends ConsumerState<EventAdminControlsScr
       // If this event had a Match Play overlay, we now offer to transition to the next round draw.
       if (event.secondaryTemplateId != null) {
         final secondaryComp = ref.read(competitionDetailProvider(event.secondaryTemplateId!)).value;
-        if (secondaryComp != null && secondaryComp.rules.subtype == CompetitionSubtype.matchPlaySeason) {
+        if (secondaryComp != null && secondaryComp.rules.hasMatchPlayOverlay == true) {
           if (mounted) {
             final startNextRound = await showBoxyArtDialog<bool>(
               context: context,
@@ -412,81 +396,6 @@ class _EventAdminControlsScreenState extends ConsumerState<EventAdminControlsScr
         );
       }
     }
-  }
-
-  Future<void> _handleLockToggle(GolfEvent event, bool val) async {
-    if (!val) {
-      // Unlocking is always fine
-      ref.read(groupingIsLockedProvider.notifier).setLocked(false);
-      return;
-    }
-
-    // Checking for unassigned players
-    final members = ref.read(allMembersProvider).value ?? [];
-    final societyConfig = ref.read(themeControllerProvider);
-    final comp = ref.read(competitionDetailProvider(event.id)).value;
-    
-    final groupsData = event.grouping['groups'] as List?;
-    final groups = groupsData?.map((g) => TeeGroup.fromJson(g)).toList() ?? [];
-    
-    final pool = GroupingService.getUnassignedPlayers(
-      event: event, 
-      groups: groups, 
-      memberHandicaps: {for (var m in members) m.id: m.handicap}, 
-      rules: comp?.rules,
-      useWhs: societyConfig.useWhsHandicaps, 
-      manualCuts: event.manualCuts,
-    );
-
-    if (pool.isNotEmpty) {
-      final names = pool.map((p) => p.name).join(', ');
-      final confirmed = await showDialog<bool>(
-        context: context,
-        builder: (context) => BoxyArtDialog(
-          title: 'Unassigned Players Found',
-          message: 'The following confirmed players are not in any group: $names. \n\nWould you like to auto-fill them into vacancies before locking?',
-          confirmText: 'Auto-fill & lock',
-          cancelText: 'Just lock',
-          onConfirm: () => Navigator.pop(context, true),
-          onCancel: () => Navigator.pop(context, false),
-        ),
-      );
-
-      if (confirmed == null) return; // Action cancelled
-
-      if (confirmed) {
-        // Auto-fill and lock
-        final updatedGroups = GroupingService.autoFillVacancies(
-          groups: groups, 
-          pool: pool,
-        );
-        
-        await ref.read(eventsRepositoryProvider).updateEvent(
-          event.copyWith(
-            grouping: {
-              ...event.grouping,
-              'groups': updatedGroups.map((g) => g.toJson()).toList(),
-              'locked': true,
-              'updatedAt': DateTime.now().toIso8601String(),
-            },
-          ),
-        );
-        ref.read(groupingIsLockedProvider.notifier).setLocked(true);
-        ref.read(groupingLocalGroupsProvider.notifier).setGroups(updatedGroups);
-        return;
-      }
-    }
-
-    // Just lock
-    ref.read(groupingIsLockedProvider.notifier).setLocked(true);
-    await ref.read(eventsRepositoryProvider).updateEvent(
-      event.copyWith(
-        grouping: {
-          ...event.grouping,
-          'locked': true,
-        },
-      ),
-    );
   }
 
   Future<void> _reopenEvent(GolfEvent event) async {

@@ -141,6 +141,10 @@ class _EventRegistrationScreenState extends ConsumerState<EventRegistrationScree
           ? 'waitlist'
           : existingReg?.statusOverride;
 
+      // Admin explicitly invited this member via targeted access — treat as auto-confirmed.
+      final wasTargeted = event.isTargetedRegistration &&
+          event.targetedRegistrationIds.contains(memberId);
+
       final registration = EventRegistration(
         memberId: memberId,
         memberName: memberName,
@@ -163,7 +167,7 @@ class _EventRegistrationScreenState extends ConsumerState<EventRegistrationScree
         guestAttendingDinner: _registerGuest && _guestAttendingDinner,
         guestNeedsBuggy: _registerGuest && _guestNeedsBuggy,
         registeredAt: existingReg?.registeredAt ?? DateTime.now(), // Preserve original time if updating
-        isConfirmed: existingReg?.isConfirmed ?? false, // Preserve status
+        isConfirmed: existingReg?.isConfirmed ?? wasTargeted,
         guestIsConfirmed: existingReg?.guestIsConfirmed ?? false,
         statusOverride: resolvedStatusOverride,
         buggyStatusOverride: existingReg?.buggyStatusOverride,
@@ -198,17 +202,7 @@ class _EventRegistrationScreenState extends ConsumerState<EventRegistrationScree
         newList.add(finalRegistration);
       }
 
-      final result = GroupingService.handleWithdrawal(
-        event: event,
-        memberId: memberId,
-        isGuest: false, 
-        allMembers: ref.read(allMembersProvider).value ?? [],
-        useWhs: ref.read(themeControllerProvider).useWhsHandicaps,
-        rules: ref.read(competitionDetailProvider(event.id)).value?.rules,
-      );
-
       if (_attendingGolf) {
-          // If they ARE still attending golf (just updating details), use standard update
           final newList = List<EventRegistration>.from(event.registrations);
           if (existingIndex >= 0) {
             newList[existingIndex] = finalRegistration;
@@ -217,6 +211,14 @@ class _EventRegistrationScreenState extends ConsumerState<EventRegistrationScree
           }
           await repo.updateEvent(event.copyWith(registrations: newList));
       } else {
+          final result = GroupingService.handleWithdrawal(
+            event: event,
+            memberId: memberId,
+            isGuest: false,
+            allMembers: ref.read(allMembersProvider).value ?? [],
+            useWhs: ref.read(themeControllerProvider).useWhsHandicaps,
+            rules: ref.read(competitionDetailProvider(event.id)).value?.rules,
+          );
           // If they withdrew from golf, use the result
           await repo.updateEvent(result.event);
           
@@ -576,9 +578,9 @@ class _EventRegistrationScreenState extends ConsumerState<EventRegistrationScree
                         ],
                       ),
   
-                      // ── PARTNER SELECTION (Season Match Play Pairs) ────────
-                      if (ref.watch(competitionDetailProvider(widget.eventId)).value?.rules.subtype == CompetitionSubtype.matchPlaySeason &&
-                          ref.watch(competitionDetailProvider(widget.eventId)).value?.rules.mode == CompetitionMode.pairs)
+                      // ── PARTNER SELECTION (Fourball / Foursomes) ────────────
+                      if (ref.watch(competitionDetailProvider(widget.eventId)).value?.rules.subtype == CompetitionSubtype.fourball ||
+                          ref.watch(competitionDetailProvider(widget.eventId)).value?.rules.subtype == CompetitionSubtype.foursomes)
                         BoxyArtFormColumn(
                           spacing: spacing?.cardToLabel ?? AppSpacing.cardToLabel,
                           children: [
@@ -589,8 +591,7 @@ class _EventRegistrationScreenState extends ConsumerState<EventRegistrationScree
                                 children: [
                                   ref.watch(allMembersProvider).when(
                                     data: (members) {
-                                      // Exclude self
-                                      final currentMemberId = 'current-user-id';
+                                      final currentMemberId = ref.read(effectiveUserProvider).id;
                                       final availablePartners = members.where((m) => m.id != currentMemberId).toList();
                                       
                                       return BoxyArtDropdownField<String>(

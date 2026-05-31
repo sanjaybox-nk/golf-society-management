@@ -8,6 +8,7 @@ import 'package:golf_society/domain/models/course_config.dart';
 import 'logic/grouping_optimizer.dart';
 import 'package:golf_society/domain/models/society_config.dart';
 import 'package:golf_society/features/admin/logic/society_cuts_engine.dart';
+import 'package:golf_society/features/matchplay/domain/match_definition.dart';
 import '../scoring/handicap_calculator.dart';
 import 'tee_group.dart';
 
@@ -189,8 +190,7 @@ class GroupingService {
     int num2Balls = 0;
 
     if (is3ManScramble) {
-       // Force 3-balls
-       num3Balls = (totalPlayers / 3).ceil(); 
+       num3Balls = totalPlayers ~/ 3;
        num4Balls = 0;
     } else if (isMatchPlay) {
        // [BoxyArt v4.x] Match Play: ONLY 2 or 4 players per group. Strictly NO 3-balls.
@@ -312,6 +312,216 @@ class GroupingService {
             .map((e) => e.key)
             .toList();
             
+        if (memberIndices.isNotEmpty) {
+          final captainIdx = memberIndices[rand.nextInt(memberIndices.length)];
+          for (int i = 0; i < group.players.length; i++) {
+            group.players[i].isCaptain = (i == captainIdx);
+          }
+        }
+      }
+    }
+
+    return groups;
+  }
+
+  /// Pair-aware grouping for match play events.
+  /// Guarantees that each matched pair occupies the same tee group.
+  /// Two pairs → 4-ball; one remaining pair → 3-ball (with bye/unpaired filler) or 2-ball.
+  /// Unmatched confirmed registrants fill remaining slots using standard 3/4-ball distribution.
+  static List<TeeGroup> generateMatchPlayGrouping({
+    required GolfEvent event,
+    required List<MatchDefinition> matches,
+    required List<RegistrationItem> participants,
+    required List<GolfEvent> previousEventsInSeason,
+    required Map<String, double> memberHandicaps,
+    SocietyConfig? config,
+    CompetitionRules? rules,
+    bool useWhs = true,
+  }) {
+    final Map<String, double> effectiveCuts = Map.from(event.manualCuts);
+    if (config != null && config.societyCutMode == SocietyCutMode.global) {
+      for (var participant in participants) {
+        final breakdown = SocietyCutsEngine.calculateActiveCut(
+          memberId: participant.registration.memberId,
+          allEvents: previousEventsInSeason,
+          config: config,
+          relativeTo: event.date,
+        );
+        if (breakdown.totalCut > 0) {
+          effectiveCuts[participant.registration.memberId] =
+              (effectiveCuts[participant.registration.memberId] ?? 0) + breakdown.totalCut;
+        }
+      }
+    }
+
+    final hcConfig = _HandicapContext(
+      rules: rules,
+      courseConfig: event.courseConfig,
+      useWhs: useWhs,
+      manualCuts: effectiveCuts,
+    );
+
+    int takenSlotsCount = 0;
+    final List<RegistrationItem> golfers = [];
+    final capacity = event.maxParticipants ?? 999;
+    final isClosed = event.registrationDeadline != null && DateTime.now().isAfter(event.registrationDeadline!);
+
+    for (final item in participants) {
+      if (!item.registration.attendingGolf) continue;
+      if (item.isGuest) continue;
+
+      final status = RegistrationLogic.calculateStatus(
+        isGuest: false,
+        isConfirmed: item.isConfirmed,
+        hasPaid: item.hasPaid,
+        capacity: capacity,
+        confirmedCount: takenSlotsCount,
+        isEventClosed: isClosed,
+        statusOverride: item.statusOverride,
+      );
+
+      if (status == RegistrationStatus.confirmed) {
+        golfers.add(item);
+        takenSlotsCount++;
+      }
+    }
+
+    if (golfers.isEmpty) return [];
+
+    final Map<String, RegistrationItem> golferMap = {
+      for (final g in golfers) g.registration.memberId: g,
+    };
+
+    final availableBuggies = event.availableBuggies ?? 0;
+    final buggyCapacity = availableBuggies * 2;
+    final buggyQueue = participants.where((i) => i.needsBuggy).toList();
+    final confirmedBuggyCount = participants
+        .where((i) => i.buggyStatusOverride == 'confirmed' || (i.isConfirmed && i.needsBuggy))
+        .length;
+
+    TeeGroupParticipant toP(RegistrationItem item) => _toParticipant(
+      item, memberHandicaps, buggyQueue, buggyCapacity, confirmedBuggyCount, hcConfig,
+    );
+
+    final activeMatches = matches.where((m) => !m.isBye).toList();
+    final byePlayerIds = matches
+        .where((m) => m.isBye)
+        .expand((m) => [...m.team1Ids, ...m.team2Ids])
+        .toSet();
+
+    final List<_TeeSlot> pairSlots = [];
+    final Set<String> pairedIds = {};
+
+    for (final match in activeMatches) {
+      final playerA = match.playerAId != null ? golferMap[match.playerAId] : null;
+      final playerB = match.playerBId != null ? golferMap[match.playerBId] : null;
+      if (playerA == null || playerB == null) continue;
+      pairSlots.add(_TeeSlot(players: [toP(playerA), toP(playerB)]));
+      pairedIds.add(playerA.registration.memberId);
+      pairedIds.add(playerB.registration.memberId);
+    }
+
+    final List<TeeGroupParticipant> byeParticipants = byePlayerIds
+        .where((id) => golferMap.containsKey(id) && !pairedIds.contains(id))
+        .map((id) => toP(golferMap[id]!))
+        .toList();
+
+    final List<RegistrationItem> unpairedGolfers = golfers
+        .where((g) =>
+            !pairedIds.contains(g.registration.memberId) &&
+            !byePlayerIds.contains(g.registration.memberId))
+        .toList();
+
+    pairSlots.shuffle(Random());
+
+    final List<TeeGroup> groups = [];
+    DateTime currentTime = event.teeOffTime ?? DateTime.now();
+    final int interval = event.teeOffInterval;
+
+    int pairIndex = 0;
+    while (pairIndex < pairSlots.length) {
+      final remaining = pairSlots.length - pairIndex;
+
+      if (remaining >= 2) {
+        groups.add(TeeGroup(
+          index: groups.length,
+          teeTime: currentTime,
+          players: [...pairSlots[pairIndex].players, ...pairSlots[pairIndex + 1].players],
+        ));
+        currentTime = currentTime.add(Duration(minutes: interval));
+        pairIndex += 2;
+      } else {
+        final pair = pairSlots[pairIndex].players;
+        List<TeeGroupParticipant> groupPlayers = [...pair];
+
+        if (byeParticipants.isNotEmpty) {
+          groupPlayers.add(byeParticipants.removeAt(0));
+        } else if (unpairedGolfers.isNotEmpty) {
+          groupPlayers.add(toP(unpairedGolfers.removeAt(0)));
+        }
+
+        groups.add(TeeGroup(
+          index: groups.length,
+          teeTime: currentTime,
+          players: groupPlayers,
+        ));
+        currentTime = currentTime.add(Duration(minutes: interval));
+        pairIndex++;
+      }
+    }
+
+    final List<TeeGroupParticipant> remaining = [
+      ...byeParticipants,
+      ...unpairedGolfers.map((g) => toP(g)),
+    ];
+
+    if (remaining.isNotEmpty) {
+      final total = remaining.length;
+      int num4 = 0;
+      int num3 = 0;
+      int num2 = 0;
+
+      if (total <= 2) {
+        num2 = total == 2 ? 1 : 0;
+      } else {
+        for (int y = 0; y <= total / 3; y++) {
+          final rem = total - (3 * y);
+          if (rem >= 0 && rem % 4 == 0) {
+            num3 = y;
+            num4 = rem ~/ 4;
+            break;
+          }
+        }
+        if (num3 == 0 && num4 == 0) {
+          num3 = total ~/ 3;
+          num2 = (total % 3 == 2) ? 1 : 0;
+        }
+      }
+
+      final baseIndex = groups.length;
+      for (int i = 0; i < num2 + num3 + num4; i++) {
+        groups.add(TeeGroup(index: baseIndex + i, teeTime: currentTime, players: []));
+        currentTime = currentTime.add(Duration(minutes: interval));
+      }
+
+      int rIdx = 0;
+      for (int gIdx = baseIndex; gIdx < groups.length && rIdx < remaining.length; gIdx++) {
+        final group = groups[gIdx];
+        final relIdx = gIdx - baseIndex;
+        final maxSize = relIdx < num2 ? 2 : (relIdx < num2 + num3 ? 3 : 4);
+        while (group.players.length < maxSize && rIdx < remaining.length) {
+          group.players.add(remaining[rIdx++]);
+        }
+      }
+    }
+
+    final rand = Random();
+    for (final group in groups) {
+      if (group.players.isNotEmpty) {
+        final memberIndices = group.players.asMap().entries
+            .where((e) => !e.value.isGuest)
+            .map((e) => e.key)
+            .toList();
         if (memberIndices.isNotEmpty) {
           final captainIdx = memberIndices[rand.nextInt(memberIndices.length)];
           for (int i = 0; i < group.players.length; i++) {

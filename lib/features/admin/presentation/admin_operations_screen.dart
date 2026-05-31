@@ -8,6 +8,7 @@ import 'package:golf_society/features/events/presentation/events_provider.dart';
 import 'package:golf_society/features/members/presentation/members_provider.dart';
 import 'package:golf_society/features/competitions/services/leaderboard_invoker_service.dart';
 import 'package:golf_society/services/seeding_service.dart';
+import 'package:golf_society/services/seeding/match_play_event_seeder.dart' show MatchPlayEventStage;
 import 'package:golf_society/domain/models/season.dart' show SeasonStatus;
 
 class AdminOperationsScreen extends ConsumerWidget {
@@ -348,6 +349,62 @@ class AdminOperationsScreen extends ConsumerWidget {
                       ),
                       const BoxyArtDivider(),
                       BoxyArtNavTile(
+                        icon: Icons.group_add_outlined,
+                        title: 'Registration Scaffold',
+                        subtitle: '16 confirmed members, registration closed, no game type — attach any format to test',
+                        onTap: () => _showRegistrationScaffoldConfirmation(context, ref),
+                      ),
+                      const BoxyArtDivider(),
+                      BoxyArtNavTile(
+                        icon: Icons.style_rounded,
+                        title: 'Singles Scorecard Showcase',
+                        subtitle: '16 members in-play — switch game template to test each scorecard format',
+                        onTap: () => _showSinglesShowcaseConfirmation(context, ref),
+                      ),
+                      const BoxyArtDivider(),
+                      BoxyArtNavTile(
+                        icon: Icons.people_outline_rounded,
+                        title: 'Fourball Scorecard Showcase',
+                        subtitle: '8 members in-play as 4 pairs — Team View, bestball calc, counting-hole dots',
+                        onTap: () => _showFourballShowcaseConfirmation(context, ref),
+                      ),
+                      const BoxyArtDivider(),
+                      BoxyArtNavTile(
+                        icon: Icons.group_work_rounded,
+                        title: 'Scramble Scorecard Showcase',
+                        subtitle: '12 members as 3 teams of 4 — shared team scores, shotAttributions, drive-rule banner',
+                        onTap: () => _showScrambleShowcaseConfirmation(context, ref),
+                      ),
+                      const BoxyArtDivider(),
+                      BoxyArtNavTile(
+                        icon: Icons.account_tree_outlined,
+                        title: 'Match Play Draw UAT',
+                        subtitle: 'R16 draw auto-generated — ready to score and view bracket',
+                        onTap: () => _showMatchPlayEventUATConfirmation(context, ref, MatchPlayEventStage.draw),
+                      ),
+                      const BoxyArtDivider(),
+                      BoxyArtNavTile(
+                        icon: Icons.sports_score_rounded,
+                        title: 'Match Play Scores UAT',
+                        subtitle: 'Pure match play — draw + submitted scorecards, ready to verify calculator',
+                        onTap: () => _showMatchPlayEventUATConfirmation(context, ref, MatchPlayEventStage.scores),
+                      ),
+                      const BoxyArtDivider(),
+                      BoxyArtNavTile(
+                        icon: Icons.layers_rounded,
+                        title: 'Stableford + Match Play Overlay UAT',
+                        subtitle: 'Dual scoring — check Stableford pts and match play result from same scorecards',
+                        onTap: () => _showMatchPlayEventUATConfirmation(context, ref, MatchPlayEventStage.stablefordOverlay),
+                      ),
+                      const BoxyArtDivider(),
+                      BoxyArtNavTile(
+                        icon: Icons.layers_outlined,
+                        title: 'Medal + Match Play Overlay UAT',
+                        subtitle: 'Dual scoring — check stroke total and match play result from same scorecards',
+                        onTap: () => _showMatchPlayEventUATConfirmation(context, ref, MatchPlayEventStage.medalOverlay),
+                      ),
+                      const BoxyArtDivider(),
+                      BoxyArtNavTile(
                         icon: Icons.leaderboard_rounded,
                         title: 'Stableford Leaderboard UAT',
                         subtitle: 'Round 1 complete, Round 2 in-play with last group ready to verify',
@@ -594,6 +651,139 @@ void _showFinalVerificationSeedConfirmation(BuildContext context, WidgetRef ref)
     try {
       await ref.read(seedingServiceProvider).seedFinalVerificationUAT();
       messenger.showSnackBar(const SnackBar(content: Text('✅ Verification UAT Ready')));
+    } catch (e) {
+      messenger.showSnackBar(SnackBar(content: Text('Error: $e')));
+    }
+  }
+}
+
+void _showRegistrationScaffoldConfirmation(BuildContext context, WidgetRef ref) async {
+  final confirm = await showBoxyArtDialog<bool>(
+    context: context,
+    title: 'Seed Registration Scaffold?',
+    message: '16 members confirmed, registration closed. No game type attached — go to the event editor and add any format to test the full flow: grouping → scoring → verify → publish.',
+    confirmText: 'SEED',
+    onConfirm: () => Navigator.of(context, rootNavigator: true).pop(true),
+    onCancel: () => Navigator.of(context, rootNavigator: true).pop(false),
+  );
+  if (confirm == true && context.mounted) {
+    final messenger = ScaffoldMessenger.of(context);
+    messenger.showSnackBar(const SnackBar(content: Text('Creating registration scaffold...')));
+    try {
+      await ref.read(seedingServiceProvider).seedRegistrationScaffold();
+      messenger.showSnackBar(const SnackBar(content: Text('✅ Scaffold ready — attach a game type in the event editor')));
+    } catch (e) {
+      messenger.showSnackBar(SnackBar(content: Text('Error: $e')));
+    }
+  }
+}
+
+void _showSinglesShowcaseConfirmation(BuildContext context, WidgetRef ref) async {
+  final confirm = await showBoxyArtDialog<bool>(
+    context: context,
+    title: 'Seed Singles Showcase?',
+    message: 'Clears all activity data, hardens the member roster, then creates one in-play singles event (16 members, 4 groups). Groups 1–3 are fully scored; Group 4 is mid-round. Switch the competition template in the event editor to test Stableford, Medal, and Bogey scorecards.',
+    confirmText: 'SEED',
+    onConfirm: () => Navigator.of(context, rootNavigator: true).pop(true),
+    onCancel: () => Navigator.of(context, rootNavigator: true).pop(false),
+  );
+  if (confirm == true && context.mounted) {
+    final messenger = ScaffoldMessenger.of(context);
+    messenger.showSnackBar(const SnackBar(content: Text('Seeding Singles Showcase...')));
+    try {
+      await ref.read(seedingServiceProvider).seedSinglesShowcase();
+      messenger.showSnackBar(const SnackBar(content: Text('✅ Singles Showcase ready — open the event and try each template')));
+    } catch (e) {
+      messenger.showSnackBar(SnackBar(content: Text('Error: $e')));
+    }
+  }
+}
+
+void _showScrambleShowcaseConfirmation(BuildContext context, WidgetRef ref) async {
+  final confirm = await showBoxyArtDialog<bool>(
+    context: context,
+    title: 'Seed Scramble Showcase?',
+    message: 'Clears all activity data, hardens the member roster, then creates one in-play Texas Scramble event. 12 members across 3 teams of 4 — all team members share the same hole scores. Group 1 has deliberate drive violations (one player took 6/9 drives) to test the amber drive-warning banner.',
+    confirmText: 'SEED',
+    onConfirm: () => Navigator.of(context, rootNavigator: true).pop(true),
+    onCancel: () => Navigator.of(context, rootNavigator: true).pop(false),
+  );
+  if (confirm == true && context.mounted) {
+    final messenger = ScaffoldMessenger.of(context);
+    messenger.showSnackBar(const SnackBar(content: Text('Seeding Scramble Showcase...')));
+    try {
+      await ref.read(seedingServiceProvider).seedScrambleShowcase();
+      messenger.showSnackBar(const SnackBar(content: Text('✅ Scramble Showcase ready — check Team View and drive-rule banner')));
+    } catch (e) {
+      messenger.showSnackBar(SnackBar(content: Text('Error: $e')));
+    }
+  }
+}
+
+void _showFourballShowcaseConfirmation(BuildContext context, WidgetRef ref) async {
+  final confirm = await showBoxyArtDialog<bool>(
+    context: context,
+    title: 'Seed Fourball Showcase?',
+    message: 'Clears all activity data, hardens the member roster, then creates one in-play Fourball (Betterball) event. 8 members across 2 groups — players [0,1] and [2,3] in each group form pairs. Group 1 is fully scored; Group 2 is mid-round. Check the Team View pill, counting-hole dots, and pair leaderboard.',
+    confirmText: 'SEED',
+    onConfirm: () => Navigator.of(context, rootNavigator: true).pop(true),
+    onCancel: () => Navigator.of(context, rootNavigator: true).pop(false),
+  );
+  if (confirm == true && context.mounted) {
+    final messenger = ScaffoldMessenger.of(context);
+    messenger.showSnackBar(const SnackBar(content: Text('Seeding Fourball Showcase...')));
+    try {
+      await ref.read(seedingServiceProvider).seedFourballShowcase();
+      messenger.showSnackBar(const SnackBar(content: Text('✅ Fourball Showcase ready — check Team View and counting-hole dots')));
+    } catch (e) {
+      messenger.showSnackBar(SnackBar(content: Text('Error: $e')));
+    }
+  }
+}
+
+void _showMatchPlayEventUATConfirmation(BuildContext context, WidgetRef ref, MatchPlayEventStage stage) async {
+  final (title, message, label) = switch (stage) {
+    MatchPlayEventStage.registration => (
+        'Seed Match Play Stage 1?',
+        'Creates a Singles Match Play knockout event with 16 confirmed registrations. No draw yet.',
+        'Stage 1',
+      ),
+    MatchPlayEventStage.draw => (
+        'Seed Match Play Draw UAT?',
+        'Creates a Singles Match Play event with the R16 draw auto-generated — ready to score hole-by-hole.',
+        'Draw',
+      ),
+    MatchPlayEventStage.scores => (
+        'Seed Match Play Scores UAT?',
+        'Creates a pure Match Play event with draw + submitted scorecards for all 8 matches. Check debug log for handicap divergence points on Match 1.',
+        'Scores',
+      ),
+    MatchPlayEventStage.stablefordOverlay => (
+        'Seed Stableford + Match Play Overlay?',
+        'Creates a Stableford event with match play overlay — same scorecards drive both calculations. Check debug log for stroke divergence verification points.',
+        'Stableford Overlay',
+      ),
+    MatchPlayEventStage.medalOverlay => (
+        'Seed Medal + Match Play Overlay?',
+        'Creates a Medal event with match play overlay — same scorecards drive both calculations. Check debug log for stroke divergence verification points.',
+        'Medal Overlay',
+      ),
+  };
+
+  final confirm = await showBoxyArtDialog<bool>(
+    context: context,
+    title: title,
+    message: message,
+    confirmText: 'SEED',
+    onConfirm: () => Navigator.of(context, rootNavigator: true).pop(true),
+    onCancel: () => Navigator.of(context, rootNavigator: true).pop(false),
+  );
+  if (confirm == true && context.mounted) {
+    final messenger = ScaffoldMessenger.of(context);
+    messenger.showSnackBar(SnackBar(content: Text('Seeding Match Play $label...')));
+    try {
+      await ref.read(seedingServiceProvider).seedMatchPlayEventUAT(stage);
+      messenger.showSnackBar(SnackBar(content: Text('✅ Match Play $label Ready')));
     } catch (e) {
       messenger.showSnackBar(SnackBar(content: Text('Error: $e')));
     }

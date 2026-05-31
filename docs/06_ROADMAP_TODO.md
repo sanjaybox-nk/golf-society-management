@@ -224,7 +224,60 @@ This document tracks the remaining work required to take **Golf Society Manageme
         - [x] Verified full architectural stability and vertical rhythm across all 30+ administrative hubs.
         - [x] Achieved a perfect, zero-warning state for production readiness.
 
+## 3. UAT Pipeline — Active Work (2026)
+
+UAT runs one format at a time. Each stage has a dedicated seeder and sign-off criteria. Do not advance to the next stage until the current one is confirmed complete.
+
+### Stage 1 — Grouping (next up)
+- [ ] Build generic "Registration Scaffold" seeder (replaces Stage 1/2 match play seeders): 16 confirmed members, optional game type param.
+- [ ] Admin attaches Stableford or Medal game type.
+- [ ] Generate groups (balanced / random / by handicap), publish tee times.
+- [ ] Verify Field & Tee Times screen reads correctly for all three algorithms.
+- [ ] Sign off grouping before Stage 2.
+
+### Stage 2 — Single-Day Match Play, then Ryder Cup (after Stage 1)
+- [ ] Same scaffold seeder, admin attaches match play format.
+- [ ] "Generate Draw" produces 2-ball pairings + `MatchDefinition` objects.
+- [ ] Hole-by-hole scoring produces correct holes up/down/all square status.
+- [ ] Bracket advances after round closure. Odd-field byes handled.
+- [ ] Ryder Cup: singles session only. Foursomes/fourball deferred.
+
+### Stage 3 — Overlay Progression (after foursomes/fourball UAT)
+- [ ] Build / confirm "Next Round Generator" admin tool (or agree manual workaround).
+- [ ] Add `previousMatchPlayEventId` field to `GolfEvent`.
+- [ ] Stableford or Medal event with overlay attached — both results visible simultaneously.
+- [ ] Overlay scoring produces match result + Stableford/stroke result from one scorecard.
+- [ ] Next Round Generator reads winners from Round 1, pre-populates Round 2 draw.
+- [ ] No-show bye states enforced correctly after deadline.
+- [ ] Progress to final.
+
+### Stage 4 — Season-Long Knockout (after Stage 3)
+- [ ] Full-field draw produces single bracket.
+- [ ] Division-based draw produces separate brackets per handicap band.
+- [ ] Admin closes rounds; bracket advances.
+- [ ] Results entered directly in `MatchPlayTournament` screen (no event registration).
+
+### Parked for Next Cycle
+- Foursomes and Fourball as standalone formats (must UAT before Ryder Cup multi-session and before Stage 3).
+- Multi-day events (Ryder Cup weekend away).
+- Team overlay (Ryder Cup / teamMatchPlay as overlay): restricted until Draw Manager overlay-document targeting is verified in UAT. Singles overlay remains permitted.
+
+### Completed UAT
+- [x] **Medal stroke play** (May 2026): pick-up, DQ, NP, gimme, conflict/verify, admin override, score lock, notification routing.
+- [x] **Stableford seeder** (May 2026): two-round seeder in Admin Operations for OoM, Eclectic, Best of Series, Marker Counter leaderboard testing.
+
+---
+
 ## 3. Architecture & Patterns
+
+### Match Play Architecture (May 2026)
+- [x] **Overlay moved to event level**: `buildOverlaySection()` removed from all game builder controls. "Add Match Play Overlay" button on event screen routes directly to match play gallery.
+- [x] **Overlay remove guard**: confirmation dialog required; Customize/Remove hidden when event is `inPlay` or `completed`.
+- [x] **isMatchPlay detection**: derived from competition rules — no new toggle field.
+- [x] **Tie break rules finalised**: Stableford = countback only; Medal = countback or playoff (admin choice); Max Score = countback only; Match Play = always playoff; Pairs = countback only.
+- [x] **Competition type selector**: "SEASON TOURNAMENTS" renamed to "MATCH PLAY"; tile renamed to "Match Play" with subtitle "Knockout brackets. Single event or season-long."
+- [x] **Generate Draw label**: "Generate Groups" button label changes to "Generate Draw" on match play events; Field & Tee Times screen hides generate card when draw exists.
+
 #### Society Cuts Access Logic
 Cuts follow a dual-accessibility pattern based on administrative context:
 - **Global Configuration**: Accessed via the **Admin Console (Dashboard)**. This Hub allows admins to toggle between *Manual*, *Global*, or *Off* modes and define society-wide penalty rules.
@@ -362,6 +415,39 @@ Cuts follow a dual-accessibility pattern based on administrative context:
 - [x] **Eclectic metric fix**: `EclecticCalculator` respects `EclecticMetric.stableford` vs `strokes`
 - [x] **Marker Counter history/holeScores**: `MarkerCounterCalculator` populates `history` (per-round) and `holeScores` (per-hole, single-type only)
 - [x] **Auto-recalculate on close**: `LeaderboardInvokerService.recalculateAll()` called automatically in `_closeEvent()` in `event_admin_controls_screen.dart`
+
+### Template Copy & Overlay Guard (Planned — Post UAT)
+
+Two features sharing the same underlying copy mechanism, built together.
+
+- [ ] **Swipe-right to duplicate in template gallery**
+    - [ ] Swipe right on any template card reveals a lime-tinted "Duplicate" action
+    - [ ] Taps into builder pre-populated with cloned rules, name = "Copy of [original]"
+    - [ ] No Firestore write until admin hits Save — abandoned flows leave no orphan docs
+- [ ] **Overlay team-template guard**
+    - [ ] When a team-subtype template (`ryderCup`, `teamMatchPlay`) is selected as an overlay, intercept before navigating to builder
+    - [ ] Show sheet: "Team play isn't supported as an overlay" + two options: **Copy & rename** / **Start fresh**
+    - [ ] Copy & rename: pre-populate builder with cloned rules, subtype forced to singles (`matchPlay`), name field blank for admin to set
+    - [ ] Start fresh: standard singles match play builder
+    - [ ] Both paths save a new template; overlay then proceeds with it
+
+### Team Season Competition (Planned — Post UAT)
+
+A season-long team aggregate competition running in parallel with all individual events. Full spec: `docs/22_TEAM_SEASON_COMPETITION.md`.
+
+- [ ] **Phase 1 — Data & Setup**
+    - [ ] Add `teamDivision: Map<String, String>?` to `Season` model (Freezed rebuild)
+    - [ ] Add `teamPlayEnabled: bool` to `GolfEvent`
+    - [ ] Season Form: Team Setup section (assign members A/B, show unassigned)
+    - [ ] Event Form: team play toggle (Stableford/Medal only)
+    - [ ] Team badge derivation in Field view sourced from `season.teamDivision` when `teamPlayEnabled`
+- [ ] **Phase 2 — Calculator**
+    - [ ] `TeamSeasonCalculator` with guest/social exclusion and format-aware balancing
+    - [ ] Recalculate trigger on division change and event close
+- [ ] **Phase 3 — Leaderboard View**
+    - [ ] `LeaderboardType.teamSeason` entry
+    - [ ] Team Season Leaderboard screen: header strip (accumulated totals) + per-event breakdown table with balance indicator
+    - [ ] Integrated into Season Leaderboards hub
 
 ### Freeze Standings on Season Close ✅ (Completed 2026-05-23)
 - [x] **Final recalc before archive**: `season_form_screen.dart` `_closeSeasonDialog()` runs `recalculateAll(seasonId)` before writing `closeSeason()` to Firestore — standings are current at the exact moment of close.

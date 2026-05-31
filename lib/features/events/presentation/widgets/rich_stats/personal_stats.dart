@@ -36,7 +36,7 @@ class PersonalBenchmarkingCard extends StatelessWidget {
             ),
             const SizedBox(height: AppSpacing.lg),
             Text(
-              'Compares your average performance relative to par against the rest of the field.',
+              'Average strokes to par by hole type — your round vs the field average.',
               style: AppTypography.bodySmall.copyWith(
                 color: Theme.of(context).colorScheme.onSurface.withValues(alpha: AppColors.opacitySecondary),
               ),

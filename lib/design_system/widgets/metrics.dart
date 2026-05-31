@@ -51,8 +51,12 @@ class ModernMetricStat extends ConsumerWidget {
     
     // 1. Universal Badge Token Logic
     final Color badgeFill = color ?? Color(config.iconBadgeFillColor);
-    final Color badgeContent = Color(config.iconBadgeTextColor);
     final double badgeOpacity = config.iconBadgeOpacity;
+    // When a semantic fill is explicitly provided, derive content color for contrast.
+    // Otherwise use the society-configured badge text color.
+    final Color badgeContent = color != null
+        ? ContrastHelper.getContrastingText(badgeFill)
+        : Color(config.iconBadgeTextColor);
 
     final spacing = Theme.of(context).extension<AppSpacingTokens>();
     final double vertPadding = isCompact 

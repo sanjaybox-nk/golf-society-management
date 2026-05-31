@@ -265,7 +265,7 @@ class _EventDetailsContent extends ConsumerWidget {
     final isPastDeadline = event.registrationDeadline != null && 
                           utils.DateUtils.isPastDateTime(event.registrationDeadline!);
     
-    bool isRegistrationDisabled = isPastDeadline || !event.showRegistrationButton;
+    bool isRegistrationDisabled = isPastDeadline || !event.canRegister(user.id);
     String buttonTitle = isPastDeadline 
         ? 'Registration closed' 
         : (isRegistered ? 'Update Registration' : 'Register Now');
@@ -420,9 +420,22 @@ class _EventDetailsContent extends ConsumerWidget {
   }
 
   Widget _buildCompetitionCard(BuildContext context) {
-    return CompetitionRulesCard(
-      eventId: event.id,
-      title: 'Competition Rules',
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        CompetitionRulesCard(
+          eventId: event.id,
+          title: 'Competition Rules',
+        ),
+        if (event.secondaryTemplateId != null) ...[
+          const SizedBox(height: AppSpacing.standard),
+          CompetitionRulesCard(
+            eventId: '${event.id}_secondary',
+            title: 'Match Play Overlay',
+            isSecondary: true,
+          ),
+        ],
+      ],
     );
   }
 

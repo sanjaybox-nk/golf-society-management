@@ -32,6 +32,7 @@ class CourseInfoCard extends ConsumerStatefulWidget {
   final int? overrideTotalPoints;
 
   final String? mainRowLabel;
+  final Set<int>? mainCountingHoles;
   final String? tieBreakLabel;
   final Set<int> conflictedHoles;
   final Map<int, List<String>>? holeTags;
@@ -40,6 +41,7 @@ class CourseInfoCard extends ConsumerStatefulWidget {
   final bool markerVerified;
   final List<int?>? verifierScores;
   final bool showYardage;
+  final int? matchPlayStrokesReceived;
 
   const CourseInfoCard({
     super.key,
@@ -63,6 +65,7 @@ class CourseInfoCard extends ConsumerStatefulWidget {
     this.conclusionHole,
     this.overrideTotalPoints,
     this.mainRowLabel,
+    this.mainCountingHoles,
     this.tieBreakLabel,
     this.conflictedHoles = const {},
     this.holeTags,
@@ -71,6 +74,7 @@ class CourseInfoCard extends ConsumerStatefulWidget {
     this.markerVerified = false,
     this.verifierScores,
     this.showYardage = false,
+    this.matchPlayStrokesReceived,
   });
 
   @override
@@ -188,7 +192,8 @@ class _CourseInfoCardState extends ConsumerState<CourseInfoCard> {
           (showNet ? 1 : 0) +
           (widget.isStableford ? 1 : 0) +
           (widget.matchPlayResults != null ? 1 : 0) +
-          (hasVerifierRow ? 1 : 0);
+          (hasVerifierRow ? 1 : 0) +
+          (widget.additionalRows?.length ?? 0);
       final gridH = rowCount * _cellH + (rowCount - 1).toDouble();
 
       body = Column(children: [
@@ -315,6 +320,13 @@ class _CourseInfoCardState extends ConsumerState<CourseInfoCard> {
     final ninePar = pars.fold<int>(0, (a, b) => a + b);
     final outLabel = startHole == 1 ? 'OUT' : 'IN';
 
+    // SI underline allocation
+    final bool isPureMatchPlay = widget.format == CompetitionFormat.matchPlay;
+    final bool isMaxScore = widget.format == CompetitionFormat.maxScore;
+    final bool isGrossPlay = (widget.handicapAllowance ?? (widget.isNet ? 1.0 : 0.0)) == 0;
+    final int primarySiAlloc = isGrossPlay ? 0 : (widget.playerHandicap ?? 0);
+    final int mpSiAlloc = widget.matchPlayStrokesReceived ?? 0;
+
     bool isPickUp(int holeNum) => widget.holeTags?[holeNum]?.contains('PICK_UP') == true;
 
     bool notPlayed(int holeNum) {
@@ -361,12 +373,23 @@ class _CourseInfoCardState extends ConsumerState<CourseInfoCard> {
         ]),
       ),
       const Divider(height: 1),
-      // SI row (de-emphasised)
+      // SI row — single underline = primary stroke, double underline = overlay match play stroke
       _row([
         _label(context, 'SI', color: AppColors.dark300),
-        for (int i = 0; i < 9; i++)
-          Expanded(child: _cell(context, isDark, '${sis[i]}',
-              isDimmed: true, fontSize: 12, fontWeight: FontWeight.w300)),
+        for (int i = 0; i < 9; i++) (() {
+          final si = sis[i];
+          // Double underline: extra stroke from handicap overflow (PHC > 18) OR match play overlay.
+          // Single underline: only for pure match play (stroke allocation affects hole tactics).
+          final int extraStrokes = (primarySiAlloc - 18).clamp(0, 18);
+          final bool primaryDbl = !isPureMatchPlay && extraStrokes > 0 && si <= extraStrokes;
+          final bool mpDbl = !isPureMatchPlay && mpSiAlloc > 0 && si <= mpSiAlloc;
+          final bool dbl = primaryDbl || mpDbl;
+          final bool single = !dbl && (isPureMatchPlay
+              ? (mpSiAlloc > 0 && si <= mpSiAlloc)
+              : (primarySiAlloc > 0 && si <= primarySiAlloc));
+          return Expanded(child: _siCell(context, isDark, '$si',
+              singleUnderline: single, doubleUnderline: dbl));
+        })(),
         _total(context, isDark, '', isDimmed: true),
       ]),
       const Divider(height: 1),
@@ -387,8 +410,22 @@ class _CourseInfoCardState extends ConsumerState<CourseInfoCard> {
             if (s != null) return Expanded(child: _pickUpCell(context, isDark, s, pars[i]));
             return Expanded(child: _cell(context, isDark, 'P', isDimmed: true, fontSize: 11, color: AppColors.amber500));
           }
-          return Expanded(child: _scoreCell(context, isDark, s, pars[i],
-              hasConflict: widget.conflictedHoles.contains(holeNum)));
+          if (isMaxScore && s != null) {
+            final int? cap = ScoringCalculator.getMaxScoreCap(
+              par: pars[i],
+              si: sis[i],
+              playingHandicap: primarySiAlloc.toDouble(),
+              format: CompetitionFormat.maxScore,
+              maxScoreConfig: widget.maxScoreConfig,
+            );
+            if (cap != null && s >= cap) {
+              return Expanded(child: _cappedCell(context, isDark, cap, pars[i]));
+            }
+          }
+          final cell = _scoreCell(context, isDark, s, pars[i],
+              hasConflict: widget.conflictedHoles.contains(holeNum));
+          final isCounting = widget.mainCountingHoles?.contains(idx) ?? false;
+          return Expanded(child: isCounting ? _countingCell(cell) : cell);
         })(),
         _total(context, isDark,
             _nineSum(widget.holeScores, startHole, 9) ?? '-', isBold: true),
@@ -492,11 +529,38 @@ class _CourseInfoCardState extends ConsumerState<CourseInfoCard> {
       const Divider(height: 1),
       _row([
         _label(context, row.playerName.toUpperCase()),
-        for (int i = 0; i < 9; i++)
-          Expanded(child: _scoreCell(context, isDark, nineScores[i], pars[i])),
+        for (int i = 0; i < 9; i++) (() {
+          final absIdx = startHole - 1 + i;
+          final isCounting = row.countingHoles?.contains(absIdx) ?? false;
+          final cell = _scoreCell(context, isDark, nineScores[i], pars[i]);
+          return Expanded(
+            child: isCounting ? _countingCell(cell) : cell,
+          );
+        })(),
         _total(context, isDark, total > 0 ? '$total' : '-', isBold: true),
       ]),
     ]);
+  }
+
+  Widget _countingCell(Widget scoreCell) {
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        scoreCell,
+        Positioned(
+          bottom: 2,
+          right: 2,
+          child: Container(
+            width: 5,
+            height: 5,
+            decoration: const BoxDecoration(
+              color: AppColors.lime500,
+              shape: BoxShape.circle,
+            ),
+          ),
+        ),
+      ],
+    );
   }
 
   Widget _buildFooter(
@@ -511,15 +575,26 @@ class _CourseInfoCardState extends ConsumerState<CourseInfoCard> {
     bool isGross,
     Color pointsColor,
   ) {
+    final isMatchPlay = widget.matchPlayResults != null;
     final toParColor = (toPar ?? 0) < 0
         ? AppColors.coral500
         : ((toPar ?? 0) == 0 ? AppColors.amber500 : AppColors.dark900);
     final toParString = toPar == null
         ? '-'
         : (toPar == 0 ? 'E' : (toPar > 0 ? '+$toPar' : '$toPar'));
-    final subLabel = thru >= 18
-        ? (widget.tieBreakLabel != null ? 'F / ${widget.tieBreakLabel}' : 'F')
-        : 'THRU $thru';
+    // Match play: no annotation (F shown in header, B9 irrelevant).
+    // Other formats: show tie-break label only (e.g. "B9: 4") when finished;
+    // "F" alone is suppressed since it is already shown in the card header.
+    final subLabel = isMatchPlay
+        ? null
+        : thru >= 18
+            ? widget.tieBreakLabel
+            : 'THRU $thru';
+
+    // Match result from hole-by-hole W/L/H results (e.g. "3&2", "1 UP", "A/S")
+    final (matchResultLabel, matchResultColor) = isMatchPlay
+        ? _computeMatchResult(widget.matchPlayResults!)
+        : (null, AppColors.dark900);
 
     return Container(
       padding: const EdgeInsets.symmetric(
@@ -532,6 +607,8 @@ class _CourseInfoCardState extends ConsumerState<CourseInfoCard> {
         children: [
           _statItem('PAR', '$par'),
           _statItem(isGross ? 'TOTAL' : 'GROSS', '$strokes', sub: subLabel),
+          if (isMatchPlay && matchResultLabel != null)
+            _statItem('RESULT', matchResultLabel, color: matchResultColor),
           if (widget.isStableford)
             _statItem('POINTS', '$points', color: pointsColor)
           else if (thru > 0) ...[
@@ -592,6 +669,9 @@ class _CourseInfoCardState extends ConsumerState<CourseInfoCard> {
         padding: const EdgeInsets.only(left: 8),
         alignment: Alignment.centerLeft,
         child: Text(text,
+            maxLines: 1,
+            softWrap: false,
+            overflow: TextOverflow.ellipsis,
             style: AppTypography.labelStrong.copyWith(
                 fontSize: 9,
                 color: color ?? AppColors.dark300,
@@ -630,6 +710,43 @@ class _CourseInfoCardState extends ConsumerState<CourseInfoCard> {
                           ? AppTypography.weightBold
                           : AppTypography.weightSemibold),
               color: fg)),
+    );
+  }
+
+  Widget _siCell(BuildContext context, bool isDark, String text,
+      {bool singleUnderline = false, bool doubleUnderline = false}) {
+    final Color textColor = doubleUnderline
+        ? AppColors.lime500
+        : singleUnderline
+            ? AppColors.dark200
+            : AppColors.dark300;
+    final Color lineColor = doubleUnderline ? AppColors.lime500 : AppColors.dark400;
+
+    final textWidget = Text(text,
+        style: AppTypography.labelStrong.copyWith(
+            fontSize: 12,
+            fontWeight: doubleUnderline ? FontWeight.w500 : FontWeight.w300,
+            color: textColor));
+
+    if (!singleUnderline && !doubleUnderline) {
+      return Container(height: _cellH, alignment: Alignment.center, child: textWidget);
+    }
+
+    return Container(
+      height: _cellH,
+      alignment: Alignment.center,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          textWidget,
+          const SizedBox(height: 2),
+          Container(width: 14, height: 1.5, color: lineColor),
+          if (doubleUnderline) ...[
+            const SizedBox(height: 1.5),
+            Container(width: 14, height: 1.5, color: lineColor),
+          ],
+        ],
+      ),
     );
   }
 
@@ -795,6 +912,37 @@ class _CourseInfoCardState extends ConsumerState<CourseInfoCard> {
     );
   }
 
+  Widget _cappedCell(BuildContext context, bool isDark, int score, int par) {
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        _scoreCell(context, isDark, score, par),
+        Positioned(
+          top: 0,
+          right: 0,
+          child: Container(
+            width: 10,
+            height: 10,
+            alignment: Alignment.center,
+            decoration: const BoxDecoration(
+              color: AppColors.amber700,
+              shape: BoxShape.circle,
+            ),
+            child: Text(
+              'M',
+              style: AppTypography.micro.copyWith(
+                color: AppColors.pureWhite,
+                fontWeight: AppTypography.weightHeavy,
+                fontSize: 5,
+                height: 1.0,
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _matchCell(BuildContext context, String token) {
     Color? bg;
     if (token == 'W') { bg = AppColors.lime500; }
@@ -805,16 +953,46 @@ class _CourseInfoCardState extends ConsumerState<CourseInfoCard> {
       alignment: Alignment.center,
       child: bg != null
           ? Container(
-              width: 20, height: 20,
+              width: 22, height: 22,
               decoration: BoxDecoration(color: bg, shape: BoxShape.circle),
               alignment: Alignment.center,
               child: Text(token,
                   style: AppTypography.labelStrong
-                      .copyWith(fontSize: 10, color: Colors.white)))
+                      .copyWith(fontSize: 12, color: Colors.white)))
           : Text('-',
               style: AppTypography.labelStrong
                   .copyWith(fontSize: 13, color: AppColors.dark400)),
     );
+  }
+
+  /// Returns the match result label and colour from this player's hole results.
+  /// 'W'=won hole, 'L'=lost hole, 'H'=halved, ''=not played (match clinched).
+  (String?, Color) _computeMatchResult(List<String> results) {
+    int holesUp = 0;
+    int holesPlayed = 0;
+    for (final r in results) {
+      if (r.isEmpty) break;
+      holesPlayed++;
+      if (r == 'W') { holesUp++; } else if (r == 'L') { holesUp--; }
+    }
+    if (holesPlayed == 0) return (null, AppColors.dark900);
+    final remaining = 18 - holesPlayed;
+    final absUp = holesUp.abs();
+    if (remaining == 0) {
+      // All 18 played — final result
+      if (holesUp > 0) return ('WON $absUp UP', AppColors.lime500);
+      if (holesUp < 0) return ('LOST $absUp DN', AppColors.coral500);
+      return ('A/S', AppColors.amber500);
+    }
+    if (absUp > remaining) {
+      // Clinched before 18 — final result
+      if (holesUp > 0) return ('WON $absUp&$remaining', AppColors.lime500);
+      return ('LOST $absUp&$remaining', AppColors.coral500);
+    }
+    // Live / in progress — current standing, no WON/LOST prefix
+    if (holesUp > 0) return ('$absUp UP', AppColors.lime500);
+    if (holesUp < 0) return ('$absUp DN', AppColors.coral500);
+    return ('A/S', AppColors.amber500);
   }
 
   Widget _statItem(String label, String value,

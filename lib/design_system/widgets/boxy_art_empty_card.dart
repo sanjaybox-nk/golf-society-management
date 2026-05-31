@@ -26,8 +26,8 @@ class BoxyArtEmptyCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
-    
-    // Refined sizing for reduced visual impact
+    final primaryColor = Color(ref.watch(themeControllerProvider).primaryColor);
+
     final badgeSize = isCompact ? 40.0 : 48.0;
     final innerIconSize = isCompact ? 20.0 : 24.0;
     final internalPadding = padding ?? (isCompact ? const EdgeInsets.all(AppSpacing.lg) : const EdgeInsets.all(AppSpacing.xl));
@@ -38,13 +38,11 @@ class BoxyArtEmptyCard extends ConsumerWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // 1. Sleek Brand Tinted Badge
           BoxyArtIconBadge(
             icon: icon,
+            color: primaryColor,
             size: badgeSize,
             iconSize: innerIconSize,
-            showFill: true,
-            isTinted: true,
           ),
           
           SizedBox(height: headerGap),

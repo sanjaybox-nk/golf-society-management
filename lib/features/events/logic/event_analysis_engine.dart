@@ -110,7 +110,7 @@ class EventAnalysisEngine {
     Map<String, double> parTypeAverages = {};
     parTypeSums.forEach((key, value) {
       if (parTypeCounts[key]! > 0) {
-        parTypeAverages[key] = value / (parTypeCounts[key]! / totalPlayers);
+        parTypeAverages[key] = value / parTypeCounts[key]!;
       }
     });
 
@@ -273,9 +273,23 @@ class EventAnalysisEngine {
         double variance = diffs.map((d) => math.pow(d.toDouble() - mean, 2)).fold<double>(0.0, (a, b) => a + b) / diffs.length;
         totalVariance += variance;
       }
-      if (s.netTotal != null) {
-        totalNet += s.netTotal!;
-        netCount++;
+      if (isStableford) {
+        if (s.points != null) {
+          totalNet += s.points!;
+          netCount++;
+        }
+      } else {
+        // Medal: net-to-par = netTotal - sum of pars for holes played
+        if (s.netTotal != null) {
+          int parForHolesPlayed = 0;
+          for (int i = 0; i < 18; i++) {
+            if (s.holeScores.length > i && s.holeScores[i] != null && holes.length > i) {
+              parForHolesPlayed += holes[i].par;
+            }
+          }
+          totalNet += s.netTotal! - parForHolesPlayed;
+          netCount++;
+        }
       }
       int pBB = 0;
       int pOpportunities = 0;
@@ -309,28 +323,17 @@ class EventAnalysisEngine {
       'BLOB': fieldBlobs,
     };
 
-    // 2. Performance Trends
+    // 2. Performance Trends — sum of hole averages gives a 9-hole total comparable to personal splits
     double front9Avg = 0;
     double back9Avg = 0;
-    int holesPlayed = 0;
     for (int i = 0; i < 9; i++) {
         final avg = holeAverages[i.toString()];
-        if (avg != null && avg > 0) {
-            front9Avg += avg;
-            holesPlayed++;
-        }
+        if (avg != null && avg > 0) front9Avg += avg;
     }
-    front9Avg = holesPlayed > 0 ? front9Avg / holesPlayed : 0;
-
-    holesPlayed = 0;
     for (int i = 9; i < 18; i++) {
         final avg = holeAverages[i.toString()];
-        if (avg != null && avg > 0) {
-            back9Avg += avg;
-            holesPlayed++;
-        }
+        if (avg != null && avg > 0) back9Avg += avg;
     }
-    back9Avg = holesPlayed > 0 ? back9Avg / holesPlayed : 0;
 
     final Map<String, dynamic> performanceTrends = {
       'front9Avg': front9Avg,

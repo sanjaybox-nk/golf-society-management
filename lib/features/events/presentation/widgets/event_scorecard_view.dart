@@ -6,6 +6,8 @@ import 'package:golf_society/domain/models/competition.dart';
 import 'package:golf_society/domain/models/scorecard.dart';
 import 'package:golf_society/domain/scoring/scoring_calculator.dart';
 import 'package:golf_society/domain/scoring/handicap_calculator.dart';
+import 'package:golf_society/domain/scoring/scorecard_factory.dart';
+import 'package:golf_society/utils/firestore_normalizer.dart';
 import 'package:golf_society/features/members/presentation/members_provider.dart';
 import 'package:golf_society/features/members/presentation/profile_provider.dart';
 import 'package:golf_society/features/events/domain/models/processed_event_data.dart';
@@ -13,6 +15,9 @@ import 'package:golf_society/features/events/presentation/state/marker_selection
 import 'package:golf_society/features/events/presentation/widgets/course_info_card.dart';
 import 'package:golf_society/features/events/presentation/tabs/event_tabs_state.dart';
 import 'package:golf_society/features/competitions/presentation/competitions_provider.dart';
+import 'package:golf_society/domain/models/course_config.dart';
+import 'package:golf_society/features/matchplay/domain/match_play_calculator.dart';
+import 'package:golf_society/features/matchplay/domain/match_definition.dart';
 import 'package:golf_society/domain/grouping/tee_group.dart';
 
 class EventScorecardView extends ConsumerStatefulWidget {
@@ -46,7 +51,6 @@ class EventScorecardView extends ConsumerStatefulWidget {
 }
 
 class _EventScorecardViewState extends ConsumerState<EventScorecardView> {
-
   @override
   Widget build(BuildContext context) {
     final config = ref.watch(themeControllerProvider);
@@ -64,6 +68,28 @@ class _EventScorecardViewState extends ConsumerState<EventScorecardView> {
     final myCard = allScorecards.firstWhereOrNull((s) => s.entryId == currentUser.id);
 
     final bool isMeView = !isSelfMarking && widget.selectedMarkerTab == MarkerTab.verifier;
+
+    // Fourball pair resolution — always 2-player pairs (indices [0,1] vs [2,3])
+    final isFourball = widget.effectiveRules.subtype == CompetitionSubtype.fourball;
+    TeeGroupParticipant? fourballPartner;
+    List<TeeGroupParticipant> fourballOpponents = [];
+    if (isFourball) {
+      final groupData = widget.event.grouping['groups'] as List? ?? [];
+      final myGroupData = groupData.firstWhereOrNull(
+        (g) => (g['players'] as List).any((p) => p['registrationMemberId'] == currentUser.id));
+      if (myGroupData != null) {
+        final allGroupPlayers = (myGroupData['players'] as List)
+            .map((p) => TeeGroupParticipant.fromJson(p)).toList();
+        final myIdx = allGroupPlayers.indexWhere((p) => p.registrationMemberId == currentUser.id);
+        if (myIdx >= 0) {
+          final myPairStart = (myIdx ~/ 2) * 2;
+          final myPair = allGroupPlayers.skip(myPairStart).take(2).toList();
+          fourballPartner = myPair.firstWhereOrNull((p) => p.registrationMemberId != currentUser.id);
+          final oppPairStart = myPairStart == 0 ? 2 : 0;
+          fourballOpponents = allGroupPlayers.skip(oppPairStart).take(2).toList();
+        }
+      }
+    }
 
     // Pinned switcher (from parent) overrides displayId when set
     final String displayId = widget.switchedCardId ?? (isMeView ? currentUser.id : targetId);
@@ -130,10 +156,80 @@ class _EventScorecardViewState extends ConsumerState<EventScorecardView> {
         ? const <int>{}
         : (displayCard?.conflictedHoles.toSet() ?? const <int>{});
 
+    final matchPlay = _computeMatchPlay(displayId, allScorecards, members);
+
+    // Fourball pair rows: driven by the bottom ME / OPPONENT tab.
+    // ME tab (MarkerTab.verifier) → US pair: me + partner.
+    // OPPONENT tab (MarkerTab.player) → THEM pair: targetId + their partner.
+    List<CourseScoreRow> fourballAdditionalRows = [];
+    Set<int> fourballMainCountingHoles = {};
+    String? fourballMainRowLabel;
+    if (isFourball) {
+      final isStableford = widget.effectiveRules.format == CompetitionFormat.stableford;
+      // US view = viewing own card; THEM view = viewing any other card (opponent or switched).
+      final isUsView = displayId == currentUser.id;
+      String? secondaryId;
+      String? secondaryLabel;
+      if (isUsView && fourballPartner != null) {
+        secondaryId = fourballPartner.registrationMemberId;
+        secondaryLabel = fourballPartner.name.split(' ').first;
+        fourballMainRowLabel = 'ME';
+      } else if (!isUsView && fourballOpponents.isNotEmpty) {
+        // displayId = targetId (the opponent I'm marking) — find their pair partner
+        final opponentPartner = fourballOpponents.firstWhereOrNull(
+          (p) => p.registrationMemberId != displayId,
+        );
+        if (opponentPartner != null) {
+          secondaryId = opponentPartner.registrationMemberId;
+          secondaryLabel = opponentPartner.name.split(' ').first;
+        }
+        fourballMainRowLabel = fourballOpponents
+            .firstWhereOrNull((p) => p.registrationMemberId == displayId)
+            ?.name.split(' ').first.toUpperCase();
+      }
+      if (secondaryId != null) {
+        final primaryScoring = widget.scoringData?.individualScores.firstWhereOrNull((s) => s.playerId == displayId);
+        final secondaryScoring = widget.scoringData?.individualScores.firstWhereOrNull((s) => s.playerId == secondaryId);
+        final secondaryCard = allScorecards.firstWhereOrNull((s) => s.entryId == secondaryId);
+        final Set<int> primaryCountingHoles = {};
+        final Set<int> secondaryCountingHoles = {};
+        for (int h = 0; h < 18; h++) {
+          if (isStableford) {
+            final pPts = primaryScoring?.result.holePoints.elementAtOrNull(h);
+            final sPts = secondaryScoring?.result.holePoints.elementAtOrNull(h);
+            if (pPts != null && pPts > 0 && (sPts == null || pPts > sPts)) {
+              primaryCountingHoles.add(h);
+            } else if (sPts != null && sPts > 0 && (pPts == null || sPts > pPts)) {
+              secondaryCountingHoles.add(h);
+            }
+            // tie → no dot on either
+          } else {
+            final pNet = primaryScoring?.result.holeNetScores.elementAtOrNull(h);
+            final sNet = secondaryScoring?.result.holeNetScores.elementAtOrNull(h);
+            if (pNet != null && (sNet == null || pNet < sNet)) {
+              primaryCountingHoles.add(h);
+            } else if (sNet != null && (pNet == null || sNet < pNet)) {
+              secondaryCountingHoles.add(h);
+            }
+            // tie → no dot on either
+          }
+        }
+        fourballMainCountingHoles = primaryCountingHoles;
+        fourballAdditionalRows.add(CourseScoreRow(
+          id: secondaryId,
+          playerName: secondaryLabel ?? 'Partner',
+          scores: secondaryScoring?.holeScores ?? secondaryCard?.holeScores.cast<int?>() ?? List.filled(18, null),
+          netScores: secondaryScoring?.result.holeNetScores.toList(),
+          points: secondaryScoring?.result.holePoints.toList(),
+          countingHoles: secondaryCountingHoles.isNotEmpty ? secondaryCountingHoles : null,
+        ));
+      }
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        if (widget.effectiveRules.isUnifiedTeamFormat)
+        if (!isFourball && widget.effectiveRules.isUnifiedTeamFormat)
           _buildTeamMembersRow(context, widget.event, widget.effectiveRules),
 
         Padding(
@@ -169,12 +265,16 @@ class _EventScorecardViewState extends ConsumerState<EventScorecardView> {
           handicapAllowance: widget.effectiveRules.handicapAllowance,
           format: widget.effectiveRules.format,
           maxScoreConfig: widget.effectiveRules.maxScoreConfig,
-          matchPlayResults: null,
+          matchPlayResults: matchPlay.$1,
+          matchPlayStrokesReceived: matchPlay.$2,
           tieBreakLabel: displayScoring?.tieBreakLabel,
           holeTags: displayCard?.holeTags,
           conflictedHoles: conflictedHoles,
           showYardage: true,
           markerVerified: displayCard?.verifiedByMarker ?? false,
+          additionalRows: fourballAdditionalRows.isNotEmpty ? fourballAdditionalRows : null,
+          mainRowLabel: fourballMainRowLabel,
+          mainCountingHoles: fourballMainCountingHoles.isNotEmpty ? fourballMainCountingHoles : null,
           // Show marker's recorded scores on: own card, conflicted cards, or any guest card
           // (guests can't self-enter so playerVerifierScores is the only score record)
           verifierScores: (displayCard?.playerVerifierScores.any((s) => s != null && s > 0) ?? false) &&
@@ -230,6 +330,101 @@ class _EventScorecardViewState extends ConsumerState<EventScorecardView> {
 
       ],
     );
+  }
+
+  (List<String>?, int?) _computeMatchPlay(
+    String displayId,
+    List<Scorecard> allScorecards,
+    List<dynamic> members,
+  ) {
+    if (widget.comp == null || widget.comp!.rules.isMatchPlay != true) return (null, null);
+
+    final groupsData = widget.event.grouping['groups'] as List? ?? [];
+    List<String>? myGroupIds;
+    for (final g in groupsData) {
+      final players = g['players'] as List? ?? [];
+      final ids = players
+          .map((p) => p['registrationMemberId']?.toString())
+          .whereType<String>()
+          .toList();
+      if (ids.contains(displayId)) {
+        myGroupIds = ids;
+        break;
+      }
+    }
+    if (myGroupIds == null || myGroupIds.length < 2) return (null, null);
+
+    final oppIds = myGroupIds.where((id) => id != displayId).toList();
+
+    final Map<String, double> playerIndices = {};
+    final Map<String, CourseConfig> courseConfigs = {};
+    for (final pid in myGroupIds) {
+      courseConfigs[pid] = ScoringCalculator.resolvePlayerCourseConfig(
+        memberId: pid,
+        event: widget.event,
+        membersList: members.cast(),
+        manualTeeName: null,
+      );
+      if (pid.contains('_guest')) {
+        final baseId = pid.replaceAll('_guest', '');
+        final reg = widget.event.registrations.firstWhereOrNull((r) => r.memberId == baseId);
+        playerIndices[pid] = double.tryParse(reg?.guestHandicap ?? '18') ?? 18.0;
+      } else {
+        final member = members.firstWhereOrNull((m) => (m as dynamic).id == pid);
+        playerIndices[pid] = (member as dynamic)?.handicap ?? 18.0;
+      }
+    }
+
+    final strokesReceived = MatchPlayCalculator.calculateRelativeStrokes(
+      playerIds: myGroupIds,
+      playerIndices: playerIndices,
+      courseConfigs: courseConfigs,
+      rules: widget.effectiveRules,
+      baseRating: widget.event.courseConfig.rating ?? 72.0,
+    );
+    final myStrokes = strokesReceived[displayId];
+
+    final virtualMatch = MatchDefinition(
+      id: 'virtual_scorecard_$displayId',
+      type: MatchType.singles,
+      team1Ids: [displayId],
+      team2Ids: oppIds,
+      strokesReceived: strokesReceived,
+    );
+
+    final List<Scorecard> sourceCards = [];
+    for (final pid in myGroupIds) {
+      Scorecard? card = allScorecards.firstWhereOrNull((s) => s.entryId == pid);
+      if (card == null) {
+        final seeded = widget.event.results.firstWhereOrNull(
+          (r) => FirestoreNormalizer.resolveMemberId(r) == pid,
+        );
+        if (seeded != null && seeded['holeScores'] != null) {
+          card = ScorecardFactory.fromSeededResult(
+            entryId: pid,
+            competitionId: widget.event.id,
+            result: seeded,
+          );
+        }
+      }
+      if (card != null) sourceCards.add(card);
+    }
+
+    if (sourceCards.length < 2) return (null, myStrokes);
+
+    final result = MatchPlayCalculator.calculate(
+      match: virtualMatch,
+      scorecards: sourceCards,
+      courseConfig: widget.event.courseConfig,
+      holesToPlay: widget.event.courseConfig.holes.length,
+    );
+
+    final holeResults = result.holeResults.map((r) {
+      if (r == 1) return 'W';
+      if (r == -1) return 'L';
+      return 'H';
+    }).toList();
+    return (holeResults, myStrokes);
   }
 
   Widget _buildConflictStrip(BuildContext context, Set<int> conflictedHoles, Scorecard? card) {
@@ -292,7 +487,7 @@ class _EventScorecardViewState extends ConsumerState<EventScorecardView> {
 
     final List<TeeGroupParticipant> players = (myGroup['players'] as List).map((p) => TeeGroupParticipant.fromJson(p)).toList();
     final playerIdx = players.indexWhere((p) => p.registrationMemberId == currentUser.id);
-    final teamSize = rules.teamSize;
+    final teamSize = rules.effectiveTeamSize;
     int teamIdx = playerIdx ~/ teamSize;
     final List<TeeGroupParticipant> teamMembers = players.skip(teamIdx * teamSize).take(teamSize).toList();
 

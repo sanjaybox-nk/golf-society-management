@@ -38,27 +38,32 @@ class HandicapCalculator {
     double? baseRating,
     double societyCut = 0.0,
   }) {
+    // None = scratch, no adjustment regardless of other settings.
+    if (rules.handicapMode == HandicapMode.none) return 0;
+    // Local = simplified: use raw index, skip slope/rating correction.
+    final effectiveUseWhs = rules.handicapMode == HandicapMode.whs && useWhs;
+
     // A. Apply Hard Cap on INDEX if specified (only if cap is positive)
-    double cappedIndex = (rules.applyCapToIndex && rules.handicapCap > 0 && handicapIndex > rules.handicapCap) 
-        ? rules.handicapCap.toDouble() 
+    double cappedIndex = (rules.applyCapToIndex && rules.handicapCap > 0 && handicapIndex > rules.handicapCap)
+        ? rules.handicapCap.toDouble()
         : handicapIndex;
 
     // B. Calculate WHS Baseline (Course Handicap)
     double rawCourseHandicap = calculateCourseHandicap(
-      handicapIndex: cappedIndex, 
-      courseConfig: courseConfig, 
-      useWhs: useWhs
+      handicapIndex: cappedIndex,
+      courseConfig: courseConfig,
+      useWhs: effectiveUseWhs
     );
     int baselinePHC = rawCourseHandicap.round();
 
     // C. Apply Allowance & Cuts
     if (rules.scoringType == 'GROSS') return 0;
-    
+
     double adjustedPHC = baselinePHC * rules.handicapAllowance;
     int finalized = (adjustedPHC.round() - societyCut).round();
 
-    // E. Mixed Tee Equity
-    if (useWhs && baseRating != null && rules.useMixedTeeAdjustment && rules.format != CompetitionFormat.stableford) {
+    // E. Mixed Tee Equity (WHS only — local mode has no course correction)
+    if (effectiveUseWhs && baseRating != null && rules.useMixedTeeAdjustment && rules.format != CompetitionFormat.stableford) {
       final rating = courseConfig.rating ?? courseConfig.par?.toDouble() ?? 72.0;
       final adjustment = (rating - baseRating).round();
       finalized += adjustment;

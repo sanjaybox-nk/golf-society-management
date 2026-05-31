@@ -32,10 +32,12 @@ class GroupingPlayerTile extends ConsumerWidget {
   final ScoringStatus scoringStatus;
   final bool hasSocietyCut;
   final bool isStableford;
+  final String? subScoreDisplay;
   final String? matchSide; // [NEW] Side A or B for Match Play
   final int? phcOverride;
   final bool hasGuestInGroup; // [NEW] Member who brought a guest
   final bool isEventClosed; // [NEW] surfaced only once admin has confirmed cards and closed the game
+  final String? teamLabel; // 'A' or 'B' for Ryder Cup / team matchplay
 
   const GroupingPlayerTile({
     super.key,
@@ -64,8 +66,10 @@ class GroupingPlayerTile extends ConsumerWidget {
     this.scoringStatus = ScoringStatus.ok,
     this.hasSocietyCut = false,
     this.isStableford = false,
+    this.subScoreDisplay,
     this.hasGuestInGroup = false,
     this.isEventClosed = false,
+    this.teamLabel,
   });
 
   @override
@@ -102,9 +106,19 @@ class GroupingPlayerTile extends ConsumerWidget {
 
     final teeColor = AppColors.getTeeColor(player.teeName, courseConfig?.tees);
 
+    final String? resolvedSecondaryName = teamLabel != null
+        ? 'Team $teamLabel'
+        : (player.isGuest && member != null ? 'Guest of ${member!.displayName}' : null);
+    final Color? resolvedSecondaryColor = teamLabel == 'A'
+        ? AppColors.teamA
+        : teamLabel == 'B'
+            ? AppColors.teamB
+            : null;
+
     return BoxyArtMemberRow(
       name: player.name,
-      secondaryName: (player.isGuest && member != null) ? 'Guest of ${member!.displayName}' : null,
+      secondaryName: resolvedSecondaryName,
+      secondaryNameColor: resolvedSecondaryColor,
       initials: player.name,
       avatarUrl: member?.avatarUrl,
       handicapIndex: handicapIndex ?? player.handicapIndex,
@@ -119,7 +133,13 @@ class GroupingPlayerTile extends ConsumerWidget {
       thruLabel: isDq ? thruLabel : thruLabel,
       score: isDq ? 'DQ' : (hasScore ? scoreDisplay : null),
       isStableford: isStableford,
-      scoreColor: isDq ? AppColors.coral500 : null,
+      scoreColor: isDq
+          ? AppColors.coral500
+          : (hasScore && scoreDisplay != null)
+              ? _matchScoreColor(scoreDisplay!)
+              : null,
+      subScore: subScoreDisplay,
+      subScoreColor: subScoreDisplay != null ? _matchScoreColor(subScoreDisplay!) : null,
       tieBreakLabel: isEventClosed ? tieBreakLabel : null,
       teeName: player.teeName,
       teeColor: teeColor,
@@ -186,6 +206,13 @@ class GroupingPlayerTile extends ConsumerWidget {
         ),
       ),
     );
+  }
+
+  static Color? _matchScoreColor(String status) {
+    final s = status.toUpperCase();
+    if (s.contains('WIN') || s.contains('WON') || s.contains(' UP')) return AppColors.lime700;
+    if (s.contains('LOST') || s.contains('LOSS') || s.contains(' DN') || s.contains('HALVED') || s.contains('A/S')) return AppColors.coral500;
+    return null;
   }
 
   Widget _buildAvatarStack(BuildContext context, bool isScoreMode, Color? varietyColor, bool hasGuestInGroup) {

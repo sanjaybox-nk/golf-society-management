@@ -19,9 +19,11 @@ class _StrokePlayControlState extends BaseCompetitionControlState<StrokePlayCont
   bool _applyCapToIndex = true;
   int _teamBestXCount = 2;
   bool _useMixedTeeAdjustment = false;
+  TieBreakMethod _tieBreak = TieBreakMethod.back9;
   PickUpBehaviour _pickUpBehaviour = PickUpBehaviour.maxScore;
   MaxScoreType _maxScoreType = MaxScoreType.netDoubleBogey;
   int _maxScoreValue = 2;
+  HandicapMode _handicapMode = HandicapMode.whs;
 
   @override
   CompetitionFormat get format => CompetitionFormat.stroke;
@@ -40,6 +42,8 @@ class _StrokePlayControlState extends BaseCompetitionControlState<StrokePlayCont
       _applyCapToIndex = widget.competition!.rules.applyCapToIndex;
       _teamBestXCount = widget.competition!.rules.teamBestXCount;
       _useMixedTeeAdjustment = widget.competition!.rules.useMixedTeeAdjustment;
+      _tieBreak = widget.competition!.rules.tieBreak;
+      _handicapMode = widget.competition!.rules.handicapMode;
       _pickUpBehaviour = widget.competition!.rules.pickUpBehaviour;
       _maxScoreType = widget.competition!.rules.maxScoreConfig?.type ?? MaxScoreType.netDoubleBogey;
       _maxScoreValue = widget.competition!.rules.maxScoreConfig?.value ?? 2;
@@ -82,7 +86,7 @@ class _StrokePlayControlState extends BaseCompetitionControlState<StrokePlayCont
                 buildAllowanceSlider(
                   _handicapAllowance,
                   (val) => setState(() => _handicapAllowance = val),
-                  hint: "Fraction of each player's course handicap applied. 100% = full handicap.",
+                  hint: "WHS standard: 100% for singles stroke play. Adjust for special formats (e.g. 85% Betterball, 50% Foursomes).",
                 ),
                 const BoxyArtDivider(),
                 buildCapSlider(_handicapCap, (val) => setState(() => _handicapCap = val)),
@@ -101,10 +105,41 @@ class _StrokePlayControlState extends BaseCompetitionControlState<StrokePlayCont
                   value: _useMixedTeeAdjustment,
                   onChanged: (val) => setState(() => _useMixedTeeAdjustment = val),
                 ),
+                const BoxyArtDivider(),
+                BoxyArtDropdownField<HandicapMode>(
+                  label: 'Handicap System',
+                  value: _handicapMode,
+                  items: const [
+                    DropdownMenuItem(value: HandicapMode.whs, child: Text('WHS (Slope & Rating Adjusted)')),
+                    DropdownMenuItem(value: HandicapMode.local, child: Text('Local (Handicap Index Only)')),
+                  ],
+                  onChanged: (val) { if (val != null) setState(() => _handicapMode = val); },
+                ),
+                buildInfoBubble('WHS applies slope and course rating to calculate playing handicap. Local uses the raw index with no course correction.'),
               ],
             ),
           ),
         ],
+
+        // ── TIE BREAK ─────────────────────────────────────────
+        const BoxyArtSectionTitle(title: 'TIE BREAK'),
+        BoxyArtCard(
+          padding: const EdgeInsets.all(AppSpacing.xl),
+          child: Column(
+            children: [
+              BoxyArtDropdownField<TieBreakMethod>(
+                label: 'Tie Break Method',
+                value: _tieBreak,
+                items: const [
+                  DropdownMenuItem(value: TieBreakMethod.back9, child: Text('Standard (Back 9-6-3-1)')),
+                  DropdownMenuItem(value: TieBreakMethod.playoff, child: Text('Playoff (Manual Result)')),
+                ],
+                onChanged: (val) { if (val != null) setState(() => _tieBreak = val); },
+              ),
+              buildInfoBubble('Countback: fewest net strokes over the back 9 (B9→B6→B3→B1, then F9→F1) separates ties. Playoff requires a manual result.'),
+            ],
+          ),
+        ),
 
         // ── SERIES / MULTI-ROUND ──────────────────────────────
         const BoxyArtSectionTitle(title: 'ROUNDS'),
@@ -147,7 +182,9 @@ class _StrokePlayControlState extends BaseCompetitionControlState<StrokePlayCont
             onChanged: (val) { if (val != null) setState(() => _teamBestXCount = val); },
           ),
         ),
-        
+
+        buildTeamSection(),
+
         // ── PICK UP RULE ──────────────────────────────────────
         const BoxyArtSectionTitle(title: 'PICK UP RULE'),
         BoxyArtCard(
@@ -196,8 +233,6 @@ class _StrokePlayControlState extends BaseCompetitionControlState<StrokePlayCont
           ),
         ),
 
-        // ── OVERLAYS ──────────────────────────────────────────
-        buildOverlaySection(),
       ],
     );
   }
@@ -206,20 +241,23 @@ class _StrokePlayControlState extends BaseCompetitionControlState<StrokePlayCont
   CompetitionRules buildRules() {
     return CompetitionRules(
       format: CompetitionFormat.stroke,
-      mode: CompetitionMode.singles,
+      mode: isTeams ? CompetitionMode.teams : CompetitionMode.singles,
       handicapAllowance: _isNet ? _handicapAllowance : 0.0,
       handicapCap: _handicapCap,
       holeByHoleRequired: true,
       roundsCount: _roundsCount,
       aggregation: _aggregation,
+      tieBreak: _tieBreak,
       applyCapToIndex: _applyCapToIndex,
       teamBestXCount: _teamBestXCount,
       useMixedTeeAdjustment: _useMixedTeeAdjustment,
-      hasMatchPlayOverlay: hasMatchPlayOverlay,
       pickUpBehaviour: _pickUpBehaviour,
       maxScoreConfig: _pickUpBehaviour == PickUpBehaviour.maxScore
           ? MaxScoreConfig(type: _maxScoreType, value: _maxScoreValue)
           : null,
+      handicapMode: _isNet ? _handicapMode : HandicapMode.none,
+      teamAName: isTeams ? teamAName : null,
+      teamBName: isTeams ? teamBName : null,
     );
   }
 }

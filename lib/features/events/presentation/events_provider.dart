@@ -102,10 +102,10 @@ final eventsProvider = Provider<AsyncValue<List<GolfEvent>>>((ref) {
   );
 });
 
-/// Admin Events (All statuses)
-final adminEventsProvider = Provider<AsyncValue<List<GolfEvent>>>((ref) {
-  return ref.watch(allEventsProvider);
-});
+/// Admin Events (All statuses) — direct alias for [allEventsProvider].
+/// Avoids the `Provider<AsyncValue<T>>` wrapping a StreamProvider pattern that
+/// triggers a Riverpod v3 pause-count assertion on tab switches.
+final adminEventsProvider = allEventsProvider;
 
 // Global (Non-event) Expenses Stream
 final globalExpensesProvider = StreamProvider<List<EventExpense>>((ref) {

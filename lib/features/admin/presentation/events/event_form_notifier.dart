@@ -170,8 +170,17 @@ class EventFormNotifier extends AsyncNotifier<EventFormState> {
   void updateBuggyCollectedBySociety(bool v) => state = AsyncData(state.value!.copyWith(buggyCollectedBySociety: v));
   void updateMaxParticipants(int? v) => state = AsyncData(state.value!.copyWith(maxParticipants: v));
 
-  void updateTemplateId(String? v) => state = AsyncData(state.value!.copyWith(selectedTemplateId: v));
-  void updateSecondaryTemplateId(String? v) => state = AsyncData(state.value!.copyWith(secondaryTemplateId: v));
+  void updateTemplateId(String? v) => state = AsyncData(state.value!.copyWith(
+    selectedTemplateId: v,
+    eventCompetition: v == null ? null : state.value!.eventCompetition,
+    isCustomized: v == null ? false : state.value!.isCustomized,
+  ));
+
+  void updateSecondaryTemplateId(String? v) => state = AsyncData(state.value!.copyWith(
+    secondaryTemplateId: v,
+    secondaryCompetition: v == null ? null : state.value!.secondaryCompetition,
+    isSecondaryCustomized: v == null ? false : state.value!.isSecondaryCustomized,
+  ));
 
   Future<void> refreshCompetition({bool isSecondary = false}) async {
     final s = state.value;
@@ -327,8 +336,8 @@ class EventFormNotifier extends AsyncNotifier<EventFormState> {
       return false;
     }
 
-    state = const AsyncLoading();
-    
+    state = AsyncLoading<EventFormState>().copyWithPrevious(state);
+
     try {
       final repo = ref.read(eventsRepositoryProvider);
       
@@ -532,16 +541,22 @@ class EventFormNotifier extends AsyncNotifier<EventFormState> {
   Future<void> _syncCompetitions(String eventId, EventFormState s) async {
     final compRepo = ref.read(competitionsRepositoryProvider);
     final hasTemplate = s.selectedTemplateId != null;
-    final templateChanged = s.selectedTemplateId != s.initialEvent?.secondaryTemplateId; // This check might be wrong, checking against primary
+    final templateChanged = s.selectedTemplateId != s.eventCompetition?.templateId;
 
     // Primary Competition
     if (hasTemplate && (s.eventCompetition == null || templateChanged)) {
-      final templates = ref.read(templatesListProvider).value;
-      final template = templates?.firstWhereOrNull((t) => t.id == s.selectedTemplateId);
+      final cached = ref.read(templatesListProvider).value ?? [];
+      var template = cached.firstWhereOrNull((t) => t.id == s.selectedTemplateId);
+      // Newly-created templates may not be in the stream cache yet — fetch fresh if missing.
+      if (template == null) {
+        final fresh = await compRepo.getTemplates();
+        template = fresh.firstWhereOrNull((t) => t.id == s.selectedTemplateId);
+      }
       
       if (template != null) {
         final newComp = Competition(
           id: eventId,
+          name: template.name,
           templateId: s.selectedTemplateId,
           type: CompetitionType.event,
           status: CompetitionStatus.draft,
@@ -573,11 +588,17 @@ class EventFormNotifier extends AsyncNotifier<EventFormState> {
     if (s.secondaryTemplateId != null) {
       final secondaryId = '${eventId}_secondary';
       if (s.secondaryCompetition == null) {
-        final templates = ref.read(templatesListProvider).value;
-        final template = templates?.firstWhereOrNull((t) => t.id == s.secondaryTemplateId);
+        final cachedSecondary = ref.read(templatesListProvider).value ?? [];
+        var template = cachedSecondary.firstWhereOrNull((t) => t.id == s.secondaryTemplateId);
+        // Newly-created templates may not be in the stream cache yet — fetch fresh if missing.
+        if (template == null) {
+          final fresh = await compRepo.getTemplates();
+          template = fresh.firstWhereOrNull((t) => t.id == s.secondaryTemplateId);
+        }
         if (template != null) {
           final newSecondary = Competition(
             id: secondaryId,
+            name: template.name,
             templateId: s.secondaryTemplateId,
             type: CompetitionType.event,
             status: CompetitionStatus.draft,

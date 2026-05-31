@@ -22,11 +22,14 @@ class _PairsControlState extends BaseCompetitionControlState<PairsControl> {
   CompetitionFormat _scoringFormat = CompetitionFormat.stableford;
   int _handicapCap = 28;
   double _allowance = 1.0;
-  TieBreakMethod _tieBreak = TieBreakMethod.playoff;
+  TieBreakMethod _tieBreak = TieBreakMethod.back9;
   int _roundsCount = 1;
 
   @override
   CompetitionFormat get format => _scoringFormat;
+
+  @override
+  CompetitionSubtype get subtype => widget.subtype;
 
   @override
   void initState() {
@@ -40,7 +43,7 @@ class _PairsControlState extends BaseCompetitionControlState<PairsControl> {
     } else {
       _scoringFormat = CompetitionFormat.stableford;
       _handicapCap = 28;
-      _tieBreak = TieBreakMethod.playoff;
+      _tieBreak = TieBreakMethod.back9;
       _roundsCount = 1;
       _allowance = _getDefaultAllowance(_scoringFormat);
     }
@@ -147,8 +150,6 @@ class _PairsControlState extends BaseCompetitionControlState<PairsControl> {
           ),
         ],
         
-        // ── OVERLAYS ──────────────────────────────────────────
-        buildOverlaySection(),
       ],
     );
   }
@@ -192,7 +193,6 @@ class _PairsControlState extends BaseCompetitionControlState<PairsControl> {
           ? AggregationMethod.stablefordSum
           : AggregationMethod.totalSum,
       useMixedTeeAdjustment: true,
-      hasMatchPlayOverlay: hasMatchPlayOverlay,
     );
   }
 }

@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:golf_society/design_system/design_system.dart';
 import 'package:golf_society/domain/models/golf_event.dart';
 import 'package:collection/collection.dart';
@@ -13,6 +14,7 @@ import 'package:golf_society/features/events/presentation/widgets/grouping_widge
 import 'package:golf_society/features/admin/providers/admin_ui_providers.dart';
 import 'package:golf_society/features/notifications/domain/notification_broadcast_service.dart';
 import 'package:golf_society/features/matchplay/domain/golf_event_match_extensions.dart';
+import 'package:golf_society/features/matchplay/domain/match_definition.dart';
 import 'package:golf_society/features/events/domain/registration_logic.dart';
 import 'package:golf_society/features/events/domain/models/processed_event_data.dart';
 import 'package:golf_society/features/events/logic/event_scoring_controller.dart';
@@ -80,10 +82,14 @@ class _AdminGroupingHubContentState extends ConsumerState<AdminGroupingHubConten
         final bool statusLocked = event.status == EventStatus.inPlay || event.status == EventStatus.completed;
         var isLocked = (ref.watch(groupingIsLockedProvider) ?? (event.grouping['locked'] ?? false)) || statusLocked;
         var selectedForSwap = ref.watch(groupingSelectedForSwapProvider);
+        var selectedMatchPartner = ref.watch(groupingSelectedMatchPartnerProvider);
 
         // Derive Matchplay Mode from Competition Rules
         final bool isMatchPlay = comp?.rules.isMatchPlay ?? false;
         final bool isTournamentGrouping = comp?.rules.isTournamentStyleGrouping ?? false;
+        // Overlay pairings: primary game may not be match play, but overlay defines matches
+        final bool hasOverlayPairings = event.secondaryTemplateId != null && event.matches.isNotEmpty;
+        final bool effectivePairingMode = isMatchPlay || hasOverlayPairings;
 
         // Initialize grouping strategy and existing groups if needed
         final currentStrategy = ref.watch(groupingStrategyProvider);
@@ -116,7 +122,7 @@ class _AdminGroupingHubContentState extends ConsumerState<AdminGroupingHubConten
             ),
             child: BoxyArtFormColumn(
               children: [
-                if (!event.isRegistrationClosed && !event.occursToday)
+                if (!event.isRegistrationClosed && event.showRegistrationButton && !event.occursToday)
                   const Padding(
                     padding: EdgeInsets.symmetric(vertical: AppSpacing.hero),
                     child: BoxyArtEmptyCard(
@@ -125,18 +131,98 @@ class _AdminGroupingHubContentState extends ConsumerState<AdminGroupingHubConten
                       icon: Icons.lock_clock_outlined,
                     ),
                   )
+                // Overlay event with no tee sheet yet — draw must be sent to field first
+                else if (!isTournamentGrouping &&
+                    event.secondaryTemplateId != null &&
+                    localGroups == null &&
+                    event.status != EventStatus.inPlay &&
+                    event.status != EventStatus.completed)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: AppSpacing.hero),
+                    child: Column(
+                      children: [
+                        const BoxyArtEmptyCard(
+                          title: 'Match Play Draw Not Sent',
+                          message: 'This event has a match play overlay. Send the draw to the field from the Match Play Draw hub — tee groups will populate automatically.',
+                          icon: Icons.swap_horiz_rounded,
+                        ),
+                        const SizedBox(height: AppSpacing.lg),
+                        BoxyArtButton(
+                          title: 'Go to Match Play Draw',
+                          icon: Icons.swap_horiz_rounded,
+                          isTinted: true,
+                          fullWidth: true,
+                          onTap: () => context.pushNamed(
+                            'admin-event-matchplay-draw',
+                            pathParameters: {'id': event.id},
+                          ),
+                        ),
+                      ],
+                    ),
+                  )
                 else if (!isTournamentGrouping && event.status != EventStatus.inPlay && event.status != EventStatus.completed)
                   AdminGroupingHubCard(
                     event: event,
+                    memberMap: memberMap,
                     onGenerate: () => _handleAutoGenerate(context, ref, event, handicapMap, events),
+                    unassignedPlayers: localGroups != null && localGroups.isNotEmpty
+                        ? GroupingService.getUnassignedPlayers(
+                            event: event,
+                            groups: localGroups,
+                            memberHandicaps: handicapMap,
+                            rules: comp?.rules,
+                            useWhs: config.useWhsHandicaps,
+                            manualCuts: event.manualCuts,
+                          )
+                        : const [],
+                    hasCapacity: localGroups != null && localGroups.any((g) => g.players.length < 4),
+                    onAddToGroups: localGroups != null && localGroups.isNotEmpty
+                        ? () => _handleRecalculate(context, ref, event, localGroups!)
+                        : null,
                   )
                 else if (isTournamentGrouping && event.matches.isEmpty)
-                  const Padding(
-                    padding: EdgeInsets.symmetric(vertical: AppSpacing.hero),
-                    child: BoxyArtEmptyCard(
-                      title: 'No Draw Generated',
-                      message: 'Generate the tournament bracket in the Control Tower to see pairings here.',
-                      icon: Icons.account_tree_outlined,
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: AppSpacing.hero),
+                    child: Column(
+                      children: [
+                        const BoxyArtEmptyCard(
+                          title: 'No Draw Generated',
+                          message: 'Generate the match play bracket first. Pairings will appear here once published.',
+                          icon: Icons.account_tree_outlined,
+                        ),
+                        const SizedBox(height: AppSpacing.lg),
+                        BoxyArtButton(
+                          title: 'Go to Match Play Draw',
+                          icon: Icons.account_tree_outlined,
+                          isTinted: true,
+                          fullWidth: true,
+                          onTap: () => context.pushNamed(
+                            'admin-event-matchplay-draw',
+                            pathParameters: {'id': event.id},
+                          ),
+                        ),
+                      ],
+                    ),
+                  )
+                else if (isTournamentGrouping && event.matches.isNotEmpty && localGroups == null)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: AppSpacing.hero),
+                    child: Column(
+                      children: [
+                        const BoxyArtEmptyCard(
+                          title: 'Draw Saved as Draft',
+                          message: 'The draw is not yet published. Publish it from the Match Play Draw hub — the tee sheet will populate automatically.',
+                          icon: Icons.account_tree_outlined,
+                        ),
+                        const SizedBox(height: AppSpacing.lg),
+                        BoxyArtButton(
+                          title: 'Go to Match Play Draw',
+                          icon: Icons.account_tree_outlined,
+                          isTinted: true,
+                          fullWidth: true,
+                          onTap: () => context.pushNamed('admin-event-matchplay-draw', pathParameters: {'id': event.id}),
+                        ),
+                      ],
                     ),
                   ),
 
@@ -144,20 +230,28 @@ class _AdminGroupingHubContentState extends ConsumerState<AdminGroupingHubConten
                 // This prevents "Group 1" from appearing with members before the Draw is built
                 if (localGroups != null && (!isTournamentGrouping || event.matches.isNotEmpty)) ...[
                   _buildGroupingListLayout(
-                    context, 
-                    ref, 
-                    event, 
-                    localGroups, 
-                    memberMap, 
-                    history, 
-                    scorecardsAsync, 
-                    rules: comp?.rules, 
-                    useWhs: config.useWhsHandicaps, 
-                    isLocked: isLocked, 
-                    matchPlayMode: isMatchPlay, 
-                    selectedForSwap: selectedForSwap, 
+                    context,
+                    ref,
+                    event,
+                    localGroups,
+                    memberMap,
+                    history,
+                    scorecardsAsync,
+                    rules: comp?.rules,
+                    useWhs: config.useWhsHandicaps,
+                    isLocked: isLocked,
+                    matchPlayMode: effectivePairingMode,
+                    selectedForSwap: selectedForSwap,
+                    selectedMatchPartner: selectedMatchPartner,
                     computedEntries: computedEntries,
                     computedGroupResults: computedGroupResults,
+                    teamAssignments: () {
+                      final raw = comp?.publishSettings['teamAssignments'];
+                      if (raw is Map && raw.isNotEmpty) {
+                        return Map<String, String>.from(raw);
+                      }
+                      return null;
+                    }(),
                   ),
                 ],
               ],
@@ -171,23 +265,55 @@ class _AdminGroupingHubContentState extends ConsumerState<AdminGroupingHubConten
   }
 
 
-  void _handleAutoGenerate(BuildContext context, WidgetRef ref, GolfEvent event, Map<String, double> handicapMap, List<GolfEvent> allEvents) {
+  Future<void> _handleAutoGenerate(BuildContext context, WidgetRef ref, GolfEvent event, Map<String, double> handicapMap, List<GolfEvent> allEvents) async {
+    if (event.matches.isNotEmpty) {
+      final confirmed = await BoxyArtDialog.show<bool>(
+        context: context,
+        title: 'Regenerate Groups?',
+        message: 'This will re-sort tee groups from the draw. Any manual adjustments you\'ve made since the draw was pushed will be lost.',
+        confirmText: 'REGENERATE',
+        cancelText: 'CANCEL',
+        isDangerous: true,
+        onConfirm: () => Navigator.of(context, rootNavigator: true).pop(true),
+        onCancel: () => Navigator.of(context, rootNavigator: true).pop(false),
+      );
+      if (confirmed != true) return;
+    }
+
     final strategy = ref.read(groupingStrategyProvider);
-    
+    final comp = ref.read(competitionDetailProvider(event.id)).value;
+
     final participants = RegistrationLogic.getPlayingParticipants(event);
     if (participants.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('No confirmed participants to group')));
       return;
     }
 
-    final newGroups = GroupingService.generateInitialGrouping(
-      event: event, 
-      participants: participants,
-      previousEventsInSeason: allEvents,
-      memberHandicaps: handicapMap,
-      config: ref.read(themeControllerProvider),
-      strategy: strategy,
-    );
+    final List<TeeGroup> newGroups;
+
+    if (event.matches.isNotEmpty) {
+      newGroups = GroupingService.generateMatchPlayGrouping(
+        event: event,
+        matches: event.matches,
+        participants: participants,
+        previousEventsInSeason: allEvents,
+        memberHandicaps: handicapMap,
+        config: ref.read(themeControllerProvider),
+        rules: comp?.rules,
+        useWhs: ref.read(themeControllerProvider).useWhsHandicaps,
+      );
+    } else {
+      newGroups = GroupingService.generateInitialGrouping(
+        event: event,
+        participants: participants,
+        previousEventsInSeason: allEvents,
+        memberHandicaps: handicapMap,
+        config: ref.read(themeControllerProvider),
+        strategy: strategy,
+        rules: comp?.rules,
+        useWhs: ref.read(themeControllerProvider).useWhsHandicaps,
+      );
+    }
 
     ref.read(groupingLocalGroupsProvider.notifier).setGroups(newGroups);
     _handleSave(context, ref, event);
@@ -217,20 +343,11 @@ class _AdminGroupingHubContentState extends ConsumerState<AdminGroupingHubConten
     }
   }
 
-  Widget _buildGroupingListLayout(BuildContext context, WidgetRef ref, GolfEvent event, List<TeeGroup> localGroups, Map<String, Member> memberMap, List<GolfEvent> history, AsyncValue<List<Scorecard>> scorecardsAsync, {CompetitionRules? rules, bool useWhs = true, required bool isLocked, required bool matchPlayMode, required TeeGroupParticipant? selectedForSwap, Map<String, ProcessedLeaderboardEntry>? computedEntries, Map<int, ProcessedGroupResult>? computedGroupResults}) {
+  Widget _buildGroupingListLayout(BuildContext context, WidgetRef ref, GolfEvent event, List<TeeGroup> localGroups, Map<String, Member> memberMap, List<GolfEvent> history, AsyncValue<List<Scorecard>> scorecardsAsync, {CompetitionRules? rules, bool useWhs = true, required bool isLocked, required bool matchPlayMode, required TeeGroupParticipant? selectedForSwap, TeeGroupParticipant? selectedMatchPartner, Map<String, ProcessedLeaderboardEntry>? computedEntries, Map<int, ProcessedGroupResult>? computedGroupResults, Map<String, String>? teamAssignments}) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 100),
       child: BoxyArtFormColumn(
         children: [
-          if (!isLocked) ...[
-            BoxyArtButton(
-              title: 'Recalculate',
-              icon: Icons.refresh_rounded,
-              fullWidth: true,
-              onTap: () => _handleRecalculate(context, ref, event, localGroups),
-            ),
-            const SizedBox(height: AppSpacing.standard),
-          ],
           ...localGroups.mapIndexed((index, group) {
                   return GroupingCard(
                     group: group,
@@ -243,20 +360,21 @@ class _AdminGroupingHubContentState extends ConsumerState<AdminGroupingHubConten
                     isAdmin: true,
                     isLocked: isLocked,
                     onMove: (sp, sg, tg, tp) => _handleMove(ref, localGroups, isLocked, sp, sg, tg, tp),
-                    onAction: (action, p, g) => _handlePlayerAction(ref, localGroups, action, p, g),
-                    onTapParticipant: (p, g) => _handleParticipantTap(ref, localGroups, isLocked, p, g),
-                    isSelected: (p) => p == selectedForSwap,
+                    onAction: (action, p, g) => _handlePlayerAction(ref, localGroups, action, p, g, matchPlayMode: matchPlayMode, matches: event.matches),
+                    onTapParticipant: (p, g) => _handleParticipantTap(ref, localGroups, isLocked, p, g, matchPlayMode: matchPlayMode, matches: event.matches),
+                    isSelected: (p) => p == selectedForSwap || p == selectedMatchPartner,
                     matchPlayMode: matchPlayMode,
                     matches: event.matches,
                     groupIndex: index,
                     hcMap: {for (var p in localGroups.expand((g) => g.players)) (p.isGuest ? '${p.registrationMemberId}_guest' : p.registrationMemberId): p.handicapIndex},
-                     scorecardMap: scorecardsAsync.asData?.value != null 
+                     scorecardMap: scorecardsAsync.asData?.value != null
                          ? {for (var s in scorecardsAsync.asData!.value) s.entryId: s}
                          : null,
-                    isScoreMode: false, 
-                    showScoring: false, 
+                    isScoreMode: false,
+                    showScoring: false,
                     computedEntries: computedEntries,
                     computedGroupResults: computedGroupResults,
+                    teamAssignments: teamAssignments,
                   );
         }),
         ],
@@ -297,20 +415,76 @@ class _AdminGroupingHubContentState extends ConsumerState<AdminGroupingHubConten
     _updateDirty(true, newGroups, isLocked);
   }
 
-  void _handleParticipantTap(WidgetRef ref, List<TeeGroup> groups, bool isLocked, TeeGroupParticipant p, TeeGroup g) {
+  void _handleParticipantTap(WidgetRef ref, List<TeeGroup> groups, bool isLocked, TeeGroupParticipant p, TeeGroup g, {bool matchPlayMode = false, List<MatchDefinition> matches = const []}) {
     if (isLocked) return;
     final selected = ref.read(groupingSelectedForSwapProvider);
+
+    void clearSelection() {
+      ref.read(groupingSelectedForSwapProvider.notifier).set(null);
+      ref.read(groupingSelectedMatchPartnerProvider.notifier).set(null);
+    }
+
     if (selected == null) {
       ref.read(groupingSelectedForSwapProvider.notifier).set(p);
-    } else if (selected == p) {
-      ref.read(groupingSelectedForSwapProvider.notifier).set(null);
+      if (matchPlayMode) {
+        final partner = _findMatchPartner(p, groups, matches);
+        ref.read(groupingSelectedMatchPartnerProvider.notifier).set(partner);
+      }
+    } else if (selected == p || ref.read(groupingSelectedMatchPartnerProvider) == p) {
+      clearSelection();
     } else {
-      _handleMove(ref, groups, isLocked, selected, null, g, p); 
-      ref.read(groupingSelectedForSwapProvider.notifier).set(null);
+      final sourceGroup = groups.firstWhereOrNull((group) => group.players.contains(selected));
+      if (matchPlayMode) {
+        final partner = ref.read(groupingSelectedMatchPartnerProvider);
+        _handleMatchPairMove(ref, groups, isLocked, selected, partner, sourceGroup, g, p, matches);
+      } else {
+        _handleMove(ref, groups, isLocked, selected, sourceGroup, g, p);
+      }
+      clearSelection();
     }
   }
 
-  void _handlePlayerAction(WidgetRef ref, List<TeeGroup> groups, String action, TeeGroupParticipant p, TeeGroup currentGroup) async {
+  TeeGroupParticipant? _findMatchPartner(TeeGroupParticipant p, List<TeeGroup> groups, List<MatchDefinition> matches) {
+    final playerId = p.registrationMemberId;
+    for (final match in matches) {
+      String? opponentId;
+      if (match.team1Ids.contains(playerId)) {
+        opponentId = match.team2Ids.firstOrNull;
+      } else if (match.team2Ids.contains(playerId)) {
+        opponentId = match.team1Ids.firstOrNull;
+      }
+      if (opponentId != null) {
+        for (final group in groups) {
+          final opponent = group.players.firstWhereOrNull((pl) => pl.registrationMemberId == opponentId);
+          if (opponent != null) return opponent;
+        }
+      }
+    }
+    return null;
+  }
+
+  void _handleMatchPairMove(WidgetRef ref, List<TeeGroup> groups, bool isLocked, TeeGroupParticipant selected, TeeGroupParticipant? partner, TeeGroup? sourceGroup, TeeGroup targetGroup, TeeGroupParticipant targetP, List<MatchDefinition> matches) {
+    if (isLocked || sourceGroup == targetGroup) return;
+    final targetPartner = _findMatchPartner(targetP, groups, matches);
+
+    final newGroups = List<TeeGroup>.from(groups);
+
+    sourceGroup?.players.remove(selected);
+    if (partner != null) sourceGroup?.players.remove(partner);
+    targetGroup.players.remove(targetP);
+    if (targetPartner != null) targetGroup.players.remove(targetPartner);
+
+    targetGroup.players.add(selected);
+    if (partner != null) targetGroup.players.add(partner);
+    if (sourceGroup != null) {
+      sourceGroup.players.add(targetP);
+      if (targetPartner != null) sourceGroup.players.add(targetPartner);
+    }
+
+    _updateDirty(true, newGroups, isLocked);
+  }
+
+  void _handlePlayerAction(WidgetRef ref, List<TeeGroup> groups, String action, TeeGroupParticipant p, TeeGroup currentGroup, {bool matchPlayMode = false, List<MatchDefinition> matches = const []}) async {
     if (action == 'captain') {
       for (final member in currentGroup.players) {
         member.isCaptain = false;
@@ -323,7 +497,7 @@ class _AdminGroupingHubContentState extends ConsumerState<AdminGroupingHubConten
         _updateDirty(true, groups, null);
       });
     } else if (action == 'move') {
-      _showMoveSheet(context, ref, groups, p, currentGroup);
+      _showMoveSheet(context, ref, groups, p, currentGroup, matchPlayMode: matchPlayMode, matches: matches);
     } else if (action == 'tee') {
        final eventsAsync = ref.read(adminEventsProvider);
        final event = eventsAsync.value?.firstWhere((e) => e.id == widget.eventId);
@@ -393,10 +567,14 @@ class _AdminGroupingHubContentState extends ConsumerState<AdminGroupingHubConten
     }
   }
 
-  void _showMoveSheet(BuildContext context, WidgetRef ref, List<TeeGroup> groups, TeeGroupParticipant p, TeeGroup currentGroup) {
+  void _showMoveSheet(BuildContext context, WidgetRef ref, List<TeeGroup> groups, TeeGroupParticipant p, TeeGroup currentGroup, {bool matchPlayMode = false, List<MatchDefinition> matches = const []}) {
+    final partner = matchPlayMode ? _findMatchPartner(p, groups, matches) : null;
+    final slotsNeeded = partner != null ? 2 : 1;
+    final sheetTitle = partner != null ? 'Move ${p.name} + Opponent' : 'Move ${p.name}';
+
     BoxyArtBottomSheet.show(
       context: context,
-      title: 'Move ${p.name}',
+      title: sheetTitle,
       child: BoxyArtCard(
         padding: EdgeInsets.zero,
         child: Column(
@@ -404,7 +582,7 @@ class _AdminGroupingHubContentState extends ConsumerState<AdminGroupingHubConten
           children: groups.asMap().entries.where((e) => e.value != currentGroup).map((e) {
             final idx = e.key;
             final group = e.value;
-            final isFull = group.players.length >= 4;
+            final isFull = group.players.length + slotsNeeded > 4;
             return Column(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -419,7 +597,9 @@ class _AdminGroupingHubContentState extends ConsumerState<AdminGroupingHubConten
                     Navigator.pop(context);
                     setState(() {
                       currentGroup.players.remove(p);
+                      if (partner != null) currentGroup.players.remove(partner);
                       group.players.add(p);
+                      if (partner != null) group.players.add(partner);
                       _updateDirty(true, groups, null);
                     });
                   },
@@ -464,6 +644,18 @@ class _AdminGroupingHubContentState extends ConsumerState<AdminGroupingHubConten
         group.players.add(pool.removeAt(0));
       }
       if (pool.isEmpty) break;
+    }
+
+    // Safety: a solo player remaining would create an invalid 1-ball group.
+    // Steal one from the largest full group to make a 2-ball instead.
+    if (pool.length == 1) {
+      final donor = updatedGroups
+          .where((g) => g.players.length >= 4)
+          .fold<TeeGroup?>(null, (best, g) =>
+              best == null || g.players.length > best.players.length ? g : best);
+      if (donor != null) {
+        pool.insert(0, donor.players.removeLast());
+      }
     }
 
     while (pool.isNotEmpty) {

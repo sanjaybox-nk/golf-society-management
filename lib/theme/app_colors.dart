@@ -20,6 +20,7 @@ class AppColors {
   static const Color coral100 = Color(0xFFFFF0ED);
 
   // Primitives - Amber (Achievement)
+  static const Color amber700 = Color(0xFFB45309); // Text-safe dark amber
   static const Color amber500 = Color(0xFFFFAA00);
   static const Color amber400 = Color(0xFFFFBF33);
   static const Color amber100 = Color(0xFFFFF8E6);

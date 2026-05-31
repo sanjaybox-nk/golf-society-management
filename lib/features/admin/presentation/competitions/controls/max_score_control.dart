@@ -119,17 +119,10 @@ class _MaxScoreControlState extends BaseCompetitionControlState<MaxScoreControl>
         BoxyArtCard(
           padding: const EdgeInsets.all(AppSpacing.xl),
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              BoxyArtDropdownField<TieBreakMethod>(
-                label: 'Tie Break Method',
-                value: _tieBreak,
-                items: const [
-                  DropdownMenuItem(value: TieBreakMethod.back9, child: Text('Standard (Back 9-6-3-1)')),
-                  DropdownMenuItem(value: TieBreakMethod.playoff, child: Text('Playoff (Manual Result)')),
-                ],
-                onChanged: (val) { if (val != null) setState(() => _tieBreak = val); },
-              ),
-              buildInfoBubble('Standard results use reverse hole comparison. Playoff is sudden-death.'),
+              buildInfoRow('Tie Break Method', 'Standard (Back 9-6-3-1)'),
+              buildInfoBubble('Max Score always uses countback — back 9, back 6, back 3, then back 1.'),
             ],
           ),
         ),
@@ -176,8 +169,6 @@ class _MaxScoreControlState extends BaseCompetitionControlState<MaxScoreControl>
           ),
         ),
         
-        // ── OVERLAYS ──────────────────────────────────────────
-        buildOverlaySection(),
       ],
     );
   }

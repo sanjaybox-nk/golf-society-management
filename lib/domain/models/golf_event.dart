@@ -130,6 +130,7 @@ abstract class GolfEvent with _$GolfEvent {
     @Default([]) List<EventNote> notes, // DEPRECATED: Moving to feedItems
     @Default([]) List<String> galleryUrls,
     @Default(true) bool showRegistrationButton,
+    @Default([]) List<String> targetedRegistrationIds,
     @Default(10) int teeOffInterval,
     @Default(false) bool isGroupingPublished,
     // Multi-day support
@@ -193,15 +194,25 @@ abstract class GolfEvent with _$GolfEvent {
   bool get isRegistrationOpen {
     // 1. Explicit Toggle must be ON
     if (!showRegistrationButton) return false;
-    
+
     // 2. Event must not be closed (completed/cancelled)
     if (isClosed) return false;
-    
+
     // 3. Deadline must not have passed
     if (isRegistrationClosed) return false;
-    
+
     // 4. Status must be published or inPlay (Live)
     return status == EventStatus.published || status == EventStatus.inPlay;
+  }
+
+  /// True when registration is closed but specific members are still allowed to register.
+  bool get isTargetedRegistration =>
+      !showRegistrationButton && targetedRegistrationIds.isNotEmpty;
+
+  bool canRegister(String memberId) {
+    if (isRegistrationOpen) return true;
+    if (isTargetedRegistration && targetedRegistrationIds.contains(memberId)) return true;
+    return false;
   }
 
   /// Synthesizes missing system blocks so older events automatically gain them natively

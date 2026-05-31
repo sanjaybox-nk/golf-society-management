@@ -24,7 +24,12 @@ import 'seeding/member_seeder.dart';
 import 'seeding/survey_seeder.dart';
 import 'seeding/event_seeder.dart';
 import 'seeding/match_play_seeder.dart';
+import 'seeding/match_play_event_seeder.dart';
+import 'seeding/registration_scaffold_seeder.dart';
 import 'seeding/scenario_seeder.dart';
+import 'seeding/singles_scorecard_seeder.dart';
+import 'seeding/fourball_scorecard_seeder.dart';
+import 'seeding/scramble_scorecard_seeder.dart';
 import 'seeding/data_constants.dart';
 import 'package:golf_society/features/guests/data/guest_repository.dart';
 
@@ -285,6 +290,31 @@ class SeedingService {
     }
   }
 
+  Future<String> seedRegistrationScaffold({int playerCount = 16}) async {
+    try {
+      if (kDebugMode) debugPrint('--- STARTING REGISTRATION SCAFFOLD ($playerCount players) ---');
+      final eventId = await RegistrationScaffoldSeeder(ref, _random).seed(playerCount: playerCount);
+      if (kDebugMode) debugPrint('--- REGISTRATION SCAFFOLD COMPLETED: $eventId ---');
+      return eventId;
+    } catch (e, stack) {
+      if (kDebugMode) debugPrint('REGISTRATION SCAFFOLD FAILURE: $e');
+      if (kDebugMode) debugPrint(stack.toString());
+      rethrow;
+    }
+  }
+
+  Future<void> seedMatchPlayEventUAT(MatchPlayEventStage stage) async {
+    try {
+      if (kDebugMode) debugPrint('--- STARTING MATCHPLAY EVENT UAT (${stage.name.toUpperCase()}) ---');
+      await MatchPlayEventSeeder(ref, _random).seed(stage);
+      if (kDebugMode) debugPrint('--- MATCHPLAY EVENT UAT COMPLETED ---');
+    } catch (e, stack) {
+      if (kDebugMode) debugPrint('MATCHPLAY EVENT SEEDER FAILURE: $e');
+      if (kDebugMode) debugPrint(stack.toString());
+      rethrow;
+    }
+  }
+
   Future<void> seedStablefordLeaderboardUAT() async {
     try {
       if (kDebugMode) debugPrint('--- STARTING STABLEFORD LEADERBOARD UAT ---');
@@ -292,6 +322,63 @@ class SeedingService {
       if (kDebugMode) debugPrint('--- STABLEFORD LEADERBOARD UAT COMPLETED ---');
     } catch (e, stack) {
       if (kDebugMode) debugPrint('STABLEFORD LEADERBOARD UAT FAILURE: $e');
+      if (kDebugMode) debugPrint(stack.toString());
+      rethrow;
+    }
+  }
+
+  /// Clear activity → harden members → seed one in-play singles event.
+  /// Switch the competition template in the event editor to test each scorecard format.
+  Future<String> seedSinglesShowcase() async {
+    try {
+      if (kDebugMode) debugPrint('--- STARTING SINGLES SCORECARD SHOWCASE ---');
+      await clearActivityData();
+      await MemberSeeder(ref, _random).seed();
+      await _seedGuestPool();
+      final eventId = await SinglesScorecardSeeder(ref, _random).seed();
+      if (kDebugMode) debugPrint('--- SINGLES SHOWCASE COMPLETED: $eventId ---');
+      return eventId;
+    } catch (e, stack) {
+      if (kDebugMode) debugPrint('SINGLES SHOWCASE FAILURE: $e');
+      if (kDebugMode) debugPrint(stack.toString());
+      rethrow;
+    }
+  }
+
+  /// Clear activity → harden members → seed one in-play Fourball (Betterball) event.
+  /// 8 members across 2 groups — players [0,1] and [2,3] in each group are pairs.
+  /// Competition is preserved so the pair resolution and bestball engine can run.
+  Future<String> seedFourballShowcase() async {
+    try {
+      if (kDebugMode) debugPrint('--- STARTING FOURBALL SCORECARD SHOWCASE ---');
+      await clearActivityData();
+      await MemberSeeder(ref, _random).seed();
+      await _seedGuestPool();
+      final eventId = await FourballScorecardSeeder(ref, _random).seed();
+      if (kDebugMode) debugPrint('--- FOURBALL SHOWCASE COMPLETED: $eventId ---');
+      return eventId;
+    } catch (e, stack) {
+      if (kDebugMode) debugPrint('FOURBALL SHOWCASE FAILURE: $e');
+      if (kDebugMode) debugPrint(stack.toString());
+      rethrow;
+    }
+  }
+
+  /// Clear activity → harden members → seed one in-play Texas Scramble event.
+  /// 12 members across 3 teams of 4. Scorecards post-processed so all team members
+  /// share identical hole scores. Group 1 has deliberate drive violations (p0 took 6/9)
+  /// to exercise the amber drive-warning banner.
+  Future<String> seedScrambleShowcase() async {
+    try {
+      if (kDebugMode) debugPrint('--- STARTING SCRAMBLE SCORECARD SHOWCASE ---');
+      await clearActivityData();
+      await MemberSeeder(ref, _random).seed();
+      await _seedGuestPool();
+      final eventId = await ScrambleScorecardSeeder(ref, _random).seed();
+      if (kDebugMode) debugPrint('--- SCRAMBLE SHOWCASE COMPLETED: $eventId ---');
+      return eventId;
+    } catch (e, stack) {
+      if (kDebugMode) debugPrint('SCRAMBLE SHOWCASE FAILURE: $e');
       if (kDebugMode) debugPrint(stack.toString());
       rethrow;
     }

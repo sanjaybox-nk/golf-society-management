@@ -22,8 +22,9 @@ class CompetitionBadgeRow extends StatelessWidget {
 
     // 1. Format Pill (Stroke Play, Match Play, etc.)
     pills.add(
-      BoxyArtIndicator.format(
+      BoxyArtIndicator.status(
         label: rules.isMatchPlay ? rules.gameName : rules.format.name,
+        color: AppColors.dark300,
         isLegend: true,
       ),
     );
@@ -41,24 +42,27 @@ class CompetitionBadgeRow extends StatelessWidget {
 
     // 2. Scoring Pill (Net or Gross)
     pills.add(
-      BoxyArtIndicator.format(
+      BoxyArtIndicator.status(
         label: rules.scoringType,
+        color: AppColors.dark300,
         isLegend: true,
       ),
     );
 
     // 3. Allowance Pill (e.g., 95% HCP)
     pills.add(
-      BoxyArtIndicator.format(
+      BoxyArtIndicator.status(
         label: rules.defaultAllowanceLabel,
+        color: AppColors.dark300,
         isLegend: true,
       ),
     );
 
     // 4. Mode Pill (Singles, Pairs, Team)
     pills.add(
-      BoxyArtIndicator.format(
+      BoxyArtIndicator.status(
         label: rules.modeLabel,
+        color: AppColors.dark300,
         isLegend: true,
       ),
     );
@@ -193,7 +197,7 @@ class CompetitionRulesCard extends ConsumerWidget {
   Widget _buildErrorState(Object e) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: AppSpacing.xl),
-      child: BoxyArtEmptyState(
+      child: BoxyArtEmptyCard(
         title: 'Rules Unavailable',
         message: 'Problem loading competition rules: $e',
         icon: Icons.error_outline_rounded,
@@ -264,7 +268,7 @@ class CompetitionRulesCard extends ConsumerWidget {
                                           ),
                                           const SizedBox(height: 2),
                                           Text(
-                                            isSecondary ? 'SECONDARY OVERLAY' : comp.rules.gameName.toUpperCase(),
+                                            isSecondary ? 'SECONDARY OVERLAY' : isTemplate ? 'NOT YET CONFIGURED' : comp.rules.gameName.toUpperCase(),
                                             style: AppTypography.micro.copyWith(
                                               color: isDark ? AppColors.dark300 : AppColors.dark400,
                                               fontWeight: AppTypography.weightBold,
@@ -297,11 +301,12 @@ class CompetitionRulesCard extends ConsumerWidget {
                                 
                                 const SizedBox(height: AppSpacing.xl),
                                 
-                                CompetitionBadgeRow(
-                                  rules: comp.rules,
-                                  eventId: eventId,
-                                  baseColor: accent,
-                                ),
+                                if (!isTemplate)
+                                  CompetitionBadgeRow(
+                                    rules: comp.rules,
+                                    eventId: eventId,
+                                    baseColor: accent,
+                                  ),
                         
                         if (extraBadges != null && extraBadges!.isNotEmpty) ...[
                           const SizedBox(height: AppSpacing.lg),
@@ -332,7 +337,6 @@ class CompetitionRulesCard extends ConsumerWidget {
                               Expanded(
                                 child: BoxyArtButton(
                                   title: (customizeLabel ?? 'CUSTOMIZE').toUpperCase(),
-                                  icon: Icons.tune_rounded,
                                   fullWidth: true,
                                   onTap: onCustomize!,
                                 ),
@@ -345,7 +349,6 @@ class CompetitionRulesCard extends ConsumerWidget {
                                   title: "REMOVE",
                                   isGhost: true,
                                   fullWidth: true,
-                                  icon: Icons.delete_outline,
                                   textColor: isDark ? AppColors.coral400 : AppColors.coral500,
                                   onTap: onRemove!,
                                 ),

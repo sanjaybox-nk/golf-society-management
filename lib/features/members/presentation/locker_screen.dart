@@ -446,7 +446,7 @@ class LockerScreen extends ConsumerWidget {
                         message: 'Fetching highlights',
                         isCompact: true,
                       ),
-                      error: (e, s) => BoxyArtEmptyState(title: 'Stats Error', message: 'Unable to load performance highlights', icon: Icons.error_outline_rounded, isCompact: true),
+                      error: (e, s) => BoxyArtEmptyCard(title: 'Stats Error', message: 'Unable to load performance highlights', icon: Icons.error_outline_rounded, isCompact: true),
                     );
                   },
                 ),

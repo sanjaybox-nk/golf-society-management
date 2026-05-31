@@ -1,1044 +1,359 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:golf_society/design_system/design_system.dart';
-import 'package:go_router/go_router.dart';
-import '../../../../domain/scoring/handicap_calculator.dart';
-import '../../../../domain/grouping/grouping_service.dart';
-import 'package:golf_society/domain/models/competition.dart';
 import 'package:golf_society/domain/models/golf_event.dart';
-import 'package:golf_society/domain/models/event_registration.dart';
-import 'package:golf_society/domain/models/member.dart';
-import '../../../events/domain/registration_logic.dart';
-import 'package:golf_society/domain/models/scorecard.dart';
-import '../../providers/admin_ui_providers.dart';
-import '../../../events/presentation/events_provider.dart';
-import '../../../members/presentation/members_provider.dart';
-import 'package:golf_society/domain/models/society_config.dart';
-import '../../../competitions/presentation/competitions_provider.dart';
-import '../../../events/presentation/widgets/grouping_widgets.dart';
-import '../../../matchplay/domain/match_definition.dart';
-import '../../../matchplay/domain/golf_event_match_extensions.dart';
-import '../../logic/society_cuts_engine.dart';
-import '../../../events/logic/event_scoring_controller.dart';
-import '../../../events/domain/models/processed_event_data.dart';
+import 'package:golf_society/domain/grouping/grouping_service.dart';
+import 'package:golf_society/features/admin/providers/admin_ui_providers.dart';
+import 'package:golf_society/features/competitions/presentation/competitions_provider.dart';
+import 'package:golf_society/features/events/presentation/events_provider.dart';
+import 'package:golf_society/features/members/presentation/members_provider.dart';
+import 'package:golf_society/utils/string_utils.dart';
+import 'package:go_router/go_router.dart';
 
-class EventAdminGroupingScreen extends ConsumerStatefulWidget {
+class EventAdminGroupingScreen extends ConsumerWidget {
   final String eventId;
 
   const EventAdminGroupingScreen({super.key, required this.eventId});
 
   @override
-  ConsumerState<EventAdminGroupingScreen> createState() => _EventAdminGroupingScreenState();
-}
+  Widget build(BuildContext context, WidgetRef ref) {
+    final eventAsync = ref.watch(eventProvider(eventId));
+    final spacing = Theme.of(context).extension<AppSpacingTokens>();
 
-enum GroupingExitAction { discard, save, stay }
+    return eventAsync.when(
+      data: (event) {
+        final config = ref.watch(themeControllerProvider);
+        final strategy = event.groupingStrategy ?? config.groupingStrategy;
+        final isLocked = ref.watch(groupingIsLockedProvider) ?? (event.grouping['locked'] ?? false);
 
-class _EventAdminGroupingScreenState extends ConsumerState<EventAdminGroupingScreen> {
-  List<TeeGroup>? _localGroups;
-  bool? _isLocked;
-  bool _isDirty = false;
-  bool _showGenerationOptions = false;
-  final ScrollController _scrollController = ScrollController();
-  
-  // Swap state
-  TeeGroupParticipant? _selectedForSwap;
-  TeeGroup? _selectedGroupForSwap;
-  
-  // Match sync state
-  List<MatchDefinition>? _localMatches;
-
-  @override
-  void dispose() {
-    _scrollController.dispose();
-    super.dispose();
+        return HeadlessScaffold(
+          title: 'Grouping Settings',
+          subtitle: event.title,
+          topPill: BoxyArtIndicator.committee(label: 'ADMIN'),
+          showBack: true,
+          onBack: () => context.pop(),
+          slivers: [
+            SliverPadding(
+              padding: EdgeInsets.symmetric(
+                horizontal: spacing?.cardHorizontalPadding ?? AppSpacing.xl,
+              ),
+              sliver: SliverList(
+                delegate: SliverChildListDelegate([
+                  const BoxyArtSectionTitle(title: 'Grouping configuration', isPeeking: true),
+                  BoxyArtCard(
+                    padding: EdgeInsets.zero,
+                    child: Column(
+                      children: [
+                        _SettingsRow(
+                          icon: Icons.auto_awesome_outlined,
+                          title: 'Default Strategy',
+                          value: toSentenceCase(strategy),
+                          onTap: () => _showStrategyPicker(context, ref, event, strategy),
+                        ),
+                        const BoxyArtDivider(),
+                        _SettingsRow(
+                          icon: Icons.timer_outlined,
+                          title: 'Tee Interval',
+                          value: '${event.teeOffInterval} mins',
+                          onTap: () => _showIntervalPicker(context, ref, event),
+                        ),
+                        const BoxyArtDivider(),
+                        BoxyArtSwitchTile(
+                          icon: Icons.lock_person_outlined,
+                          label: 'Lock Grouping',
+                          subtitle: 'Prevent accidental changes to the tee sheet while editing.',
+                          value: isLocked,
+                          onChanged: (val) => _handleLockToggle(context, ref, event, val),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.hero),
+                ]),
+              ),
+            ),
+          ],
+        );
+      },
+      loading: () => const HeadlessScaffold(
+        title: 'Loading...',
+        slivers: [SliverFillRemaining(child: Center(child: CircularProgressIndicator()))],
+      ),
+      error: (err, st) => HeadlessScaffold(
+        title: 'Error',
+        slivers: [SliverFillRemaining(child: Center(child: Text('Error: $err')))],
+      ),
+    );
   }
 
-  void _updateDirty(bool dirty) {
-    if (_isDirty != dirty) {
-      setState(() {
-        _isDirty = dirty;
-      });
-      // Sync with global provider for shell navigation protection
-      ref.read(groupingDirtyProvider.notifier).setDirty(dirty);
-      
-      // Update shared data providers whenever dirty (to ensure shell has latest for saving)
-      if (dirty) {
-        ref.read(groupingLocalGroupsProvider.notifier).setGroups(_localGroups);
-        ref.read(groupingIsLockedProvider.notifier).setLocked(_isLocked);
+  void _showStrategyPicker(BuildContext context, WidgetRef ref, GolfEvent event, String current) {
+    Future<void> select(String value) async {
+      Navigator.pop(context);
+      await ref.read(eventsRepositoryProvider).updateEvent(
+        event.copyWith(groupingStrategy: value),
+      );
+    }
+
+    BoxyArtBottomSheet.show(
+      context: context,
+      title: 'Default Strategy',
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          BoxyArtSelectCard(
+            icon: Icons.shuffle_rounded,
+            label: 'Random',
+            description: 'Socially varied pairings with no influence from ability.',
+            isSelected: current == 'random',
+            onTap: () => select('random'),
+          ),
+          BoxyArtSelectCard(
+            icon: Icons.balance_rounded,
+            label: 'Balanced',
+            description: 'Aims to normalize total handicap across all groups.',
+            isSelected: current == 'balanced',
+            onTap: () => select('balanced'),
+          ),
+          BoxyArtSelectCard(
+            icon: Icons.trending_up_rounded,
+            label: 'Progressive',
+            description: 'Ordered by handicap — lower handicaps at the front.',
+            isSelected: current == 'progressive',
+            onTap: () => select('progressive'),
+          ),
+          BoxyArtSelectCard(
+            icon: Icons.people_outline_rounded,
+            label: 'Similar Ability',
+            description: 'Groups players with similar handicaps together.',
+            isSelected: current == 'similar',
+            onTap: () => select('similar'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showIntervalPicker(BuildContext context, WidgetRef ref, GolfEvent event) {
+    BoxyArtBottomSheet.show(
+      context: context,
+      title: 'Tee Interval',
+      child: _IntervalPickerContent(
+        initialValue: event.teeOffInterval,
+        onChanged: (value) => ref.read(eventsRepositoryProvider).updateEvent(
+          event.copyWith(teeOffInterval: value),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _handleLockToggle(BuildContext context, WidgetRef ref, GolfEvent event, bool val) async {
+    if (!val) {
+      ref.read(groupingIsLockedProvider.notifier).setLocked(false);
+      return;
+    }
+
+    final members = ref.read(allMembersProvider).value ?? [];
+    final societyConfig = ref.read(themeControllerProvider);
+    final comp = ref.read(competitionDetailProvider(event.id)).value;
+
+    final groupsData = event.grouping['groups'] as List?;
+    final groups = groupsData?.map((g) => TeeGroup.fromJson(g)).toList() ?? [];
+
+    final pool = GroupingService.getUnassignedPlayers(
+      event: event,
+      groups: groups,
+      memberHandicaps: {for (var m in members) m.id: m.handicap},
+      rules: comp?.rules,
+      useWhs: societyConfig.useWhsHandicaps,
+      manualCuts: event.manualCuts,
+    );
+
+    if (pool.isNotEmpty) {
+      final names = pool.map((p) => p.name).join(', ');
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => BoxyArtDialog(
+          title: 'Unassigned Players Found',
+          message: 'The following confirmed players are not in any group: $names.\n\nWould you like to auto-fill them into vacancies before locking?',
+          confirmText: 'Auto-fill & lock',
+          cancelText: 'Just lock',
+          onConfirm: () => Navigator.pop(ctx, true),
+          onCancel: () => Navigator.pop(ctx, false),
+        ),
+      );
+
+      if (confirmed == null) return;
+
+      if (confirmed) {
+        final updatedGroups = GroupingService.autoFillVacancies(groups: groups, pool: pool);
+        await ref.read(eventsRepositoryProvider).updateEvent(
+          event.copyWith(
+            grouping: {
+              ...event.grouping,
+              'groups': updatedGroups.map((g) => g.toJson()).toList(),
+              'locked': true,
+              'updatedAt': DateTime.now().toIso8601String(),
+            },
+          ),
+        );
+        ref.read(groupingIsLockedProvider.notifier).setLocked(true);
+        ref.read(groupingLocalGroupsProvider.notifier).setGroups(updatedGroups);
+        return;
       }
     }
+
+    ref.read(groupingIsLockedProvider.notifier).setLocked(true);
+    await ref.read(eventsRepositoryProvider).updateEvent(
+      event.copyWith(grouping: {...event.grouping, 'locked': true}),
+    );
+  }
+}
+
+class _SettingsRow extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String value;
+  final VoidCallback onTap;
+
+  const _SettingsRow({
+    required this.icon,
+    required this.title,
+    required this.value,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.lg),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(AppSpacing.sm),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.primary.withValues(alpha: AppColors.opacitySubtle),
+                borderRadius: AppShapes.md,
+              ),
+              child: Icon(icon, color: Theme.of(context).colorScheme.primary, size: 20),
+            ),
+            const SizedBox(width: AppSpacing.md),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title.toUpperCase(),
+                    style: AppTypography.micro.copyWith(
+                      fontWeight: AppTypography.weightBold,
+                      letterSpacing: 1.0,
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
+                  ),
+                  Text(
+                    value,
+                    style: AppTypography.micro.copyWith(
+                      color: isDark ? AppColors.dark200 : AppColors.dark400,
+                      fontWeight: AppTypography.weightMedium,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(Icons.chevron_right_rounded, color: AppColors.dark300),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _IntervalPickerContent extends StatefulWidget {
+  final int initialValue;
+  final void Function(int) onChanged;
+
+  const _IntervalPickerContent({
+    required this.initialValue,
+    required this.onChanged,
+  });
+
+  @override
+  State<_IntervalPickerContent> createState() => _IntervalPickerContentState();
+}
+
+class _IntervalPickerContentState extends State<_IntervalPickerContent> {
+  late int _value;
+
+  @override
+  void initState() {
+    super.initState();
+    _value = widget.initialValue;
+  }
+
+  void _adjust(int delta) {
+    final next = (_value + delta).clamp(5, 20);
+    if (next == _value) return;
+    setState(() => _value = next);
+    widget.onChanged(_value);
   }
 
   @override
   Widget build(BuildContext context) {
-    final eventsAsync = ref.watch(adminEventsProvider);
-    final membersAsync = ref.watch(allMembersProvider);
-    final societyConfig = ref.watch(themeControllerProvider);
-    final competitionAsync = ref.watch(competitionDetailProvider(widget.eventId));
-    final scorecardsAsync = ref.watch(scorecardsListProvider(widget.eventId));
-
-    return eventsAsync.when(
-      data: (events) {
-        // Wait for competition rules to be loaded
-        if (competitionAsync.isLoading) {
-          return const Scaffold(
-            body: Center(child: CircularProgressIndicator()),
-          );
-        }
-
-        final members = membersAsync.value ?? [];
-        final handicapMap = {for (var m in members) m.id: m.handicap};
-        final memberMap = {for (var m in members) m.id: m};
-        
-        final event = events.firstWhere((e) => e.id == widget.eventId, orElse: () => throw 'Event not found');
-        final history = events.where((e) => e.seasonId == event.seasonId && e.date.isBefore(event.date)).toList();
-        
-        // Handicap & Rules Context
-        final config = societyConfig;
-        final comp = competitionAsync.value;
-        
-        // Initialize local groups if not already done
-        if (_localGroups == null && event.grouping.containsKey('groups')) {
-            _localGroups = (event.grouping['groups'] as List)
-                .map((g) => TeeGroup.fromJson(g))
-                .toList();
-        }
-        
-        _isLocked ??= event.grouping['locked'] ?? false;
-        
-        // Initialize local matches if not already done
-        _localMatches ??= event.matches;
-        
-        // Calculate Unassigned Players (Confirmed squad but not in groups)
-        final unassignedSquad = <TeeGroupParticipant>[];
-        if (_localGroups != null) {
-          int rollingCount = 0;
-          final capacity = event.maxParticipants ?? 999;
-          final isClosed = event.registrationDeadline != null && DateTime.now().isAfter(event.registrationDeadline!);
-          
-          final assignedPlayerIds = _localGroups!
-              .expand((g) => g.players)
-              .map((p) => '${p.registrationMemberId}|${p.isGuest}')
-              .toSet();
-
-          for (final item in RegistrationLogic.getSortedItems(event)) {
-             final status = RegistrationLogic.calculateStatus(
-                isGuest: item.isGuest,
-                isConfirmed: item.isConfirmed,
-                hasPaid: item.hasPaid,
-                capacity: capacity,
-                confirmedCount: rollingCount,
-                isEventClosed: isClosed,
-                statusOverride: item.statusOverride,
-             );
-
-             if (status == RegistrationStatus.confirmed) {
-               rollingCount++;
-               final playerId = '${item.registration.memberId}|${item.isGuest}';
-               if (!assignedPlayerIds.contains(playerId)) {
-                  // Map to participant
-                  final double rawHandicap;
-                  if (item.isGuest) {
-                     rawHandicap = double.tryParse(item.registration.guestHandicap ?? '') ?? 28.0;
-                  } else {
-                     rawHandicap = handicapMap[item.registration.memberId] ?? 28.0;
-                  }
-                  final double playingHandicap;
-                  if (comp?.rules != null) {
-                    final double automatedCut = (config.societyCutMode == SocietyCutMode.global)
-                      ? SocietyCutsEngine.calculateActiveCut(
-                          memberId: item.registration.memberId,
-                          allEvents: history,
-                          config: config,
-                          relativeTo: event.date,
-                        ).totalCut
-                      : 0.0;
-                    
-                    playingHandicap = HandicapCalculator.calculatePlayingHandicap(
-                      handicapIndex: rawHandicap,
-                      rules: comp!.rules,
-                      courseConfig: event.courseConfig,
-                      useWhs: config.useWhsHandicaps,
-                      societyCut: (event.manualCuts[item.registration.memberId] ?? 0.0) + automatedCut,
-                    ).toDouble();
-                  } else {
-                    playingHandicap = rawHandicap;
-                  }
-                  
-                  unassignedSquad.add(TeeGroupParticipant(
-                    registrationMemberId: item.registration.memberId,
-                    name: item.name,
-                    isGuest: item.isGuest,
-                    handicapIndex: rawHandicap,
-                    playingHandicap: playingHandicap,
-                    needsBuggy: item.needsBuggy,
-                    buggyStatus: RegistrationStatus.confirmed, 
-                  ));
-               }
-             }
-          }
-        }
-
-        return PopScope(
-          canPop: !_isDirty,
-          onPopInvokedWithResult: (didPop, result) async {
-            if (didPop) return;
-            final action = await _showExitConfirmation();
-            if (action == GroupingExitAction.save && context.mounted) {
-              await _saveGrouping(event);
-              if (context.mounted) Navigator.of(context).pop();
-            } else if (action == GroupingExitAction.discard && context.mounted) {
-              _updateDirty(false);
-              Navigator.of(context).pop();
-            }
-          },
-          child: Stack(
-          children: [
-            HeadlessScaffold(
-              title: 'Grouping',
-              subtitleWidget: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    event.title,
-                    style: TextStyle(
-                      fontSize: AppTypography.sizeBodySmall,
-                      color: Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha: AppColors.opacityHigh),
-                      fontWeight: AppTypography.weightSemibold,
-                      letterSpacing: -0.2,
-                    ),
-                  ),
-                  const SizedBox(height: AppSpacing.lg),
-                  _buildToolbar(event, events, handicapMap, comp, config),
-                ],
-              ),
-
-              topPill: BoxyArtIndicator.committee(label: 'ADMIN'),
-
-              showBack: true,
-              onBack: () async {
-                if (_isDirty) {
-                  final action = await _showExitConfirmation();
-                  if (action == GroupingExitAction.save && context.mounted) {
-                    await _saveGrouping(event);
-                    if (context.mounted) context.go('/admin/events');
-                  } else if (action == GroupingExitAction.discard && context.mounted) {
-                    _updateDirty(false);
-                    context.go('/admin/events');
-                  }
-                } else {
-                  context.go('/admin/events');
-                }
-              },
-              actions: const [],
-              slivers: [
-                SliverFillRemaining(
-                  hasScrollBody: true,
-                  child: Column(
-                    children: [
-                      if (unassignedSquad.isNotEmpty) _buildSquadPool(unassignedSquad, memberMap, history),
-                      Expanded(
-                        child: _localGroups == null 
-                          ? _buildEmptyState(event, events, handicapMap)
-                          : _buildGroupingList(event, memberMap, history, scorecardsAsync, rules: comp?.rules, useWhs: config.useWhsHandicaps),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            if (_showGenerationOptions)
-              _buildGenerationOverlay(context, event, events, handicapMap, config, comp?.rules),
-          ],
-        ),
-      );
-    },
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (err, _) => HeadlessScaffold(
-        title: 'Error',
-        topPill: BoxyArtIndicator.committee(label: 'ADMIN'),
-        showBack: true,
-        slivers: [
-          SliverFillRemaining(
-            child: Center(
-              child: Padding(
-                padding: const EdgeInsets.all(AppSpacing.xl),
-                child: BoxyArtEmptyCard(
-                  title: 'Unexpected Error',
-                  message: err.toString(),
-                  icon: Icons.warning_amber_rounded,
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        BoxyArtCard(
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Opacity(
+                opacity: _value <= 5 ? 0.3 : 1.0,
+                child: BoxyArtGlassIconButton(
+                  icon: Icons.remove_rounded,
+                  iconSize: 22,
+                  onPressed: _value > 5 ? () => _adjust(-1) : null,
                 ),
               ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildEmptyState(GolfEvent event, List<GolfEvent> allEvents, Map<String, double> handicapMap) {
-    final isClosed = event.isRegistrationClosed;
-
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.xl),
-        child: BoxyArtEmptyCard(
-          title: 'No Grouping Generated',
-          message: 'Your squad hasn\'t been sorted into groups yet. Once registration is closed, you can auto-generate the tee sheet.',
-          icon: Icons.grid_view_rounded,
-          actionLabel: isClosed ? 'Auto-Generate Grouping' : null,
-          onAction: isClosed ? () => _showRegenerationOptions(event, allEvents, handicapMap) : null,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSquadPool(List<TeeGroupParticipant> squad, Map<String, Member> memberMap, List<GolfEvent> history) {
-    return Container(
-      width: double.infinity,
-      color: Theme.of(context).primaryColor.withValues(alpha: AppColors.opacitySubtle),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          BoxyArtSectionTitle(
-            title: 'SQUAD POOL (${squad.length})',),
-          SizedBox(
-            height: 90,
-            child: ListView.builder(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
-              itemCount: squad.length,
-              itemBuilder: (context, idx) {
-                final p = squad[idx];
-                return Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
-                  child: LongPressDraggable<Map<String, dynamic>>(
-                    data: {'player': p, 'group': null}, 
-                    delay: AppAnimations.fast,
-                    feedback: Material(
-                      elevation: 4,
-                      borderRadius: AppShapes.x2l,
-                      child: GroupingPlayerAvatar(player: p, member: memberMap[p.registrationMemberId], size: AppShapes.iconHero),
-                    ),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        GroupingPlayerAvatar(player: p, member: memberMap[p.registrationMemberId], size: AppShapes.iconXl),
-                        const SizedBox(height: AppSpacing.xs),
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              p.name.split(' ').first, 
-                              style: const TextStyle(fontSize: AppTypography.sizeCaption, fontWeight: AppTypography.weightMedium),
-                            ),
-                            if (p.isGuest) ...[
-                              const SizedBox(width: AppShapes.borderMedium),
-                              const Text('G', style: TextStyle(fontSize: AppTypography.sizeMicroSmall, color: AppColors.amber500, fontWeight: AppTypography.weightBold)),
-                            ],
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              },
-            ),
-          ),
-          const Divider(height: 1),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildGroupingList(GolfEvent event, Map<String, Member> memberMap, List<GolfEvent> history, AsyncValue<List<Scorecard>> scorecardsAsync, {CompetitionRules? rules, bool useWhs = true}) {
-        // Fetch Centralized Computed Data
-        final scoringData = ref.watch(eventScoringControllerProvider(widget.eventId));
-        final Map<String, ProcessedLeaderboardEntry> computedEntries = { for (var e in scoringData.leaderboard) e.entryId: e };
-
-        return ReorderableListView.builder(
-          onReorder: (oldIndex, newIndex) {
-            setState(() {
-              if (newIndex > oldIndex) newIndex -= 1;
-              final item = _localGroups!.removeAt(oldIndex);
-              _localGroups!.insert(newIndex, item);
-              
-              // Re-index and update tee times if needed
-              _updateGroupIndicesAndTimes(event);
-              _updateDirty(true);
-            });
-          },
-          scrollController: _scrollController,
-          padding: const EdgeInsets.fromLTRB(AppSpacing.xl, AppSpacing.lg, AppSpacing.xl, 100),
-          itemCount: _localGroups!.length,
-          itemBuilder: (context, index) {
-            final group = _localGroups![index];
-            return Padding(
-              key: ValueKey('group_${group.index}_${group.teeTime.millisecondsSinceEpoch}'),
-              padding: const EdgeInsets.only(bottom: AppSpacing.md),
-              child: GroupingCard(
-              group: group,
-              memberMap: memberMap,
-              history: history,
-              totalGroups: _localGroups!.length,
-              rules: rules,
-              courseConfig: event.courseConfig,
-              useWhs: useWhs,
-              isAdmin: true,
-              isLocked: _isLocked ?? false,
-              onMove: _handleMove,
-              onAction: (action, p, g) => _handlePlayerAction(action, p, g),
-              onTapParticipant: _handleParticipantTap,
-              isSelected: (p) => p == _selectedForSwap,
-              matchPlayMode: rules?.isMatchPlay ?? false,
-              matches: _localMatches ?? [],
-              computedEntries: computedEntries,
-              computedGroupResults: { for (var g in scoringData.groupRankings) g.groupIndex : g },
-              groupIndex: index,
-              scorecardMap: scorecardsAsync.asData?.value != null 
-                  ? {for (var s in scorecardsAsync.asData!.value) s.entryId: s}
-                  : null,
-              isScoreMode: false,
-              showScoring: false,
-          emptySlotBuilder: (g) => DragTarget<Map<String, dynamic>>(
-            onWillAcceptWithDetails: (details) => _isLocked != true && (details.data['group'] != g || g.players.length < 4),
-            onAcceptWithDetails: (details) {
-              final sourcePlayer = details.data['player'] as TeeGroupParticipant;
-              final sourceGroup = details.data['group'] as TeeGroup?;
-              _handleMove(sourcePlayer, sourceGroup, g, null);
-            },
-            onMove: (details) {
-              // Auto-scroll logic
-              final RenderBox? box = context.findRenderObject() as RenderBox?;
-              if (box != null) {
-                final position = box.globalToLocal(details.offset);
-                _checkAutoScroll(position.dy, box.size.height);
-              }
-            },
-            builder: (context, candidateData, rejectedData) {
-              final isOver = candidateData.isNotEmpty;
-
-              final isDark = Theme.of(context).brightness == Brightness.dark;
-              final primary = Theme.of(context).colorScheme.primary;
-
-              return AnimatedContainer(
-                duration: AppAnimations.fast,
-                height: 60,
-                margin: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
-                decoration: BoxDecoration(
-                  borderRadius: AppShapes.md,
-                  border: Border.all(
-                    color: isOver ? primary : (isDark ? AppColors.pureWhite.withValues(alpha: AppColors.opacityLow) : Colors.black.withValues(alpha: AppColors.opacitySubtle)),
-                    style: BorderStyle.solid,
-                    width: isOver ? 2 : 1,
-                  ),
-                  color: isOver 
-                      ? primary.withValues(alpha: AppColors.opacityLow) 
-                      : Theme.of(context).cardColor,
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
+              RichText(
+                textAlign: TextAlign.center,
+                text: TextSpan(
                   children: [
-                    Icon(
-                      Icons.add_circle_outline_rounded, 
-                      size: AppShapes.iconSm, 
-                      color: isOver ? primary : primary.withValues(alpha: 0.4),
+                    TextSpan(
+                      text: '$_value',
+                      style: AppTypography.displaySection.copyWith(
+                        fontSize: 48,
+                        color: Theme.of(context).colorScheme.onSurface,
+                        height: 1.0,
+                      ),
                     ),
-                    const SizedBox(width: AppSpacing.sm),
-                    Text(
-                      'EMPTY SLOT', 
-                      style: AppTypography.displayMedium.copyWith(
-                        color: isOver ? primary : primary.withValues(alpha: 0.4),
-                        fontSize: AppTypography.sizeCaptionStrong,
-                        fontWeight: AppTypography.weightExtraBold,
-                        letterSpacing: 1.0,
+                    TextSpan(
+                      text: ' min',
+                      style: AppTypography.label.copyWith(
+                        color: AppColors.dark400,
+                        fontSize: 16,
                       ),
                     ),
                   ],
                 ),
-              );
-            },
-          ),
-          ),
-        );
-      },
-    );
-  }
-
-  void _updateGroupIndicesAndTimes(GolfEvent event) {
-    if (_localGroups == null) return;
-    DateTime currentTime = event.teeOffTime ?? DateTime.now();
-    int interval = event.teeOffInterval;
-
-    for (int i = 0; i < _localGroups!.length; i++) {
-      final oldGroup = _localGroups![i];
-      _localGroups![i] = TeeGroup(
-        index: i,
-        teeTime: currentTime,
-        players: oldGroup.players,
-      );
-      currentTime = currentTime.add(Duration(minutes: interval));
-    }
-  }
-
-
-  void _handleMove(TeeGroupParticipant sourceP, TeeGroup? sourceG, TeeGroup targetG, TeeGroupParticipant? targetP) {
-    setState(() {
-      // 1. Internal Move (within same group)
-      if (sourceG == targetG) {
-        if (targetP != null && sourceP != targetP) {
-          final sIdx = sourceG!.players.indexOf(sourceP);
-          final tIdx = targetG.players.indexOf(targetP);
-          if (sIdx != -1 && tIdx != -1) {
-            targetG.players[sIdx] = targetP;
-            targetG.players[tIdx] = sourceP;
-          }
-        }
-        _updateDirty(true);
-        return;
-      }
-
-      // 2. External Move (different group or from pool)
-      if (sourceG != null) {
-        sourceG.players.remove(sourceP);
-      }
-      
-      if (targetP != null) {
-        final tIdx = targetG.players.indexOf(targetP);
-        if (sourceG != null) {
-          // SWAP: Move targetP to sourceG, sourceP to targetG
-          targetG.players.removeAt(tIdx);
-          targetG.players.insert(tIdx, sourceP);
-          sourceG.players.add(targetP);
-        } else {
-          // ADD from pool to specific spot
-          targetG.players.insert(tIdx, sourceP);
-        }
-      } else {
-        // ADD to empty slot
-        if (targetG.players.length < 4) {
-          targetG.players.add(sourceP);
-        }
-      }
-      
-      // 3. Size Enforcement (Safety cap at 4)
-      if (targetG.players.length > 4) {
-        final excess = targetG.players.removeLast();
-        if (sourceG != null) {
-          sourceG.players.add(excess);
-        }
-      }
-
-      _updateDirty(true);
-      
-      // Sync Matches if they exist
-      if (_localMatches != null && _localMatches!.isNotEmpty) {
-        _syncMatchesWithSwap(sourceP, targetP);
-      }
-    });
-  }
-
-  void _syncMatchesWithSwap(TeeGroupParticipant p1, TeeGroupParticipant? p2) {
-    if (_localMatches == null) return;
-    
-    final id1 = p1.registrationMemberId;
-    final id2 = p2?.registrationMemberId;
-
-    final updatedMatches = _localMatches!.map((match) {
-      List<String> newT1 = List.from(match.team1Ids);
-      List<String> newT2 = List.from(match.team2Ids);
-      bool changed = false;
-
-      // Swap id1 with id2 in team lists
-      for (int i = 0; i < newT1.length; i++) {
-        if (newT1[i] == id1) {
-          if (id2 != null) {
-            newT1[i] = id2;
-          } else {
-            newT1.removeAt(i); // Remove if swapped to empty
-          }
-          changed = true;
-          break;
-        } else if (id2 != null && newT1[i] == id2) {
-          newT1[i] = id1;
-          changed = true;
-          break;
-        }
-      }
-
-      for (int i = 0; i < newT2.length; i++) {
-        if (newT2[i] == id1) {
-          if (id2 != null) {
-            newT2[i] = id2;
-          } else {
-            newT2.removeAt(i);
-          }
-          changed = true;
-          break;
-        } else if (id2 != null && newT2[i] == id2) {
-          newT2[i] = id1;
-          changed = true;
-          break;
-        }
-      }
-
-      return changed ? match.copyWith(team1Ids: newT1, team2Ids: newT2) : match;
-    }).toList();
-
-    _localMatches = updatedMatches;
-  }
-
-  void _handleParticipantTap(TeeGroupParticipant p, TeeGroup g) {
-    if (_isLocked == true) return;
-
-    setState(() {
-      if (_selectedForSwap == null) {
-        _selectedForSwap = p;
-        _selectedGroupForSwap = g;
-      } else if (_selectedForSwap == p) {
-        // Deselect
-        _selectedForSwap = null;
-        _selectedGroupForSwap = null;
-      } else {
-        // Perform Swap
-        _handleMove(_selectedForSwap!, _selectedGroupForSwap, g, p);
-        _selectedForSwap = null;
-        _selectedGroupForSwap = null;
-      }
-    });
-  }
-
-  void _checkAutoScroll(double dy, double height) {
-    const double threshold = 100.0;
-    const double scrollSpeed = 15.0;
-
-    if (dy < threshold) {
-      _scrollController.animateTo(
-        (_scrollController.offset - scrollSpeed).clamp(0, _scrollController.position.maxScrollExtent),
-        duration: AppAnimations.fast,
-        curve: Curves.linear,
-      );
-    } else if (dy > height - threshold) {
-      _scrollController.animateTo(
-        (_scrollController.offset + scrollSpeed).clamp(0, _scrollController.position.maxScrollExtent),
-        duration: AppAnimations.fast,
-        curve: Curves.linear,
-      );
-    }
-  }
-
-  void _handlePlayerAction(String action, TeeGroupParticipant p, TeeGroup currentGroup) {
-    if (action == 'captain') {
-      setState(() {
-        for (final member in currentGroup.players) {
-          member.isCaptain = false;
-        }
-        p.isCaptain = !p.isCaptain;
-        _updateDirty(true);
-      });
-    } else if (action == 'remove') {
-      setState(() {
-        currentGroup.players.remove(p);
-        _updateDirty(true);
-      });
-    } else if (action == 'withdraw') {
-      _confirmWithdraw(p, currentGroup);
-    } else if (action == 'buggy') {
-      setState(() {
-        if (!p.needsBuggy) {
-          p.needsBuggy = true;
-          p.buggyStatus = RegistrationStatus.reserved;
-        } else if (p.buggyStatus == RegistrationStatus.reserved) {
-          p.buggyStatus = RegistrationStatus.confirmed;
-        } else if (p.buggyStatus == RegistrationStatus.confirmed) {
-          p.buggyStatus = RegistrationStatus.waitlist;
-        } else {
-          p.needsBuggy = false;
-          p.buggyStatus = RegistrationStatus.none;
-        }
-        _updateDirty(true);
-      });
-    } else if (action == 'move') {
-      _showMoveDialog(p, currentGroup);
-    }
-  }
-
-  Future<void> _confirmWithdraw(TeeGroupParticipant p, TeeGroup group) async {
-    final confirmed = await showBoxyArtDialog<bool>(
-      context: context,
-      title: 'Withdraw Member?',
-      message: 'This will remove ${p.name} from the groupings and set their status to "Withdrawn" in the registrations list.',
-      confirmText: 'Withdraw',
-      onConfirm: () => Navigator.pop(context, true),
-      onCancel: () => Navigator.pop(context, false),
-    );
-
-    if (confirmed == true && mounted) {
-      final eventsAsync = ref.read(adminEventsProvider);
-      final event = eventsAsync.value?.firstWhere((e) => e.id == widget.eventId);
-      if (event == null) return;
-
-      final reg = event.registrations.where((r) => r.memberId == p.registrationMemberId).firstOrNull;
-      if (reg == null) return;
-
-      // Update status to withdrawn
-      final updatedReg = reg.copyWith(
-        statusOverride: 'withdrawn',
-        isConfirmed: false,
-      );
-
-      final newList = List<EventRegistration>.from(event.registrations);
-      final idx = newList.indexWhere((r) => r.memberId == updatedReg.memberId);
-      if (idx >= 0) {
-        newList[idx] = updatedReg;
-        await ref.read(eventsRepositoryProvider).updateEvent(event.copyWith(registrations: newList));
-        
-        setState(() {
-          group.players.remove(p);
-          _updateDirty(true);
-        });
-      }
-    }
-  }
-
-
-
-  Widget _buildGenerationOverlay(
-    BuildContext context, 
-    GolfEvent event, 
-    List<GolfEvent> allEvents, 
-    Map<String, double> handicapMap,
-    SocietyConfig config,
-    CompetitionRules? rules,
-  ) {
-    // Initial values
-    String selectedStrategy = ref.read(themeControllerProvider).groupingStrategy;
-    bool pairBuggies = false;
-
-    return Stack(
-      children: [
-        // Barrier
-        GestureDetector(
-          onTap: () => setState(() => _showGenerationOptions = false),
-          child: Container(
-            color: Colors.black.withValues(alpha: AppColors.opacityHalf),
-            width: double.infinity,
-            height: double.infinity,
-          ),
-        ),
-        // Sheet
-        Align(
-          alignment: Alignment.bottomCenter,
-          child: Container(
-            decoration: BoxDecoration(
-              color: Theme.of(context).scaffoldBackgroundColor,
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(AppShapes.rPill)),
-              boxShadow: Theme.of(context).extension<AppShadows>()?.softScale ?? [],
-            ),
-            child: StatefulBuilder(
-              builder: (context, setOverlayState) {
-                return SafeArea(
-                  child: Padding(
-                    padding: const EdgeInsets.all(AppSpacing.x2l),
-                    child: SingleChildScrollView(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Center(
-                            child: Container(
-                              width: AppSpacing.x4l,
-                              height: AppSpacing.xs,
-                              margin: const EdgeInsets.only(bottom: AppSpacing.x2l),
-                              decoration: BoxDecoration(
-                                color: AppColors.textSecondary.withValues(alpha: AppColors.opacityMuted),
-                                borderRadius: AppShapes.grabber,
-                              ),
-                            ),
-                          ),
-                          Text(
-                            'Generate Groups', 
-                            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                              fontWeight: AppTypography.weightBlack,
-                              letterSpacing: -1,
-                            ),
-                          ),
-                          const SizedBox(height: AppSpacing.sm),
-                          Text(
-                            'Configure how players are sorted into groups.', 
-                            style: TextStyle(color: AppColors.dark600, fontSize: AppTypography.sizeBodySmall),
-                          ),
-                          
-                          const SizedBox(height: AppSpacing.x3l),
-                          const BoxyArtSectionTitle(
-                            title: 'STRATEGY',
-                            isLevel2: true,),
-                          
-                          Column(
-                            children: [
-                              _buildRadioOption(context, 'balanced', 'Balanced Teams', 'Balances total handicap.', selectedStrategy, (val) => setOverlayState(() => selectedStrategy = val)),
-                              _buildRadioOption(context, 'progressive', 'Progressive', 'Low handicap first.', selectedStrategy, (val) => setOverlayState(() => selectedStrategy = val)),
-                              _buildRadioOption(context, 'similar', 'Similar Ability', 'Group by skill level.', selectedStrategy, (val) => setOverlayState(() => selectedStrategy = val)),
-                              _buildRadioOption(context, 'random', 'Random', 'Mix everything up.', selectedStrategy, (val) => setOverlayState(() => selectedStrategy = val)),
-                            ],
-                          ),
-    
-                          const SizedBox(height: AppSpacing.x2l),
-                          const BoxyArtSectionTitle(
-                            title: 'PREFERENCES',
-                            isLevel2: true,),
-                          
-                          ModernSwitchRow(
-                            label: 'Pair Buggy Users',
-                            subtitle: 'Prioritize putting buggy users together.',
-                            icon: Icons.electric_rickshaw_rounded,
-                            value: pairBuggies,
-                            onChanged: (val) => setOverlayState(() => pairBuggies = val),
-                          ),
-    
-                          const SizedBox(height: AppSpacing.x3l),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: BoxyArtButton(
-                                  title: 'Cancel',
-                                  isGhost: true,
-                                  onTap: () => setState(() => _showGenerationOptions = false),
-                                ),
-                              ),
-                              const SizedBox(width: AppSpacing.lg),
-                              Expanded(
-                                child: BoxyArtButton(
-                                  title: 'Generate',
-                                  onTap: () {
-                                    setState(() => _showGenerationOptions = false);
-                                    _handleAutoGenerate(
-                                      event, 
-                                      allEvents, 
-                                      handicapMap, 
-                                      prioritizeBuggyPairing: pairBuggies,
-                                      strategyOverride: selectedStrategy,
-                                      config: config,
-                                      rules: rules,
-                                    );
-                                  },
-                                ),
-                              ),
-                            ],
-                          )
-                        ],
-                      ),
-                    ),
-                  ),
-                );
-              },
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  void _showRegenerationOptions(GolfEvent event, List<GolfEvent> allEvents, Map<String, double> handicapMap) {
-    setState(() {
-      _showGenerationOptions = true;
-    });
-  }
-
-  Widget _buildRadioOption(BuildContext context, String value, String title, String subtitle, String groupValue, ValueChanged<String> onChanged) {
-    final isSelected = value == groupValue;
-    return BoxyArtCard(
-      onTap: () => onChanged(value),
-      padding: const EdgeInsets.all(AppSpacing.lg),
-      margin: const EdgeInsets.only(bottom: AppSpacing.sm),
-      border: isSelected ? Border.fromBorderSide(BorderSide(color: Theme.of(context).primaryColor, width: AppShapes.borderMedium)) : null,
-      backgroundColor: isSelected ? Theme.of(context).primaryColor.withValues(alpha: AppColors.opacitySubtle) : null,
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(title, style: const TextStyle(fontWeight: AppTypography.weightBold, fontSize: AppTypography.sizeButton)),
-                const SizedBox(height: 2),
-                Text(subtitle, style: TextStyle(fontSize: AppTypography.sizeLabel, color: AppColors.dark600)),
-              ],
-            ),
-          ),
-          if (isSelected) 
-            Icon(Icons.check_circle_rounded, color: Theme.of(context).primaryColor)
-          else 
-            Icon(Icons.circle_outlined, color: AppColors.dark300),
-        ],
-      ),
-    );
-  }
-
-
-  void _handleAutoGenerate(
-    GolfEvent event, 
-    List<GolfEvent> allEvents, 
-    Map<String, double> handicapMap, {
-    bool prioritizeBuggyPairing = false, 
-    String? strategyOverride,
-    required SocietyConfig config,
-    CompetitionRules? rules,
-  }) {
-    final participants = RegistrationLogic.getSortedItems(event);
-    final strategy = strategyOverride ?? config.groupingStrategy;
-
-    setState(() {
-      _localGroups = GroupingService.generateInitialGrouping(
-        event: event, 
-        participants: participants, 
-        previousEventsInSeason: allEvents,
-        memberHandicaps: handicapMap,
-        prioritizeBuggyPairing: prioritizeBuggyPairing,
-        strategy: strategy,
-        config: config,
-        rules: rules,
-        useWhs: config.useWhsHandicaps,
-      );
-    });
-    _updateDirty(true);
-  }
-
-  void _showMoveDialog(TeeGroupParticipant p, TeeGroup currentGroup) {
-    showBoxyArtDialog(
-      context: context,
-      title: 'Move ${p.name} to Group',
-      content: SizedBox(
-        width: double.maxFinite,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const BoxyArtSectionTitle(title: 'SELECT TARGET GROUP', isLevel2: true),
-            const SizedBox(height: AppSpacing.md),
-            Flexible(
-              child: ListView.builder(
-                shrinkWrap: true,
-                itemCount: _localGroups!.length,
-                itemBuilder: (context, index) {
-                  final g = _localGroups![index];
-                  if (g == currentGroup) return const SizedBox.shrink();
-                  return BoxyArtCard(
-                    margin: const EdgeInsets.only(bottom: AppSpacing.sm),
-                    onTap: () {
-                      _handleMove(p, currentGroup, g, null);
-                      Navigator.pop(context);
-                    },
-                    child: Row(
-                      children: [
-                        Icon(Icons.group_rounded, color: Theme.of(context).primaryColor, size: AppShapes.iconMd),
-                        const SizedBox(width: AppSpacing.md),
-                        Text(
-                          'Group ${g.index + 1}', 
-                          style: const TextStyle(fontWeight: AppTypography.weightBold),
-                        ),
-                        const Spacer(),
-                        Text(
-                          '${g.players.length} / 4',
-                          style: TextStyle(
-                            fontSize: AppTypography.sizeLabel, 
-                            color: g.players.length >= 4 ? AppColors.coral500 : AppColors.lime500,
-                            fontWeight: AppTypography.weightExtraBold,
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                },
               ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Future<GroupingExitAction> _showExitConfirmation() async {
-    if (!mounted) return GroupingExitAction.discard;
-    
-    final result = await showDialog<GroupingExitAction>(
-      context: context,
-      builder: (dialogContext) => BoxyArtDialog(
-        title: 'Unsaved Changes',
-        message: 'You have unsaved groupings. Do you want to save them before exiting?',
-        confirmText: 'Save',
-        cancelText: 'Discard',
-        onConfirm: () => Navigator.of(dialogContext).pop(GroupingExitAction.save),
-        onCancel: () => Navigator.of(dialogContext).pop(GroupingExitAction.discard),
-        actions: [
-          BoxyArtButton(
-            title: 'Discard',
-            onTap: () => Navigator.of(dialogContext).pop(GroupingExitAction.discard),
-            isGhost: true,
-          ),
-          BoxyArtButton(
-            title: 'Save',
-            onTap: () => Navigator.of(dialogContext).pop(GroupingExitAction.save),
-            isPrimary: true,
-          ),
-        ],
-      ),
-    );
-    return result ?? GroupingExitAction.stay;
-  }
-
-  Future<void> _saveGrouping(GolfEvent event) async {
-    if (_localGroups == null) return;
-    
-    try {
-      final updatedEvent = event.copyWith(
-        grouping: {
-          'groups': _localGroups!.map((g) => g.toJson()).toList(),
-          'updatedAt': DateTime.now().toIso8601String(),
-          'locked': _isLocked ?? false,
-          'matches': _localMatches?.map((m) => m.toJson()).toList() ?? [],
-        },
-      );
-      await ref.read(eventsRepositoryProvider).updateEvent(updatedEvent);
-      _updateDirty(false);
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Grouping saved successfully')));
-    } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
-    }
-  }
-
-
-  Widget _buildToolbar(
-    GolfEvent event,
-    List<GolfEvent> events,
-    Map<String, double> handicapMap,
-    Competition? comp,
-    SocietyConfig config,
-  ) {
-    if (!_isDirty) return const SizedBox.shrink();
-
-    return Row(
-      children: [
-        Expanded(
-          child: BoxyArtButton(
-            title: 'Save',
-            isPrimary: true,
-            fullWidth: true,
-            onTap: () => _saveGrouping(event),
+              Opacity(
+                opacity: _value >= 20 ? 0.3 : 1.0,
+                child: BoxyArtGlassIconButton(
+                  icon: Icons.add_rounded,
+                  iconSize: 22,
+                  onPressed: _value < 20 ? () => _adjust(1) : null,
+                ),
+              ),
+            ],
           ),
         ),
-        const SizedBox(width: AppSpacing.md),
-        Expanded(
-          child: BoxyArtButton(
-            title: 'Discard',
-            fullWidth: true,
-            onTap: () {
-              setState(() {
-                _localGroups = null;
-                _isDirty = false;
-                _isLocked = null;
-              });
-              ref.read(groupingLocalGroupsProvider.notifier).setGroups(null);
-              ref.read(groupingDirtyProvider.notifier).setDirty(false);
-            },
-          ),
+        const SizedBox(height: AppSpacing.atomic),
+        Text(
+          '5 – 20 min range',
+          style: AppTypography.micro.copyWith(color: AppColors.dark400),
+          textAlign: TextAlign.center,
         ),
       ],
     );

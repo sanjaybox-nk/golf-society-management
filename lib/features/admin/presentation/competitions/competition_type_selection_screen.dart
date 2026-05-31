@@ -97,17 +97,28 @@ class CompetitionTypeSelectionScreen extends StatelessWidget {
                 ),
               ],
 
-              // 4. Season Tournaments
+              // 4. Match Play
               if (formatFilter == null) ...[
-                const BoxyArtSectionTitle(title: 'SEASON TOURNAMENTS'),
+                const BoxyArtSectionTitle(title: 'MATCH PLAY'),
                 BoxyArtCard(
                   padding: EdgeInsets.zero,
-                  child: _ModernTypeTile(
-                    title: 'Season Match Play',
-                    subtitle: 'Knockout brackets and season-long draws.',
-                    icon: Icons.emoji_events_rounded,
-                    onTap: () => _navigateToBuilder(context, CompetitionSubtype.matchPlaySeason),
-                    showDivider: false,
+                  child: Column(
+                    children: [
+                      _ModernTypeTile(
+                        title: 'Match Play',
+                        subtitle: 'Head-to-head. Win more holes than your opponent.',
+                        icon: Icons.compare_arrows_rounded,
+                        onTap: () => _navigateToBuilder(context, CompetitionFormat.matchPlay),
+                        showDivider: true,
+                      ),
+                      _ModernTypeTile(
+                        title: 'Season Tournament',
+                        subtitle: 'Knockout bracket or round-robin played over a season.',
+                        icon: Icons.emoji_events_rounded,
+                        onTap: () => _navigateToBuilder(context, CompetitionSubtype.matchPlaySeason),
+                        showDivider: false,
+                      ),
+                    ],
                   ),
                 ),
               ],

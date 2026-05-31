@@ -75,6 +75,12 @@ class SocietyHeroRecapCard extends ConsumerWidget {
     final heroMuted = heroColor.withValues(alpha: AppColors.opacitySecondary);
     final heroBg = Colors.black.withValues(alpha: 0.18);
     final heroBorder = heroColor.withValues(alpha: 0.35);
+    // Solid opaque background so stat boxes show no gradient bleed-through
+    final statBoxBg = Color.lerp(
+      Color.lerp(Color(config.heroGradientColor), Color(config.heroGradientColorSecondary), 0.5)!,
+      Colors.black,
+      0.28,
+    )!;
 
     // Field metrics — exclude birdies (shown in eclectic row), exclude holes count
     final fieldStats = <_HeroStat>[
@@ -170,15 +176,15 @@ class SocietyHeroRecapCard extends ConsumerWidget {
               children: [
                 _buildEclecticStat(context, shapes, 'EAGLES', '$eclecticEagles',
                     Icons.stars_rounded, heroColor, heroStrong, heroMuted,
-                    heroBg, heroBorder, dim: eclecticEagles == 0),
+                    statBoxBg, heroBorder, dim: eclecticEagles == 0),
                 SizedBox(width: spacing?.fieldToField ?? AppSpacing.atomic),
                 _buildEclecticStat(context, shapes, 'BIRDIES', '$eclecticBirdies',
                     Icons.gps_fixed_rounded, heroColor, heroStrong, heroMuted,
-                    heroBg, heroBorder),
+                    statBoxBg, heroBorder),
                 SizedBox(width: spacing?.fieldToField ?? AppSpacing.atomic),
                 _buildEclecticStat(context, shapes, 'PARS', '$eclecticPars',
                     Icons.shield_rounded, heroColor, heroStrong, heroMuted,
-                    heroBg, heroBorder),
+                    statBoxBg, heroBorder),
               ],
             ),
 
@@ -208,9 +214,9 @@ class SocietyHeroRecapCard extends ConsumerWidget {
             // 3. Field metrics — 1×2 row
             Row(
               children: [
-                _buildStat(context, config, shapes, fieldStats[0], heroColor, heroStrong, heroMuted, heroBg, heroBorder),
+                _buildStat(context, config, shapes, fieldStats[0], heroColor, heroStrong, heroMuted, statBoxBg, heroBorder),
                 SizedBox(width: spacing?.fieldToField ?? AppSpacing.atomic),
-                _buildStat(context, config, shapes, fieldStats[1], heroColor, heroStrong, heroMuted, heroBg, heroBorder),
+                _buildStat(context, config, shapes, fieldStats[1], heroColor, heroStrong, heroMuted, statBoxBg, heroBorder),
               ],
             ),
 
@@ -271,7 +277,6 @@ class SocietyHeroRecapCard extends ConsumerWidget {
     bool dim = false,
   }) {
     final effectiveColor = dim ? heroMuted : heroColor;
-    final effectiveBg = dim ? Colors.black.withValues(alpha: 0.08) : heroBg;
     return Expanded(
       child: Container(
         padding: const EdgeInsets.symmetric(
@@ -279,7 +284,7 @@ class SocietyHeroRecapCard extends ConsumerWidget {
           horizontal: AppSpacing.atomic,
         ),
         decoration: BoxDecoration(
-          color: effectiveBg,
+          color: heroBg,
           borderRadius: shapes?.button,
           border: Border.all(color: heroBorder),
         ),

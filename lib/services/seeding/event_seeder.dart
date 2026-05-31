@@ -318,11 +318,13 @@ class EventSeeder {
     }
 
     final matchingTemplate = templates.where((t) => t.rules.format == format && t.rules.subtype == subtype && t.rules.hasMatchPlayOverlay == hasMatchPlayOverlay).firstOrNull;
+    final isPairsFormat = subtype == CompetitionSubtype.fourball || subtype == CompetitionSubtype.foursomes;
     final rules = matchingTemplate?.rules ?? CompetitionRules(
-      format: format, 
-      subtype: subtype, 
+      format: format,
+      subtype: subtype,
       handicapAllowance: subtype == CompetitionSubtype.fourball ? 0.85 : (subtype == CompetitionSubtype.foursomes ? 0.50 : 0.95),
-      mode: (subtype == CompetitionSubtype.fourball || subtype == CompetitionSubtype.foursomes) ? CompetitionMode.pairs : (format == CompetitionFormat.scramble ? CompetitionMode.teams : CompetitionMode.singles),
+      mode: isPairsFormat ? CompetitionMode.pairs : (format == CompetitionFormat.scramble ? CompetitionMode.teams : CompetitionMode.singles),
+      teamSize: isPairsFormat ? 2 : 4,
       hasMatchPlayOverlay: hasMatchPlayOverlay,
     );
 

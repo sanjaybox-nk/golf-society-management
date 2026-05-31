@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:golf_society/domain/models/leaderboard_config.dart';
+import 'package:golf_society/domain/models/season.dart' show SeasonStatus;
 import 'package:golf_society/domain/models/competition.dart';
 import 'package:golf_society/features/events/logic/event_scoring_processor.dart';
 import 'package:golf_society/features/events/domain/models/processed_event_data.dart';

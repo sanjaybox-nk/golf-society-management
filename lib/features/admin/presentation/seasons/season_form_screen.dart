@@ -10,7 +10,7 @@ import '../../../events/presentation/events_provider.dart';
 import '../../utils/leaderboard_rule_translator.dart';
 import '../../data/member_group_config_repository.dart';
 import 'package:golf_society/domain/models/member_group_config.dart';
-import '../../services/leaderboard_invoker_service.dart' show leaderboardInvokerServiceProvider;
+import 'package:golf_society/features/competitions/services/leaderboard_invoker_service.dart' show leaderboardInvokerServiceProvider;
 
 final _assignedTemplatesProvider =
     StreamProvider.autoDispose.family<List<LeaderboardConfig>, List<String>>((ref, ids) {

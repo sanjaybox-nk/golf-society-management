@@ -1,12 +1,11 @@
 import 'dart:math';
 
 class TieBreakerLogic {
-  /// Resolves a tie between two players using countback (Back 9, Back 6, Back 3, Back 1).
-  /// Returns 1 if player A wins, -1 if player B wins, 0 if still tied.
+  /// Resolves a tie using countback: B9→B6→B3→B1→F9→F6→F3→F1.
+  /// Returns 1 if player A wins, -1 if player B wins, 0 if genuinely tied.
   ///
   /// [higherIsBetter] should be true for Stableford (more points wins) and
-  /// false for stroke play (fewer strokes wins). Prefer passing
-  /// `ScoringStrategyRegistry.forRules(rules).higherIsBetter`.
+  /// false for stroke play (fewer strokes wins).
   static int resolveTie({
     required List<int> holeScoresA,
     required List<int> holeScoresB,
@@ -16,34 +15,29 @@ class TieBreakerLogic {
     required double handicapB,
     bool higherIsBetter = true,
   }) {
-    int cmp;
+    // Back 9 chain
+    final backSteps = [(9, 17), (12, 17), (15, 17), (17, 17)];
+    for (final (start, end) in backSteps) {
+      final cmp = _compare(
+        _scoreForRange(holeScoresA, pars, sis, handicapA, start, end, higherIsBetter),
+        _scoreForRange(holeScoresB, pars, sis, handicapB, start, end, higherIsBetter),
+        higherIsBetter,
+      );
+      if (cmp != 0) return cmp;
+    }
 
-    cmp = _compare(
-      _scoreForRange(holeScoresA, pars, sis, handicapA, 9, 17, higherIsBetter),
-      _scoreForRange(holeScoresB, pars, sis, handicapB, 9, 17, higherIsBetter),
-      higherIsBetter,
-    );
-    if (cmp != 0) return cmp;
+    // Front 9 chain (narrows from hole 9 inward)
+    final frontSteps = [(0, 8), (3, 8), (6, 8), (8, 8)];
+    for (final (start, end) in frontSteps) {
+      final cmp = _compare(
+        _scoreForRange(holeScoresA, pars, sis, handicapA, start, end, higherIsBetter),
+        _scoreForRange(holeScoresB, pars, sis, handicapB, start, end, higherIsBetter),
+        higherIsBetter,
+      );
+      if (cmp != 0) return cmp;
+    }
 
-    cmp = _compare(
-      _scoreForRange(holeScoresA, pars, sis, handicapA, 12, 17, higherIsBetter),
-      _scoreForRange(holeScoresB, pars, sis, handicapB, 12, 17, higherIsBetter),
-      higherIsBetter,
-    );
-    if (cmp != 0) return cmp;
-
-    cmp = _compare(
-      _scoreForRange(holeScoresA, pars, sis, handicapA, 15, 17, higherIsBetter),
-      _scoreForRange(holeScoresB, pars, sis, handicapB, 15, 17, higherIsBetter),
-      higherIsBetter,
-    );
-    if (cmp != 0) return cmp;
-
-    return _compare(
-      _scoreForRange(holeScoresA, pars, sis, handicapA, 17, 17, higherIsBetter),
-      _scoreForRange(holeScoresB, pars, sis, handicapB, 17, 17, higherIsBetter),
-      higherIsBetter,
-    );
+    return 0;
   }
 
   static int _compare(int scoreA, int scoreB, bool higherIsBetter) {

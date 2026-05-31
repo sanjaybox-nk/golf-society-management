@@ -16,24 +16,35 @@ class CompetitionBuilderScreen extends ConsumerWidget {
   final CompetitionFormat? format;
   final CompetitionSubtype? subtype;
   final bool isTemplate;
+  final bool isOverlay;
 
   const CompetitionBuilderScreen({
-    super.key, 
-    this.competition, 
+    super.key,
+    this.competition,
     this.competitionId,
     this.format,
     this.subtype,
     this.isTemplate = false,
+    this.isOverlay = false,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // 1. If we have a competition object already, we can use it directly
+    // 1. Existing competition object passed directly → edit it
     if (competition != null) {
       return _buildScaffold(context, competition!.rules.format, competition: competition);
     }
 
-    // 2. If we have an ID, we need to fetch it
+    // 2. Creating new from a known format or subtype (competitionId is the save target, not a fetch key)
+    if (format != null) {
+      return _buildScaffold(context, format!);
+    }
+
+    if (subtype != null) {
+      return _buildScaffold(context, CompetitionFormat.stableford);
+    }
+
+    // 3. No format/subtype → fetch existing competition by ID (edit mode)
     if (competitionId != null) {
       if (isTemplate) {
         final templatesAsync = ref.watch(templatesListProvider);
@@ -47,7 +58,6 @@ class CompetitionBuilderScreen extends ConsumerWidget {
           error: (e, s) => HeadlessScaffold(title: 'Error', showBack: true, slivers: [SliverFillRemaining(child: Center(child: Text("Error: $e")))]),
         );
       } else {
-        // Fetch event-specific competition
         final compAsync = ref.watch(competitionDetailProvider(competitionId!));
         return compAsync.when(
           data: (comp) {
@@ -58,16 +68,6 @@ class CompetitionBuilderScreen extends ConsumerWidget {
           error: (e, s) => HeadlessScaffold(title: 'Error', showBack: true, slivers: [SliverFillRemaining(child: Center(child: Text("Error: $e")))]),
         );
       }
-    }
-
-    // 3. If creating new, use format or subtype
-    if (format != null) {
-      return _buildScaffold(context, format!);
-    }
-    
-    if (subtype != null) {
-      // Default to stableford as base for specialized match play tournaments
-      return _buildScaffold(context, CompetitionFormat.stableford); 
     }
 
     return const HeadlessScaffold(title: 'Error', showBack: true, slivers: [SliverFillRemaining(child: Center(child: Text("Error: No data provided for competition builder.")))]);
@@ -83,12 +83,12 @@ class CompetitionBuilderScreen extends ConsumerWidget {
 
     return HeadlessScaffold(
       title: isTemplate
-          ? (compToUse != null ? 'Edit Template' : 'Create Template')
-          : 'Create $gameName game',
+          ? (compToUse != null ? 'Edit $gameName Template' : 'Create $gameName Template')
+          : compToUse != null ? 'Edit $gameName' : 'Create $gameName',
       topPill: BoxyArtIndicator.committee(label: 'ADMIN'),
-      subtitle: isTemplate 
-          ? 'Edit saved game template' 
-          : (compToUse != null ? 'Event customisation' : 'New competition setup'),
+      subtitle: isTemplate
+          ? (compToUse != null ? 'Edit $gameName template' : 'New $gameName template')
+          : compToUse != null ? 'Customise event rules' : 'New competition setup',
       showBack: true,
       onBack: () => context.pop(),
       slivers: [
@@ -115,16 +115,18 @@ class CompetitionBuilderScreen extends ConsumerWidget {
       ); 
     }
 
-    if (activeSubtype == CompetitionSubtype.matchPlaySeason || 
-        activeSubtype == CompetitionSubtype.ryderCup || 
+    if (activeSubtype == CompetitionSubtype.matchPlaySeason ||
+        activeSubtype == CompetitionSubtype.ryderCup ||
         activeSubtype == CompetitionSubtype.teamMatchPlay) {
       return MatchPlayControl(
         competition: compToUse,
         competitionId: competitionId,
         isTemplate: isTemplate,
+        initialSubtype: activeSubtype,
+        isOverlay: isOverlay,
       );
     }
-    
+
     switch (format) {
       case CompetitionFormat.stableford:
         return StablefordControl(competition: compToUse, competitionId: competitionId, isTemplate: isTemplate);
@@ -135,7 +137,7 @@ class CompetitionBuilderScreen extends ConsumerWidget {
       case CompetitionFormat.maxScore:
         return MaxScoreControl(competition: compToUse, competitionId: competitionId, isTemplate: isTemplate);
       case CompetitionFormat.matchPlay:
-        return MatchPlayControl(competition: compToUse, competitionId: competitionId, isTemplate: isTemplate);
+        return MatchPlayControl(competition: compToUse, competitionId: competitionId, isTemplate: isTemplate, isOverlay: isOverlay);
     }
   }
 

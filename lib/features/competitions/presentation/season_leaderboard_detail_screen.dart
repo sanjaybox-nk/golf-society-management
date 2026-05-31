@@ -216,7 +216,7 @@ class _SeasonLeaderboardDetailScreenState
                 ),
               ),
               error: (e, s) => SliverToBoxAdapter(
-                child: BoxyArtEmptyState(
+                child: BoxyArtEmptyCard(
                   title: 'Standings Error',
                   message: e.toString(),
                   icon: Icons.error_outline_rounded,

@@ -24,6 +24,7 @@ class _DashboardSummary {
   final int completedEvents;
   final int upcomingEvents;
   final int inPlayEvents;
+  final String? firstInPlayEventId;
   final double netTreasury;
   final double outstandingFees;
   final int membersWithDebt;
@@ -36,6 +37,7 @@ class _DashboardSummary {
     required this.completedEvents,
     required this.upcomingEvents,
     required this.inPlayEvents,
+    this.firstInPlayEventId,
     required this.netTreasury,
     required this.outstandingFees,
     required this.membersWithDebt,
@@ -79,7 +81,9 @@ final _dashboardSummaryProvider = Provider.autoDispose<AsyncValue<_DashboardSumm
     e.status == EventStatus.published && e.date.isAfter(now),
   ).length;
 
-  final inPlayEvents = events.where((e) => e.status == EventStatus.inPlay).length;
+  final inPlayEventList = events.where((e) => e.status == EventStatus.inPlay).toList();
+  final inPlayEvents = inPlayEventList.length;
+  final firstInPlayEventId = inPlayEventList.firstOrNull?.id;
 
   final debtMembers = debtList.where((d) => d.totalDebt > 0).toList();
   final totalOwed = debtMembers.fold(0.0, (sum, d) => sum + d.totalDebt);
@@ -90,6 +94,7 @@ final _dashboardSummaryProvider = Provider.autoDispose<AsyncValue<_DashboardSumm
     completedEvents: stats?.completedCount ?? 0,
     upcomingEvents: upcomingEvents,
     inPlayEvents: inPlayEvents,
+    firstInPlayEventId: firstInPlayEventId,
     netTreasury: stats?.netTreasury ?? 0,
     outstandingFees: totalOwed,
     membersWithDebt: debtMembers.length,
@@ -169,7 +174,9 @@ class AdminDashboardScreen extends ConsumerWidget {
                       DashboardHeroCard(
                         event: nextEvent,
                         onTap: () => context.goNamed(
-                          'admin-event-manage-tower',
+                          nextEvent.status == EventStatus.inPlay
+                              ? 'admin-event-scores'
+                              : 'admin-event-manage-tower',
                           pathParameters: {'id': nextEvent.id},
                         ),
                       ),
@@ -259,7 +266,14 @@ class _ActionAlerts extends ConsumerWidget {
         message: '${summary.inPlayEvents} event${summary.inPlayEvents > 1 ? 's' : ''} in play',
         subtitle: 'Scoring is live — monitor progress',
         hasBottomMargin: false,
-        onTap: () => context.goNamed('admin-events'),
+        onTap: () {
+          if (summary.inPlayEvents == 1 && summary.firstInPlayEventId != null) {
+            context.goNamed('admin-event-scores',
+                pathParameters: {'id': summary.firstInPlayEventId!});
+          } else {
+            context.goNamed('admin-events');
+          }
+        },
       ));
     }
 

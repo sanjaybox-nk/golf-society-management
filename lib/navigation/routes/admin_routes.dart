@@ -145,6 +145,9 @@ List<StatefulShellBranch> _buildAdminBranches(Ref ref) => [
                                 format: CompetitionFormat.values.firstWhereOrNull(
                                   (f) => f.name == state.pathParameters['type'],
                                 ),
+                                subtype: CompetitionSubtype.values.firstWhereOrNull(
+                                  (s) => s.name == state.pathParameters['type'],
+                                ),
                               ),
                             ),
                           ),
@@ -421,7 +424,6 @@ List<StatefulShellBranch> _buildAdminBranches(Ref ref) => [
                     name: 'admin-event-matchplay-draw',
                     pageBuilder: (context, state) => boxyPage(
                       state: state,
-                      hubId: state.pathParameters['id']!,
                       child: MatchPlayDrawManagerScreen(
                         eventId: state.pathParameters['id'],
                         checkRoundProgression: state.uri.queryParameters['progress'] == 'true',
@@ -609,6 +611,7 @@ List<StatefulShellBranch> _buildAdminBranches(Ref ref) => [
                             typeStr: state.pathParameters['type']!,
                             isPicker: true,
                             eventId: state.pathParameters['id']!,
+                            isOverlay: state.uri.queryParameters['overlay'] == 'true',
                           ),
                         ),
                       ),
@@ -623,6 +626,10 @@ List<StatefulShellBranch> _buildAdminBranches(Ref ref) => [
                             format: CompetitionFormat.values.firstWhereOrNull(
                               (f) => f.name == state.pathParameters['type'],
                             ),
+                            subtype: CompetitionSubtype.values.firstWhereOrNull(
+                              (s) => s.name == state.pathParameters['type'],
+                            ),
+                            isOverlay: state.uri.queryParameters['overlay'] == 'true',
                           ),
                         ),
                       ),
@@ -636,6 +643,18 @@ List<StatefulShellBranch> _buildAdminBranches(Ref ref) => [
                       child: CompetitionBuilderScreen(
                         competitionId: state.pathParameters['id'],
                         competition: state.extra as Competition?,
+                      ),
+                    ),
+                  ),
+                  GoRoute(
+                    path: 'manage/:id/secondary-game-builder',
+                    name: 'admin-event-secondary-game-builder',
+                    pageBuilder: (context, state) => boxyPage(
+                      state: state,
+                      child: CompetitionBuilderScreen(
+                        competitionId: '${state.pathParameters['id']}_secondary',
+                        competition: state.extra as Competition?,
+                        isOverlay: true,
                       ),
                     ),
                   ),

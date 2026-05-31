@@ -244,13 +244,28 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
                   ),
                 );
               }
-              pinnedBottom = Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              final bool isScoringLocked = event.status == EventStatus.completed ||
+                  event.isScoringLocked == true;
+              pinnedBottom = Column(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  arrowBtn(Icons.arrow_back_ios_new_rounded, _currentHole > 0,
-                    () => _holeController.previousPage(duration: const Duration(milliseconds: 300), curve: Curves.easeInOut)),
-                  arrowBtn(Icons.arrow_forward_ios_rounded, _currentHole < 17,
-                    () => _holeController.nextPage(duration: const Duration(milliseconds: 300), curve: Curves.easeInOut)),
+                  BoxyArtButton(
+                    title: 'Add / Remove Card',
+                    icon: Icons.person_add_rounded,
+                    isTinted: true,
+                    fullWidth: true,
+                    onTap: isScoringLocked ? null : () => MarkerSelectionSheet.show(context: context, event: event),
+                  ),
+                  const SizedBox(height: AppSpacing.sm),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      arrowBtn(Icons.arrow_back_ios_new_rounded, _currentHole > 0,
+                        () => _holeController.previousPage(duration: const Duration(milliseconds: 300), curve: Curves.easeInOut)),
+                      arrowBtn(Icons.arrow_forward_ios_rounded, _currentHole < 17,
+                        () => _holeController.nextPage(duration: const Duration(milliseconds: 300), curve: Curves.easeInOut)),
+                    ],
+                  ),
                 ],
               );
             }
@@ -271,20 +286,36 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
                   s.status != ScorecardStatus.finalScore &&
                   s.status != ScorecardStatus.approved).toList();
 
+              // Also include any targets from the scoring tab (manually added or auto-detected).
+              // This ensures the picker mirrors the scoring tab even if Firestore markerId is
+              // missing from a seeded/imported scorecard.
+              final scoringTargets = markerSelection.targetEntryIds
+                  .where((id) => id != currentUser.id && !id.endsWith('_guest'))
+                  .toSet();
+
               final hasTabs = (officialTargetEntryId != null && officialTargetEntryId != currentUser.id) ||
+                  scoringTargets.isNotEmpty ||
                   guestProxyCards.isNotEmpty;
 
               if (hasTabs) {
                 final selectedId = _switchedCardId ?? currentUser.id;
+                // Merge official target + scoring targets, deduplicated
+                final allTargetIds = <String>{
+                  if (officialTargetEntryId != null && officialTargetEntryId != currentUser.id)
+                    officialTargetEntryId,
+                  ...scoringTargets,
+                };
                 final tabs = <ModernFilterTab<String>>[
                   const ModernFilterTab<String>(label: 'Me', value: ''),
-                  if (officialTargetEntryId != null && officialTargetEntryId != currentUser.id)
+                  for (final id in allTargetIds)
                     ModernFilterTab<String>(
-                      label: _resolveFirstName(officialTargetEntryId, event, full: false),
-                      value: officialTargetEntryId,
+                      label: effectiveRules.subtype == CompetitionSubtype.fourball
+                          ? 'Them'
+                          : _resolveFirstName(id, event, full: false),
+                      value: id,
                     ),
                   for (final g in guestProxyCards)
-                    if (g.entryId != officialTargetEntryId)
+                    if (!allTargetIds.contains(g.entryId))
                       ModernFilterTab<String>(
                         label: _resolveFirstName(g.entryId, event, full: false),
                         value: g.entryId,
@@ -465,6 +496,38 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
         final markerConfirmed = myCard.verifiedByMarker;
         final hasConflicts = myCard.conflictedHoles.isNotEmpty;
 
+        // Scramble: check min drives per player rule
+        Widget? driveWarning;
+        if (effectiveRules.format == CompetitionFormat.scramble && effectiveRules.minDrivesPerPlayer > 0) {
+          final attrs = myCard.shotAttributions;
+          if (attrs.isNotEmpty) {
+            final groupData = event.grouping['groups'] as List? ?? [];
+            final myGroup = groupData.firstWhereOrNull(
+              (g) => (g['players'] as List).any((p) => p['registrationMemberId'] == currentUser.id));
+            if (myGroup != null) {
+              final players = myGroup['players'] as List;
+              final violations = <String>[];
+              for (final p in players) {
+                final memberId = p['registrationMemberId'] as String;
+                final first = (p['name'] as String?)?.split(' ').first ?? 'Player';
+                final count = attrs.values.where((v) => v == memberId).length;
+                if (count < effectiveRules.minDrivesPerPlayer) {
+                  violations.add('$first ($count/${effectiveRules.minDrivesPerPlayer})');
+                }
+              }
+              if (violations.isNotEmpty) {
+                driveWarning = BoxyArtStatusBanner(
+                  color: AppColors.amber500,
+                  icon: Icons.sports_golf_rounded,
+                  message: 'Drive rule not met',
+                  subtitle: 'Minimum ${effectiveRules.minDrivesPerPlayer} drives each: ${violations.join(', ')}',
+                  hasBottomMargin: false,
+                );
+              }
+            }
+          }
+        }
+
         Widget child;
         if (hasConflicts) {
           child = BoxyArtStatusBanner(
@@ -508,7 +571,16 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
         }
         actionButton = Padding(
           padding: const EdgeInsets.only(top: AppSpacing.cardToCard),
-          child: child,
+          child: driveWarning != null
+              ? Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    driveWarning,
+                    const SizedBox(height: AppSpacing.cardToCard),
+                    child,
+                  ],
+                )
+              : child,
         );
       }
     } else {

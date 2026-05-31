@@ -317,7 +317,7 @@ class _EventRow extends ConsumerWidget {
         hasHorizontalMargin: false,
         isLegend: true,
       );
-    } else if (event.isRegistrationOpen) {
+    } else if (event.canRegister(user.id)) {
       final isFull = event.maxParticipants != null &&
           event.playingCount >= event.maxParticipants!;
       statusPill = BoxyArtIndicator.status(

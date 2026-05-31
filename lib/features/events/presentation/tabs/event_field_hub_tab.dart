@@ -76,7 +76,7 @@ class EventGroupingUserTab extends ConsumerWidget {
                   child: membersAsync.when(
                     data: (members) => EventRegistrationUserTab.buildStaticContent(context, ref, event, members, isAdminMode: isAdminMode),
                     loading: () => const Center(child: CircularProgressIndicator()),
-                    error: (error, stackTrace) => BoxyArtEmptyState(
+                    error: (error, stackTrace) => BoxyArtEmptyCard(
                       title: 'Loading Error',
                       message: 'Error loading member registrations: $error',
                       icon: Icons.error_outline_rounded,
@@ -87,21 +87,25 @@ class EventGroupingUserTab extends ConsumerWidget {
               )
             else
               if (isSocial)
-                const SliverFillRemaining(
-                  hasScrollBody: false,
-                  child: BoxyArtEmptyCard(
-                    title: 'No Pairings',
-                    message: 'Social events typically favor a relaxed atmosphere without formal tee times.',
-                    icon: Icons.favorite_border_rounded,
+                const SliverPadding(
+                  padding: EdgeInsets.all(AppSpacing.x2l),
+                  sliver: SliverToBoxAdapter(
+                    child: BoxyArtEmptyCard(
+                      title: 'No Pairings',
+                      message: 'Social events typically favor a relaxed atmosphere without formal tee times.',
+                      icon: Icons.favorite_border_rounded,
+                    ),
                   ),
                 )
               else if (!isPublished || groups.isEmpty)
-                const SliverFillRemaining(
-                  hasScrollBody: false,
-                  child: BoxyArtEmptyCard(
-                    title: 'Tee Times Not Published',
-                    message: 'Official pairings are currently being finalized. Keep an eye on the clubhouse!',
-                    icon: Icons.schedule_rounded,
+                const SliverPadding(
+                  padding: EdgeInsets.all(AppSpacing.x2l),
+                  sliver: SliverToBoxAdapter(
+                    child: BoxyArtEmptyCard(
+                      title: 'Tee Times Not Published',
+                      message: 'Official pairings are being finalised. Check the home page for updates.',
+                      icon: Icons.schedule_rounded,
+                    ),
                   ),
                 )
               else
@@ -181,7 +185,7 @@ class EventGroupingUserTab extends ConsumerWidget {
         showBack: true,
         slivers: [
           SliverFillRemaining(
-            child: BoxyArtEmptyState(
+            child: BoxyArtEmptyCard(
               title: 'Unexpected Error',
               message: err.toString(),
               icon: Icons.warning_amber_rounded,

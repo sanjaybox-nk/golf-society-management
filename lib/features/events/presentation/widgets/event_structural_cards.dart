@@ -165,17 +165,17 @@ class EventRegistrationCard extends ConsumerWidget {
                 BoxyArtButton(
                   title: event.displayStatus == EventStatus.completed
                       ? 'EVENT CLOSED'
-                      : (!event.isRegistrationOpen 
-                          ? 'REGISTRATION CLOSED' 
+                      : (!event.canRegister(user.id)
+                          ? 'REGISTRATION CLOSED'
                           : (isFull ? 'JOIN WAITLIST' : 'REGISTER NOW')),
                   fullWidth: true,
-                  backgroundColor: (!event.isRegistrationOpen || event.displayStatus == EventStatus.completed)
-                      ? AppColors.pureWhite.withValues(alpha: 0.2) 
+                  backgroundColor: (!event.canRegister(user.id) || event.displayStatus == EventStatus.completed)
+                      ? AppColors.pureWhite.withValues(alpha: 0.2)
                       : AppColors.pureWhite,
-                  textColor: (!event.isRegistrationOpen || event.displayStatus == EventStatus.completed)
-                      ? AppColors.pureWhite 
+                  textColor: (!event.canRegister(user.id) || event.displayStatus == EventStatus.completed)
+                      ? AppColors.pureWhite
                       : Color(config.primaryColor),
-                  onTap: (!event.isRegistrationOpen || event.displayStatus == EventStatus.completed) ? null : () {
+                  onTap: (!event.canRegister(user.id) || event.displayStatus == EventStatus.completed) ? null : () {
                     try {
                       GoRouter.of(context).push('/events/${event.id}/register-form');
                     } catch (_) {}

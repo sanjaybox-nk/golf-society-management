@@ -76,7 +76,7 @@ class EventUserDetailsTab extends ConsumerWidget {
         onBack: () => context.go('/events'),
         slivers: [
           SliverFillRemaining(
-            child: BoxyArtEmptyState(
+            child: BoxyArtEmptyCard(
               title: 'Could not load event',
               message: err.toString(),
               icon: Icons.error_outline_rounded,
@@ -213,15 +213,23 @@ class _EventDetailsContentState extends ConsumerState<EventDetailsContent> {
                   _buildCourseSelectionSection(context),
                   _buildCourseDataHardeningSection(context),
                 ],
-                if ((event.status == EventStatus.published || 
-                     event.status == EventStatus.inPlay || 
-                     event.status == EventStatus.completed) && 
+                if ((event.status == EventStatus.published ||
+                     event.status == EventStatus.inPlay ||
+                     event.status == EventStatus.completed) &&
                     event.eventType == EventType.golf) ...[
-                    CompetitionRulesCard(
+                  CompetitionRulesCard(
                     eventId: event.id,
                     title: 'Competition Rules',
                     competition: widget.competition,
                   ),
+                  if (event.secondaryTemplateId != null) ...[
+                    const SizedBox(height: AppSpacing.standard),
+                    CompetitionRulesCard(
+                      eventId: '${event.id}_secondary',
+                      title: 'Match Play Overlay',
+                      isSecondary: true,
+                    ),
+                  ],
                 ],
 
                 _buildPlayingCostsSection(context),

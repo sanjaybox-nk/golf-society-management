@@ -53,6 +53,14 @@ class GroupingSelectedForSwapNotifier extends Notifier<TeeGroupParticipant?> {
 }
 final groupingSelectedForSwapProvider = NotifierProvider.autoDispose<GroupingSelectedForSwapNotifier, TeeGroupParticipant?>(GroupingSelectedForSwapNotifier.new);
 
+/// Tracks the match pair partner of the selected player (match play only).
+class GroupingSelectedMatchPartnerNotifier extends Notifier<TeeGroupParticipant?> {
+  @override
+  TeeGroupParticipant? build() => null;
+  void set(TeeGroupParticipant? value) => state = value;
+}
+final groupingSelectedMatchPartnerProvider = NotifierProvider.autoDispose<GroupingSelectedMatchPartnerNotifier, TeeGroupParticipant?>(GroupingSelectedMatchPartnerNotifier.new);
+
 /// Tracks the selected strategy for generation.
 class GroupingStrategyNotifier extends Notifier<String> {
   @override

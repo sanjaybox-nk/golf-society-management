@@ -235,9 +235,11 @@ class BoxyArtIndicator extends ConsumerWidget {
       leading = BoxyArtIconBadge(
         icon: icon!,
         color: baseColor ?? effectiveText,
+        iconColor: isAction ? effectiveText : null,
         size: 18,
         iconSize: 10,
         useCircle: true,
+        showFill: !isAction,
       );
     } else if (dotColor != null) {
       leading = Container(
